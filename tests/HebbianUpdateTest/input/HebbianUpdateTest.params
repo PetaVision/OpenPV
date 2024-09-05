@@ -1,0 +1,190 @@
+//
+// HebbianUpdateTest.params
+
+// A params file to test the Hebbian update rule. There is a 16-by-32-by-8 input layer, and a
+// 64-by-64-by-1 output layer, and a plastic 8-by-8-by-1 shared-weights connection with 8 kernels.
+// The input layer has values A(i,j,k) = k+1 for each x-location i and each y-location j.
+// The output layer is periodic in x with period 4 and periodic in y with period 2, and the
+// 4-by-2 section in the upper-left corner is
+//     +---------+
+//     | 1 2 3 4 |
+//     | 5 6 7 8 |
+//     +---------+
+// The weights are initially all zeros, and are plastic with the Hebbian update rule.
+//
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "HebbianUpdateTest.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 64;
+    ny                                  = 64;
+    nbatch                              = 1;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+};
+
+PvpLayer "Pre" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 0.25;
+    nyScale                             = 0.5;
+    nf                                  = 8;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    displayPeriod                       = 0;
+    inputPath                           = "input/Pre.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+PvpLayer "Post" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    displayPeriod                       = 0;
+    inputPath                           = "input/Post.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+HyPerConn "PreToPost" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = -1;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 8;
+    nyp                                 = 8;
+    nfp                                 = 1;
+    sharedWeights                       = true;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0;
+    connectOnlySameFeatures             = false;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = true;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 2;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    dWMax                               = 0.5;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+    combine_dW_with_W_flag              = false;
+};
+
+// PvpLayer "Correct" = {
+//     initializeFromCheckpointFlag        = false;
+//     broadcastFlag                       = false;
+//     nxScale                             = 1;
+//     nyScale                             = 1;
+//     nf                                  = 1;
+//     phase                               = 0;
+//     mirrorBCflag                        = true;
+//     displayPeriod                       = 0;
+//     inputPath                           = "input/Correct.pvp";
+//     offsetAnchor                        = "tl";
+//     offsetX                             = 0;
+//     offsetY                             = 0;
+//     jitterChangeInterval                = 0;
+//     autoResizeFlag                      = false;
+//     inverseFlag                         = false;
+//     normalizeLuminanceFlag              = false;
+//     useInputBCflag                      = false;
+//     padValue                            = 0;
+//     batchMethod                         = "byFile";
+//     start_frame_index                   = [0.000000];
+//     updateGpu                           = false;
+//     sparseLayer                         = false;
+//     writeStep                           = -1;
+// };
+// 
+// HyPerLayer "Comparison" = {
+//     initializeFromCheckpointFlag        = false;
+//     broadcastFlag                       = false;
+//     nxScale                             = 1;
+//     nyScale                             = 1;
+//     nf                                  = 1;
+//     phase                               = 2;
+//     mirrorBCflag                        = true;
+//     triggerLayerName                    = NULL;
+//     InitVType                           = "ZeroV";
+//     updateGpu                           = false;
+//     sparseLayer                         = false;
+//     writeStep                           = 1;
+//     initialWriteTime                    = 0;
+// };
+// 
+// IdentConn "OutputToComparison" = {
+//     initializeFromCheckpointFlag        = false;
+//     preLayerName                        = "Output";
+//     postLayerName                       = "Comparison";
+//     channelCode                         = 0;
+//     delay                               = [0.000000];
+// };
+// 
+// IdentConn "CorrectToComparison" = {
+//     initializeFromCheckpointFlag        = false;
+//     preLayerName                        = "Correct";
+//     postLayerName                       = "Comparison";
+//     channelCode                         = 1;
+//     delay                               = [0.000000];
+// };
+// 
+// RequireAllZeroActivityProbe "ComparisonProbe" = {
+//     targetLayer                         = "Comparison";
+//     textOutputFlag                      = true;
+//     probeOutputFile                     = "ComparisonProbe.txt";
+//     message                             = NULL;
+//     triggerLayerName                    = NULL;
+//     nnzThreshold                        = 0;
+//     exitOnFailure                       = true;
+//     immediateExitOnFailure              = false;
+// };

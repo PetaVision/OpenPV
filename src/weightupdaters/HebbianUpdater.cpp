@@ -587,8 +587,6 @@ void HebbianUpdater::updateInd_dW(
    size_t offset           = mWeights->getGeometry()->getAPostOffset(kExt);
    const float *postactRef = &postactbuf[offset];
 
-   int sym = 0;
-
    float *dwdata =
          mDeltaWeights->getDataFromPatchIndex(arborID, kExt) + mDeltaWeights->getPatch(kExt).offset;
    long *activations = nullptr;
@@ -602,7 +600,6 @@ void HebbianUpdater::updateInd_dW(
    int syp         = mWeights->getPatchStrideY();
    int lineoffsetw = 0;
    int lineoffseta = 0;
-   int lineoffsetm = 0;
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {
          float aPost = postactRef[lineoffseta + k];
@@ -618,8 +615,8 @@ void HebbianUpdater::updateInd_dW(
       }
       lineoffsetw += syp;
       lineoffseta += sya;
-      lineoffsetm += sym;
    }
+   return;
 }
 
 float HebbianUpdater::updateRule_dW(float pre, float post) { return mDWMax * pre * post; }
