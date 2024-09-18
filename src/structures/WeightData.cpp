@@ -2,6 +2,8 @@
 
 #include "utils/conversions.hpp"
 
+#include <limits>
+
 namespace PV {
 
 WeightData::WeightData(
@@ -18,6 +20,35 @@ WeightData::WeightData(
    mNumDataPatchesF = numDataPatchesF;
 
    initializeData();
+}
+
+void WeightData::calcExtremeWeights(float &minWeight, float &maxWeight) const {
+   float minW = std::numeric_limits<float>::max();
+   float maxW = -std::numeric_limits<float>::max();
+   int const numArbors = getNumArbors();
+   int const numValues = getNumValuesPerArbor();
+   for (int a = 0; a < numArbors; ++a) {
+      float const *arborPtr = getData(a);
+      for (int k = 0; k < numValues; ++k) {
+         float const value = arborPtr[k];
+         minW = value < minW ? value : minW;
+         maxW = value > maxW ? value : maxW;
+      }
+   }
+   minWeight = minW;
+   maxWeight = maxW;
+}
+
+float *WeightData::getDataFromDataIndex(int arbor, int dataIndex) {
+   auto &a = mData[arbor];
+   long offset = static_cast<long>(dataIndex) * mPatchSizeOverall;
+   return &a[offset]; 
+}
+
+float const *WeightData::getDataFromDataIndex(int arbor, int dataIndex) const {
+   auto &a = mData[arbor];
+   long offset = static_cast<long>(dataIndex) * mPatchSizeOverall;
+   return &a[offset]; 
 }
 
 float *WeightData::getDataFromXYF(int arbor, int indexX, int indexY, int indexF) {

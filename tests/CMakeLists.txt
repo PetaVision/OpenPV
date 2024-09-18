@@ -80,6 +80,7 @@ add_subdirectory(StatsProbeOutputterTest)
 add_subdirectory(SynchronizeMarginsTest)
 add_subdirectory(TargetLayerComponentTest)
 add_subdirectory(TransposeWeightsTest)
+add_subdirectory(WeightDataTest)
 add_subdirectory(WeightsClassTest)
 add_subdirectory(WeightsFileIOTest)
 

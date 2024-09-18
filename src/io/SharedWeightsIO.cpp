@@ -117,7 +117,7 @@ void SharedWeightsIO::write(WeightData const &weightData, double timestamp) {
 
    checkDimensions(weightData);
    float minWeight, maxWeight;
-   calcExtremeWeights(weightData, minWeight, maxWeight);
+   weightData.calcExtremeWeights(minWeight, maxWeight);
    auto header = BufferUtils::buildWeightHeader(
          true /*sharedFlag*/,
          getNumPatchesX(),
@@ -181,23 +181,6 @@ void SharedWeightsIO::setFrameNumber(int frameNumber) {
    mFileStream->setInPos(filePos, std::ios_base::beg);
    if (mFileStream->writeable()) {
       mFileStream->setOutPos(filePos, std::ios_base::beg);
-   }
-}
-
-void SharedWeightsIO::calcExtremeWeights(
-      WeightData const &weightData,
-      float &minWeight,
-      float &maxWeight) const {
-   minWeight          = FLT_MAX;
-   maxWeight          = -FLT_MAX;
-   long totalElements = weightData.getPatchSizeOverall() * weightData.getNumDataPatchesOverall();
-   for (int a = 0; a < getNumArbors(); ++a) {
-      float const *arbor = weightData.getData(a);
-      for (long k = 0; k < totalElements; ++k) {
-         float v   = arbor[k];
-         minWeight = v < minWeight ? v : minWeight;
-         maxWeight = v > maxWeight ? v : maxWeight;
-      }
    }
 }
 

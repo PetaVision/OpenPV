@@ -79,8 +79,6 @@ class SharedWeightsIO {
    int getNumFrames() const { return mNumFrames; }
 
   private:
-   void calcExtremeWeights(WeightData const &weightData, float &minWeight, float &maxWeight) const;
-
    void checkDimensions(WeightData const &weightData);
    void checkHeader(BufferUtils::WeightHeader const &header) const;
 
