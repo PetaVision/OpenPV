@@ -181,7 +181,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          sy,
          syw,
          mDeltaTimeFactor,
-         preWeights->getSharedFlag(),
+         preWeights->weightsTypeIsShared(),
          mChannelCode,
          mDevicePatches,
          mDeviceGSynPatchStart,

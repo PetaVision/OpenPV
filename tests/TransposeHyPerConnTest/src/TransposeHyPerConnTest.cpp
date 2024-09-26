@@ -111,7 +111,7 @@ int testTransposeConn(
    auto *originalMap = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName(originalName));
    FatalIf(!originalMap, "Connection \"%s\" does not exist.\n", originalName);
    FatalIf(
-         originalMap->getComponentByType<SharedWeights>()->getSharedWeights(),
+         originalMap->getComponentByType<SharedWeights>()->getSharedWeightsFlag(),
          "%s uses shared weights, but this test requires shared weights to be off.\n",
          originalMap->getDescription_c());
 

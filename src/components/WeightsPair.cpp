@@ -6,6 +6,8 @@
  */
 
 #include "WeightsPair.hpp"
+#include "components/LayerGeometry.hpp"
+#include "io/BroadcastPreWeightsFile.hpp"
 #include "io/LocalPatchWeightsFile.hpp"
 #include "io/SharedWeightsFile.hpp"
 #include "layers/HyPerLayer.hpp"
@@ -171,8 +173,29 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return status;
 }
 
+Weights::WeightsType WeightsPair::calcWeightsType(HyPerLayer *pre, HyPerLayer *post) {
+   Weights::WeightsType weightsType;
+   if (mSharedWeights->getSharedWeightsFlag()) {
+      weightsType = Weights::WeightsType::SHARED;
+   }
+   else {
+      auto *preGeometry = pre->getComponentByType<LayerGeometry>();
+      bool preIsBroadcast = preGeometry->getBroadcastFlag();
+      if (preIsBroadcast) {
+         weightsType = Weights::WeightsType::BROADCASTPRE;
+      }
+      else {
+         weightsType = Weights::WeightsType::LOCALPATCH;
+      }
+   }
+   return weightsType;
+}
+
 void WeightsPair::createPreWeights(std::string const &weightsName) {
    pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);
+   HyPerLayer *pre  = mConnectionData->getPre();
+   HyPerLayer *post = mConnectionData->getPost();
+   Weights::WeightsType weightsType = calcWeightsType(pre, post);
    mPreWeights = new Weights(
          weightsName,
          mPatchSize->getPatchSizeX(),
@@ -181,19 +204,22 @@ void WeightsPair::createPreWeights(std::string const &weightsName) {
          mConnectionData->getPre()->getLayerLoc(),
          mConnectionData->getPost()->getLayerLoc(),
          mArborList->getNumAxonalArbors(),
-         mSharedWeights->getSharedWeights(),
-         -std::numeric_limits<double>::infinity() /*timestamp*/);
+         weightsType,
+         std::numeric_limits<double>::lowest() /*timestamp, set to value "close to" -infinity*/);
 }
 
 void WeightsPair::createPostWeights(std::string const &weightsName) {
    pvAssert(mPostWeights == nullptr and mInitInfoCommunicatedFlag);
-   PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
-   PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
-   int nxpPre                = mPatchSize->getPatchSizeX();
-   int nxpPost               = PatchSize::calcPostPatchSize(nxpPre, preLoc->nx, postLoc->nx);
-   int nypPre                = mPatchSize->getPatchSizeY();
-   int nypPost               = PatchSize::calcPostPatchSize(nypPre, preLoc->ny, postLoc->ny);
-   mPostWeights              = new Weights(
+   HyPerLayer *pre  = mConnectionData->getPre();
+   HyPerLayer *post = mConnectionData->getPost();
+   auto *preLoc     = pre->getLayerLoc();
+   auto *postLoc    = post->getLayerLoc();
+   int nxpPre       = mPatchSize->getPatchSizeX();
+   int nxpPost      = PatchSize::calcPostPatchSize(nxpPre, preLoc->nx, postLoc->nx);
+   int nypPre       = mPatchSize->getPatchSizeY();
+   int nypPost      = PatchSize::calcPostPatchSize(nypPre, preLoc->ny, postLoc->ny);
+   Weights::WeightsType weightsType = calcWeightsType(post, pre);
+   mPostWeights = new Weights(
          weightsName,
          nxpPost,
          nypPost,
@@ -201,8 +227,8 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
          postLoc,
          preLoc,
          mArborList->getNumAxonalArbors(),
-         mSharedWeights->getSharedWeights(),
-         -std::numeric_limits<double>::infinity() /*timestamp*/);
+         weightsType,
+         std::numeric_limits<double>::lowest() /*timestamp, set to value "close to" -infinity*/);
 }
 
 void WeightsPair::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -285,32 +311,46 @@ void WeightsPair::openOutputStateFile(
    std::string outputStatePath(getName());
    outputStatePath.append(".pvp");
 
-   if (mPreWeights->getSharedFlag()) {
-      mWeightsFile = std::make_shared<SharedWeightsFile>(
-            outputFileManager,
-            outputStatePath,
-            mPreWeights->getData(),
-            getWriteCompressedWeights(),
-            false /*readOnlyFlag*/,
-            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-            checkpointer->doesVerifyWrites());
+   switch (mPreWeights->getWeightsType()) {
+      case Weights::WeightsType::SHARED:
+          mWeightsFile = std::make_shared<SharedWeightsFile>(
+                outputFileManager,
+                outputStatePath,
+                mPreWeights->getData(),
+                getWriteCompressedWeights(),
+                false /*readOnlyFlag*/,
+                checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+                checkpointer->doesVerifyWrites());
+          break;
+      case Weights::WeightsType::LOCALPATCH:
+         mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+               outputFileManager,
+               outputStatePath,
+               mPreWeights->getData(),
+               mConnectionData->getPre()->getLayerLoc(),
+               mConnectionData->getPost()->getLayerLoc(),
+               true /*fileExtendedFlag*/,
+               getWriteCompressedWeights(),
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+          break;
+      case Weights::WeightsType::BROADCASTPRE:
+         mWeightsFile = std::make_shared<BroadcastPreWeightsFile>(
+               outputFileManager,
+               outputStatePath,
+               mPreWeights->getData(),
+               mConnectionData->getPre()->getLayerLoc()->nf,
+               getWriteCompressedWeights(),
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+          break;
+      default:
+         Fatal().printf("Unrecognized WeightsType %d\n", mPreWeights->getWeightsType());
+         break;
    }
-   else {
-      auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
-      auto *postLoc = mConnectionData->getPost()->getLayerLoc();
-      mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
-            outputFileManager,
-            outputStatePath,
-            mPreWeights->getData(),
-            preLoc,
-            postLoc,
-            true /*fileExtendedFlag*/,
-            getWriteCompressedWeights(),
-            false /*readOnlyFlag*/,
-            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-            checkpointer->doesVerifyWrites());
-   }
-   mWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
+   mWeightsFile->respond(message); // WeightsFile needs to register filepos
 }
 
 Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer) {

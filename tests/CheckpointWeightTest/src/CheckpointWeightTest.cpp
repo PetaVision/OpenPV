@@ -74,8 +74,11 @@ void verifyCheckpointing(
    // Create the weights
    std::string label(sharedFlag ? "shared" : "nonshared");
    int const numArbors = 1;
+   auto weightsType = sharedFlag ? Weights::WeightsType::SHARED : Weights::WeightsType::LOCALPATCH;
+   // TODO (2024-09-25) Add a BROADCASTPRE case
+
    Weights weights(
-         label, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0 /*timestamp*/);
+         label, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, weightsType, 0.0 /*timestamp*/);
 
    // Generate the weight data.
    // The weight value is patchIndex + weightIndex/(nxp*nyp*nfp), where
@@ -162,8 +165,9 @@ void verifyCheckpointing(
    checkpointWriter->write(fileManager, timestamp, verifyWritesFlag);
 
    // Create a Weights object to read the checkpoint into
+   // TODO (2024-09-25) Add a BROADCASTPRE case
    Weights readBack(
-         label, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0 /*timestamp*/);
+         label, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, weightsType, 0.0 /*timestamp*/);
    readBack.allocateDataStructures();
    // Initialize readBack values to infinity, to catch errors where checkpoint read does nothing.
    for (int a = 0; a < numArbors; a++) {

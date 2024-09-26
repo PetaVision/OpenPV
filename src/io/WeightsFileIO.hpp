@@ -47,15 +47,15 @@ class WeightsFileIO {
     */
    static void moveToNextFrame(FileStream &fileStream);
 
-   // readSharedWeights and readLocalPatchWeights assume that the file pointer
+   // readSharedWeights and readNonSharedWeights assume that the file pointer
    // is at the end of the frame's header
    void readSharedWeights(BufferUtils::WeightHeader const &header);
 
-   void readLocalPatchWeights(BufferUtils::WeightHeader const &header);
+   void readNonSharedWeights(BufferUtils::WeightHeader const &header);
 
-   void readSharedFileToLocalPatchWeights(BufferUtils::WeightHeader const &header);
+   void readSharedFileToNonSharedWeights(BufferUtils::WeightHeader const &header);
 
-   void readLocalPatchFileToLocalPatchWeights(BufferUtils::WeightHeader const &header);
+   void readNonSharedFileToNonSharedWeights(BufferUtils::WeightHeader const &header);
 
    void writeSharedWeights(double timestamp, bool compress);
 

@@ -15,6 +15,8 @@
 
 namespace PV {
 
+using WeightsType = Weights::WeightsType;
+
 Weights::Weights(
       std::string const &name,
       int patchSizeX,
@@ -23,11 +25,11 @@ Weights::Weights(
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
       int numArbors,
-      bool sharedWeights,
+      WeightsType weightsType,
       double timestamp) {
    setName(name);
    initialize(
-         patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWeights, timestamp);
+         patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, weightsType, timestamp);
 }
 
 Weights::Weights(std::string const &name, Weights const *baseWeights) {
@@ -38,7 +40,7 @@ Weights::Weights(std::string const &name, Weights const *baseWeights) {
 void Weights::initialize(
       std::shared_ptr<PatchGeometry> geometry,
       int numArbors,
-      bool sharedWeights,
+      WeightsType weightsType,
       double timestamp) {
    FatalIf(
          mGeometry != nullptr,
@@ -46,7 +48,7 @@ void Weights::initialize(
          getName().c_str());
    mGeometry   = geometry;
    mNumArbors  = numArbors;
-   mSharedFlag = sharedWeights;
+   mWeightsType = weightsType;
    mTimestamp  = timestamp;
 
    initNumDataPatches();
@@ -61,7 +63,7 @@ void Weights::initialize(Weights const *baseWeights) {
    initialize(
          geometry,
          baseWeights->getNumArbors(),
-         baseWeights->getSharedFlag(),
+         baseWeights->getWeightsType(),
          baseWeights->getTimestamp());
 }
 
@@ -72,11 +74,13 @@ void Weights::initialize(
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
       int numArbors,
-      bool sharedWeights,
+      WeightsType weightsType,
       double timestamp) {
+   int nxp = weightsType == Weights::WeightsType::BROADCASTPRE ? postLoc->nx : patchSizeX;
+   int nyp = weightsType == Weights::WeightsType::BROADCASTPRE ? postLoc->ny : patchSizeY;
    auto geometry = std::make_shared<PatchGeometry>(
-         mName.c_str(), patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc);
-   initialize(geometry, numArbors, sharedWeights, timestamp);
+         mName.c_str(), nxp, nyp, patchSizeF, preLoc, postLoc);
+   initialize(geometry, numArbors, weightsType, timestamp);
 }
 
 void Weights::setMargins(PVHalo const &preHalo, PVHalo const &postHalo) {
@@ -98,7 +102,7 @@ void Weights::allocateDataStructures() {
             getPatchSizeX(), getPatchSizeY(), getPatchSizeF(),
             getNumDataPatchesX(), getNumDataPatchesY(), getNumDataPatchesF());
    }
-   if (mSharedFlag and getNumDataPatches() > 0) {
+   if (weightsTypeIsShared() and getNumDataPatches() > 0) {
       int const numPatches = mGeometry->getNumPatches();
       dataIndexLookupTable.resize(numPatches);
       for (int p = 0; p < numPatches; p++) {
@@ -129,13 +133,9 @@ void Weights::allocateCudaBuffers() {
                     * getGeometry()->getNumPatchesF();
    std::size_t size;
 
-   // Apr 10, 2018: mDevicePatches and mDeviceGSynPatchStart have been moved to
-   // PresynapticPerspectiveGPUDelivery, since they are needed for the presynaptic perspective,
-   // but not the postsynaptic perspective.
-
    if (getNumDataPatches() > 0) {
       std::vector<int> hostPatchToDataLookupVector(numPatches);
-      if (mSharedFlag) {
+      if (weightsTypeIsShared()) {
          for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
             hostPatchToDataLookupVector[patchIndex] = dataIndexLookupTable[patchIndex];
          }
@@ -179,7 +179,7 @@ void Weights::checkpointWeightPvp(
 }
 
 void Weights::initNumDataPatches() {
-   if (mSharedFlag) {
+   if (weightsTypeIsShared()) {
       setNumDataPatches(
             mGeometry->getNumKernelsX(), mGeometry->getNumKernelsY(), mGeometry->getNumKernelsF());
    }
@@ -201,12 +201,17 @@ float *Weights::getData(int arbor) { return mData->getData(arbor); }
 
 float const *Weights::getData(int arbor) const { return mData->getData(arbor); }
 
+float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
+   int dataIndex = weightsTypeIsShared() ?  dataIndexLookupTable[patchIndex] : patchIndex;
+   return getDataFromDataIndex(arbor, dataIndex);
+}
+
 float *Weights::getDataFromPatchIndexWithOffset(int arbor, int patchIndex) {
    return getDataFromPatchIndex(arbor, patchIndex) + getPatch(patchIndex).offset;
 }
 
 int Weights::calcDataIndexFromPatchIndex(int patchIndex) const {
-   if (getSharedFlag()) {
+   if (weightsTypeIsShared()) {
       int numPatchesX = mGeometry->getNumPatchesX();
       int numPatchesY = mGeometry->getNumPatchesY();
       int numPatchesF = mGeometry->getNumPatchesF();
@@ -246,7 +251,7 @@ float Weights::calcMinWeight() {
 
 float Weights::calcMinWeight(int arbor) {
    float arborMin = FLT_MAX;
-   if (getSharedFlag()) {
+   if (weightsTypeIsShared()) {
       float *arborStart = getData(arbor);
       float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
       for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {
@@ -289,7 +294,7 @@ float Weights::calcMaxWeight() {
 
 float Weights::calcMaxWeight(int arbor) {
    float arborMax = -FLT_MAX;
-   if (getSharedFlag()) {
+   if (weightsTypeIsShared()) {
       float *arborStart = getData(arbor);
       float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
       for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {

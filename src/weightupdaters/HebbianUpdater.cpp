@@ -266,7 +266,7 @@ Response::Status HebbianUpdater::allocateDataStructures() {
                mConnectionData->getPost()->getLayerLoc()->halo);
          mDeltaWeights->allocateDataStructures();
       }
-      if (mWeights->getSharedFlag() && mNormalizeDw) {
+      if (mWeights->weightsTypeIsShared() && mNormalizeDw) {
          int const numArbors = mArborList->getNumAxonalArbors();
          mNumKernelActivations.resize(numArbors);
          int const sp           = mDeltaWeights->getPatchSizeOverall();
@@ -485,7 +485,7 @@ int HebbianUpdater::update_dW(int arborID) {
          pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay);
    float const *postactbufHead = post->getComponentByType<BasePublisherComponent>()->getLayerData();
 
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
       // Calculate x and y cell size
       int xCellSize  = zUnitCellSize(preLoc->nx, postLoc->nx);
       int yCellSize  = zUnitCellSize(preLoc->ny, postLoc->ny);
@@ -590,7 +590,7 @@ void HebbianUpdater::updateInd_dW(
    float *dwdata =
          mDeltaWeights->getDataFromPatchIndex(arborID, kExt) + mDeltaWeights->getPatch(kExt).offset;
    long *activations = nullptr;
-   if (mWeights->getSharedFlag() && mNormalizeDw) {
+   if (mWeights->weightsTypeIsShared() && mNormalizeDw) {
       int dataIndex        = mWeights->calcDataIndexFromPatchIndex(kExt);
       int patchSizeOverall = mWeights->getPatchSizeOverall();
       int patchOffset      = mWeights->getPatch(kExt).offset;
@@ -636,7 +636,7 @@ void HebbianUpdater::reduce_dW() {
 
 int HebbianUpdater::reduce_dW(int arborId) {
    int kernel_status = PV_BREAK;
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
       kernel_status = reduceKernels(arborId); // combine partial changes in each column
       if (mNormalizeDw) {
          int activation_status = reduceActivations(arborId);
@@ -654,7 +654,7 @@ int HebbianUpdater::reduce_dW(int arborId) {
 }
 
 int HebbianUpdater::reduceKernels(int arborID) {
-   pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
+   pvAssert(mWeights->weightsTypeIsShared() && mPlasticityFlag);
    Communicator const *comm = mCommunicator;
    const int nxProcs        = comm->numCommColumns();
    const int nyProcs        = comm->numCommRows();
@@ -683,7 +683,7 @@ int HebbianUpdater::reduceKernels(int arborID) {
 }
 
 int HebbianUpdater::reduceActivations(int arborID) {
-   pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
+   pvAssert(mWeights->weightsTypeIsShared() && mPlasticityFlag);
    Communicator const *comm = mCommunicator;
    const int nxProcs        = comm->numCommColumns();
    const int nyProcs        = comm->numCommRows();
@@ -712,7 +712,7 @@ int HebbianUpdater::reduceActivations(int arborID) {
 }
 
 void HebbianUpdater::reduceAcrossBatch(int arborID) {
-   pvAssert(!mWeights->getSharedFlag() && mPlasticityFlag);
+   pvAssert(!mWeights->weightsTypeIsShared() && mPlasticityFlag);
    if (mCommunicator->numCommBatches() != 1) {
       const int numPatches     = mWeights->getNumDataPatches();
       const size_t patchSize   = (size_t)mWeights->getPatchSizeOverall();
@@ -768,7 +768,7 @@ int HebbianUpdater::normalize_dW(int arbor_ID) {
    if (!mNormalizeDw) {
       return PV_SUCCESS;
    }
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
       pvAssert(!mNumKernelActivations.empty());
       int numKernelIndices = mWeights->getNumDataPatches();
       int const numArbors  = mArborList->getNumAxonalArbors();

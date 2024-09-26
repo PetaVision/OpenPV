@@ -22,9 +22,9 @@ namespace PV {
 
 /**
  * A class to manage weight PVP files.
- * Generally reading and writing a weight PVP file should be done by means of this class.
- * The principal use case is by the LocalPatchWeightsFile class, which creates and manages a
- * LocalPatchWeightsIO class internally for its I/O operations.
+ * Generally reading and writing a local-patch weight PVP file should be done by means of this
+ * class. The principal use case is by the LocalPatchWeightsFile class, which creates and manages
+ * a LocalPatchWeightsIO class internally for its I/O operations.
  *
  * Opening a new file using LocalPatchWeightsIO creates an empty file. The public function members
  * read() loads all the weights from the frame. The writeHeader() function writes the header.
@@ -153,6 +153,24 @@ class LocalPatchWeightsIO {
          int nPreRef,
          int nPostRef,
          int patchSize);
+
+   /**
+    * checkDimensions(
+    *       weightData,
+    *       regionNxRestrictedPre,
+    *       regionNyRestrictedPre,
+    *       regionXStartRestricted,
+    *       regionYStartRestricted,
+    *       regionFStartRestricted,
+    *       arborIndexStart,
+    *       functionName)
+    * Checks whether a WeightData object fits into the LocalPatchWeightsIO object's weight data.
+    * Specifically, it confirms that
+    *     weightData.getNumArbors() + arborIndexStart <= getNumArbors().
+    *
+    * If weightData object does not fit, an error message is printed and the run exits with a
+    * fatal error.
+    */
    void checkDimensions(
          WeightData const &weightData,
          int regionNxRestrictedPre,
@@ -191,6 +209,18 @@ class LocalPatchWeightsIO {
          float maxWeight);
    // void setHeaderNBands(); // We might do this for weights as we do for layers; for now we don't
 
+   /**
+    * writePatchAtLocation(buffer, xStart, xStop, yStart, yStop, minWeight, maxWeight)
+    * Writes a buffer of length (xStop-xStart)*(yStop-yStart)*PatchSizeF to the FileStream,
+    * to the region indicated by the indices xStart, xStop, yStart, yStop. All features are written.
+    *
+    * Before calling this function, the FileStream position must be set to the start of the patch
+    * data (the end of the patch's 8-byte header) of the patch where the data is to be written.
+    * On exit, the FileStream position is the same as it was on entry.
+    *
+    * If CompressedFlag is true, the input buffer still consists of float values, and the
+    * compression is performed inside this function.
+    */
    void writePatchAtLocation(
          std::vector<float> const &writeBuffer,
          int xStart,

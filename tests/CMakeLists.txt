@@ -36,6 +36,7 @@ endif("${PV_SYSTEM_TEST_SHUFFLE}" MATCHES "^(0|[1-9][0-9]*|)$")
 # Unit tests for individual classes happen first. If these fail, the rest of the results are unreliable.
 add_subdirectory(ActivityBufferStatsProbeLocalTest)
 add_subdirectory(BatchIndexerTest)
+add_subdirectory(BroadcastPreWeightsFileTest)
 add_subdirectory(BufferTest)
 add_subdirectory(BufferUtilsMPITest)
 add_subdirectory(BufferUtilsPvpTest)

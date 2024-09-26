@@ -1,3 +1,6 @@
+#ifndef CMAKEHEADER_H_
+#define CMAKEHEADER_H_
+
 #define PV_VERSION_MAJOR @PV_VERSION_MAJOR@
 #define PV_VERSION_MINOR @PV_VERSION_MINOR@
 
@@ -8,3 +11,5 @@
 #cmakedefine PV_USE_CUDNN
 #cmakedefine PV_USE_LUA
 #cmakedefine PV_DEBUG_OUTPUT
+
+#endif // CMAKEHEADER_H_

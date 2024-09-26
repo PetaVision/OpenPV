@@ -1,7 +1,6 @@
 #include "LocalPatchWeightsFile.hpp"
 
 #include "io/FileStreamBuilder.hpp"
-#include "utils/weight_conversions.hpp"
 
 namespace PV {
 

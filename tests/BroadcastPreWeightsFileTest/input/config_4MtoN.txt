@@ -1,0 +1,11 @@
+# Configuration file for BroadcastPreWeightsFileTest
+OutputPath:output/config_4MtoN
+ParamsFile:
+NumThreads:-
+LogFile:BroadcastPreWeightsFileTest_4MtoN.log
+NumRows:2
+NumColumns:2
+BatchWidth:1
+CheckpointCellNumRows:1
+CheckpointCellNumColumns:1
+CheckpointCellBatchDimension:1

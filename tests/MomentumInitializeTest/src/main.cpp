@@ -168,7 +168,7 @@ std::unique_ptr<Weights> copyWeights(Weights const *inWeights) {
          &inWeights->getGeometry()->getPreLoc(),
          &inWeights->getGeometry()->getPostLoc(),
          inWeights->getNumArbors(),
-         inWeights->getSharedFlag(),
+         inWeights->getWeightsType(),
          inWeights->getTimestamp());
    std::unique_ptr<Weights> result(resultPtr);
    result->allocateDataStructures();

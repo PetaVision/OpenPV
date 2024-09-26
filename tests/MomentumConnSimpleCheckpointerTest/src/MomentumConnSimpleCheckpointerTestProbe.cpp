@@ -98,7 +98,7 @@ MomentumConnSimpleCheckpointerTestProbe::initConnection(PV::ObserverTable const 
       return PV::Response::POSTPONE;
    }
    FatalIf(
-         !sharedWeights->getSharedWeights(),
+         !sharedWeights->getSharedWeightsFlag(),
          "This test assumes that the connection is using shared weights.\n");
 
    auto *patchSize = objectTable->findObject<PV::PatchSize>(connectionName);

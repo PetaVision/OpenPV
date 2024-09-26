@@ -942,7 +942,7 @@ int SharedConnDebugInitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx,
    PVLayerLoc const &postLoc = preWeights->getGeometry()->getPostLoc();
 
    int xDataIndex, yDataIndex, fDataIndex;
-   if (preWeights->getSharedFlag()) {
+   if (preWeights->weightsTypeIsShared()) {
 
       int nxData = preWeights->getNumDataPatchesX();
       int nyData = preWeights->getNumDataPatchesY();

@@ -27,7 +27,8 @@ int SharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "sharedWeights", &mSharedWeights, mSharedWeights);
+   parameters()->ioParamValue(
+         ioFlag, getName(), "sharedWeights", &mSharedWeightsFlag, mSharedWeightsFlag);
 }
 
 } // namespace PV

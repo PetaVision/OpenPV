@@ -11,6 +11,7 @@
 
 using namespace PV;
 
+// TODO (2024-09-25) Add a BROADCASTPRE case
 Weights makeWeights(PV_Init &pv_init, std::string const &name, bool sharedFlag) {
    int const numColumns = pv_init.getCommunicator()->numCommColumns();
    int const numRows    = pv_init.getCommunicator()->numCommRows();
@@ -43,7 +44,8 @@ Weights makeWeights(PV_Init &pv_init, std::string const &name, bool sharedFlag) 
    int nfp       = 10;
    int numArbors = 4;
 
-   Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0);
+   auto weightsType = sharedFlag ? Weights::WeightsType::SHARED : Weights::WeightsType::LOCALPATCH;
+   Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, weightsType, 0.0);
    weightsObject.allocateDataStructures();
    return weightsObject;
 }

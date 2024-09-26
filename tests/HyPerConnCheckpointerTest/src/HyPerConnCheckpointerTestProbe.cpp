@@ -105,7 +105,7 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *objectTa
       return PV::Response::POSTPONE;
    }
    FatalIf(
-         !sharedWeights->getSharedWeights(),
+         !sharedWeights->getSharedWeightsFlag(),
          "This test assumes that the connection is using shared weights.\n");
 
    auto *weightsPair = objectTable->findObject<PV::WeightsPair>(connectionName);

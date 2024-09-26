@@ -1,4 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/BroadcastPreWeightsFile.cpp
+   ${SUBDIR}/BroadcastPreWeightsIO.cpp
    ${SUBDIR}/ConfigParser.cpp
    ${SUBDIR}/Configuration.cpp
    ${SUBDIR}/fileio.cpp
@@ -22,6 +24,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/BroadcastPreWeightsFile.hpp
+   ${SUBDIR}/BroadcastPreWeightsIO.hpp
    ${SUBDIR}/ConfigParser.hpp
    ${SUBDIR}/Configuration.hpp
    ${SUBDIR}/fileio.hpp
