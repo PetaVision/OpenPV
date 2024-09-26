@@ -67,6 +67,7 @@ class WeightsPair : public WeightsPairInterface {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   Weights::WeightsType calcWeightsType(HyPerLayer *pre, HyPerLayer *post);
    virtual void createPreWeights(std::string const &weightsName) override;
    virtual void createPostWeights(std::string const &weightsName) override;
    virtual void setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message);

@@ -216,7 +216,7 @@ void HyPerConn::warnIfBroadcastWithShared() {
    BaseDelivery *delivery = getComponentByType<BaseDelivery>();
 
    SharedWeights *sharedWeights = getComponentByType<SharedWeights>();
-   if (!sharedWeights or !sharedWeights->getSharedWeights()) { return; }
+   if (!sharedWeights or !sharedWeights->getSharedWeightsFlag()) { return; }
 
    LayerInputBuffer const *postGSyn = delivery ? delivery->getPostGSyn() : nullptr;
    LayerGeometry const *postLayerGeometry = postGSyn ? postGSyn->getLayerGeometry() : nullptr;

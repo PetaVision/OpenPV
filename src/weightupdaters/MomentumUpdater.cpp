@@ -290,7 +290,7 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
       char const *baseDirectory = mInitPrev_dWFile[0] == '/' ? "/" : ".";
       auto fileManager = std::make_shared<FileManager>(globalMPIBlock, baseDirectory);
       std::shared_ptr<WeightsFile> weightsFile;
-      if (mPrevDeltaWeights->getSharedFlag()) {
+      if (mPrevDeltaWeights->weightsTypeIsShared()) {
          weightsFile = std::make_shared<SharedWeightsFile>(
                fileManager,
                std::string(mInitPrev_dWFile),
@@ -409,7 +409,7 @@ void MomentumUpdater::openOutputStateFile(
 
    auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
    auto *postLoc = mConnectionData->getPost()->getLayerLoc();
-   if (mPrevDeltaWeights->getSharedFlag()) {
+   if (mPrevDeltaWeights->weightsTypeIsShared()) {
       mWeightsFile = std::make_shared<SharedWeightsFile>(
             outputFileManager,
             outputStatePath,

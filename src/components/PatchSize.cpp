@@ -6,6 +6,7 @@
  */
 
 #include "PatchSize.hpp"
+#include "components/LayerGeometry.hpp"
 
 namespace PV {
 
@@ -29,11 +30,21 @@ int PatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nxp", &mPatchSizeX, mPatchSizeX);
+   parameters()->ioParamValue(ioFlag, getName(), "nxp", &mPatchSizeX, mPatchSizeX, false);
+   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parameters()->present(getName(), "nxp")
+       && mCommunicator->globalCommRank() == 0) {
+      InfoLog().printf(
+            "%s: nxp will be set in the communicateInitInfo() stage.\n", getDescription_c());
+   }
 }
 
 void PatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nyp", &mPatchSizeY, mPatchSizeY);
+   parameters()->ioParamValue(ioFlag, getName(), "nyp", &mPatchSizeY, mPatchSizeY, false);
+   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parameters()->present(getName(), "nyp")
+       && mCommunicator->globalCommRank() == 0) {
+      InfoLog().printf(
+            "%s: nyp will be set in the communicateInitInfo() stage.\n", getDescription_c());
+   }
 }
 
 void PatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
@@ -64,33 +75,31 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       return Response::POSTPONE;
    }
 
-   HyPerLayer *post = mConnectionData->getPost();
-   int const nfPost = post->getLayerLoc()->nf;
-
-   if (mPatchSizeF < 0) {
-      mPatchSizeF = nfPost;
-      if (mWarnDefaultNfp && mCommunicator->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s setting nfp to number of postsynaptic features = %d.\n",
-               getDescription_c(),
-               mPatchSizeF);
-      }
-   }
-   if (mPatchSizeF != nfPost) {
+   HyPerLayer *pre = mConnectionData->getPre();
+   if (!pre->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "Params file specifies %d features for %s,\n", mPatchSizeF, getDescription_c());
-         errorMessage.printf(
-               "but %d features for post-synaptic layer %s\n", nfPost, post->getName());
+         InfoLog().printf(
+               "%s must wait until the pre-synaptic layer has finished its "
+               "communicateInitInfo stage.\n",
+               getDescription_c());
       }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      exit(PV_FAILURE);
+      return Response::POSTPONE;
    }
-   // Currently, the only acceptable number for mPatchSizeF is the number of post-synaptic features.
-   // However, we may add flexibility on this score in the future, e.g. MPI in feature space
-   // with each feature connecting to only a few nearby features.
-   // Accordingly, we still keep ioParam_nfp.
+
+   HyPerLayer *post = mConnectionData->getPost();
+   if (!post->getInitInfoCommunicatedFlag()) {
+      if (mCommunicator->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until the post-synaptic layer has finished its "
+               "communicateInitInfo stage.\n",
+               getDescription_c());
+      }
+      return Response::POSTPONE;
+   }
+
+   setPatchSizeX(pre, post);
+   setPatchSizeY(pre, post);
+   setPatchSizeF(pre, post);
 
    return Response::SUCCESS;
 }
@@ -127,6 +136,87 @@ int PatchSize::calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeu
             prePatchSize);
       return prePatchSize / scaleFactor;
    }
+}
+
+void PatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
+   auto *preLayerGeometry = pre->getComponentByType<LayerGeometry>();
+   bool isBroadcastPre = preLayerGeometry->getBroadcastFlag();
+   if (isBroadcastPre) {
+      int correctPatchSizeX = post->getLayerLoc()->nxGlobal;
+      if (mPatchSizeX < 0) { mPatchSizeX = correctPatchSizeX; }
+      else if (mPatchSizeX * mCommunicator->numCommColumns() == correctPatchSizeX) {
+         WarnLog().printf(
+               "%s setting nxp to %d, the nxGlobal of post-synaptic layer \"%s\".\n", 
+               getDescription_c(), correctPatchSizeX, post->getName());
+         mPatchSizeX = correctPatchSizeX;
+      }
+      FatalIf(
+            mPatchSizeX != correctPatchSizeX,
+            "%s has a pre-synaptic broadcast layer, so nxp must be the global post-synaptic nx.\n"
+            "    (given nxp = %d; global post-synaptic nx = %d)\n",
+            getDescription_c(), mPatchSizeX, correctPatchSizeX);
+   }
+   else { // pre-layer is not a broadcast layer
+      FatalIf(
+            mPatchSizeX < 0,
+            "%s has a non-broadcast pre-synaptic layer, but param nxp was not set\n",
+            getDescription_c());
+   }
+}
+
+void PatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
+   auto *preLayerGeometry = pre->getComponentByType<LayerGeometry>();
+   bool isBroadcastPre = preLayerGeometry->getBroadcastFlag();
+   if (isBroadcastPre) {
+      int correctPatchSizeY = post->getLayerLoc()->nyGlobal;
+      if (mPatchSizeY < 0) { mPatchSizeY = correctPatchSizeY; }
+      else if (mPatchSizeY * mCommunicator->numCommColumns() == correctPatchSizeY) {
+         WarnLog().printf(
+               "%s setting nyp to %d, the ny of post-synaptic layer \"%s\".\n", 
+               getDescription_c(), correctPatchSizeY, post->getName());
+         mPatchSizeY = correctPatchSizeY;
+      }
+      FatalIf(
+            mPatchSizeY != correctPatchSizeY,
+            "%s has a pre-synaptic broadcast layer, so nyp must be the global post-synaptic ny.\n"
+            "    (given nyp = %d; global post-synaptic ny = %d)\n",
+            getDescription_c(), mPatchSizeY, correctPatchSizeY);
+   }
+   else { // pre-layer is not a broadcast layer
+      FatalIf(
+            mPatchSizeY < 0,
+            "%s has a non-broadcast pre-synaptic layer, but param nyp was not set\n",
+            getDescription_c());
+   }
+}
+
+void PatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
+   int const nfPost = post->getLayerLoc()->nf;
+
+   if (mPatchSizeF < 0) {
+      mPatchSizeF = nfPost;
+      if (mWarnDefaultNfp && mCommunicator->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s setting nfp to number of postsynaptic features = %d.\n",
+               getDescription_c(),
+               mPatchSizeF);
+      }
+   }
+   if (mPatchSizeF != nfPost) {
+      if (mCommunicator->globalCommRank() == 0) {
+         ErrorLog(errorMessage);
+         errorMessage.printf(
+               "Params file specifies %d features for %s,\n", mPatchSizeF, getDescription_c());
+         errorMessage.printf(
+               "but %d features for post-synaptic layer %s\n", nfPost, post->getName());
+      }
+      MPI_Barrier(mCommunicator->globalCommunicator());
+      exit(PV_FAILURE);
+   }
+   // Currently, the only acceptable number for mPatchSizeF is the number of post-synaptic features.
+   // However, we may add flexibility on this score in the future, e.g. MPI in feature space
+   // with each feature connecting to only a few nearby features.
+   // Accordingly, we still keep ioParam_nfp.
 }
 
 } // namespace PV

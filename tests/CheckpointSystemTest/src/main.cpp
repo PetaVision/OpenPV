@@ -9,6 +9,8 @@
 #include <columns/buildandrun.hpp>
 #include <columns/Factory.hpp>
 
+#include <string>
+
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
@@ -100,15 +102,16 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
    if (rank == rootproc) {
-      int index             = hc->getFinalStep();
-      const char *cpdir1    = "checkpoints1";
-      const char *cpdir2    = hc->parameters()->stringValue("column", "checkpointWriteDir");
-      const int max_buf_len = 1024;
-      char shellcommand[max_buf_len];
-      const char *fmtstr = "diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua %s/Checkpoint%d "
-                           "%s/Checkpoint%d";
-      snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
-      status = system(shellcommand);
+      int index = hc->getFinalStep();
+      std::string cpdir1("checkpoints1");
+      std::string cpdir2(hc->parameters()->stringValue("column", "checkpointWriteDir"));
+      std::string checkpointName = std::string("Checkpoint") + std::to_string(index);
+      std::string checkpointDir1 = cpdir1 + "/" + checkpointName;
+      std::string checkpointDir2 = cpdir2 + "/" + checkpointName;
+      std::string shellcommand("diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua");
+      shellcommand.append(" ").append(checkpointDir1);
+      shellcommand.append(" ").append(checkpointDir2);
+      status = system(shellcommand.c_str());
       if (status != 0) {
          ErrorLog().printf("system(\"%s\") returned %d\n", shellcommand, WEXITSTATUS(status));
          status = PV_FAILURE;

@@ -87,15 +87,11 @@ int checkOutput(HyPerCol *hc, int argc, char *argv[]) {
    return EXIT_SUCCESS;
 }
 
-// Note: because of a (temporary) hack to implement broadcast layers, the weight files currently
-// have dimensions nxp=2, nyp=2, nfp=1, numPatches = 16. Ideally, they would have dimensions
-// nxp=4, nyp=4, nfp=1, numPatches=4. When this change is implemented, the code below will need
-// to be adjusted. --Pete Schultz, Jul 2, 2024.
 std::vector<float> checkFrame(std::shared_ptr<FileStream> fileStream) {
-   int const nxpCorrect = 2;
-   int const nypCorrect = 2;
+   int const nxpCorrect = 4;
+   int const nypCorrect = 4;
    int const nfpCorrect = 1;
-   int const numPatchesCorrect = 16;
+   int const numPatchesCorrect = 4;
    FatalIf(!fileStream, "checkFrame called with null fileStream");
    BufferUtils::WeightHeader header;
    FatalIf(
@@ -129,10 +125,9 @@ std::vector<float> checkFrame(std::shared_ptr<FileStream> fileStream) {
          "nfp is %d instead of the expected value %d\n",
          header.nfp, nfpCorrect);
    FatalIf(
-         header.numPatches != 16,
+         header.numPatches != numPatchesCorrect,
          "numPatches is %d instead of the expected value %d\n",
          header.numPatches, 16);
-   int frameSize = (header.nxp * header.nyp * header.nyp + 8) * header.numPatches;
    std::vector<std::vector<float>> readValues(header.numPatches);
    for (int i = 0; i < header.numPatches; ++i) {
       short int sPatchSize[2];
@@ -147,7 +142,8 @@ std::vector<float> checkFrame(std::shared_ptr<FileStream> fileStream) {
       fileStream->read(&offset, 4L);
       FatalIf(offset != 0, "Offset for patch %d is %d instead of the expected zero.\n", offset);
       readValues[i].resize(nx * ny);
-      fileStream->read(readValues[i].data(), 16L); // (nx * ny values, each of size sizeof(float))
+      long numBytes = nx * ny * 4L; // size of float is 4.
+      fileStream->read(readValues[i].data(), 64);
    }
 
    std::vector<float> sumOfSquares(4);

@@ -38,7 +38,7 @@ class SharedWeights : public BaseObject {
 
    virtual ~SharedWeights();
 
-   bool getSharedWeights() const { return mSharedWeights; }
+   bool getSharedWeightsFlag() const { return mSharedWeightsFlag; }
 
   protected:
    SharedWeights() {}
@@ -50,7 +50,7 @@ class SharedWeights : public BaseObject {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
-   bool mSharedWeights = true;
+   bool mSharedWeightsFlag = true;
 };
 
 } // namespace PV

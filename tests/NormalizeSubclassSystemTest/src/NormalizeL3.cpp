@@ -43,7 +43,7 @@ int NormalizeL3::normalizeWeights() {
 
    float scaleFactor = 1.0f;
    if (mNormalizeFromPostPerspective) {
-      if (weights0->getSharedFlag() == false) {
+      if (weights0->weightsTypeIsShared() == false) {
          Fatal().printf(
                "NormalizeL3 error for %s: normalizeFromPostPerspective is true but connection does "
                "not use shared weights.\n",

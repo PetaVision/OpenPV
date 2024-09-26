@@ -25,20 +25,10 @@ namespace PV {
 /**
  * Weights encapsulates the patch geometry and patch data for a HyPerConn-type connection
  * It makes use of a PatchGeometry object (either creating it itself or using an already existing
- * object). It handles both shared and nonshared versions of the connection data used by HyPerConn,
+ * object). It handles shared weights, local patch weights, or broadcast-pre weights,
  * and handles multiple arbors.
  *
- * If instantiating with the constructor that only takes the name argument, one of the initialize()
- * methods must be called. The initialize() methods differ in how the PatchGeometry object is
- * specified. Afterward, the allocateDataStructures() method must be called before the weights
- * object is ready. If the Weights is constructed with sharedWeights off, NumDataPatchesX and
- * NumDataPatchesY are the same as the PatchGeometry object's numPatchesX and numPatchesY.
- *
- * If instantiating with a constructor that takes more than just the name argument, the
- * constructor calls initialize(). However, the allocateDataStructures() method must still
- * be called before the weights object is ready to use.
- *
- * If sharedWeights is on, NumDataPatchesX is PreLoc.nx / PostLoc.nx if this quantity is
+ * If the WeightsType is shared, NumDataPatchesX is PreLoc.nx / PostLoc.nx if this quantity is
  * greater than one, and 1 otherwise. Note that the PatchGeometry object requires that
  * the quotient of PreLoc.nx and PostLoc.nx be an integral power of two (1, 2, 4, 8, ...; or
  * 1/2, 1/4, 1/8, ...).
@@ -49,6 +39,7 @@ namespace PV {
 class Weights {
 
   public:
+   enum class WeightsType { SHARED, LOCALPATCH, BROADCASTPRE };
 
    /**
     * Instantiates the Weights object and then calls the initialize() method with the arguments
@@ -62,7 +53,7 @@ class Weights {
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
          int numArbors,
-         bool sharedWeights,
+         WeightsType weightsType,
          double timestamp);
 
    Weights(std::string const &name, Weights const *baseWeights);
@@ -111,8 +102,12 @@ class Weights {
    void copyToGPU();
 #endif // PV_USE_CUDA
 
-   /** The get-method for the sharedWeights flag */
-   bool getSharedFlag() const { return mSharedFlag; }
+   /** The get-method for the WeightsType flag */
+   WeightsType getWeightsType() const { return mWeightsType; }
+
+   bool weightsTypeIsShared() const { return mWeightsType == WeightsType::SHARED; }
+   bool weightsTypeIsLocalPatch() const { return mWeightsType == WeightsType::LOCALPATCH; }
+   bool weightsTypeIsBroadcastPre() const { return mWeightsType == WeightsType::BROADCASTPRE; }
 
    /** The get-method for the name of the object */
    std::string const &getName() const { return mName; }
@@ -172,10 +167,7 @@ class Weights {
     * Returns a pointer to the patch data for data index corresponding to the
     * given patch index
     */
-   inline float *getDataFromPatchIndex(int arbor, int patchIndex) {
-      int dataIndex = mSharedFlag ? dataIndexLookupTable[patchIndex] : patchIndex;
-      return getDataFromDataIndex(arbor, dataIndex);
-   }
+   float *getDataFromPatchIndex(int arbor, int patchIndex);
 
    /**
     * Returns a pointer to the start of the active area of the patch data for
@@ -266,7 +258,7 @@ class Weights {
    void initialize(
          std::shared_ptr<PatchGeometry> geometry,
          int numArbors,
-         bool sharedWeights,
+         WeightsType weightsType,
          double timestamp);
 
    /** A constructor that uses the geometry of an existing Weights object.
@@ -285,7 +277,7 @@ class Weights {
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
          int numArbors,
-         bool sharedWeights,
+         WeightsType weightsType,
          double timestamp);
 
    void setName(std::string const &name) { mName = name; }
@@ -303,7 +295,7 @@ class Weights {
    std::string mName;
    std::shared_ptr<PatchGeometry> mGeometry = nullptr;
    int mNumArbors;
-   bool mSharedFlag;
+   WeightsType mWeightsType;
    double mTimestamp;
    int mNumDataPatchesX;
    int mNumDataPatchesY;

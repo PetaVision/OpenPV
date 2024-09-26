@@ -53,7 +53,7 @@ int NormalizeSum::normalizeWeights() {
 
    float scaleFactor = 1.0f;
    if (mNormalizeFromPostPerspective) {
-      if (weights0->getSharedFlag() == false) {
+      if (!weights0->weightsTypeIsShared()) {
          Fatal().printf(
                "NormalizeSum error for %s: normalizeFromPostPerspective is true but connection "
                "does not use shared weights.\n",

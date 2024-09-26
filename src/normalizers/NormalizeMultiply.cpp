@@ -81,17 +81,19 @@ int NormalizeMultiply::normalizeWeights() {
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
    Weights *weights0 = mWeightsList[0];
+   bool weights0Shared = weights0->weightsTypeIsShared();
    for (auto &weights : mWeightsList) {
-      if (weights->getSharedFlag() != weights0->getSharedFlag()) {
+      bool weightsShared = weights->weightsTypeIsShared();
+      if (weightsShared != weights0Shared) {
          if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same sharedWeights "
                   "(%s has %d; %s has %d).\n",
                   this->getDescription_c(),
                   weights0->getName().c_str(),
-                  weights0->getSharedFlag(),
+                  weights0Shared,
                   weights->getName().c_str(),
-                  weights->getSharedFlag());
+                  weightsShared);
          }
          status = PV_FAILURE;
       }

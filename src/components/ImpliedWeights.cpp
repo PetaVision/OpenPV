@@ -21,9 +21,9 @@ ImpliedWeights::ImpliedWeights(
       double timestamp) {
    setName(name);
    int const numArbors      = 1;
-   bool const sharedWeights = true;
+   Weights::WeightsType const sharedWgtsType = Weights::WeightsType::SHARED;
    Weights::initialize(
-         patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWeights, timestamp);
+         patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWgtsType, timestamp);
 }
 
 void ImpliedWeights::initNumDataPatches() { setNumDataPatches(0, 0, 0); }

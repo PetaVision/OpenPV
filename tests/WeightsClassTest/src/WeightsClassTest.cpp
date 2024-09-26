@@ -5,7 +5,6 @@
 #include <structures/Weights.hpp>
 #include <utils/PathComponents.hpp> // PV::baseName
 #include <utils/PVLog.hpp>
-#include <utils/conversions.hpp>
 
 #include <string.h>
 
@@ -158,13 +157,14 @@ void testOneToOneShared() {
    int nyp = 5;
    int nfp = 10;
 
-   PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true, 0.0);
+   PV::Weights weightsObject(
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::SHARED, 0.0);
 
    testWeights(weightsObject, 1, 1, preLoc.nf, nxp, nyp, nfp);
 }
 
-void testOneToOneNonshared() {
-   std::string name("One-to-one, nonshared weights");
+void testOneToOneLocalPatch() {
+   std::string name("One-to-one, local patch weights");
 
    PVLayerLoc preLoc, postLoc;
    preLoc.nx       = 8;
@@ -187,7 +187,8 @@ void testOneToOneNonshared() {
    int nyp = 5;
    int nfp = 10;
 
-   PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
+   PV::Weights weightsObject(
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::LOCALPATCH, 0.0);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
@@ -218,13 +219,14 @@ void testOneToManyShared() {
    int nyp = 12;
    int nfp = 10;
 
-   PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true, 0.0);
+   PV::Weights weightsObject(
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::SHARED, 0.0);
 
    testWeights(weightsObject, 1, 1, preLoc.nf, nxp, nyp, nfp);
 }
 
-void testOneToManyNonshared() {
-   std::string name("One-to-many, nonshared weights");
+void testOneToManyLocalPatch() {
+   std::string name("One-to-many, local patch weights");
 
    PVLayerLoc preLoc, postLoc;
    preLoc.nx       = 4;
@@ -247,7 +249,8 @@ void testOneToManyNonshared() {
    int nyp = 12;
    int nfp = 10;
 
-   PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
+   PV::Weights weightsObject(
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::LOCALPATCH, 0.0);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
@@ -281,13 +284,14 @@ void testManyToOneShared() {
    int xStride = preLoc.nx / postLoc.nx;
    int yStride = preLoc.ny / postLoc.ny;
 
-   PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true, 0.0);
+   PV::Weights weightsObject(
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::SHARED, 0.0);
 
    testWeights(weightsObject, xStride, yStride, preLoc.nf, nxp, nyp, nfp);
 }
 
-void testManyToOneNonshared() {
-   std::string name("Many-to-one, nonshared weights");
+void testManyToOneLocalPatch() {
+   std::string name("Many-to-one, local patch weights");
 
    PVLayerLoc preLoc, postLoc;
    preLoc.nx       = 16;
@@ -310,7 +314,8 @@ void testManyToOneNonshared() {
    int nyp = 3;
    int nfp = 10;
 
-   PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
+   PV::Weights weightsObject(
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::LOCALPATCH, 0.0);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
@@ -319,11 +324,12 @@ void testManyToOneNonshared() {
 
 int main(int argc, char *argv[]) {
    testOneToOneShared();
-   testOneToOneNonshared();
+   testOneToOneLocalPatch();
+   // TODO (2024-09-25) Add a BroadcastPre case
    testOneToManyShared();
-   testOneToManyNonshared();
+   testOneToManyLocalPatch();
    testManyToOneShared();
-   testManyToOneNonshared();
+   testManyToOneLocalPatch();
    std::string programName = PV::baseName(argv[0]);
    InfoLog() << programName << " passed.\n";
    return 0;

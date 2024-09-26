@@ -45,7 +45,7 @@ int NormalizeMax::normalizeWeights() {
 
    float scaleFactor = 1.0f;
    if (mNormalizeFromPostPerspective) {
-      if (weights0->getSharedFlag() == false) {
+      if (!weights0->weightsTypeIsShared()) {
          Fatal().printf(
                "NormalizeMax error for %s: normalizeFromPostPerspective is true but connection "
                "does not use shared weights.\n",

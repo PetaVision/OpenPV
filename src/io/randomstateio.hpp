@@ -1,3 +1,6 @@
+#ifndef RANDOMSTATEIO_HPP_
+#define RANDOMSTATEIO_HPP_
+
 #include "include/PVLayerLoc.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/cl_random.h"
@@ -22,3 +25,5 @@ void writeRandState(
       double simTime,
       bool verifyWrites = false);
 }
+
+#endif // RANDOMSTATEIO_HPP_

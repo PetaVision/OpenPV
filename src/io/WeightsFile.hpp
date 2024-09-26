@@ -15,7 +15,8 @@
 namespace PV {
 
 /**
- * A class that provides a common interface for LocalPatchWeightsFile and SharedWeightsFile
+ * A class that provides a common interface for the BroadcastPreWeightsFile,
+ * LocalPatchWeightsFile, and SharedWeightsFile classes
  */
 class WeightsFile : public CheckpointerDataInterface{
   protected:

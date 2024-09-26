@@ -141,11 +141,11 @@ int check_kernel_vs_hyper(
       int kPre,
       int axonID) {
    FatalIf(
-         cKernel->getComponentByType<SharedWeights>()->getSharedWeights() != true,
+         cKernel->getComponentByType<SharedWeights>()->getSharedWeightsFlag() != true,
          "%s should have sharedWeights true.\n",
          cKernel->getDescription_c());
    FatalIf(
-         cHyPer->getComponentByType<SharedWeights>()->getSharedWeights() != false,
+         cHyPer->getComponentByType<SharedWeights>()->getSharedWeightsFlag() != false,
          "%s should have sharedWeights false.\n",
          cHyPer->getDescription_c());
    int status               = PV_SUCCESS;

@@ -44,7 +44,7 @@ FileStreamBuilder::FileStreamBuilder(
       }
       if (createNewFile) {
          mFileStream = fileManager->open(path, std::ios_base::out, verifyWritesFlag);
-         // This file will be closed when mFileStream is redefined, below.
+         mFileStream = nullptr; // Close the file; it will be reopened with the correct mode below
       }
    }
 

@@ -91,7 +91,7 @@ int TestShared(
          &originalWeights.getGeometry()->getPostLoc(),
          &originalWeights.getGeometry()->getPreLoc(),
          1 /*numArbors*/,
-         shared,
+         originalWeights.getWeightsType(),
          0.0 /*timestamp*/);
 
    int const numKernelsPost = transposeWeights.getGeometry()->getNumKernels();

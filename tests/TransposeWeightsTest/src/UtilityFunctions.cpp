@@ -56,7 +56,7 @@ void checkMPICompatibility(PVLayerLoc const &loc, Communicator const *comm) {
 }
 
 Weights createOriginalWeights(
-      bool sharedFlag,
+      bool sharedFlag, // TODO (2024-09-25) Add a BROADCASTPRE case
       int nxPre,
       int nyPre,
       int nfPre,
@@ -131,7 +131,7 @@ Weights createOriginalWeights(
          &preLoc,
          &postLoc,
          numArbors,
-         sharedFlag,
+         sharedFlag ? Weights::WeightsType::SHARED : Weights::WeightsType::LOCALPATCH,
          timestamp);
 
    int const numKernelsPre = originalWeights.getGeometry()->getNumKernels();
@@ -232,7 +232,7 @@ int checkTransposeOfTranspose(
          &originalWeights.getGeometry()->getPreLoc(),
          &originalWeights.getGeometry()->getPostLoc(),
          originalWeights.getNumArbors(),
-         originalWeights.getSharedFlag(),
+         originalWeights.getWeightsType(),
          originalWeights.getTimestamp());
    transposeOfTranspose.allocateDataStructures();
    TransposeWeights::transpose(&transposeWeights, &transposeOfTranspose, comm);

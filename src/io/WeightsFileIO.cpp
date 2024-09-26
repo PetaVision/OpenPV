@@ -27,11 +27,11 @@ double WeightsFileIO::readWeights(int frameNumber) {
    BufferUtils::WeightHeader header = readHeader(frameNumber);
    checkHeader(header);
 
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
       readSharedWeights(header);
    }
    else {
-      readLocalPatchWeights(header);
+      readNonSharedWeights(header);
    }
    double timestamp = header.baseHeader.timestamp;
    mWeights->setTimestamp(timestamp);
@@ -50,7 +50,7 @@ BufferUtils::WeightHeader WeightsFileIO::readHeader(int frameNumber) {
 }
 
 void WeightsFileIO::checkHeader(BufferUtils::WeightHeader const &header) {
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
       FatalIf(
             header.baseHeader.fileType != PVP_KERNEL_FILE_TYPE,
             "Connection \"%s\" has sharedWeights true, "
@@ -68,15 +68,6 @@ void WeightsFileIO::checkHeader(BufferUtils::WeightHeader const &header) {
             mFileStream->getFileName().c_str(),
             header.numPatches);
    }
-   // else {
-   //    // TODO: It should be allowed to read a kernel file into a non-shared-weights atlas
-   //    FatalIf(
-   //          header.baseHeader.fileType != PVP_WGT_FILE_TYPE,
-   //          "Connection \"%s\" has sharedWeights false, "
-   //          "but initWeightsFile \"%s\" is a shared-weights file.\n",
-   //          mWeights->getName().c_str(),
-   //          mFileStream->getFileName().c_str());
-   // }
    FatalIf(
          header.baseHeader.nBands < mWeights->getNumArbors(),
          "Connection \"%s\" has %d arbors, but file \"%s\" has only %d arbors.\n",
@@ -161,14 +152,14 @@ void WeightsFileIO::readSharedWeights(BufferUtils::WeightHeader const &header) {
    }
 }
 
-void WeightsFileIO::readLocalPatchWeights(BufferUtils::WeightHeader const &header) {
+void WeightsFileIO::readNonSharedWeights(BufferUtils::WeightHeader const &header) {
    int fileType = header.baseHeader.fileType;
    switch(fileType) {
       case PVP_WGT_FILE_TYPE:
-         readLocalPatchFileToLocalPatchWeights(header);
+         readNonSharedFileToNonSharedWeights(header);
          break;
       case PVP_KERNEL_FILE_TYPE:
-         readSharedFileToLocalPatchWeights(header);
+         readSharedFileToNonSharedWeights(header);
          break;
       default:
          assert(0); // Should only be called for weight file types
@@ -176,7 +167,7 @@ void WeightsFileIO::readLocalPatchWeights(BufferUtils::WeightHeader const &heade
    }
 }
 
-void WeightsFileIO::readSharedFileToLocalPatchWeights(BufferUtils::WeightHeader const &header) {
+void WeightsFileIO::readSharedFileToNonSharedWeights(BufferUtils::WeightHeader const &header) {
    auto patchGeometry = mWeights->getGeometry();
    int numKernelsX = patchGeometry->getNumKernelsX();
    int numKernelsY = patchGeometry->getNumKernelsY();
@@ -238,7 +229,7 @@ void WeightsFileIO::readSharedFileToLocalPatchWeights(BufferUtils::WeightHeader 
    }
 }
 
-void WeightsFileIO::readLocalPatchFileToLocalPatchWeights(BufferUtils::WeightHeader const &header) {
+void WeightsFileIO::readNonSharedFileToNonSharedWeights(BufferUtils::WeightHeader const &header) {
    bool compressed          = isCompressedHeader(header);
    long arborSizeInPvpFile  = calcArborSizeFile(compressed);
    long arborSizeInPvpLocal = calcArborSizeLocal(compressed);
@@ -330,7 +321,7 @@ void WeightsFileIO::writeWeights(double timestamp, bool compress) {
       throw std::invalid_argument(
             "WeightsFileIO::writeWeights called with a nonwriteable file stream");
    }
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
       writeSharedWeights(timestamp, compress);
    }
    else {
@@ -604,7 +595,7 @@ long WeightsFileIO::calcArborSizeFile(bool compressed) {
    int const patchSize = (int)BufferUtils::weightPatchSize(nxp * nyp * nfp, compressed);
 
    int numPatches;
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
       numPatches = mWeights->getNumDataPatches();
    }
    else {

@@ -54,7 +54,7 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
       float const *computedData = observedWeightData->getData(a);
       for (long int n = 0L; n < N; ++n) {
          float discrep = computedData[n] - correctData[n];
-         if (std::abs(discrep) > 5e-7) {
+         if (std::abs(discrep) > 5e-7f) {
             ErrorLog().printf(
                   "Arbor %d, weight %ld differs %f versus %f (discrepancy %g)\n",
                   a, n, (double)computedData[n], (double)correctData[n], (double)discrep);

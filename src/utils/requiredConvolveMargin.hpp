@@ -1,3 +1,6 @@
+#ifndef REQUIREDCONVOLVEMARGIN_HPP_
+#define REQUIREDCONVOLVEMARGIN_HPP_
+
 #include "utils/PVLog.hpp"
 
 /**
@@ -44,3 +47,5 @@ inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
    }
    return margin;
 }
+
+#endif // REQUIREDCONVOLVEMARGIN_HPP_

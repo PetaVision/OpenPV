@@ -75,8 +75,8 @@ Response::Status DependentSharedWeights::communicateInitInfo(
       }
       return Response::POSTPONE;
    }
-   mSharedWeights = originalSharedWeights->getSharedWeights();
-   parameters()->handleUnnecessaryParameter(getName(), "sharedWeights", mSharedWeights);
+   mSharedWeightsFlag = originalSharedWeights->getSharedWeightsFlag();
+   parameters()->handleUnnecessaryParameter(getName(), "sharedWeights", mSharedWeightsFlag);
 
    auto status = SharedWeights::communicateInitInfo(message);
    if (!Response::completed(status)) {

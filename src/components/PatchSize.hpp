@@ -93,9 +93,54 @@ class PatchSize : public BaseObject {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   /**
+    * Called during CommunicateInitInfo stage.
+    * If the pre-synaptic layer is a broadcast layer:
+    *    If PatchSizeX is negative, set PatchSizeX to the post-synaptic layer's nxGlobal.
+    *    If PatchSizeX is post-synaptic layer's nxGlobal, leave it unchanged.
+    *    If PatchSizeX is nxGlobal / (# of MPI columns), set it to nxGlobal and send a warning.
+    *    If PatchSizeX is anything else, it is a fatal error.
+    *
+    * If the pre-synaptic layer is not a broadcast layer:
+    *    If PatchSizeX is negative or zero, it is a fatal error.
+    *    (A positive PatchSizeX value may lead to an error elsewhere in the code, but such a
+    *    case would not be flagged here.)
+    */
+   void setPatchSizeX(HyPerLayer *pre, HyPerLayer *post);
+
+   /**
+    * Called during CommunicateInitInfo stage.
+    * If the pre-synaptic layer is a broadcast layer:
+    *    If PatchSizeY is negative, set PatchSizeY to the post-synaptic layer's nxGlobal.
+    *    If PatchSizeY is post-synaptic layer's nxGlobal, leave it unchanged.
+    *    If PatchSizeY is nxGlobal / (# of MPI columns), set it to nxGlobal and send a warning.
+    *    If PatchSizeY is anything else, it is a fatal error.
+    *
+    * If the pre-synaptic layer is not a broadcast layer:
+    *    If PatchSizeY is negative or zero, it is a fatal error.
+    *    (A positive PatchSizeY value may lead to an error elsewhere in the code, but such a
+    *    case would not be flagged here.)
+    */
+   void setPatchSizeY(HyPerLayer *pre, HyPerLayer *post);
+
+   /**
+    * Called during CommunicateInitInfo stage. If PatchSizeF is negative, set PatchSizeF to the
+    * post-synaptic layer's nf. It is a fatal error if PatchSizeF is >=0 and not equal to the
+    * post-synaptic layer's nf.
+    */
+   void setPatchSizeF(HyPerLayer *pre, HyPerLayer *post);
+
+   void setPatchSizeXorY(
+         int &patchSize,
+         int correctPatchSize,
+         int mpiSize,
+         bool isBroadcastPre,
+         char const *postName,
+         char axis);
+
   protected:
-   int mPatchSizeX = 1;
-   int mPatchSizeY = 1;
+   int mPatchSizeX = -1;
+   int mPatchSizeY = -1;
    int mPatchSizeF = -1;
 
    ConnectionData *mConnectionData = nullptr;

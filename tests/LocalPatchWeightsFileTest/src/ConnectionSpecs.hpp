@@ -4,7 +4,7 @@
 namespace PV {
 
 /**
- * A simple class used by LocalPatchWeightsFileTest to hold paramabers to define a connection.
+ * A simple class used by LocalPatchWeightsFileTest to hold paramaters to define a connection.
  * It has no behavior other than a constructor and accessor methods.
  */
 struct ConnectionSpecs {

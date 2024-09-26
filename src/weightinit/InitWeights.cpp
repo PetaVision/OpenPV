@@ -143,7 +143,7 @@ InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> messa
       readWeights(mFilename, mFrameNumber);
    }
    else {
-      initRNGs(mWeights->getSharedFlag());
+      initRNGs(mWeights->weightsTypeIsShared());
       calcWeights();
    } // mFilename != null
    mWeights->setTimestamp(0.0);
@@ -199,7 +199,7 @@ int InitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx, int *ky, int *
    PVLayerLoc const &postLoc = mWeights->getGeometry()->getPostLoc();
 
    int xDataIndex, yDataIndex, fDataIndex;
-   if (mWeights->getSharedFlag()) {
+   if (mWeights->weightsTypeIsShared()) {
 
       int nxData = mWeights->getNumDataPatchesX();
       int nyData = mWeights->getNumDataPatchesY();
