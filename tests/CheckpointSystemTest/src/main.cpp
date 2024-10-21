@@ -113,7 +113,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
       shellcommand.append(" ").append(checkpointDir2);
       status = system(shellcommand.c_str());
       if (status != 0) {
-         ErrorLog().printf("system(\"%s\") returned %d\n", shellcommand, WEXITSTATUS(status));
+         ErrorLog().printf(
+                 "system(\"%s\") returned %d\n", shellcommand.c_str(), WEXITSTATUS(status));
          status = PV_FAILURE;
       }
    }
