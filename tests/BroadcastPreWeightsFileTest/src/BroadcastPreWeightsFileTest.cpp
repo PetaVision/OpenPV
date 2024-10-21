@@ -217,7 +217,7 @@ int checkRead(std::shared_ptr<FileManager const> fileManager, Dimensions const &
    // Compare weights we read in to the weights we wrote
    int status = compareWeights(weightData, readWeightData, "checkRead()");
    if (status != PV_SUCCESS) {
-      ErrorLog().printf("checkRead failed for \"%s\"\n", filename);
+      ErrorLog().printf("checkRead failed for \"%s\"\n", filename.c_str());
    }
    return status;
 }
