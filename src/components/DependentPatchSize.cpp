@@ -73,14 +73,14 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return Response::POSTPONE;
    }
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
-   auto *originalPatchSize      = objectTable->findObject<PatchSize>(originalConnName);
+   mOriginalPatchSize      = objectTable->findObject<PatchSize>(originalConnName);
    FatalIf(
-         originalPatchSize == nullptr,
+         mOriginalPatchSize == nullptr,
          "%s original connection \"%s\" does not have a PatchSize.\n",
          getDescription_c(),
          originalConnName);
 
-   if (!originalPatchSize->getInitInfoCommunicatedFlag()) {
+   if (!mOriginalPatchSize->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
@@ -91,19 +91,23 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return Response::POSTPONE;
    }
 
-   setPatchSize(originalPatchSize);
-   parameters()->handleUnnecessaryParameter(getName(), "nxp", mPatchSizeX);
-   parameters()->handleUnnecessaryParameter(getName(), "nyp", mPatchSizeY);
-   parameters()->handleUnnecessaryParameter(getName(), "nfp", mPatchSizeF);
-
    auto status = PatchSize::communicateInitInfo(message);
    return status;
 }
 
-void DependentPatchSize::setPatchSize(PatchSize *originalPatchSize) {
-   mPatchSizeX = originalPatchSize->getPatchSizeX();
-   mPatchSizeY = originalPatchSize->getPatchSizeY();
-   mPatchSizeF = originalPatchSize->getPatchSizeF();
+void DependentPatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
+   mPatchSizeX = mOriginalPatchSize->getPatchSizeX();
+   parameters()->handleUnnecessaryParameter(getName(), "nxp", mNxp);
+}
+
+void DependentPatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) { 
+   mPatchSizeY = mOriginalPatchSize->getPatchSizeY();
+   parameters()->handleUnnecessaryParameter(getName(), "nyp", mNyp);
+}
+
+void DependentPatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
+   mPatchSizeF = mOriginalPatchSize->getPatchSizeF();
+   parameters()->handleUnnecessaryParameter(getName(), "nfp", mNfp);
 }
 
 } // namespace PV

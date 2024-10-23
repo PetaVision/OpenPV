@@ -29,7 +29,9 @@ class TransposePatchSize : public DependentPatchSize {
 
    virtual void setObjectType() override;
 
-   virtual void setPatchSize(PatchSize *originalPatchSize) override;
+   virtual void setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) override;
+   virtual void setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) override;
+   virtual void setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) override;
 
 }; // class TransposePatchSize
 

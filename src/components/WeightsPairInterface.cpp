@@ -83,6 +83,7 @@ Response::Status WeightsPairInterface::communicateInitInfo(
 
    // Margins
    int xmargin = requiredConvolveMargin(preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
+InfoLog().printf("%s: preLoc->nx = %d, postLoc->nx = %d, patch size = %d\n", getDescription_c(), preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
    preGeom->requireMarginWidth(xmargin, 'x');
    int ymargin = requiredConvolveMargin(preLoc->ny, postLoc->ny, mPatchSize->getPatchSizeY());
    preGeom->requireMarginWidth(ymargin, 'y');

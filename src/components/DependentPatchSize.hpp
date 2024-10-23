@@ -60,11 +60,12 @@ class DependentPatchSize : public PatchSize {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   PatchSize *getOriginalPatchSize(
-         std::map<std::string, Observer *> const hierarchy,
-         char const *originalConnName) const;
+   virtual void setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) override;
+   virtual void setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) override;
+   virtual void setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) override;
 
-   virtual void setPatchSize(PatchSize *originalPatchSize);
+  protected:
+   PatchSize *mOriginalPatchSize = nullptr;
 
 }; // class DependentPatchSize
 

@@ -106,7 +106,7 @@ class PatchSize : public BaseObject {
     *    (A positive PatchSizeX value may lead to an error elsewhere in the code, but such a
     *    case would not be flagged here.)
     */
-   void setPatchSizeX(HyPerLayer *pre, HyPerLayer *post);
+   virtual void setPatchSizeX(HyPerLayer *pre, HyPerLayer *post);
 
    /**
     * Called during CommunicateInitInfo stage.
@@ -121,27 +121,31 @@ class PatchSize : public BaseObject {
     *    (A positive PatchSizeY value may lead to an error elsewhere in the code, but such a
     *    case would not be flagged here.)
     */
-   void setPatchSizeY(HyPerLayer *pre, HyPerLayer *post);
+   virtual void setPatchSizeY(HyPerLayer *pre, HyPerLayer *post);
 
    /**
     * Called during CommunicateInitInfo stage. If PatchSizeF is negative, set PatchSizeF to the
     * post-synaptic layer's nf. It is a fatal error if PatchSizeF is >=0 and not equal to the
     * post-synaptic layer's nf.
     */
-   void setPatchSizeF(HyPerLayer *pre, HyPerLayer *post);
-
-   void setPatchSizeXorY(
-         int &patchSize,
-         int correctPatchSize,
-         int mpiSize,
-         bool isBroadcastPre,
-         char const *postName,
-         char axis);
+   virtual void setPatchSizeF(HyPerLayer *pre, HyPerLayer *post);
 
   protected:
-   int mPatchSizeX = -1;
-   int mPatchSizeY = -1;
-   int mPatchSizeF = -1;
+   // Patch size. The params file specifies nxp, nyp, nfp. The default values of -1 indicate
+   // that these values should be set to what "makes sense." In situations where there isn't
+   // a single value that would make sense, it should be an error not to specify that parameter.
+   int mNxp = -1; // The size of the patch in the x-direction, as specified in params
+   int mNyp = -1; // The size of the patch in the y-direction, as specified in params
+   int mNfp = -1; // The number of features in the patch, as specified in params
+
+   // Patch size used internally. This may differ from nxp, nyp, nfp for various reasons,
+   // but the end user should only need to work with nxp, nyp, nfp, above.
+   // For example, if a presynaptic layer is a broadcast layer, and the postsynaptic layer is not,
+   // then nxp and nyp should be the global size of the post-layer. However, if using MPI with more
+   // than one column, then PatchSizeX should be Nxp/[number of MPI columns]
+   int mPatchSizeX; // The size of the patch in the x-direction, as used internally
+   int mPatchSizeY; // The size of the patch in the y-direction, as used internally
+   int mPatchSizeF; // The number of features in the patch, as used internally
 
    ConnectionData *mConnectionData = nullptr;
    bool mWarnDefaultNfp            = true;

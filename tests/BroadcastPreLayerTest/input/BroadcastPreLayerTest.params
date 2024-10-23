@@ -33,15 +33,6 @@
 //  The correct values for the Output layer are in the input/correct.pvp file.
 //  The exit hook for the buildandrun() function loads the correct.pvp file
 //  and compares those values to the values in the Output layer.
-//
-//  Note that because of a (hopefully temporary) hack, the patch size for a
-//  connection whose presynaptic layer is a broadcast layer must specify its
-//  nxp and nyp values as the layer size per process, not the global layer
-//  size as would be conceptually correct. This params file makes the Output
-//  layer 8x8, but the BroadcastLayerToOutput connection has nxp=4, nyp=4.
-//  For this reason the params file requires an MPI configuration of two rows
-//  and two columns. (And since the HyPerCol nbatch parameter is 1, the
-//  MPI configuration must have batchwidth = 1).
 
 debugParsing = true;
 
@@ -153,8 +144,8 @@ HyPerConn "BroadcastLayerToOutput" = {
     postLayerName = "Output";
     channelCode = 0;
 
-    nxp = 4;
-    nyp = 4;
+    nxp = 8;
+    nyp = 8;
     nfp = 3; 
     numAxonalArbors = 1;
     sharedWeights = false;

@@ -26,16 +26,29 @@ void TransposePatchSize::initialize(char const *name, PVParams *params, Communic
 
 void TransposePatchSize::setObjectType() { mObjectType = "TransposePatchSize"; }
 
-void TransposePatchSize::setPatchSize(PatchSize *originalPatchSize) {
-   auto *originalConnectionData = originalPatchSize->getConnectionData();
+void TransposePatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
+   int const nxpOrig            = mOriginalPatchSize->getPatchSizeX();
+   auto *originalConnectionData = mOriginalPatchSize->getConnectionData();
    pvAssert(originalConnectionData);
-   int const nxpOrig                 = originalPatchSize->getPatchSizeX();
-   int const nypOrig                 = originalPatchSize->getPatchSizeY();
    PVLayerLoc const *originalPreLoc  = originalConnectionData->getPre()->getLayerLoc();
    PVLayerLoc const *originalPostLoc = originalConnectionData->getPost()->getLayerLoc();
    mPatchSizeX = calcPostPatchSize(nxpOrig, originalPreLoc->nx, originalPostLoc->nx);
+   parameters()->handleUnnecessaryParameter(getName(), "nxp", mNxp);
+}
+
+void TransposePatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
+   int const nypOrig            = mOriginalPatchSize->getPatchSizeY();
+   auto *originalConnectionData = mOriginalPatchSize->getConnectionData();
+   pvAssert(originalConnectionData);
+   PVLayerLoc const *originalPreLoc  = originalConnectionData->getPre()->getLayerLoc();
+   PVLayerLoc const *originalPostLoc = originalConnectionData->getPost()->getLayerLoc();
    mPatchSizeY = calcPostPatchSize(nypOrig, originalPreLoc->ny, originalPostLoc->ny);
-   mPatchSizeF = -1;
+   parameters()->handleUnnecessaryParameter(getName(), "nyp", mNyp);
+}
+
+void TransposePatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
+   PatchSize::setPatchSizeF(pre, post);
+   parameters()->handleUnnecessaryParameter(getName(), "nfp", mNfp);
 }
 
 } // namespace PV
