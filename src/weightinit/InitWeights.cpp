@@ -53,9 +53,6 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initWeightsFile(ioFlag);
    ioParam_frameNumber(ioFlag);
 
-   // obsolete parameters; issue warnings/errors if they are set.
-   ioParam_useListOfArborFiles(ioFlag);
-   ioParam_combineWeightFiles(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -78,40 +75,6 @@ void InitWeights::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
             &mFrameNumber,
             mFrameNumber /*default*/,
             false /*warn if absent*/);
-   }
-}
-
-// useListOfArborFiles and combineWeightFiles were marked obsolete July 13, 2017.
-// After a reasonable fade time, ioParam_useListOfArborFiles, ioParam_combineWeightFiles,
-// and handleObsoleteFlag can be removed.
-// If need for these flags arises in the future, they should be added in a subclass, instead
-// of complicating the base InitWeights class.
-void InitWeights::ioParam_useListOfArborFiles(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      handleObsoleteFlag(std::string("useListOfArborFiles"));
-   }
-}
-
-void InitWeights::ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      handleObsoleteFlag(std::string("useListOfArborFiles"));
-   }
-}
-
-void InitWeights::handleObsoleteFlag(std::string const &flagName) {
-   if (parameters()->present(getName(), flagName.c_str())) {
-      if (parameters()->value(getName(), flagName.c_str())) {
-         Fatal().printf(
-               "%s sets the %s flag, which is obsolete.\n",
-               getDescription().c_str(),
-               flagName.c_str());
-      }
-      else {
-         WarnLog().printf(
-               "%s sets the %s flag to false. This flag is obsolete.\n",
-               getDescription().c_str(),
-               flagName.c_str());
-      }
    }
 }
 

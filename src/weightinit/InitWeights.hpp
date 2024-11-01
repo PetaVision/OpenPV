@@ -59,24 +59,6 @@ class InitWeights : public BaseObject {
     */
    virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
 
-   // useListOfArborFiles, combineWeightFiles, and numWeightFiles were marked obsolete July 13,
-   // 2017.
-   /**
-    * @brief useListOfArborFiles is obsolete.
-    */
-   virtual void ioParam_useListOfArborFiles(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief combineWeightFiles is obsolete.
-    */
-   virtual void ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief numWeightFiles is obsolete.
-    */
-   virtual void ioParam_numWeightFiles(enum ParamsIOFlag ioFlag) {}
-   /** @} */
-
   public:
    InitWeights(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InitWeights();
