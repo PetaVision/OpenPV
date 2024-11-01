@@ -36,9 +36,8 @@ BroadcastPreWeightsIO::BroadcastPreWeightsIO(
          fileStream->getFileName().c_str());
 
    mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
-   initializeFrameSize();
    initializeHeader();
-   initializeNumFrames();
+   initializeFrameIndexer();
 
    if (!getFileStream()) {
       return;
@@ -57,11 +56,11 @@ BroadcastPreWeightsIO::BroadcastPreWeightsIO(
 }
 
 long BroadcastPreWeightsIO::calcFilePositionFromFrameNumber(int frameNumber) const {
-   return static_cast<long>(frameNumber) * mFrameSize;
+   return mFrameIndexer->calcFilePositionFromFrameNumber(frameNumber);
 }
 
 int BroadcastPreWeightsIO::calcFrameNumberFromFilePosition(long filePosition) const {
-   return static_cast<int>(filePosition / mFrameSize);
+   return mFrameIndexer->calcFrameNumberFromFilePosition(filePosition);
 }
 
    /*
@@ -77,9 +76,6 @@ int BroadcastPreWeightsIO::calcFrameNumberFromFilePosition(long filePosition) co
 
 void BroadcastPreWeightsIO::finishWrite() {
    setFrameNumber(getFrameNumber() + 1);
-   if (getNumFrames() < getFrameNumber()) {
-      mNumFrames = getFrameNumber();
-   }
    getFileStream()->setOutPos(0L, std::ios_base::end);
    long eofPos        = getFileStream()->getOutPos();
    long correctEOFPos = calcFilePositionFromFrameNumber(getNumFrames());
@@ -175,8 +171,8 @@ void BroadcastPreWeightsIO::readRegion(
 }
 
 void BroadcastPreWeightsIO::writeHeader() {
-   getFileStream()->write(&mHeader, mHeaderSize);
    setFrameNumber(getFrameNumber());
+   getFileStream()->write(&mHeader, mHeaderSize);
 }
 
 void BroadcastPreWeightsIO::writeHeader(int frameNumber) {
@@ -252,23 +248,21 @@ void BroadcastPreWeightsIO::writeRegion(
       }
    }
    // Return filepointer to beginning of frame
-   setFrameNumber(getFrameNumber());
+   mFrameIndexer->moveFilePosToFrameStart();
 }
 
 void BroadcastPreWeightsIO::open() {
-   mFileStream->open();
-   initializeNumFrames();
+   if (mFileStream) {
+      mFrameIndexer = nullptr;
+      mFileStream->open();
+      initializeFrameIndexer();
+   }
 }
 
-void BroadcastPreWeightsIO::close() { mFileStream->close(); }
-
-void BroadcastPreWeightsIO::setFrameNumber(int frameNumber) {
-   pvAssert(mFileStream);
-   mFrameNumber = frameNumber;
-   long filePos = calcFilePositionFromFrameNumber(frameNumber);
-   mFileStream->setInPos(filePos, std::ios_base::beg);
-   if (mFileStream->writeable()) {
-      mFileStream->setOutPos(filePos, std::ios_base::beg);
+void BroadcastPreWeightsIO::close() {
+   if (mFileStream) {
+      mFrameIndexer = nullptr;
+      mFileStream->close();
    }
 }
 
@@ -381,8 +375,12 @@ int BroadcastPreWeightsIO::checkHeaderField(
    return oldStatus;
 }
 
-void BroadcastPreWeightsIO::initializeFrameSize() {
-   mFrameSize = mHeaderSize + static_cast<long>(mNumArbors) * calcArborSizeBytes();
+void BroadcastPreWeightsIO::initializeFrameIndexer() {
+   long frameSize = mHeaderSize + static_cast<long>(mNumArbors) * calcArborSizeBytes();
+   mFrameIndexer = std::make_shared<PVPFrameIndexer>(
+         mFileStream, frameSize, 0L /*externalHeaderSize*/);
+   // Weight PVP files have a header in each frame and no external header; hence
+   // externalHeaderSize is 0 and not the weight header size of 104.
 }
 
 void BroadcastPreWeightsIO::initializeHeader() {
@@ -421,18 +419,6 @@ void BroadcastPreWeightsIO::initializeHeader() {
    mHeader.numPatches = getNfPre();
 
    mHeaderWrittenFlag = false;
-}
-
-void BroadcastPreWeightsIO::initializeNumFrames() {
-   if (!getFileStream()) {
-      return;
-   }
-
-   long curPos = getFileStream()->getInPos();
-   getFileStream()->setInPos(0L, std::ios_base::end);
-   long eofPosition = getFileStream()->getInPos();
-   mNumFrames       = calcFrameNumberFromFilePosition(eofPosition);
-   getFileStream()->setInPos(curPos, std::ios_base::beg);
 }
 
 } // namespace PV

@@ -8,10 +8,13 @@
 #include "InitWeights.hpp"
 #include "components/WeightsPair.hpp"
 #include "include/PVLayerLoc.hpp"
+#include "io/BroadcastPreWeightsFile.hpp"
 #include "io/FileManager.hpp"
 #include "io/FileStream.hpp"
 #include "io/FileStreamBuilder.hpp"
-#include "io/WeightsFileIO.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
+#include "io/WeightsFile.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "structures/MPIBlock.hpp"
 #include "structures/PatchGeometry.hpp"
@@ -168,8 +171,6 @@ int InitWeights::readWeights(
       const char *path,
       int frameNumber,
       double *timestampPtr /*default=nullptr*/) {
-   double timestamp;
-
    // Currently, initializing weights from file assumes that the entire weights are in a single
    // file in the filesystem attached to the global root process.
    //
@@ -179,6 +180,8 @@ int InitWeights::readWeights(
    std::string filedir = dirName(path);
    std::string filename = baseName(path);
    auto fileManager = std::make_shared<FileManager>(globalMPIBlock, filedir);
+
+   // Read header to get CompressedFlag
    std::shared_ptr<FileStream> fileStream = FileStreamBuilder(
          fileManager,
          filename,
@@ -186,10 +189,89 @@ int InitWeights::readWeights(
          true /*readOnlyFlag*/,
          false /*clobberFlag*/,
          false /*verifyWritesFlag*/).get();
-   WeightsFileIO weightsFileIO(fileStream.get(), globalMPIBlock, mWeights);
-   timestamp = weightsFileIO.readWeights(frameNumber);
-   if (timestampPtr != nullptr) {
-      *timestampPtr = timestamp;
+   int dataTypeInfo[2];
+   if (fileStream) {
+      BufferUtils::WeightHeader headerFromFile;
+      fileStream->read(&headerFromFile, static_cast<long>(sizeof(headerFromFile)));
+      dataTypeInfo[0] = headerFromFile.baseHeader.dataSize;
+      dataTypeInfo[1] = headerFromFile.baseHeader.dataType;
+   }
+   MPI_Bcast(dataTypeInfo, 2, MPI_INT, 0, fileManager->getMPIBlock()->getComm());
+   bool compressedFlag;
+   switch(dataTypeInfo[1]) {
+      case BufferUtils::HeaderDataTypeEnum::BYTE:
+         compressedFlag = true;
+         FatalIf(
+               dataTypeInfo[0] != static_cast<int>(sizeof(unsigned char)),
+               "%s InitWeights file \"%s\" has inconsistent dataType (%d) and dataSize (%d)\n",
+               getDescription_c(),
+               filename.c_str(),
+               dataTypeInfo[1],
+               dataTypeInfo[0]);
+         break;
+      case BufferUtils::HeaderDataTypeEnum::FLOAT:
+         compressedFlag = false;
+         FatalIf(
+               dataTypeInfo[0] != static_cast<int>(sizeof(float)),
+               "%s InitWeights file \"%s\" has inconsistent dataType (%d) and dataSize (%d)\n",
+               getDescription_c(),
+               filename.c_str(),
+               dataTypeInfo[1],
+               dataTypeInfo[0]);
+         break;
+      default:
+         Fatal().printf(
+               "%s InitWeights file \"%s\" has dataType (%d) incompatible with a weights file.\n",
+               getDescription_c(),
+               filename.c_str(),
+               dataTypeInfo[1]);
+         break;
+   }
+
+   std::shared_ptr<WeightsFile> weightsFile = nullptr;
+   if (mWeights->weightsTypeIsShared()) {
+      weightsFile = std::make_shared<SharedWeightsFile>(
+            fileManager,
+            filename,
+            mWeights->getData(),
+            compressedFlag,
+            true /*readOnlyFlag*/,
+            false /*clobberFlag*/,
+            false /*verifyWrites*/);
+   }
+   else {
+      if (mWeights->weightsTypeIsBroadcastPre()) {
+         weightsFile = std::make_shared<BroadcastPreWeightsFile>(
+               fileManager,
+               filename,
+               mWeights->getData(),
+               mWeights->getGeometry()->getPreLoc().nf,
+               compressedFlag,
+               true /*readOnlyFlag*/,
+               false /*clobberFlag*/,
+               false /*verifyWritesFlag*/);
+      }
+      else {
+         pvAssert(mWeights->weightsTypeIsLocalPatch());
+         weightsFile = std::make_shared<LocalPatchWeightsFile>(
+               fileManager,
+               filename,
+               mWeights->getData(),
+               &mWeights->getGeometry()->getPreLoc(),
+               &mWeights->getGeometry()->getPostLoc(),
+               true /*fileExtendedFlag*/,
+               compressedFlag,
+               true /*readOnlyFlag*/,
+               false /*clobberFlag*/,
+               false /*verifyWrites*/);
+      }
+   }
+   weightsFile->setIndex(frameNumber);
+   if (timestampPtr) {
+      weightsFile->read(*timestampPtr);
+   }
+   else {
+       weightsFile->read();
    }
    return PV_SUCCESS;
 }

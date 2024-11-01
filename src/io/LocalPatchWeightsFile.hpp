@@ -11,6 +11,7 @@
 #include "checkpointing/CheckpointerDataInterface.hpp"
 #include "io/FileManager.hpp"
 #include "io/LocalPatchWeightsIO.hpp"
+#include "io/SharedWeightsIO.hpp"
 #include "io/WeightsFile.hpp"
 #include "utils/BufferUtilsPvp.hpp" // WeightHeader
 
@@ -63,13 +64,15 @@ class LocalPatchWeightsFile : public WeightsFile {
    int getPatchSizeY() const { return mPatchSizeY; }
    int getPatchSizeF() const { return mPatchSizeF; }
    long getPatchSizeOverall() const { return mPatchSizeX * mPatchSizeY * mPatchSizeF; }
-   int getNumPatchesX() const { return mNumPatchesX; }
-   int getNumPatchesY() const { return mNumPatchesY; }
-   int getNumPatchesF() const { return mNumPatchesF; }
-   long getNumPatchesOverall() const { return mNumPatchesX * mNumPatchesY * mNumPatchesF; }
-   int getNxRestrictedPre() const { return mNxRestrictedPre; }
-   int getNyRestrictedPre() const { return mNyRestrictedPre; }
-   int getNfPre() const { return mNfPre; }
+   int getNxRestrictedPre() const { return mPreLayerLoc.nx; }
+   int getNyRestrictedPre() const { return mPreLayerLoc.ny; }
+   int getNxExtendedPre() const {
+      return mPreLayerLoc.nx + mPreLayerLoc.halo.lt + mPreLayerLoc.halo.rt;
+   }
+   int getNyExtendedPre() const {
+      return mPreLayerLoc.ny + mPreLayerLoc.halo.dn + mPreLayerLoc.halo.up;
+   }
+   int getNfPre() const { return mPreLayerLoc.nf; }
    int getNxRestrictedPost() const { return mNxRestrictedPost; }
    int getNyRestrictedPost() const { return mNyRestrictedPost; }
    // nfRestrictedPost would be the same as patchSizeF
@@ -92,14 +95,20 @@ class LocalPatchWeightsFile : public WeightsFile {
    virtual Response::Status processCheckpointRead(double simTime) override;
 
   private:
+   BufferUtils::WeightHeader createHeader(double timestamp, float minWgt, float maxWgt) const;
+
+   void convertSharedToNonshared(WeightData const &weightData);
+
    int initializeCheckpointerDataInterface();
+   void initializeWeightsIO(bool clobberFlag);
    void initializeLocalPatchWeightsIO(bool clobberFlag);
+   void initializeSharedWeightsIO(bool clobberFlag, BufferUtils::WeightHeader weightHeader);
 
    bool isRoot() { return mFileManager->isRoot(); }
 
    void readInternal(double &timestamp);
-
-   BufferUtils::WeightHeader createHeader(double timestamp, float minWgt, float maxWgt) const;
+   void readLocalPatchWeights(double &timestamp);
+   void readSharedWeights(double &timestamp);
 
   private:
    std::shared_ptr<FileManager const> mFileManager;
@@ -107,22 +116,18 @@ class LocalPatchWeightsFile : public WeightsFile {
    int mPatchSizeX;
    int mPatchSizeY;
    int mPatchSizeF;
-   int mNxRestrictedPre;
-   int mNyRestrictedPre;
-   int mNfPre;
+   PVLayerLoc mPreLayerLoc;
    int mNxRestrictedPost;
    int mNyRestrictedPost;
    // mNfRestrictedPost would be the same as patchSizeF
-   int mNumPatchesX;
-   int mNumPatchesY;
-   int mNumPatchesF;
    int mNumArbors;
    bool mFileExtendedFlag;
    bool mCompressedFlag;
    bool mReadOnly;
    bool mVerifyWrites;
 
-   std::unique_ptr<LocalPatchWeightsIO> mLocalPatchWeightsIO;
+   std::unique_ptr<LocalPatchWeightsIO> mLocalPatchWeightsIO = nullptr;
+   std::unique_ptr<SharedWeightsIO> mSharedWeightsIO         = nullptr;
 
    long mFileStreamReadPos  = 0L; // Input file position of the LocalPatchWeightsIO's FileStream
    long mFileStreamWritePos = 0L; // Output file position of the LocalPatchWeightsIO's FileStream

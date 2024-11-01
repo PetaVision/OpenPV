@@ -9,6 +9,7 @@
 #define SHAREDWEIGHTSIO_HPP_
 
 #include "io/FileStream.hpp"
+#include "io/PVPFrameIndexer.hpp"
 #include "structures/Patch.hpp"
 #include "structures/WeightData.hpp"
 #include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
@@ -73,19 +74,21 @@ class SharedWeightsIO {
    int getNumArbors() const { return mNumArbors; }
    bool getCompressedFlag() const { return mCompressedFlag; }
 
-   long int getFrameSize() const { return mFrameSize; }
-   int getFrameNumber() const { return mFrameNumber; }
-   void setFrameNumber(int frame);
-   int getNumFrames() const { return mNumFrames; }
+
+   /** Returns the current frame number */
+   int getFrameNumber() const { return mFrameIndexer->getFrameNumber(); }
+
+   /** Sets the frame number to the indicated value */
+   void setFrameNumber(int frame) { mFrameIndexer->setFrameNumber(frame); }
+
+   /** Returns the number of frames in the file */
+   int getNumFrames() const { return mFrameIndexer->getNumFrames(); }
 
   private:
    void checkDimensions(WeightData const &weightData);
    void checkHeader(BufferUtils::WeightHeader const &header) const;
 
-   void initializeFrameSize();
-   void initializeNumFrames();
-   // void setHeaderNBands(); // We might do this for weights as we do for layers; for now we don't
-   void writeHeader();
+   void initializeFrameIndexer();
 
   private:
    std::shared_ptr<FileStream> mFileStream;
@@ -100,9 +103,7 @@ class SharedWeightsIO {
 
    long mDataSize = static_cast<long>(sizeof(float));
 
-   long mFrameSize  = 0L; // Number of bytes in a frame, including the header
-   int mFrameNumber = 0;
-   int mNumFrames   = 0;
+   std::shared_ptr<PVPFrameIndexer> mFrameIndexer = nullptr;
 
    long const mHeaderSize      = static_cast<long>(sizeof(BufferUtils::WeightHeader));
    long const mPatchHeaderSize = static_cast<long>(sizeof(Patch));

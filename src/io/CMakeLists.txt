@@ -14,13 +14,13 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LocalPatchWeightsFile.cpp
    ${SUBDIR}/LocalPatchWeightsIO.cpp
    ${SUBDIR}/PVParams.cpp
+   ${SUBDIR}/PVPFrameIndexer.cpp
    ${SUBDIR}/randomstateio.cpp
    ${SUBDIR}/SharedWeightsFile.cpp
    ${SUBDIR}/SharedWeightsIO.cpp
    ${SUBDIR}/SparseLayerBatchGatherScatter.cpp
    ${SUBDIR}/SparseLayerFile.cpp
    ${SUBDIR}/SparseLayerIO.cpp
-   ${SUBDIR}/WeightsFileIO.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -40,6 +40,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LocalPatchWeightsIO.hpp
    ${SUBDIR}/PrintStream.hpp
    ${SUBDIR}/PVParams.hpp
+   ${SUBDIR}/PVPFrameIndexer.hpp
    ${SUBDIR}/randomstateio.hpp
    ${SUBDIR}/SharedWeightsFile.hpp
    ${SUBDIR}/SharedWeightsIO.hpp
@@ -47,7 +48,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SparseLayerFile.hpp
    ${SUBDIR}/SparseLayerIO.hpp
    ${SUBDIR}/WeightsFile.hpp
-   ${SUBDIR}/WeightsFileIO.hpp
 )
 
 if (PV_USE_MPI)

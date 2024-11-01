@@ -35,8 +35,7 @@ SharedWeightsIO::SharedWeightsIO(
          "FileStream \"%s\" is not readable and can't be used in a SharedWeightsIO object.\n",
          fileStream->getFileName().c_str());
    mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
-   initializeFrameSize();
-   initializeNumFrames();
+   initializeFrameIndexer();
 
    if (!getFileStream()) {
       return;
@@ -55,11 +54,11 @@ SharedWeightsIO::SharedWeightsIO(
 }
 
 long SharedWeightsIO::calcFilePositionFromFrameNumber(int frameNumber) const {
-   return static_cast<long>(frameNumber) * mFrameSize;
+   return mFrameIndexer->calcFilePositionFromFrameNumber(frameNumber);
 }
 
 int SharedWeightsIO::calcFrameNumberFromFilePosition(long filePosition) const {
-   return static_cast<int>(filePosition / mFrameSize);
+   return mFrameIndexer->calcFrameNumberFromFilePosition(filePosition);
 }
 
 void SharedWeightsIO::read(WeightData &weightData) {
@@ -160,9 +159,6 @@ void SharedWeightsIO::write(WeightData const &weightData, double timestamp) {
       }
    }
    setFrameNumber(getFrameNumber() + 1);
-   if (getFrameNumber() > getNumFrames()) {
-      mNumFrames = getFrameNumber();
-   }
 }
 
 void SharedWeightsIO::write(WeightData const &weightData, double timestamp, int frameNumber) {
@@ -170,17 +166,18 @@ void SharedWeightsIO::write(WeightData const &weightData, double timestamp, int 
    write(weightData, timestamp);
 }
 
-void SharedWeightsIO::open() { mFileStream->open(); }
+void SharedWeightsIO::open() {
+   if (mFileStream) {
+      mFrameIndexer = nullptr;
+      mFileStream->open();
+      initializeFrameIndexer();
+   }
+}
 
-void SharedWeightsIO::close() { mFileStream->close(); }
-
-void SharedWeightsIO::setFrameNumber(int frameNumber) {
-   pvAssert(mFileStream);
-   mFrameNumber = frameNumber;
-   long filePos = calcFilePositionFromFrameNumber(frameNumber);
-   mFileStream->setInPos(filePos, std::ios_base::beg);
-   if (mFileStream->writeable()) {
-      mFileStream->setOutPos(filePos, std::ios_base::beg);
+void SharedWeightsIO::close() {
+   if (mFileStream) {
+      mFrameIndexer = nullptr;
+      mFileStream->close();
    }
 }
 
@@ -257,23 +254,15 @@ void SharedWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) const
    FatalIf(status != PV_SUCCESS, "checkHeader failed.\n");
 }
 
-void SharedWeightsIO::initializeFrameSize() {
-   long patchSizeBytes = mDataSize * static_cast<long>(mPatchSizeX * mPatchSizeY * mPatchSizeF);
-   patchSizeBytes += static_cast<long>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t));
-   long numPatches = getNumPatchesOverall();
-   mFrameSize      = mHeaderSize + static_cast<long>(mNumArbors) * numPatches * patchSizeBytes;
-}
+void SharedWeightsIO::initializeFrameIndexer() {
+   long patchSizeBytes = mPatchHeaderSize + mDataSize * static_cast<long>(getPatchSizeOverall());
+   long numPatches     = getNumPatchesOverall();
+   long frameSize      = mHeaderSize + static_cast<long>(mNumArbors) * numPatches * patchSizeBytes;
 
-void SharedWeightsIO::initializeNumFrames() {
-   if (!getFileStream()) {
-      return;
-   }
-
-   long curPos = getFileStream()->getInPos();
-   getFileStream()->setInPos(0L, std::ios_base::end);
-   long eofPosition = getFileStream()->getInPos();
-   mNumFrames       = calcFrameNumberFromFilePosition(eofPosition);
-   getFileStream()->setInPos(curPos, std::ios_base::beg);
+   mFrameIndexer = std::make_shared<PVPFrameIndexer>(
+         mFileStream, frameSize, 0L /*externalHeaderSize*/);
+   // Weight PVP files have a header in each frame and no external header; hence
+   // externalHeaderSize is 0 and not the weight header size of 104.
 }
 
 } // namespace PV

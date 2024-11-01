@@ -47,8 +47,7 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
 
    mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
    initializeMargins(); // initializes XMargin and YMargin
-   initializeFrameSize();
-   initializeNumFrames();
+   initializeFrameIndexer();
 
    if (!getFileStream()) {
       return;
@@ -164,27 +163,26 @@ void LocalPatchWeightsIO::calcExtremeWeights(
 }
 
 long LocalPatchWeightsIO::calcFilePositionFromFrameNumber(int frameNumber) const {
-   return static_cast<long>(frameNumber) * mFrameSize;
+   return mFrameIndexer->calcFilePositionFromFrameNumber(frameNumber);
 }
 
 int LocalPatchWeightsIO::calcFrameNumberFromFilePosition(long filePosition) const {
-   return static_cast<int>(filePosition / mFrameSize);
+   return mFrameIndexer->calcFrameNumberFromFilePosition(filePosition);
 }
 
 void LocalPatchWeightsIO::finishWrite() {
-   setFrameNumber(getFrameNumber() + 1);
-   if (getNumFrames() < getFrameNumber()) {
-      mNumFrames = getFrameNumber();
-   }
+   // If the last patch in the frame is shrunken, calls to writeRegion may not have
+   // written all the way to the end of the frame. Fill the rest of the frame with zeros
+   // if necessary.
    getFileStream()->setOutPos(0L, std::ios_base::end);
    long eofPos        = getFileStream()->getOutPos();
-   long correctEOFPos = calcFilePositionFromFrameNumber(getNumFrames());
+   long correctEOFPos = calcFilePositionFromFrameNumber(getNumFrames() + 1);
    if (eofPos < correctEOFPos) {
       long numPadBytes = correctEOFPos - eofPos;
       std::vector<uint8_t> nulldata(numPadBytes);
       getFileStream()->write(nulldata.data(), numPadBytes);
    }
-   setFrameNumber(getFrameNumber());
+   setFrameNumber(getFrameNumber() + 1);
 }
 
 BufferUtils::WeightHeader LocalPatchWeightsIO::readHeader() {
@@ -299,8 +297,8 @@ void LocalPatchWeightsIO::readRegion(
 }
 
 void LocalPatchWeightsIO::writeHeader(BufferUtils::WeightHeader const &header) {
+   mFrameIndexer->moveFilePosToFrameStart();
    getFileStream()->write(&header, mHeaderSize);
-   setFrameNumber(getFrameNumber());
 }
 
 void LocalPatchWeightsIO::writeHeader(BufferUtils::WeightHeader const &header, int frameNumber) {
@@ -410,7 +408,7 @@ void LocalPatchWeightsIO::writeRegion(
          }
       }
    }
-   setFrameNumber(getFrameNumber());
+   mFrameIndexer->moveFilePosToFrameStart();
 }
 
 void LocalPatchWeightsIO::open() { mFileStream->open(); }
@@ -422,16 +420,6 @@ long LocalPatchWeightsIO::getNumPatchesFile() const {
    long ny = getNyRestrictedPre() + 2 * getYMargin();
    long nf = getNfPre();
    return (nx * ny * nf);
-}
-
-void LocalPatchWeightsIO::setFrameNumber(int frameNumber) {
-   pvAssert(mFileStream);
-   mFrameNumber = frameNumber;
-   long filePos = calcFilePositionFromFrameNumber(frameNumber);
-   mFileStream->setInPos(filePos, std::ios_base::beg);
-   if (mFileStream->writeable()) {
-      mFileStream->setOutPos(filePos, std::ios_base::beg);
-   }
 }
 
 long LocalPatchWeightsIO::calcArborSizeBytes() const {
@@ -627,8 +615,12 @@ void LocalPatchWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) c
    FatalIf(status != PV_SUCCESS, "checkHeader failed.\n");
 }
 
-void LocalPatchWeightsIO::initializeFrameSize() {
-   mFrameSize = mHeaderSize + static_cast<long>(mNumArbors) * calcArborSizeBytes();
+void LocalPatchWeightsIO::initializeFrameIndexer() {
+   long frameSize = mHeaderSize + static_cast<long>(mNumArbors) * calcArborSizeBytes();
+   mFrameIndexer = std::make_shared<PVPFrameIndexer>(
+         mFileStream, frameSize, 0L /*externalHeaderSize*/);
+   // Weight PVP files have a header in each frame and no external header; hence
+   // externalHeaderSize is 0 and not the weight header size of 104.
 }
 
 void LocalPatchWeightsIO::initializeMargins() {
@@ -642,18 +634,6 @@ void LocalPatchWeightsIO::initializeMargins() {
       mXMargin = 0;
       mYMargin = 0;
    }
-}
-
-void LocalPatchWeightsIO::initializeNumFrames() {
-   if (!getFileStream()) {
-      return;
-   }
-
-   long curPos = getFileStream()->getInPos();
-   getFileStream()->setInPos(0L, std::ios_base::end);
-   long eofPosition = getFileStream()->getInPos();
-   mNumFrames       = calcFrameNumberFromFilePosition(eofPosition);
-   getFileStream()->setInPos(curPos, std::ios_base::beg);
 }
 
 void LocalPatchWeightsIO::readPatch(

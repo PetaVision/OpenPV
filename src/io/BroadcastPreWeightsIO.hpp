@@ -9,6 +9,7 @@
 #define BROADCASTPREWEIGHTSIO_HPP_
 
 #include "io/FileStream.hpp"
+#include "io/PVPFrameIndexer.hpp"
 #include "structures/Patch.hpp"
 #include "structures/WeightData.hpp"
 #include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
@@ -214,16 +215,16 @@ class BroadcastPreWeightsIO {
    /** Returns the compressed flag, as set by the constructor */
    bool getCompressedFlag() const { return mCompressedFlag; }
 
-   long int getFrameSize() const { return mFrameSize; }
+   // long int getFrameSize() const { return mFrameIndexer->getFrameSize(); } // Unneeded?
 
    /** Returns the current frame number */
-   int getFrameNumber() const { return mFrameNumber; }
+   int getFrameNumber() const { return mFrameIndexer->getFrameNumber(); }
 
    /** Sets the frame number to the indicated value */
-   void setFrameNumber(int frame);
+   void setFrameNumber(int frame) { mFrameIndexer->setFrameNumber(frame); }
 
    /** Returns the number of frames in the file */
-   int getNumFrames() const { return mNumFrames; }
+   int getNumFrames() const { return mFrameIndexer->getNumFrames(); }
 
    /** Returns the current value of minVal in the header. */
    float getHeaderMinVal() const { return mHeader.minVal; }
@@ -271,9 +272,8 @@ class BroadcastPreWeightsIO {
    int checkHeaderField(
          double expected, double observed, std::string const &fieldLabel, int oldStatus) const;
 
-   void initializeFrameSize();
+   void initializeFrameIndexer();
    void initializeHeader();
-   void initializeNumFrames();
 
   private:
    std::shared_ptr<FileStream> mFileStream;
@@ -284,9 +284,7 @@ class BroadcastPreWeightsIO {
    int mNumArbors;
    bool mCompressedFlag;
 
-   long mFrameSize  = 0L; // Number of bytes in a frame, including the header
-   int mFrameNumber = 0;
-   int mNumFrames   = 0;
+   std::shared_ptr<PVPFrameIndexer> mFrameIndexer = nullptr;
 
    long mDataSize              = static_cast<long>(sizeof(float));
    long const mHeaderSize      = static_cast<long>(sizeof(BufferUtils::WeightHeader));

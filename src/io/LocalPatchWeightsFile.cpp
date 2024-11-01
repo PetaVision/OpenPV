@@ -1,6 +1,9 @@
 #include "LocalPatchWeightsFile.hpp"
 
 #include "io/FileStreamBuilder.hpp"
+#include "structures/Patch.hpp"
+
+#include <algorithm> // std::copy
 
 namespace PV {
 
@@ -21,9 +24,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
         mPatchSizeX(weightData->getPatchSizeX()),
         mPatchSizeY(weightData->getPatchSizeY()),
         mPatchSizeF(weightData->getPatchSizeF()),
-        mNxRestrictedPre(preLayerLoc->nx),
-        mNyRestrictedPre(preLayerLoc->ny),
-        mNfPre(preLayerLoc->nf),
+        mPreLayerLoc(*preLayerLoc),
         mNxRestrictedPost(postLayerLoc->nx),
         mNyRestrictedPost(postLayerLoc->ny),
         mNumArbors(weightData->getNumArbors()),
@@ -32,7 +33,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
         mReadOnly(readOnlyFlag),
         mVerifyWrites(verifyWrites) {
    initializeCheckpointerDataInterface();
-   initializeLocalPatchWeightsIO(clobberFlag);
+   initializeWeightsIO(clobberFlag);
 }
 
 LocalPatchWeightsFile::~LocalPatchWeightsFile() {}
@@ -49,6 +50,7 @@ void LocalPatchWeightsFile::read(double &timestamp) {
 }
 
 void LocalPatchWeightsFile::write(double timestamp) {
+   pvAssert(mLocalPatchWeightsIO != nullptr and mSharedWeightsIO == nullptr);
    float extremeValues[2]; // extremeValues[0] is the min; extremeValues[1] is the max.
    mLocalPatchWeightsIO->calcExtremeWeights(
          *mWeightData,
@@ -126,6 +128,7 @@ void LocalPatchWeightsFile::truncate(int index) {
          mReadOnly,
          "LocalPatchWeightsFile \"%s\" is read-only and cannot be truncated.\n",
          mPath.c_str());
+   pvAssert(mLocalPatchWeightsIO != nullptr and mSharedWeightsIO == nullptr);
    if (isRoot()) {
       int curFrameNumber  = mLocalPatchWeightsIO->getFrameNumber();
       int lastFrameNumber = mLocalPatchWeightsIO->getNumFrames();
@@ -148,22 +151,31 @@ void LocalPatchWeightsFile::truncate(int index) {
 }
 
 void LocalPatchWeightsFile::setIndex(int index) {
-   WeightsFile::setIndex(index);
    if (!isRoot()) {
       return;
    }
    int frameNumber = index;
-   if (mReadOnly) {
-      frameNumber = index % mLocalPatchWeightsIO->getNumFrames();
-   }
-   mLocalPatchWeightsIO->setFrameNumber(frameNumber);
-   mFileStreamReadPos = mLocalPatchWeightsIO->getFileStream()->getInPos();
-   if (!mReadOnly) {
-      mFileStreamWritePos = mLocalPatchWeightsIO->getFileStream()->getOutPos();
+   if (mLocalPatchWeightsIO != nullptr) {
+      pvAssert(mSharedWeightsIO == nullptr);
+      mLocalPatchWeightsIO->setFrameNumber(index);
+      frameNumber = mLocalPatchWeightsIO->getFrameNumber();
+      mFileStreamReadPos = mLocalPatchWeightsIO->getFileStream()->getInPos();
+      if (!mReadOnly) {
+         mFileStreamWritePos = mLocalPatchWeightsIO->getFileStream()->getOutPos();
+      }
+      else {
+         mFileStreamWritePos = mFileStreamReadPos;
+      }
    }
    else {
+      pvAssert(mSharedWeightsIO != nullptr);
+      pvAssert(mReadOnly);
+      mSharedWeightsIO->setFrameNumber(index);
+      frameNumber = mSharedWeightsIO->getFrameNumber();
+      mFileStreamReadPos = mSharedWeightsIO->getFileStream()->getInPos();
       mFileStreamWritePos = mFileStreamReadPos;
    }
+   WeightsFile::setIndex(frameNumber);
 }
 
 Response::Status LocalPatchWeightsFile::registerData(
@@ -209,8 +221,83 @@ Response::Status LocalPatchWeightsFile::processCheckpointRead(double simTime) {
    return Response::SUCCESS;
 }
 
+void LocalPatchWeightsFile::convertSharedToNonshared(WeightData const &sharedWeightData) {
+   // Each process has the shared weights in the sharedWeightData argument. Now we need to
+   // loop over all the nonshared patches, and read in the correct kernel.
+   int const numPatchesX       = getNxExtendedPre();
+   int const numPatchesY       = getNyExtendedPre();
+   int const numPatchesF       = getNfPre();
+   int const numPatchesOverall = numPatchesX * numPatchesY * numPatchesF;
+   int const numKernelsX       = sharedWeightData.getNumDataPatchesX();
+   int const numKernelsY       = sharedWeightData.getNumDataPatchesY();
+   int const numKernelsF       = sharedWeightData.getNumDataPatchesF();
+   int const patchSizeOverall = getPatchSizeOverall();
+   for (int a = 0; a < mNumArbors; ++a) {
+      for (int k = 0; k < numPatchesOverall; ++k) {
+         int kxExt = kxPos(k, numPatchesX, numPatchesY, numPatchesF);
+         int xCell = (kxExt - mPreLayerLoc.halo.lt + mPreLayerLoc.kx0) % numKernelsX;
+         xCell += (xCell < 0) ? numKernelsX : 0;
+
+         int kyExt = kyPos(k, numPatchesX, numPatchesY, numPatchesF);
+         int yCell = (kyExt - mPreLayerLoc.halo.dn + mPreLayerLoc.ky0) % numKernelsY;
+         yCell += (yCell < 0) ? numKernelsY : 0;
+
+         int kf = featureIndex(k, numPatchesX, numPatchesY, numPatchesF);
+
+         float const *sharedWeightValues = sharedWeightData.getDataFromXYF(a, xCell, yCell, kf);
+         float *targetWeightValues = mWeightData->getDataFromXYF(a, kxExt, kyExt, kf);
+         std::copy(sharedWeightValues, &sharedWeightValues[patchSizeOverall], targetWeightValues);
+      }
+   }
+}
+
 int LocalPatchWeightsFile::initializeCheckpointerDataInterface() {
    return CheckpointerDataInterface::initialize();
+}
+
+void LocalPatchWeightsFile::initializeWeightsIO(bool clobberFlag) {
+   if (mReadOnly) {
+      // The file must exist, and it must be a weights PVP file, but it could be
+      // either SharedWeights or LocalPatchWeights.
+      BufferUtils::WeightHeader weightHeader;
+      int weightHeaderSize = static_cast<int>(sizeof(weightHeader));
+      if (isRoot()) {
+         bool fileExists = mFileManager->queryFileExists(mPath);
+         FatalIf(
+               !fileExists,
+               "Read-only flag was set but file \"%s\" does not exist.\n",
+               mPath.c_str());
+         auto fileStream =
+               FileStreamBuilder(
+                     mFileManager,
+                     mPath,
+                     false /*not text*/,
+                     true /*readOnlyFlag*/,
+                     false /*clobberFlag*/,
+                     false /*verifyWritesFlag*/).get();
+         fileStream->read(&weightHeader, static_cast<long>(weightHeaderSize));
+      }
+      MPI_Bcast(
+            &weightHeader,
+            weightHeaderSize,
+            MPI_BYTE,
+            mFileManager->getRootProcessRank(),
+            mFileManager->getMPIBlock()->getComm());
+      switch(weightHeader.baseHeader.fileType) {
+         case PVP_WGT_FILE_TYPE:
+            initializeLocalPatchWeightsIO(clobberFlag);
+            break;
+         case PVP_KERNEL_FILE_TYPE:
+            initializeSharedWeightsIO(clobberFlag, weightHeader);
+            break;
+         default:
+            Fatal().printf("File \"%s\" is not a weights PVP file.\n");
+            break;
+      }
+   }
+   else {
+      initializeLocalPatchWeightsIO(clobberFlag);
+   }
 }
 
 void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
@@ -219,10 +306,10 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
                mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites)
                .get();
    auto mpiBlock             = mFileManager->getMPIBlock();
-   int nxRestrictedPreBlock  = mNxRestrictedPre * mpiBlock->getNumColumns();
-   int nyRestrictedPreBlock  = mNyRestrictedPre * mpiBlock->getNumRows();
-   int nxRestrictedPostBlock = mNxRestrictedPost * mpiBlock->getNumColumns();
-   int nyRestrictedPostBlock = mNyRestrictedPost * mpiBlock->getNumRows();
+   int nxRestrictedPreBlock  = getNxRestrictedPre() * mpiBlock->getNumColumns();
+   int nyRestrictedPreBlock  = getNyRestrictedPre() * mpiBlock->getNumRows();
+   int nxRestrictedPostBlock = getNxRestrictedPost() * mpiBlock->getNumColumns();
+   int nyRestrictedPostBlock = getNyRestrictedPost() * mpiBlock->getNumRows();
 
    mLocalPatchWeightsIO = std::unique_ptr<LocalPatchWeightsIO>(new LocalPatchWeightsIO(
          fileStream,
@@ -231,7 +318,7 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
          mPatchSizeF,
          nxRestrictedPreBlock,
          nyRestrictedPreBlock,
-         mNfPre,
+         getNfPre(),
          nxRestrictedPostBlock,
          nyRestrictedPostBlock,
          mNumArbors,
@@ -239,7 +326,35 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
          mCompressedFlag));
 }
 
+void LocalPatchWeightsFile::initializeSharedWeightsIO(
+      bool clobberFlag, BufferUtils::WeightHeader weightHeader) {
+   auto fileStream =
+         FileStreamBuilder(
+               mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites)
+               .get();
+   mSharedWeightsIO = std::unique_ptr<SharedWeightsIO>(new SharedWeightsIO(
+            fileStream,
+            mPatchSizeX,
+            mPatchSizeY,
+            mPatchSizeF,
+            weightHeader.baseHeader.nx,
+            weightHeader.baseHeader.ny,
+            getNfPre(),
+            mNumArbors,
+            mCompressedFlag));
+}
+
 void LocalPatchWeightsFile::readInternal(double &timestamp) {
+   pvAssert(mLocalPatchWeightsIO != nullptr xor mSharedWeightsIO != nullptr);
+   if (mLocalPatchWeightsIO != nullptr) {
+      readLocalPatchWeights(timestamp);
+   }
+   else if (mSharedWeightsIO != nullptr) {
+      readSharedWeights(timestamp);
+   }
+}
+
+void LocalPatchWeightsFile::readLocalPatchWeights(double &timestamp) {
    long numValues = mWeightData->getNumValuesPerArbor();
    auto mpiBlock  = mFileManager->getMPIBlock();
    if (isRoot()) {
@@ -295,6 +410,27 @@ void LocalPatchWeightsFile::readInternal(double &timestamp) {
          MPI_Recv(arbor, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm(), MPI_STATUS_IGNORE);
       }
    }
+   setIndex(getIndex() + 1);
+}
+
+void LocalPatchWeightsFile::readSharedWeights(double &timestamp) {
+   WeightData sharedWeightData(
+         mNumArbors, mPatchSizeX, mPatchSizeY, mPatchSizeF,
+         mSharedWeightsIO->getNumPatchesX(),
+         mSharedWeightsIO->getNumPatchesY(),
+         mSharedWeightsIO->getNumPatchesF());
+   if (isRoot()) {
+      mSharedWeightsIO->read(sharedWeightData, timestamp);
+   }
+
+   int numElements = sharedWeightData.getNumValuesPerArbor();
+   int rootProc    = mFileManager->getRootProcessRank();
+   auto mpiComm    = mFileManager->getMPIBlock()->getComm();
+   for (int a = 0; a < mNumArbors; ++a) {
+      float *weightValues = sharedWeightData.getData(a);
+      MPI_Bcast(weightValues, numElements, MPI_FLOAT, rootProc, mpiComm);
+   }
+   convertSharedToNonshared(sharedWeightData);
    setIndex(getIndex() + 1);
 }
 

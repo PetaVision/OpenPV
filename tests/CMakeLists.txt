@@ -83,7 +83,6 @@ add_subdirectory(TargetLayerComponentTest)
 add_subdirectory(TransposeWeightsTest)
 add_subdirectory(WeightDataTest)
 add_subdirectory(WeightsClassTest)
-add_subdirectory(WeightsFileIOTest)
 
 # System tests that involve starting up a full instance of PetaVision happen next.
 add_subdirectory(BasicSystemTest)

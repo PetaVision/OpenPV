@@ -9,6 +9,7 @@
 #define LOCALPATCHWEIGHTSIO_HPP_
 
 #include "io/FileStream.hpp"
+#include "io/PVPFrameIndexer.hpp"
 #include "structures/Patch.hpp"
 #include "structures/WeightData.hpp"
 #include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
@@ -135,10 +136,14 @@ class LocalPatchWeightsIO {
 
    long getNumPatchesFile() const;
 
-   long int getFrameSize() const { return mFrameSize; }
-   int getFrameNumber() const { return mFrameNumber; }
-   void setFrameNumber(int frame);
-   int getNumFrames() const { return mNumFrames; }
+   /** Returns the current frame number */
+   int getFrameNumber() const { return mFrameIndexer->getFrameNumber(); }
+
+   /** Sets the frame number to the indicated value */
+   void setFrameNumber(int frame) { mFrameIndexer->setFrameNumber(frame); }
+
+   /** Returns the number of frames in the file */
+   int getNumFrames() const { return mFrameIndexer->getNumFrames(); }
 
    int getXMargin() const { return mXMargin; }
    int getYMargin() const { return mYMargin; }
@@ -182,9 +187,8 @@ class LocalPatchWeightsIO {
          std::string const &functionName);
    void checkHeader(BufferUtils::WeightHeader const &header) const;
 
-   void initializeFrameSize();
    void initializeMargins();
-   void initializeNumFrames();
+   void initializeFrameIndexer();
 
    void readPatch(
          std::vector<float> &readBuffer,
@@ -244,9 +248,7 @@ class LocalPatchWeightsIO {
    bool mFileExtendedFlag;
    bool mCompressedFlag;
 
-   long mFrameSize  = 0L; // Number of bytes in a frame, including the header
-   int mFrameNumber = 0;
-   int mNumFrames   = 0;
+   std::shared_ptr<PVPFrameIndexer> mFrameIndexer = nullptr;
 
    int mXMargin = 0;
    int mYMargin = 0;
