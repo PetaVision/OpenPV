@@ -11,6 +11,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
+   ${SUBDIR}/requiredConvolveMargin.cpp
    ${SUBDIR}/Timer.cpp
    ${SUBDIR}/TransposeWeights.cpp
    ${SUBDIR}/WaitForReturn.cpp

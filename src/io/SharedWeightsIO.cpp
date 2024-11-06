@@ -117,21 +117,7 @@ void SharedWeightsIO::write(WeightData const &weightData, double timestamp) {
    checkDimensions(weightData);
    float minWeight, maxWeight;
    weightData.calcExtremeWeights(minWeight, maxWeight);
-   auto header = BufferUtils::buildWeightHeader(
-         true /*sharedFlag*/,
-         getNumPatchesX(),
-         getNumPatchesY(),
-         getNumPatchesF(),
-         getNumPatchesX(),
-         getNumPatchesY(),
-         getNumArbors(),
-         timestamp,
-         getPatchSizeX(),
-         getPatchSizeY(),
-         getPatchSizeF(),
-         getCompressedFlag(),
-         minWeight,
-         maxWeight);
+   auto header = buildWeightHeader(timestamp, minWeight, maxWeight);
    mFileStream->write(&header, mHeaderSize);
    checkHeader(header);
 
@@ -179,6 +165,48 @@ void SharedWeightsIO::close() {
       mFrameIndexer = nullptr;
       mFileStream->close();
    }
+}
+
+BufferUtils::WeightHeader
+SharedWeightsIO::buildWeightHeader(double timestamp, float minVal, float maxVal) {
+   pvAssert(sizeof(BufferUtils::WeightHeader) == static_cast<std::size_t>(NUM_WGT_PARAMS * 4));
+   BufferUtils::WeightHeader weightHeader;
+   weightHeader.baseHeader.headerSize      = NUM_WGT_PARAMS * 4;
+   weightHeader.baseHeader.numParams       = NUM_WGT_PARAMS;
+   weightHeader.baseHeader.fileType        = PVP_KERNEL_FILE_TYPE;
+   weightHeader.baseHeader.nx              = getNumPatchesX();
+   weightHeader.baseHeader.ny              = getNumPatchesY();
+   weightHeader.baseHeader.nf              = getNumPatchesF();
+   weightHeader.baseHeader.numRecords      = getNumArbors();
+   weightHeader.baseHeader.recordSize      = 0;
+
+   if (getCompressedFlag()) {
+      weightHeader.baseHeader.dataSize = (int)sizeof(unsigned char);
+      weightHeader.baseHeader.dataType = BufferUtils::returnDataType<unsigned char>();
+   }
+   else {
+      weightHeader.baseHeader.dataSize = (int)sizeof(float);
+      weightHeader.baseHeader.dataType = BufferUtils::returnDataType<float>();
+   }
+
+   weightHeader.baseHeader.nxProcs    = 1;
+   weightHeader.baseHeader.nyProcs    = 1;
+   weightHeader.baseHeader.nxExtended = getNumPatchesX();
+   weightHeader.baseHeader.nyExtended = getNumPatchesY();
+   weightHeader.baseHeader.kx0        = 0;
+   weightHeader.baseHeader.ky0        = 0;
+   weightHeader.baseHeader.nBatch     = 1;
+   weightHeader.baseHeader.nBands     = getNumArbors();
+   weightHeader.baseHeader.timestamp  = timestamp;
+
+   weightHeader.nxp        = getPatchSizeX();
+   weightHeader.nyp        = getPatchSizeY();
+   weightHeader.nfp        = getPatchSizeF();
+   weightHeader.minVal     = minVal;
+   weightHeader.maxVal     = maxVal;
+   weightHeader.numPatches = getNumPatchesOverall();
+
+   return weightHeader;
 }
 
 void SharedWeightsIO::checkDimensions(WeightData const &weightData) {

@@ -128,6 +128,11 @@ int run(
       std::string const &directory) {
    int status         = PV_SUCCESS;
 
+   // Write a shared weights PVP file using the LocalPatchWeightsFile class, and then read it back
+   // using primitive FileStream functions, and compare the result.
+   fileManager->ensureDirectoryExists(directory); // path is relative to FileManager's baseDir.
+   std::string testWritePath = directory + "/testWrite.pvp";
+
    int numArbors      = connection.getNumArbors();
    int nxp            = connection.getPatchSizeX();
    int nyp            = connection.getPatchSizeY();
@@ -137,18 +142,13 @@ int run(
    int nfPre          = connection.getNfPre();
    int nxPost         = connection.getNxGlobalRestrictedPost();
    int nyPost         = connection.getNyGlobalRestrictedPost();
-   int xMargin        = requiredConvolveMargin(nxPre, nxPost, nxp);
-   int yMargin        = requiredConvolveMargin(nyPre, nyPost, nyp);
+   int xMargin        = requiredConvolveMargin(nxPre, nxPost, nxp, 'x', testWritePath.c_str());
+   int yMargin        = requiredConvolveMargin(nyPre, nyPost, nyp, 'y', testWritePath.c_str());
    PVLayerLoc preLoc  =
         createLayerLoc(pv_init, nxPre, nyPre, nfPre, xMargin, yMargin, std::string("preLoc"));
    PVLayerLoc postLoc =
         createLayerLoc(pv_init, nxPost, nyPost, nfp, 0, 0, std::string("postLoc"));
    double timestamp;
-
-   // Write a shared weights PVP file using the LocalPatchWeightsFile class, and then read it back
-   // using primitive FileStream functions, and compare the result.
-   fileManager->ensureDirectoryExists(directory); // path is relative to FileManager's baseDir.
-   std::string testWritePath = directory + "/testWrite.pvp";
 
    std::shared_ptr<WeightData> writeWeights =
          allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
@@ -268,11 +268,11 @@ std::shared_ptr<WeightData> allocateWeights(
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
    int nxPreRestricted = preLoc.nx;
    int nxPost          = postLoc.nx;
-   int xMargin         = requiredConvolveMargin(nxPreRestricted, nxPost, nxp);
+   int xMargin         = requiredConvolveMargin(nxPreRestricted, nxPost, nxp, 'x', "Connection");
    int nxPreExtended   = nxPreRestricted + 2 * xMargin;
    int nyPreRestricted = preLoc.ny;
    int nyPost          = postLoc.ny;
-   int yMargin         = requiredConvolveMargin(nyPreRestricted, nyPost, nyp);
+   int yMargin         = requiredConvolveMargin(nyPreRestricted, nyPost, nyp, 'y', "Connection");
    int nyPreExtended   = nyPreRestricted + 2 * yMargin;
    auto weightData     = std::make_shared<WeightData>(
          numArbors, nxp, nyp, nfp, nxPreExtended, nyPreExtended, preLoc.nf);
@@ -382,8 +382,10 @@ int compareWeights(
    }
    int patchSizeF = weights1->getPatchSizeF();
 
-   int xMargin = requiredConvolveMargin(nxRestrictedPre, nxRestrictedPost, patchSizeX);
-   int yMargin = requiredConvolveMargin(nyRestrictedPre, nyRestrictedPost, patchSizeY);
+   int xMargin = requiredConvolveMargin(
+         nxRestrictedPre, nxRestrictedPost, patchSizeX, 'x', "compareWeights");
+   int yMargin = requiredConvolveMargin(
+         nyRestrictedPre, nyRestrictedPost, patchSizeY, 'y', "compareWeights");
    if (weights1->getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
       ErrorLog().printf(
             "compareWeights, %s: weights1 does not have enough patches in the x-direction "
@@ -664,16 +666,42 @@ void writeToFileStream(
    long lineSize         = static_cast<long>(numPatchesPerLine) * patchSizeOverall;
    long bufferSize       = lineSize * static_cast<long>(nyExtendedLocal);
    if (fileManager->isRoot()) {
-      auto weightHeader = BufferUtils::buildNonsharedWeightHeader(
-            nxp, nyp, nfp,
-            numArbors,
-            true /*fileExtendedFlag*/,
-            timestamp,
-            &preLayerLoc, &postLayerLoc,
-            mpiBlock->getNumColumns(), mpiBlock->getNumRows(),
-            minVal,
-            maxVal,
-            false /*compressFlag*/);
+      BufferUtils::WeightHeader weightHeader;
+      weightHeader.baseHeader.headerSize = 4 * NUM_WGT_PARAMS;
+      weightHeader.baseHeader.numParams = NUM_WGT_PARAMS;
+      weightHeader.baseHeader.fileType = PVP_WGT_FILE_TYPE;
+      weightHeader.baseHeader.nx = preLayerLoc.nx * mpiBlock->getNumColumns();
+      weightHeader.baseHeader.ny = preLayerLoc.ny * mpiBlock->getNumRows();
+      weightHeader.baseHeader.nf = preLayerLoc.nf;
+      weightHeader.baseHeader.numRecords = numArbors;
+      weightHeader.baseHeader.recordSize = 0;
+      weightHeader.baseHeader.dataSize = static_cast<int>(sizeof(float));
+      weightHeader.baseHeader.dataType = BufferUtils::HeaderDataTypeEnum::FLOAT;
+      weightHeader.baseHeader.nxProcs = 1;
+      weightHeader.baseHeader.nyProcs = 1;
+
+      int marginX = requiredConvolveMargin(
+            preLayerLoc.nx, postLayerLoc.nx, nxp, 'x', fileStream->getFileName().c_str());
+      int nxExtended = weightHeader.baseHeader.nx + marginX + marginX;
+      weightHeader.baseHeader.nxExtended = nxExtended;
+
+      int marginY = requiredConvolveMargin(
+            preLayerLoc.ny, postLayerLoc.ny, nyp, 'y', fileStream->getFileName().c_str());
+      int nyExtended = weightHeader.baseHeader.ny + marginY + marginY;
+      weightHeader.baseHeader.nyExtended = nyExtended;
+
+      weightHeader.baseHeader.kx0 = 0;
+      weightHeader.baseHeader.ky0 = 0;
+      weightHeader.baseHeader.nBatch = 1;
+      weightHeader.baseHeader.nBands = numArbors;
+      weightHeader.baseHeader.timestamp = timestamp;
+      weightHeader.nxp = nxp;
+      weightHeader.nyp = nyp;
+      weightHeader.nfp = nfp;
+      weightHeader.minVal = minVal;
+      weightHeader.maxVal = maxVal;
+      weightHeader.numPatches = nxExtended * nyExtended * weightHeader.baseHeader.nf;
+
       long const headerSize = 104L;
       FatalIf(
             static_cast<long>(sizeof(weightHeader)) != headerSize,

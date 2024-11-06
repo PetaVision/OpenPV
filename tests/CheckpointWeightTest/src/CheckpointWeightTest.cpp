@@ -40,7 +40,8 @@ int calcGlobalPatchIndex(
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
       int nxp,
-      int nyp);
+      int nyp,
+      std::string const &name);
 float calcWeight(int patchIndex, int itemIndex, int numItemsInPatch);
 
 bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, int itemIndex);
@@ -96,7 +97,8 @@ void verifyCheckpointing(
             globalPatchIndex = p;
          }
          else {
-            globalPatchIndex = calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp);
+            globalPatchIndex =
+                  calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp, weights.getName());
          }
          for (int k = 0; k < numItemsInPatch; k++) {
             int const indexIntoArbor       = p * numItemsInPatch + k;
@@ -199,7 +201,8 @@ void verifyCheckpointing(
             globalPatchIndex = p;
          }
          else {
-            globalPatchIndex = calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp);
+            globalPatchIndex =
+                  calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp, weights.getName());
          }
          Patch const &patch = weights.getPatch(p);
          for (int k = 0; k < numItemsInPatch; k++) {
@@ -283,9 +286,10 @@ int calcGlobalPatchIndex(
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
       int nxp,
-      int nyp) {
-   int marginX           = requiredConvolveMargin(preLoc.nx, postLoc.nx, nxp);
-   int marginY           = requiredConvolveMargin(preLoc.ny, postLoc.ny, nyp);
+      int nyp,
+      std::string const &name) {
+   int marginX           = requiredConvolveMargin(preLoc.nx, postLoc.nx, nxp, 'x', name.c_str());
+   int marginY           = requiredConvolveMargin(preLoc.ny, postLoc.ny, nyp, 'y', name.c_str());
    int numPatchesX       = preLoc.nx + marginX + marginX;
    int numPatchesY       = preLoc.ny + marginY + marginY;
    int const nf          = preLoc.nf;

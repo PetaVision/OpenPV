@@ -5,7 +5,6 @@
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
-#include "utils/requiredConvolveMargin.hpp"
 
 #include <cfloat>
 #include <cmath>

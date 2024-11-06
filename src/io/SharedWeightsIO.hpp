@@ -85,6 +85,7 @@ class SharedWeightsIO {
    int getNumFrames() const { return mFrameIndexer->getNumFrames(); }
 
   private:
+   BufferUtils::WeightHeader buildWeightHeader(double timestamp, float minVal, float maxVal);
    void checkDimensions(WeightData const &weightData);
    void checkHeader(BufferUtils::WeightHeader const &header) const;
 

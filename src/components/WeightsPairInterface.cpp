@@ -82,10 +82,11 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    PVLayerLoc const *postLoc = postGeom->getLayerLoc();
 
    // Margins
-   int xmargin = requiredConvolveMargin(preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
-InfoLog().printf("%s: preLoc->nx = %d, postLoc->nx = %d, patch size = %d\n", getDescription_c(), preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
+   int xmargin = requiredConvolveMargin(
+         preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX(), 'x', getName());
    preGeom->requireMarginWidth(xmargin, 'x');
-   int ymargin = requiredConvolveMargin(preLoc->ny, postLoc->ny, mPatchSize->getPatchSizeY());
+   int ymargin = requiredConvolveMargin(
+         preLoc->ny, postLoc->ny, mPatchSize->getPatchSizeY(), 'y', getName());
    preGeom->requireMarginWidth(ymargin, 'y');
 
    return Response::SUCCESS;

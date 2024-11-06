@@ -32,6 +32,9 @@ struct Dimensions {
    }
 };
 
+BufferUtils::WeightHeader
+buildWeightHeader(std::shared_ptr<WeightData> weightData, double timestamp);
+
 int calcFrameSize(
       std::shared_ptr<WeightData const> weights, std::shared_ptr<MPIBlock const> mpiBlock);
 
@@ -174,6 +177,50 @@ int main(int argc, char *argv[]) {
       status = checkTruncate(fileManager, dimensions);
    }
    return status;
+}
+
+BufferUtils::WeightHeader
+buildWeightHeader(std::shared_ptr<WeightData> weightData, double timestamp) {
+   pvAssert(sizeof(BufferUtils::WeightHeader) == static_cast<std::size_t>(NUM_WGT_PARAMS * 4));
+   BufferUtils::WeightHeader weightHeader;
+   weightHeader.baseHeader.headerSize      = NUM_WGT_PARAMS * 4;
+   weightHeader.baseHeader.numParams       = NUM_WGT_PARAMS;
+   weightHeader.baseHeader.fileType        = PVP_WGT_FILE_TYPE;
+   weightHeader.baseHeader.nx              = weightData->getNumDataPatchesX();
+   weightHeader.baseHeader.ny              = weightData->getNumDataPatchesY();
+   weightHeader.baseHeader.nf              = weightData->getNumDataPatchesF();
+   weightHeader.baseHeader.numRecords      = weightData->getNumArbors();
+   weightHeader.baseHeader.recordSize      = 0;
+   weightHeader.baseHeader.dataSize        = (int)sizeof(float);
+   weightHeader.baseHeader.dataType        = BufferUtils::returnDataType<float>();
+   weightHeader.baseHeader.nxProcs         = 1;
+   weightHeader.baseHeader.nyProcs         = 1;
+   weightHeader.baseHeader.nxExtended      = weightData->getNumDataPatchesX();
+   weightHeader.baseHeader.nyExtended      = weightData->getNumDataPatchesY();
+   weightHeader.baseHeader.kx0             = 0;
+   weightHeader.baseHeader.ky0             = 0;
+   weightHeader.baseHeader.nBatch          = 1;
+   weightHeader.baseHeader.nBands          = weightData->getNumArbors();
+   weightHeader.baseHeader.timestamp       = timestamp;
+
+   weightHeader.nxp = weightData->getPatchSizeX();
+   weightHeader.nyp = weightData->getPatchSizeY();
+   weightHeader.nfp = weightData->getPatchSizeF();
+
+   float minWeight = weightData->getData(0)[0];
+   float maxWeight = weightData->getData(0)[0];
+   long int numWeights = weightData->getNumValuesPerArbor();
+   for (int k = 0; k < numWeights; ++k) {
+      float w = weightData->getData(0 /*arbor*/)[k];
+      minWeight = w < minWeight ? w : minWeight;
+      maxWeight = w > maxWeight ? w : maxWeight;
+   }
+   weightHeader.minVal = minWeight;
+   weightHeader.maxVal = maxWeight;
+
+   weightHeader.numPatches = weightData->getNumDataPatchesOverall();
+
+   return weightHeader;
 }
 
 int calcFrameSize(
@@ -846,22 +893,9 @@ void writeUsingFileStreamPrimitives(
       fileStream->setInPos(filePosition, std::ios_base::beg);
       fileStream->setOutPos(filePosition, std::ios_base::beg);
 
-      BufferUtils::WeightHeader weightHeader = BufferUtils::buildWeightHeader(
-            false /*sharedFlag*/,
-            gatheredWeightData->getNumDataPatchesX(),
-            gatheredWeightData->getNumDataPatchesY(),
-            gatheredWeightData->getNumDataPatchesF(),
-            gatheredWeightData->getNumDataPatchesX(),
-            gatheredWeightData->getNumDataPatchesY(),
-            gatheredWeightData->getNumArbors(),
-            timestamp,
-            nxpBlock,
-            nypBlock,
-            nfp,
-            false /*compressFlag*/,
-            minWeight /*minVal*/,
-            maxWeight /*maxVal*/);
+      BufferUtils::WeightHeader weightHeader = buildWeightHeader(gatheredWeightData, timestamp);
       fileStream->write(&weightHeader, sizeof(weightHeader));
+
       char patchHeader[8];
       short int nx = static_cast<short int>(gatheredWeightData->getPatchSizeX());
       short int ny = static_cast<short int>(gatheredWeightData->getPatchSizeY());

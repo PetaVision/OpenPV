@@ -2,6 +2,7 @@
 
 #include "structures/PatchGeometry.hpp"
 #include "include/pv_common.h"
+#include "utils/PathComponents.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
@@ -625,10 +626,17 @@ void LocalPatchWeightsIO::initializeFrameIndexer() {
 
 void LocalPatchWeightsIO::initializeMargins() {
    if (getFileExtendedFlag()) {
-      mXMargin =
-            requiredConvolveMargin(getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX());
-      mYMargin =
-            requiredConvolveMargin(getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY());
+      std::string fileName;
+      if (getFileStream() != nullptr) {
+         fileName = baseName(getFileStream()->getFileName());
+      }
+      else {
+         fileName = "Connection on nonroot process";
+      }
+      mXMargin = requiredConvolveMargin(
+            getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX(), 'x', fileName.c_str());
+      mYMargin = requiredConvolveMargin(
+            getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY(), 'x', fileName.c_str());
    }
    else {
       mXMargin = 0;

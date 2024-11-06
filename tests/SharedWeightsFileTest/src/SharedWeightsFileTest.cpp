@@ -409,16 +409,34 @@ void writeToFileStream(
    int numPatchesF = weightData->getNumDataPatchesF();
    float minVal    = calcMinVal(weightData);
    float maxVal    = calcMaxVal(weightData);
-   auto weightHeader = BufferUtils::buildSharedWeightHeader(
-         nxp, nyp, nfp,
-         numArbors,
-         numPatchesX,
-         numPatchesY,
-         numPatchesF,
-         timestamp,
-         false /*compressFlag*/,
-         minVal,
-         maxVal);
+
+   BufferUtils::WeightHeader weightHeader;
+   weightHeader.baseHeader.headerSize = 4 * NUM_WGT_PARAMS;
+   weightHeader.baseHeader.numParams = NUM_WGT_PARAMS;
+   weightHeader.baseHeader.fileType = PVP_KERNEL_FILE_TYPE;
+      weightHeader.baseHeader.nx = numPatchesX;
+      weightHeader.baseHeader.ny = numPatchesY;
+      weightHeader.baseHeader.nf = numPatchesF;
+      weightHeader.baseHeader.numRecords = numArbors;
+      weightHeader.baseHeader.recordSize = 0;
+      weightHeader.baseHeader.dataSize = static_cast<int>(sizeof(float));
+      weightHeader.baseHeader.dataType = BufferUtils::HeaderDataTypeEnum::FLOAT;
+      weightHeader.baseHeader.nxProcs = 1;
+      weightHeader.baseHeader.nyProcs = 1;
+      weightHeader.baseHeader.nxExtended = numPatchesX;
+      weightHeader.baseHeader.nyExtended = numPatchesY;
+      weightHeader.baseHeader.kx0 = 0;
+      weightHeader.baseHeader.ky0 = 0;
+      weightHeader.baseHeader.nBatch = 1;
+      weightHeader.baseHeader.nBands = numArbors;
+      weightHeader.baseHeader.timestamp = timestamp;
+      weightHeader.nxp = nxp;
+      weightHeader.nyp = nyp;
+      weightHeader.nfp = nfp;
+      weightHeader.minVal = minVal;
+      weightHeader.maxVal = maxVal;
+      weightHeader.numPatches = numPatchesX * numPatchesY * numPatchesF;
+
    long const headerSize = 104L;
    FatalIf(
          static_cast<long>(sizeof(weightHeader)) != headerSize,
