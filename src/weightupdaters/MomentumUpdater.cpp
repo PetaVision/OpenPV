@@ -118,7 +118,7 @@ void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
    if (mPlasticityFlag) {
       if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "momentumDecay")) {
          WarnLog().printf(
-               "%s sets momentumDecay parameter, which is deprecated. Use weightL2Decay instead.",
+               "%s sets momentumDecay parameter, which is deprecated. Use weightL2Decay instead.\n",
                getDescription_c());
          if (parameters()->present(getName(), "weightL2Decay")) {
             return; // ioParam_weightL2Decay() will handle it
