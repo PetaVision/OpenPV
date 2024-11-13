@@ -8,6 +8,7 @@
 #include "MomentumUpdater.hpp"
 
 #include "components/WeightsPair.hpp"
+#include "io/BroadcastPreWeightsFile.hpp"
 #include "io/LocalPatchWeightsFile.hpp"
 #include "io/SharedWeightsFile.hpp"
 #include <cmath> // exp()
@@ -290,28 +291,49 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
       char const *baseDirectory = mInitPrev_dWFile[0] == '/' ? "/" : ".";
       auto fileManager = std::make_shared<FileManager>(globalMPIBlock, baseDirectory);
       std::shared_ptr<WeightsFile> weightsFile;
+
+      switch (mPrevDeltaWeights->getWeightsType()) {
+         case Weights::WeightsType::SHARED:
+            weightsFile = std::make_shared<SharedWeightsFile>(
+                  fileManager,
+                  std::string(mInitPrev_dWFile),
+                  mPrevDeltaWeights->getData(),
+                  false /* compressedFlag */,
+                  true /* readOnlyFlag */,
+                  false /* clobberFlag */,
+                  false /* verifyWritesFlag */);
+            break;
+         case Weights::WeightsType::LOCALPATCH:
+            weightsFile = std::make_shared<LocalPatchWeightsFile>(
+                  fileManager,
+                  std::string(mInitPrev_dWFile),
+                  mPrevDeltaWeights->getData(),
+                  &mPrevDeltaWeights->getGeometry()->getPreLoc(),
+                  &mPrevDeltaWeights->getGeometry()->getPostLoc(),
+                  true /* fileExtendedFlag */,
+                  false /* compressedFlag */,
+                  true /* readOnlyFlag */,
+                  false /* clobberFlag */,
+                  false /* verifyWritesFlag */);
+            break;
+         case Weights::WeightsType::BROADCASTPRE:
+            weightsFile = std::make_shared<BroadcastPreWeightsFile>(
+                  fileManager,
+                  std::string(mInitPrev_dWFile),
+                  mPrevDeltaWeights->getData(),
+                  mPrevDeltaWeights->getGeometry()->getPreLoc().nf,
+                  false /* compressedFlag */,
+                  true /*readOnlyFlag*/,
+                  false /*clobberFlag*/,
+                  false /* verifyWritesFlag */);
+            break;
+         default:
+            Fatal().printf("Unrecognized WeightsType %d\n", mPrevDeltaWeights->getWeightsType());
+            break;
+      }
       if (mPrevDeltaWeights->weightsTypeIsShared()) {
-         weightsFile = std::make_shared<SharedWeightsFile>(
-               fileManager,
-               std::string(mInitPrev_dWFile),
-               mPrevDeltaWeights->getData(),
-               false /* compressedFlag */,
-               true /* readOnlyFlag */,
-               false /* clobberFlag */,
-               false /* verifyWritesFlag */);
       }
       else {
-         weightsFile = std::make_shared<LocalPatchWeightsFile>(
-               fileManager,
-               std::string(mInitPrev_dWFile),
-               mPrevDeltaWeights->getData(),
-               &mPrevDeltaWeights->getGeometry()->getPreLoc(),
-               &mPrevDeltaWeights->getGeometry()->getPostLoc(),
-               true /* fileExtendedFlag */,
-               false /* compressedFlag */,
-               true /* readOnlyFlag */,
-               false /* clobberFlag */,
-               false /* verifyWritesFlag */);
       }
       weightsFile->setIndex(mPrev_dWFrameNumber);
       weightsFile->read();
