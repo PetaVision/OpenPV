@@ -431,28 +431,44 @@ void MomentumUpdater::openOutputStateFile(
 
    auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
    auto *postLoc = mConnectionData->getPost()->getLayerLoc();
-   if (mPrevDeltaWeights->weightsTypeIsShared()) {
-      mWeightsFile = std::make_shared<SharedWeightsFile>(
-            outputFileManager,
-            outputStatePath,
-            mPrevDeltaWeights->getData(),
-            mWriteCompressedWeights,
-            false /*readOnlyFlag*/,
-            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-            checkpointer->doesVerifyWrites());
-   }
-   else {
-      mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
-            outputFileManager,
-            outputStatePath,
-            mPrevDeltaWeights->getData(),
-            preLoc,
-            postLoc,
-            true /*fileExtendedFlag*/,
-            mWriteCompressedWeights,
-            false /*readOnlyFlag*/,
-            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-            checkpointer->doesVerifyWrites());
+   switch (mPrevDeltaWeights->getWeightsType()) {
+      case Weights::WeightsType::SHARED:
+         mWeightsFile = std::make_shared<SharedWeightsFile>(
+               outputFileManager,
+               outputStatePath,
+               mPrevDeltaWeights->getData(),
+               mWriteCompressedWeights,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+         break;
+      case Weights::WeightsType::LOCALPATCH:
+         mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+               outputFileManager,
+               outputStatePath,
+               mPrevDeltaWeights->getData(),
+               preLoc,
+               postLoc,
+               true /*fileExtendedFlag*/,
+               mWriteCompressedWeights,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+         break;
+      case Weights::WeightsType::BROADCASTPRE:
+         mWeightsFile = std::make_shared<BroadcastPreWeightsFile>(
+               outputFileManager,
+               outputStatePath,
+               mPrevDeltaWeights->getData(),
+               preLoc->nf,
+               mWriteCompressedWeights,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+         break;
+      default:
+         Fatal().printf("Unrecognized WeightsType %d\n", mPrevDeltaWeights->getWeightsType());
+         break;
    }
    mWeightsFile->respond(message); // WeightsFile needs to register filepos
 }
