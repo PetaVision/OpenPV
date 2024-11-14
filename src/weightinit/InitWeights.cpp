@@ -315,7 +315,7 @@ int InitWeights::kernelIndexCalculations(int dataPatchIndex) {
    int log2ScaleDiffY = mWeights->getGeometry()->getLog2ScaleDiffY();
    float yDistNNPreUnits;
    float yDistNNPostUnits;
-   dist2NearestCell(kxPre, log2ScaleDiffY, &yDistNNPreUnits, &yDistNNPostUnits);
+   dist2NearestCell(kyPre, log2ScaleDiffY, &yDistNNPreUnits, &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
