@@ -25,6 +25,9 @@ int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string c
 int compareWeights(
       std::shared_ptr<WeightData const> weights1, std::shared_ptr<WeightData const> weights2);
 
+int copyWeights(
+      std::shared_ptr<WeightData const> srcWeights, std::shared_ptr<WeightData> destWeights);
+
 std::shared_ptr<WeightData> createWgts1(
       int numArbors, int nxp, int nyp, int nfp, int nxPre, int nyPre, int nfPre);
 std::shared_ptr<WeightData> createWgts2(
@@ -66,21 +69,32 @@ int main(int argc, char *argv[]) {
    // Write a shared weights PVP file using the SharedWeightsFile class, and then read it back
    // using primitive FileStream functions, and compare the result. 
    std::string testWritePath("testWeightsWrite.pvp");
-   auto weights1 = createWgts1(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   auto weights = std::make_shared<WeightData>(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
 
    std::unique_ptr<SharedWeightsFile> wgtFile(new SharedWeightsFile(
       fileManager,
       testWritePath,
-      weights1,
+      weights,
       false /*compressedFlag*/,
       false /*readOnlyFlag*/,
       false /*clobberFlag*/,
       false /*verifyWrites*/));
 
+   // We create the weights in a different WeightData object from the one tied to wgtFile, and then
+   // copy it over so that we can clobber the wgtFile-associated weights, to make sure that when
+   // we read the weights back it is genuinely the file contents, and still have the weights we
+   // wrote, to perform the comparison.
+   auto weights1 = createWgts1(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   FatalIf(
+         copyWeights(weights1, weights) != PV_SUCCESS,
+         "Test failed.\n");
    timestamp = 10.0;
    wgtFile->write(timestamp);
 
    auto weights2 = createWgts2(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   FatalIf(
+         copyWeights(weights2, weights) != PV_SUCCESS,
+         "Test failed.\n");
    timestamp = 15.0;
    wgtFile->write(timestamp);
 
@@ -209,7 +223,7 @@ int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string c
    return status;
 }
 
-int compareWeights(
+int compareWeightDimensions(
       std::shared_ptr<WeightData const> weights1, std::shared_ptr<WeightData const> weights2) {
    int status = PV_SUCCESS;
    if (weights1->getNumArbors() != weights2->getNumArbors()) {
@@ -254,7 +268,17 @@ int compareWeights(
             weights1->getNumDataPatchesF(), weights2->getNumDataPatchesF());
       status = PV_FAILURE;
    }
-   int numArbors = weights1->getNumArbors();
+   return status;
+}
+
+int compareWeights(
+      std::shared_ptr<WeightData const> weights1, std::shared_ptr<WeightData const> weights2) {
+   int status = PV_SUCCESS;
+   if (compareWeightDimensions(weights1, weights2) != PV_SUCCESS) {
+      ErrorLog().printf("compareWeights() called with weights with incompatible dimensions.\n");
+      return PV_FAILURE;
+   }
+   int numArbors = weights1->getNumArbors(); // checked in 
    pvAssert(numArbors == weights2->getNumArbors());
    long numDataPatches = weights1->getNumDataPatchesOverall();
    pvAssert(numDataPatches == weights2->getNumDataPatchesOverall());
@@ -272,9 +296,31 @@ int compareWeights(
                 ErrorLog().printf(
                       "Boo! Arbor %d, patch %ld, value %ld: value %f vs. %f: discrepancy %f\n",
                       a, p, k, (double)w1, (double)w2, (double)(w1-w2));
+                status = PV_FAILURE;
              }
          }
       }
+   }
+   return status;
+}
+
+int copyWeights(
+      std::shared_ptr<WeightData const> srcWeights, std::shared_ptr<WeightData> destWeights) {
+   int status = PV_SUCCESS;
+   if (compareWeightDimensions(srcWeights, destWeights) != PV_SUCCESS) {
+      ErrorLog().printf("copyWeights() called with weights with incompatible dimensions.\n");
+      return PV_FAILURE;
+   }
+   int numArbors = srcWeights->getNumArbors();
+   int numValuesPerArbor = srcWeights->getNumValuesPerArbor();
+   for (int a = 0; a < numArbors; ++a) {
+      for (int i = 0; i < numValuesPerArbor; ++i) {
+         destWeights->getData(a)[i] = srcWeights->getData(a)[i];
+      }
+   }
+   status = compareWeights(srcWeights, destWeights);
+   if (status != PV_SUCCESS) {
+      ErrorLog().printf("copyWeights() failed to copy weights\n");
    }
    return status;
 }

@@ -103,7 +103,7 @@ int run(PV_Init const &pv_init, std::vector<int> const &numNonzeroVector) {
    for (int n = 0; n < numAllElements; ++n) {
       if (numNonzeroVector[n]) {
          if (nonzeroElements.empty()) {
-            infoMessage.append("There should be an error message listing element(s) ");
+            infoMessage.append("There should be an ERROR message listing element(s) ");
          }
          else {
             infoMessage.append(", ");

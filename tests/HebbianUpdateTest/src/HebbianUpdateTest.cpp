@@ -54,12 +54,16 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    correctValues[0] = std::vector<float>{7.0f, 8.0f, 5.0f, 6.0f};
    correctValues[1] = std::vector<float>{3.0f, 4.0f, 1.0f, 2.0f};
    for (int p = 0; p < numKernels; ++p) {
+      float multiplier = 2.5f * static_cast<float>(p + 1);
+      // dWMax = 0.5 and there were 5 update periods; hence the 2.5 factor.
+      // The presynaptic layer was all ones in feature 0, all twos in feature 1, etc.;
+      // hence the (p + 1) factor.
       float const *weightValues = weights->getDataFromPatchIndex(0, p);
       for (int w = 0; w < numWeightsPerPatch; ++w) {
          float observed = weightValues[w];
          int cx = kxPos(w, nxp, nyp, nfp) % 4;
          int cy = kyPos(w, nxp, nyp, nfp) % 2;
-         float expected = correctValues[cy][cx] * 2.5f; // dWMax = 0.5; 5 update periods
+         float expected = correctValues[cy][cx] * multiplier;
          if (observed != expected) {
             ErrorLog().printf(
                   "Patch %d, weight at index %d, expected %f, observed %f\n",

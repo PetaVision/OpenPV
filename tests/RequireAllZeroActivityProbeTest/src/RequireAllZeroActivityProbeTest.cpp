@@ -34,13 +34,23 @@ int run(PV_Init *pv_init) {
 }
 
 void runParams(PV_Init *pv_init, char const *paramsPath, int expectedStatus) {
+   if (expectedStatus != PV_SUCCESS) {
+      InfoLog().printf(
+            "Run with params file \"%s\" should return failure, because a "
+            "RequireAllZeroActivityProbe is deliberately attached to a layer "
+            "that takes a nonzero value. ERROR messages are expected.\n",
+            paramsPath);
+   }
    pv_init->setParams(paramsPath);
    PV::HyPerCol hc(pv_init);
    int status = PV_SUCCESS;
    try {
       status = hc.run();
    } catch (std::exception const &e) {
-      status = PV_FAILURE;
+      Fatal().printf(
+            "Running with params file \"%s\" threw exception:\n" "\"%s\"\n", 
+            paramsPath,
+            e.what());
    }
    FatalIf(
          expectedStatus == PV_SUCCESS and status != PV_SUCCESS,
