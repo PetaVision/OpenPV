@@ -1,5 +1,5 @@
 /*
- * MomentumDecayTest.cpp
+ * WeightDecayTest.cpp
  *
  */
 
