@@ -3,10 +3,10 @@
 //
 
 // A params file to test the weightL1Decay and weightL2Decay features of
-// MomentumConn. Two ConstantLayer objects serve as the pre- and post- synaptic
+// HyPerConn. Two ConstantLayer objects serve as the pre- and post- synaptic
 // layers. The pre-synaptic layer is 4x4x1 and the post-synaptic layer is 4x4x3.
-// A MomentumConn between them has weightL1Decay set to 0.25, weightL2Decay
-// set to 0.125, and timeConstantTau set to zero.
+// A HyPerConn between them has weightL1Decay set to 0.25 and weightL2Decay
+// set to 0.125.
 
 debugParsing = false;
 
@@ -64,7 +64,7 @@ ConstantLayer "Post" = {
 // connection
 //
 
-MomentumConn "PreToPost" = {
+HyPerConn "PreToPost" = {
     initializeFromCheckpointFlag        = false;
     preLayerName                        = "Pre";
     postLayerName                       = "Post";
@@ -96,9 +96,6 @@ MomentumConn "PreToPost" = {
     dWMaxDecayFactor                    = 0;
     normalizeDw                         = true;
     combine_dW_with_W_flag              = false;
-    momentumMethod                      = "simple";
-    timeConstantTau                     = 0;
     weightL1Decay                       = 0.25;
     weightL2Decay                       = 0.125;
-    initPrev_dWFile                     = NULL;
 };

@@ -4,7 +4,7 @@
  */
 
 #include <columns/buildandrun.hpp>
-#include <connections/MomentumConn.hpp>
+#include <connections/HyPerConn.hpp>
 #include <io/SharedWeightsFile.hpp>
 #include <structures/WeightData.hpp>
 
@@ -91,10 +91,10 @@ std::shared_ptr<WeightData const> getCorrectWeightData(HyPerCol *hc) {
 }
 
 std::shared_ptr<WeightData const> getObservedWeightData(HyPerCol *hc) {
-   auto *connection = hc->getTable()->findObject<MomentumConn>("PreToPost");
-   FatalIf(connection == nullptr, "Unable to find MomentumConn \"PreToPost\"\n");
+   auto *connection = hc->getTable()->findObject<HyPerConn>("PreToPost");
+   FatalIf(connection == nullptr, "Unable to find HyPerConn \"PreToPost\"\n");
    auto *weightsPair = connection->getComponentByType<WeightsPair>();
-   FatalIf(weightsPair == nullptr, "Unable to find a WeightsPair in MomentumConn \"PreToPost\"\n");
+   FatalIf(weightsPair == nullptr, "Unable to find a WeightsPair in HyPerConn \"PreToPost\"\n");
    auto *weights = weightsPair->getPreWeights();
    return weights->getData();
 }
