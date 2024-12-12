@@ -31,9 +31,6 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_momentumMethod(ioFlag);
    ioParam_timeConstantTau(ioFlag);
    ioParam_momentumTau(ioFlag); // marked obsolete July 30, 2024
-   ioParam_momentumDecay(ioFlag); // deprecated July 30, 2024
-   ioParam_weightL1Decay(ioFlag);
-   ioParam_weightL2Decay(ioFlag);
    ioParam_initPrev_dWFile(ioFlag);
    ioParam_prev_dWFrameNumber(ioFlag);
    return status;
@@ -111,81 +108,6 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
          "%s sets the momentumDecay parameter, which is obsolete. "
          "Use timeConstantTau instead.\n",
          getDescription_c());
-}
-
-// momentumDecay was deprecated on July 30, 2024.
-void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-   if (mPlasticityFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "momentumDecay")) {
-         WarnLog().printf(
-               "%s sets momentumDecay parameter, which is deprecated. Use weightL2Decay instead.\n",
-               getDescription_c());
-         if (parameters()->present(getName(), "weightL2Decay")) {
-            return; // ioParam_weightL2Decay() will handle it
-         }
-         else {
-            parameters()->ioParamValue(
-                 ioFlag, getName(), "momentumDecay", &mWeightL2Decay, mWeightL2Decay);
-            if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
-               Fatal() << "MomentumUpdater " << getName()
-                       << ": weightL2Decay must be between 0 and 1 inclusive\n";
-            }
-         }
-      }
-   }
-}
-
-// Once momentumDecay is marked obsolete, this function can be reduced to
-// pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-// if (mPlasticityFlag) {
-//    parameters()->ioParamValue(
-//          ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
-//    if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
-//       Fatal() << getDescription_c()
-//               << ": weightL2Decay must be between 0 and 1 inclusive\n";
-//    }
-// }
-void MomentumUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-   if (mPlasticityFlag) {
-      if (ioFlag == PARAMS_IO_READ) {
-         pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumDecay"));
-         bool usesMomentumDecay = parameters()->present(getName(), "momentumDecay");
-         bool usesWeightL2Decay = parameters()->present(getName(), "weightL2Decay");
-         if (usesMomentumDecay and !usesWeightL2Decay) {
-            return; // ioParam_momentumDecay() read the parameter into mWeightL2Decay already.
-         }
-         parameters()->ioParamValue(
-               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
-         if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
-            Fatal() << getDescription_c()
-                    << ": weightL2Decay must be between 0 and 1 inclusive\n";
-         }
-         FatalIf(
-               mWeightL2Decay < 0.0f or mWeightL2Decay > 1.0f,
-               "%s: weightL2Decay must be between 0 and 1 inclusive (given value was %f)\n",
-               getDescription_c(),
-               static_cast<double>(mWeightL2Decay));
-      }
-      else { // PARAMS_IO_WRITE
-         parameters()->ioParamValue(
-               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
-      }
-   }
-}
-
-void MomentumUpdater::ioParam_weightL1Decay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-   if (mPlasticityFlag) {
-      parameters()->ioParamValue(
-               ioFlag, getName(), "weightL1Decay", &mWeightL1Decay, mWeightL1Decay);
-      FatalIf(
-            mWeightL1Decay < 0.0f,
-            "%s: weightL1Decay cannot be negative (given value was %f)\n",
-            getDescription_c(),
-            static_cast<double>(mWeightL1Decay));
-   }
 }
 
 void MomentumUpdater::ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag) {
@@ -398,17 +320,7 @@ void MomentumUpdater::applyMomentum(int arborId, float dwFactor) {
 #pragma omp parallel for
 #endif
    for (int k = 0; k < numValuesPerArbor; ++k) {
-      float dw = dwdata_start[k];
-      dw *= 1 - dwFactor;
-      dw += dwFactor * prev_dw_start[k];
-      float weight  = wdata_start[k];
-      float decayL2 = mWeightL2Decay * weight;
-      float dwL1    = mWeightL1Decay;
-      float decayL1 = dwL1 * ((weight > dwL1) - (weight < -dwL1));
-      decayL1 += weight * (std::abs(weight) <= dwL1);
-      // Formula for decayL1 is = mWeightL1Decay * sgn(w) if |w| > mWeightL1Decay;
-      //                          |w| if |w| <= mWeightL1Decay
-      dw -= decayL2 + decayL1;
+      float dw = (1 - dwFactor) * dwdata_start[k] + dwFactor * prev_dw_start[k];
       dwdata_start[k] = dw;
    }
 }

@@ -26,6 +26,31 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag);
+
+   /**
+    * momentumDecay is a deprecated synonym for weightL2Decay: Use weightL2Decay instead.
+    */
+   virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
+
+   /**
+    * weightL1Decay: The L1-driven decay rate on the weights, applied after the momentum updates.
+    * @details The contribution to dW from L1-driven decay is:
+    *
+    *   -sgn(W) * min(|W|, weightL1Decay).
+    *
+    * The default value is zero (no L1-decay). It is an error for weightL1Decay to be negative.
+    */
+   virtual void ioParam_weightL1Decay(enum ParamsIOFlag ioFlag);
+
+   /**
+    * weightL2Decay: The L2-driven decay rate on the weights, applied after the momentum updates.
+    * @details The contribution to dW from L1-driven decay is:
+    *
+    *   -weightL1Decay * W.
+    *
+    * The default value is zero (no L2-decay). It is an error for weightL2Decay to be negative.
+    */
+   virtual void ioParam_weightL2Decay(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
@@ -124,6 +149,8 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual int updateWeights(int arborId);
 
+   void applyWeightDecay(int arborId);
+
    /**
     * Decrements the counter for dWMaxDecayInterval, and if at the end of the interval,
     * decays the dWMax value.
@@ -140,6 +167,8 @@ class HebbianUpdater : public BaseWeightUpdater {
    double mWeightUpdatePeriod      = 0.0;
    double mInitialWeightUpdateTime = 0.0;
    bool mImmediateWeightUpdate     = true;
+   float mWeightL1Decay     = 0.0f;
+   float mWeightL2Decay     = 0.0f;
 
    // dWMax is required if plasticityFlag is true
    float mDWMax                     = std::numeric_limits<float>::quiet_NaN();

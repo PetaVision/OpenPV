@@ -85,31 +85,6 @@ class MomentumUpdater : public HebbianUpdater {
    virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
 
    /**
-    * momentumDecay is a deprecated synonym for weightL2Decay: Use weightL2Decay instead.
-    */
-   virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
-
-   /**
-    * weightL1Decay: The L1-driven decay rate on the weights, applied after the momentum updates.
-    * @details The contribution to dW from L1-driven decay is:
-    *
-    *   -sgn(W) * min(|W|, weightL1Decay).
-    *
-    * The default value is zero (no L1-decay). It is an error for weightL1Decay to be negative.
-    */
-   virtual void ioParam_weightL1Decay(enum ParamsIOFlag ioFlag);
-
-   /**
-    * weightL2Decay: The L2-driven decay rate on the weights, applied after the momentum updates.
-    * @details The contribution to dW from L1-driven decay is:
-    *
-    *   -weightL1Decay * W.
-    *
-    * The default value is zero (no L2-decay). It is an error for weightL2Decay to be negative.
-    */
-   virtual void ioParam_weightL2Decay(enum ParamsIOFlag ioFlag);
-
-   /**
     * initPrev_dWFile: The .pvp file to read initial values of prev_dW used when applying momentum.
     * NULL or the empty string initialzies prev_dW to all zeroes.
     */
@@ -181,8 +156,6 @@ class MomentumUpdater : public HebbianUpdater {
    char *mMomentumMethod    = nullptr;
    Method mMethod           = UNDEFINED_METHOD;
    float mTimeConstantTau   = mDefaultTimeConstantTauViscosity;
-   float mWeightL1Decay     = 0.0f;
-   float mWeightL2Decay     = 0.0f;
    char *mInitPrev_dWFile   = nullptr;
    int  mPrev_dWFrameNumber = 0;
 
