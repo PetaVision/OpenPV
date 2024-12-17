@@ -96,7 +96,7 @@ Response::Status BasePublisherComponent::allocateDataStructures() {
          mActivity->getBufferData(),
          mActivity->getLayerLoc(),
          getNumDelayLevels(),
-         mSparseLayer);
+         mSparseLayerFlag);
 #ifdef PV_USE_CUDA
    allocateCudaBuffers();
 #endif

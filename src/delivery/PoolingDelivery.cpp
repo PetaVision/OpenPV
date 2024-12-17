@@ -157,7 +157,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       weights->useGPU();
 
       // If recv from pre and pre layer is sparse, allocate activeIndices
-      if (!mUpdateGSynFromPostPerspective && mPreData->getSparseLayer()) {
+      if (!mUpdateGSynFromPostPerspective && mPreData->getSparseLayerFlag()) {
          mPreData->setAllocCudaActiveIndices();
       }
    }

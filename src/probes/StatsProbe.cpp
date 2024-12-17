@@ -203,7 +203,7 @@ StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    bool convertToHertz = false;
    if (mProbeLocal->getBufferType() == StatsBufferType::A) {
       convertToHertz =
-            getTargetLayer()->getComponentByType<BasePublisherComponent>()->getSparseLayer();
+            getTargetLayer()->getComponentByType<BasePublisherComponent>()->getSparseLayerFlag();
    }
    mProbeOutputter->setConvertToHertzFlag(convertToHertz);
    mProbeOutputter->initOutputStreams(checkpointer, getTargetLayer()->getLayerLoc()->nbatch);

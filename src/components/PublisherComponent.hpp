@@ -39,8 +39,6 @@ class PublisherComponent : public BasePublisherComponent {
    PublisherComponent(char const *name, PVParams *params, Communicator const *comm);
    virtual ~PublisherComponent();
 
-   bool getSparseLayer() const { return mSparseLayer; }
-
   protected:
    PublisherComponent();
 

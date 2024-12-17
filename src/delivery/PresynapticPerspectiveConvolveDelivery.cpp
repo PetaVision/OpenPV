@@ -83,7 +83,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
    const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
    const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
-   bool const preLayerIsSparse = mPreData->getSparseLayer();
+   bool const preLayerIsSparse = mPreData->getSparseLayerFlag();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {

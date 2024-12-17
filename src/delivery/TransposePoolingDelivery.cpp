@@ -157,7 +157,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       weights->useGPU();
 
       // If recv from pre and pre layer is sparse, allocate activeIndices
-      if (!mUpdateGSynFromPostPerspective && getPreData()->getSparseLayer()) {
+      if (!mUpdateGSynFromPostPerspective && getPreData()->getSparseLayerFlag()) {
          getPreData()->setAllocCudaActiveIndices();
       }
    }

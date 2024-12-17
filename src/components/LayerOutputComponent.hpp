@@ -12,6 +12,7 @@
 
 #include "components/BasePublisherComponent.hpp"
 #include "components/LayerGeometry.hpp"
+#include "io/BroadcastLayerFile.hpp"
 #include "io/LayerFile.hpp"
 #include "io/SparseLayerFile.hpp"
 #include "structures/SparseList.hpp"
@@ -79,13 +80,19 @@ class LayerOutputComponent : public BaseObject {
    virtual Response::Status outputState(double simTime, double deltaTime);
 
    /**
-    * Appends the current activity to the OutputStateStream if SparseLayer is false.
+    * Appends the current activity to the OutputStateStream for dense non-broadcast layers
     * Called by outputState.
     */
-   virtual void writeActivity(double simTime, PVLayerCube &cube);
+   virtual void writeActivityDense(double simTime, PVLayerCube &cube);
 
    /**
-    * Appends the current activity to the OutputStateStream if SparseLayer is true.
+    * Appends the current activity to the OutputStateStream for dense broadcast layers
+    * Called by outputState.
+    */
+   virtual void writeActivityDenseBroadcast(double simTime, PVLayerCube &cube);
+
+   /**
+    * Appends the current activity to the OutputStateStream for sparse non-broadcast layers
     * Called by outputState.
     */
    virtual void writeActivitySparse(double simTime, PVLayerCube &cube);
@@ -97,8 +104,14 @@ class LayerOutputComponent : public BaseObject {
 
    LayerGeometry *mLayerGeometry                = nullptr;
    BasePublisherComponent *mPublisher           = nullptr;
-   std::shared_ptr<LayerFile> mDenseFile        = nullptr; // output if SparseLayer flag is false
-   std::shared_ptr<SparseLayerFile> mSparseFile = nullptr; // output if SparseLayer flag is true
+
+   // One of DenseFile, DenseBroadcastFile, SparseFile, or SparseBroadcastFile, will be
+   // used, based on the values of the SparseLayer flag or Broadcast flag
+   std::shared_ptr<LayerFile> mDenseFile                    = nullptr;
+   std::shared_ptr<BroadcastLayerFile> mDenseBroadcastFile  = nullptr;
+   std::shared_ptr<SparseLayerFile> mSparseFile             = nullptr;
+   // std::shared_ptr<BroadcastLayerFile> mSparseBroadcastFile = nullptr; // not implemented yet
+   void *mSparseBroadcastFile = nullptr; // placeholder
    std::vector<SparseList<float> > mSparseListVector;
 
    // WriteActivityCalls and WriteActivitySparseCalls are maintained for backwards compatibility

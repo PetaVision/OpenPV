@@ -143,9 +143,14 @@ int LayerOutputComponent::openOutputStateFile(
    std::string outputStatePath(getName());
    outputStatePath.append(".pvp");
 
+   mDenseFile            = nullptr;
+   mDenseBroadcastFile   = nullptr;
+   mSparseFile           = nullptr;
+   mSparseBroadcastFile  = nullptr;
    PVLayerLoc const *loc = mLayerGeometry->getLayerLoc();
-   if (mPublisher->getSparseLayer()) {
-      mDenseFile  = nullptr;
+   bool broadcastFlag    = mLayerGeometry->getBroadcastFlag();
+   bool sparseLayerFlag  = mPublisher->getSparseLayerFlag();
+   if (sparseLayerFlag /* TODO implement sparse broadcast layer files */) {
       mSparseFile = std::make_shared<SparseLayerFile>(
             outputFileManager,
             outputStatePath,
@@ -159,17 +164,28 @@ int LayerOutputComponent::openOutputStateFile(
       mSparseFile->respond(message); // SparseLayerFile needs to register data
    }
    else {
-      mDenseFile = std::make_shared<LayerFile>(
-            outputFileManager,
-            outputStatePath,
-            *loc,
-            true /*dataExtendedFlag*/,
-            false /*fileExtendedFlag*/,
-            false /*readOnlyFlag*/,
-            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-            checkpointer->doesVerifyWrites());
-      mDenseFile->respond(message); // LayerFile needs to register data
-      mSparseFile  = nullptr;
+      if (broadcastFlag) {
+         mDenseBroadcastFile = std::make_shared<BroadcastLayerFile>(
+               outputFileManager,
+               outputStatePath,
+               loc->nf,
+               loc->nbatch,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+      }
+      else {
+         mDenseFile = std::make_shared<LayerFile>(
+               outputFileManager,
+               outputStatePath,
+               *loc,
+               true /*dataExtendedFlag*/,
+               false /*fileExtendedFlag*/,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+         mDenseFile->respond(message); // LayerFile needs to register data
+      }
    }
    return PV_SUCCESS;
 }
@@ -188,17 +204,22 @@ Response::Status LayerOutputComponent::outputState(double simTime, double deltaT
       mWriteTime += mWriteStep;
       PVLayerCube cube = mPublisher->getPublisher()->createCube(0 /*delay*/);
       if (mSparseFile) {
-         pvAssert(!mDenseFile);
+         pvAssert(!(mDenseFile or mDenseBroadcastFile or mSparseBroadcastFile));
          writeActivitySparse(simTime, cube);
       }
-      else {
-         pvAssert(mDenseFile);
-         writeActivity(simTime, cube);
+      else if (mDenseFile) {
+         pvAssert(!(mDenseBroadcastFile or mSparseFile or mSparseBroadcastFile));
+         writeActivityDense(simTime, cube);
+      }
+      else if (mDenseBroadcastFile) {
+         pvAssert(!(mDenseFile or mSparseFile or mSparseBroadcastFile));
+         writeActivityDenseBroadcast(simTime, cube);
       }
    }
    return Response::SUCCESS;
 }
 
+// write sparse, non-broadcast activity
 void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube) {
    pvAssert(mSparseFile);
 
@@ -227,8 +248,8 @@ void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube
    mWriteActivitySparseCalls += blockBatchDimension * loc->nbatch;
 }
 
-// write non-spiking activity
-void LayerOutputComponent::writeActivity(double simTime, PVLayerCube &cube) {
+// write non-sparse, nonbroadcast activity
+void LayerOutputComponent::writeActivityDense(double simTime, PVLayerCube &cube) {
    pvAssert(mDenseFile);
 
    PVLayerLoc const *loc = &cube.loc;
@@ -249,6 +270,27 @@ void LayerOutputComponent::writeActivity(double simTime, PVLayerCube &cube) {
    mDenseFile->write(simTime);
    int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
    mWriteActivityCalls += blockBatchDimension * loc->nbatch;
+}
+
+// write non-sparse, broadcast activity
+void LayerOutputComponent::writeActivityDenseBroadcast(double simTime, PVLayerCube &cube) {
+   pvAssert(mDenseBroadcastFile);
+
+   PVLayerLoc const *loc = &cube.loc;
+   int const nf          = loc->nf;
+   int const nbatch      = loc->nbatch;
+   pvAssert(cube.numItems == nbatch * nf);
+
+   std::vector<float> activity(cube.numItems);
+   for (int n = 0; n < cube.numItems; ++n) {
+      activity[n] = cube.data[n];
+   }
+   for (int b = 0; b < nbatch; ++b) {
+      mDenseBroadcastFile->setDataLocation(&activity[b * nf], b);
+   }
+   mDenseBroadcastFile->write(simTime);
+   int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
+   mWriteActivityCalls += blockBatchDimension * nbatch;
 }
 
 } // namespace PV

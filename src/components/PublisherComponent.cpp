@@ -32,7 +32,7 @@ int PublisherComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PublisherComponent::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "sparseLayer", &mSparseLayer, false);
+   parameters()->ioParamValue(ioFlag, getName(), "sparseLayer", &mSparseLayerFlag, false);
 }
 
 } // namespace PV

@@ -55,7 +55,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
    mPostGSyn->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
-   if (mPreData->getSparseLayer()) {
+   if (mPreData->getSparseLayerFlag()) {
       mPreData->setAllocCudaActiveIndices();
    }
 
@@ -152,7 +152,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    int sy  = postLoc->nx * postLoc->nf; // stride in restricted post layer
    int syw = preWeights->getPatchStrideY();
 
-   bool isSparse = mPreData->getSparseLayer();
+   bool isSparse = mPreData->getSparseLayerFlag();
 
    int const nxPreExt = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    int const nyPreExt = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;

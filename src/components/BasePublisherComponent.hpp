@@ -59,7 +59,7 @@ class BasePublisherComponent : public BaseObject {
 
    PVLayerLoc const *getLayerLoc() const { return mActivity->getLayerLoc(); }
 
-   bool getSparseLayer() const { return mSparseLayer; }
+   bool getSparseLayerFlag() const { return mSparseLayerFlag; }
 
    Publisher *getPublisher() { return mPublisher; }
 
@@ -127,7 +127,7 @@ class BasePublisherComponent : public BaseObject {
    virtual Response::Status cleanup() override;
 
   protected:
-   bool mSparseLayer = false; // If true, Publisher uses sparse representation.
+   bool mSparseLayerFlag = false; // If true, Publisher uses sparse representation.
    // BasePublisherComponent does not provide any mechanism for setting this flag,
    // but subclasses can.
 
