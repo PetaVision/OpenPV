@@ -412,7 +412,13 @@ void LocalPatchWeightsIO::writeRegion(
    mFrameIndexer->moveFilePosToFrameStart();
 }
 
-void LocalPatchWeightsIO::open() { mFileStream->open(); }
+void LocalPatchWeightsIO::open() {
+   if (mFileStream) {
+      mFrameIndexer = nullptr;
+      mFileStream->open();
+      initializeFrameIndexer();
+   }
+}
 
 void LocalPatchWeightsIO::close() { mFileStream->close(); }
 

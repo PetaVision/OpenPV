@@ -1,4 +1,5 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/BroadcastLayerFile.cpp
    ${SUBDIR}/BroadcastPreWeightsFile.cpp
    ${SUBDIR}/BroadcastPreWeightsIO.cpp
    ${SUBDIR}/ConfigParser.cpp
@@ -24,6 +25,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/BroadcastLayerFile.hpp
    ${SUBDIR}/BroadcastPreWeightsFile.hpp
    ${SUBDIR}/BroadcastPreWeightsIO.hpp
    ${SUBDIR}/ConfigParser.hpp

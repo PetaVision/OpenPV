@@ -232,7 +232,7 @@ void LayerFile::readInternal(double &timestamp, bool checkTimestampConsistency) 
             if (mReadOnly and mLayerIO->getFrameNumber() == mLayerIO->getNumFrames()) {
                mLayerIO->setFrameNumber(0);
             }
-            float *rootDataLocation = rootBuffer.asVector().data();
+            float const *rootDataLocation = rootBuffer.asVector().data();
             mGatherScatter->scatter(mpiBatchIndex, rootDataLocation, getDataLocation(b));
          }
       }

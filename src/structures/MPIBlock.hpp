@@ -255,7 +255,7 @@ class MPIBlock {
 
    /**
     * Calculates the batch index of the process with the given rank.
-    * Does not do any bounds-checking. (The calcBatchINdexFromRank method
+    * Does not do any bounds-checking. (The calcBatchIndexFromRank method
     * calls this internally.)
     */
    int calcBatchIndexFromRankInternal(int const rank) const;

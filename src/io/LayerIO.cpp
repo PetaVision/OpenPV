@@ -99,7 +99,10 @@ void LayerIO::write(Buffer<float> const &buffer, double timestamp, int frameNumb
    write(buffer, timestamp);
 }
 
-void LayerIO::open() { mFileStream->open(); }
+void LayerIO::open() {
+   mFileStream->open();
+   initializeNumFrames();
+}
 
 void LayerIO::close() { mFileStream->close(); }
 

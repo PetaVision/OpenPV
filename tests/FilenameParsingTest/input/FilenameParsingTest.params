@@ -28,8 +28,8 @@ HyPerCol "column" = {
 };
 
 FilenameParsingLayer "GroundTruth" = {
-    nxScale                             = 1;
-    nyScale                             = 1;
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
     nf                                  = 10;
     phase                               = 0;
     mirrorBCflag                        = true;
