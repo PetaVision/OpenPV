@@ -1,9 +1,9 @@
 /*
- * CheckpointEntryPvp.tpp
+ * CheckpointEntryLayerPvp.tpp
  *
  *  Created on Sep 27, 2016
  *      Author: Pete Schultz
- *  template implementations for CheckpointEntryPvp class.
+ *  template implementations for CheckpointEntryLayerPvp class.
  *  Note that the .hpp includes this .tpp file at the end;
  *  the .tpp file does not include the .hpp file.
  */
@@ -15,7 +15,7 @@
 namespace PV {
 
 template <typename T>
-CheckpointEntryPvp<T>::CheckpointEntryPvp(
+CheckpointEntryLayerPvp<T>::CheckpointEntryLayerPvp(
       std::string const &name,
       PVLayerLoc const *layerLoc,
       bool extended)
@@ -24,7 +24,7 @@ CheckpointEntryPvp<T>::CheckpointEntryPvp(
 }
 
 template <typename T>
-CheckpointEntryPvp<T>::CheckpointEntryPvp(
+CheckpointEntryLayerPvp<T>::CheckpointEntryLayerPvp(
       std::string const &objName,
       std::string const &dataName,
       PVLayerLoc const *layerLoc,
@@ -34,13 +34,13 @@ CheckpointEntryPvp<T>::CheckpointEntryPvp(
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::initialize(PVLayerLoc const *layerLoc, bool extended) {
+void CheckpointEntryLayerPvp<T>::initialize(PVLayerLoc const *layerLoc, bool extended) {
    mLayerLoc = layerLoc;
    mExtended = extended;
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::write(
+void CheckpointEntryLayerPvp<T>::write(
       std::shared_ptr<FileManager const> fileManager,
       double simTime,
       bool verifyWritesFlag) const {
@@ -65,7 +65,7 @@ void CheckpointEntryPvp<T>::write(
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::read(
+void CheckpointEntryLayerPvp<T>::read(
       std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
    std::string filename = generateFilename(std::string("pvp"));
    LayerFile layerFile(
@@ -93,7 +93,7 @@ void CheckpointEntryPvp<T>::read(
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::clearData(T *dataStart, PVLayerLoc const *loc, bool extended) const {
+void CheckpointEntryLayerPvp<T>::clearData(T *dataStart, PVLayerLoc const *loc, bool extended) const {
    int nx = loc->nx + (extended ? loc->halo.lt + loc->halo.rt : 0);
    int ny = loc->ny + (extended ? loc->halo.dn + loc->halo.up : 0);
    long arraySize = static_cast<long>(nx * ny * loc->nf);
@@ -103,7 +103,7 @@ void CheckpointEntryPvp<T>::clearData(T *dataStart, PVLayerLoc const *loc, bool 
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::remove(std::shared_ptr<FileManager const> fileManager) const {
+void CheckpointEntryLayerPvp<T>::remove(std::shared_ptr<FileManager const> fileManager) const {
    deleteFile(fileManager, "pvp");
 }
 } // end namespace PV

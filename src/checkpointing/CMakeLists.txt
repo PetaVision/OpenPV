@@ -15,8 +15,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CheckpointEntryDataStore.hpp
    ${SUBDIR}/CheckpointEntryFilePosition.hpp
    ${SUBDIR}/CheckpointEntryParamsFileWriter.hpp
-   ${SUBDIR}/CheckpointEntryPvp.hpp
-   ${SUBDIR}/CheckpointEntryPvpBuffer.hpp
+   ${SUBDIR}/CheckpointEntryLayerPvp.hpp
+   ${SUBDIR}/CheckpointEntryLayerBuffer.hpp
    ${SUBDIR}/CheckpointEntryRandState.hpp
    ${SUBDIR}/CheckpointEntryWeightPvp.hpp
    ${SUBDIR}/Checkpointer.hpp
@@ -26,8 +26,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 
 set (PVLibSrcTpp ${PVLibSrcTpp}
    ${SUBDIR}/CheckpointEntryData.tpp
-   ${SUBDIR}/CheckpointEntryPvp.tpp
-   ${SUBDIR}/CheckpointEntryPvpBuffer.tpp
+   ${SUBDIR}/CheckpointEntryLayerPvp.tpp
+   ${SUBDIR}/CheckpointEntryLayerBuffer.tpp
 )
 
 if (PV_USE_MPI)

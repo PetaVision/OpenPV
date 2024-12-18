@@ -1,5 +1,5 @@
 #include "testPvpExtended.hpp"
-#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
+#include "checkpointing/CheckpointEntryLayerBuffer.hpp"
 #include "include/PVLayerLoc.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
@@ -28,9 +28,9 @@ void testPvpExtended(std::shared_ptr<PV::FileManager const> fileManager) {
 
    // Initialize checkpointData as a vector with the same size as correctData.
    // Need to make sure that checkpointData.data() never gets relocated, since the
-   // CheckpointEntryPvpBuffer's mDataPointer doesn't change with it.
+   // CheckpointEntryLayerBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   CheckpointEntryPvpBuffer<float> checkpointEntryPvp{
+   CheckpointEntryLayerBuffer<float> checkpointEntryPvp{
          "checkpointEntryPvpExtended", checkpointData.data(), &loc, true /*extended*/};
 
    double const simTime = 10.0;

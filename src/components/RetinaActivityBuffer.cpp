@@ -5,7 +5,7 @@
  */
 
 #include "RetinaActivityBuffer.hpp"
-#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
+#include "checkpointing/CheckpointEntryLayerBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "observerpattern/ObserverTable.hpp"
 
@@ -160,7 +160,7 @@ void RetinaActivityBuffer::registerRandState(Checkpointer *checkpointer) {
 }
 
 void RetinaActivityBuffer::registerSinceLastSpike(Checkpointer *checkpointer) {
-   auto checkpointEntry = std::make_shared<CheckpointEntryPvpBuffer<float>>(
+   auto checkpointEntry = std::make_shared<CheckpointEntryLayerBuffer<float>>(
          getName(),
          "SinceLastSpike",
          mSinceLastSpike.data(),

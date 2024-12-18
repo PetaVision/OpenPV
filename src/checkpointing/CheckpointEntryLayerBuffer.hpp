@@ -1,35 +1,35 @@
 /*
- * CheckpointEntryPvpBuffer.hpp
+ * CheckpointEntryLayerBuffer.hpp
  *
  *  Created on Sep 27, 2016
  *      Author: Pete Schultz
  */
 
-#ifndef CHECKPOINTENTRYPVPBUFFER_HPP_
-#define CHECKPOINTENTRYPVPBUFFER_HPP_
+#ifndef CHECKPOINTENTRYLAYERBUFFER_HPP_
+#define CHECKPOINTENTRYLAYERBUFFER_HPP_
 
-#include "CheckpointEntryPvp.hpp"
+#include "CheckpointEntryLayerPvp.hpp"
 #include "include/PVLayerLoc.hpp"
 #include <string>
 
 namespace PV {
 
 template <typename T>
-class CheckpointEntryPvpBuffer : public CheckpointEntryPvp<T> {
+class CheckpointEntryLayerBuffer : public CheckpointEntryLayerPvp<T> {
   public:
-   CheckpointEntryPvpBuffer(
+   CheckpointEntryLayerBuffer(
          std::string const &name,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
          bool extended)
-         : CheckpointEntryPvp<T>(name, layerLoc, extended), mDataPointer(dataPtr) {}
-   CheckpointEntryPvpBuffer(
+         : CheckpointEntryLayerPvp<T>(name, layerLoc, extended), mDataPointer(dataPtr) {}
+   CheckpointEntryLayerBuffer(
          std::string const &objName,
          std::string const &dataName,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
          bool extended)
-         : CheckpointEntryPvp<T>(objName, dataName, layerLoc, extended),
+         : CheckpointEntryLayerPvp<T>(objName, dataName, layerLoc, extended),
            mDataPointer(dataPtr) {}
 
   protected:
@@ -44,6 +44,6 @@ class CheckpointEntryPvpBuffer : public CheckpointEntryPvp<T> {
 
 } // end namespace PV
 
-#include "CheckpointEntryPvpBuffer.tpp"
+#include "CheckpointEntryLayerBuffer.tpp"
 
-#endif // CHECKPOINTENTRYPVPBUFFER_HPP_
+#endif // CHECKPOINTENTRYLAYERBUFFER_HPP_

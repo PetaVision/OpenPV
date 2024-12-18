@@ -1,12 +1,12 @@
 /*
- * CheckpointEntryPvp.hpp
+ * CheckpointEntryLayerPvp.hpp
  *
  *  Created on Feb 13, 2017
  *      Author: Pete Schultz
  */
 
-#ifndef CHECKPOINTENTRYPVP_HPP_
-#define CHECKPOINTENTRYPVP_HPP_
+#ifndef CHECKPOINTENTRYLAYERPVP_HPP_
+#define CHECKPOINTENTRYLAYERPVP_HPP_
 
 #include "CheckpointEntry.hpp"
 #include "include/PVLayerLoc.hpp"
@@ -16,13 +16,13 @@
 namespace PV {
 
 template <typename T>
-class CheckpointEntryPvp : public CheckpointEntry {
+class CheckpointEntryLayerPvp : public CheckpointEntry {
   public:
-   CheckpointEntryPvp(
+   CheckpointEntryLayerPvp(
          std::string const &name,
          PVLayerLoc const *layerLoc,
          bool extended);
-   CheckpointEntryPvp(
+   CheckpointEntryLayerPvp(
          std::string const &objName,
          std::string const &dataName,
          PVLayerLoc const *layerLoc,
@@ -37,7 +37,8 @@ class CheckpointEntryPvp : public CheckpointEntry {
   protected:
    void initialize(PVLayerLoc const *layerLoc, bool extended);
 
-   virtual int getNumIndices() const                                   = 0;
+   virtual int getNumIndices() const = 0;
+
    virtual T *calcBatchElementStart(int batchElement, int index) const = 0;
 
    /**
@@ -63,6 +64,6 @@ class CheckpointEntryPvp : public CheckpointEntry {
 
 } // end namespace PV
 
-#include "CheckpointEntryPvp.tpp"
+#include "CheckpointEntryLayerPvp.tpp"
 
-#endif // CHECKPOINTENTRYPVP_HPP_
+#endif // CHECKPOINTENTRYLAYERPVP_HPP_

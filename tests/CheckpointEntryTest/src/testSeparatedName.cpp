@@ -1,6 +1,6 @@
 #include "testSeparatedName.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
-#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
+#include "checkpointing/CheckpointEntryLayerBuffer.hpp"
 #include "include/PVLayerLoc.hpp"
 #include "utils/PVLog.hpp"
 #include <memory>
@@ -18,7 +18,7 @@ void testSeparatedName(std::shared_ptr<PV::MPIBlock const> mpiBlock) {
          entryDataName.c_str(),
          correctName.c_str());
 
-   PV::CheckpointEntryPvpBuffer<float> separatedNameEntryPvp{"separated",
+   PV::CheckpointEntryLayerBuffer<float> separatedNameEntryPvp{"separated",
                                                              "name",
                                                              (float *)nullptr,
                                                              (PVLayerLoc const *)nullptr,

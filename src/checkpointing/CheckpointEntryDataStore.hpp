@@ -8,25 +8,25 @@
 #ifndef CHECKPOINTENTRYDATASTORE_HPP_
 #define CHECKPOINTENTRYDATASTORE_HPP_
 
-#include "checkpointing/CheckpointEntryPvp.hpp"
+#include "checkpointing/CheckpointEntryLayerPvp.hpp"
 #include "columns/DataStore.hpp"
 #include <string>
 
 namespace PV {
 
-class CheckpointEntryDataStore : public CheckpointEntryPvp<float> {
+class CheckpointEntryDataStore : public CheckpointEntryLayerPvp<float> {
   public:
    CheckpointEntryDataStore(
          std::string const &name,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntryPvp<float>(name, layerLoc, true), mDataStore(dataStore) {}
+         : CheckpointEntryLayerPvp<float>(name, layerLoc, true), mDataStore(dataStore) {}
    CheckpointEntryDataStore(
          std::string const &objName,
          std::string const &dataName,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntryPvp<float>(objName, dataName, layerLoc, true),
+         : CheckpointEntryLayerPvp<float>(objName, dataName, layerLoc, true),
            mDataStore(dataStore) {}
 
    virtual void

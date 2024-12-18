@@ -6,7 +6,7 @@
  */
 
 #include "ComponentBuffer.hpp"
-#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
+#include "checkpointing/CheckpointEntryLayerBuffer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
@@ -116,7 +116,7 @@ ComponentBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
    }
    if (mCheckpointFlag and !mBufferLabel.empty()) {
       auto *checkpointer   = message->mDataRegistry;
-      auto checkpointEntry = std::make_shared<CheckpointEntryPvpBuffer<float>>(
+      auto checkpointEntry = std::make_shared<CheckpointEntryLayerBuffer<float>>(
             getName(),
             mBufferLabel.c_str(),
             mBufferData.data(),

@@ -1,5 +1,5 @@
 #include "testPvpRestricted.hpp"
-#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
+#include "checkpointing/CheckpointEntryLayerBuffer.hpp"
 #include "include/PVLayerLoc.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
@@ -24,9 +24,9 @@ void testPvpRestricted(std::shared_ptr<PV::FileManager const> fileManager) {
 
    // Initialize checkpointData as a vector with the same size as correctData.
    // Need to make sure that checkpointData.data() never gets relocated, since the
-   // CheckpointEntryPvpBuffer's mDataPointer doesn't change with it.
+   // CheckpointEntryLayerBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   CheckpointEntryPvpBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
+   CheckpointEntryLayerBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
                                                       checkpointData.data(),
                                                       &loc,
                                                       false /*not extended*/};
