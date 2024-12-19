@@ -28,7 +28,8 @@ class Publisher {
          float const *data,
          PVLayerLoc const *loc,
          int numLevels,
-         bool isSparse);
+         bool isSparse,
+         bool broadcastFlag);
    virtual ~Publisher();
 
    void
@@ -69,22 +70,23 @@ class Publisher {
    Timer const *getIncreaseLevelWaitTimer() const { return mIncreaseLevelWaitTimer; }
 
   private:
-   float *recvBuffer(int bufferId) { return store->buffer(bufferId); }
-   float *recvBuffer(int bufferId, int delay) { return store->buffer(bufferId, delay); }
+   float *recvBuffer(int bufferId) { return mStore->buffer(bufferId); }
+   float *recvBuffer(int bufferId, int delay) { return mStore->buffer(bufferId, delay); }
 
-   long *recvNumActiveBuffer(int bufferId) { return store->numActiveBuffer(bufferId); }
+   long *recvNumActiveBuffer(int bufferId) { return mStore->numActiveBuffer(bufferId); }
    long *recvNumActiveBuffer(int bufferId, int delay) {
-      return store->numActiveBuffer(bufferId, delay);
+      return mStore->numActiveBuffer(bufferId, delay);
    }
 
    SparseList<float>::Entry *recvActiveIndicesBuffer(int bufferId) {
-      return store->activeIndicesBuffer(bufferId);
+      return mStore->activeIndicesBuffer(bufferId);
    }
    SparseList<float>::Entry *recvActiveIndicesBuffer(int bufferId, int delay) {
-      return store->activeIndicesBuffer(bufferId, delay);
+      return mStore->activeIndicesBuffer(bufferId, delay);
    }
 
-   DataStore *store = nullptr;
+   bool mBroadcastFlag = false;
+   DataStore *mStore = nullptr;
 
    PVLayerCube *mLayerCube = nullptr;
 

@@ -29,7 +29,8 @@ void testPvpRestricted(std::shared_ptr<PV::FileManager const> fileManager) {
    CheckpointEntryLayerBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
                                                       checkpointData.data(),
                                                       &loc,
-                                                      false /*not extended*/};
+                                                      false /*broadcastFlag*/,
+                                                      false /*extendedFlag*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.
@@ -54,14 +55,14 @@ void testPvpRestricted(std::shared_ptr<PV::FileManager const> fileManager) {
    for (int k = 0; k < localSize; k++) {
       FatalIf(
             checkpointData.at(k) != correctData.at(k),
-            "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
+            "testPvpRestricted failed: data at rank %d, index %d is %f, but should be %f\n",
             fileManager->getMPIBlock()->getGlobalRank(),
             k,
             (double)checkpointData.at(k),
             (double)correctData.at(k));
    }
    MPI_Barrier(fileManager->getMPIBlock()->getComm());
-   InfoLog() << "testDataPvpRestricted passed.\n";
+   InfoLog() << "testPvpRestricted passed.\n";
 }
 
 PVLayerLoc initLocPvpRestricted(std::shared_ptr<PV::MPIBlock const> mpiBlock) {

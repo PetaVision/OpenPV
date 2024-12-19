@@ -26,7 +26,7 @@ namespace PV {
  * Opening a new file using SparseLayerIO automatically writes the PVP header. The public
  * function members read() and write() transfer data as an entire frame.
  *
- * This class does not handle batching; see the LayerFile class regarding batching.
+ * This class does not handle batching; see the SparseLayerFile class regarding batching.
  *
  * The file position can only be set to the beginning of a frame, Setting the position to n
  * moves the file to the start of the (zero-indexed) nth frame.

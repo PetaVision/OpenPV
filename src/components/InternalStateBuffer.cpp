@@ -56,6 +56,22 @@ void InternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    }
 }
 
+Response::Status InternalStateBuffer::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   Response::Status status = RestrictedBuffer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   if (mInitVObject) {
+      status = mInitVObject->respond(message);
+      if (!Response::completed(status)) {
+         return status;
+      }
+   }
+
+   return Response::SUCCESS;
+}
+
 Response::Status InternalStateBuffer::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = RestrictedBuffer::registerData(message);

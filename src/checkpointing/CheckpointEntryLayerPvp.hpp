@@ -21,12 +21,14 @@ class CheckpointEntryLayerPvp : public CheckpointEntry {
    CheckpointEntryLayerPvp(
          std::string const &name,
          PVLayerLoc const *layerLoc,
-         bool extended);
+         bool broadcastFlag,
+         bool extendedFlag);
    CheckpointEntryLayerPvp(
          std::string const &objName,
          std::string const &dataName,
          PVLayerLoc const *layerLoc,
-         bool extended);
+         bool broadcastFlag,
+         bool extendedFlag);
    virtual void write(
          std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag)
          const override;
@@ -35,7 +37,7 @@ class CheckpointEntryLayerPvp : public CheckpointEntry {
    virtual void remove(std::shared_ptr<FileManager const> fileManager) const override;
 
   protected:
-   void initialize(PVLayerLoc const *layerLoc, bool extended);
+   void initialize(PVLayerLoc const *layerLoc, bool broadcastFlag, bool extendedFlag);
 
    virtual int getNumIndices() const = 0;
 
@@ -53,13 +55,15 @@ class CheckpointEntryLayerPvp : public CheckpointEntry {
 
    T *getDataPointer() const { return mDataPointer; }
    PVLayerLoc const *getLayerLoc() const { return mLayerLoc; }
-   bool getExtended() const { return mExtended; }
+   bool getBroadcastFlag() const { return mBroadcastFlag; }
+   bool getExtendedFlag() const { return mExtendedFlag; }
 
   private:
    T *mDataPointer             = nullptr;
    PVLayerLoc const *mLayerLoc = nullptr;
 
-   bool mExtended;
+   bool mBroadcastFlag;
+   bool mExtendedFlag;
 };
 
 } // end namespace PV

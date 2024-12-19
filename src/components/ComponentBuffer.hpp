@@ -83,6 +83,7 @@ class ComponentBuffer : public BaseObject {
    float *getReadWritePointer() { return mReadWritePointer; }
 
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
+   bool getBroadcastFlag() const { return mLayerGeometry->getBroadcastFlag(); }
    int getBufferSize() const { return mBufferSize; }
    int getBufferSizeAcrossBatch() const { return mBufferSizeAcrossBatch; }
    int getBufferSizeAcrossChannels() const { return mBufferSizeAcrossChannels; }
@@ -163,9 +164,9 @@ class ComponentBuffer : public BaseObject {
    }
 
   protected:
-   bool mExtendedFlag   = false;
-   int mNumChannels     = 1;
-   bool mCheckpointFlag = true; // Derived class can set this to false to suppress checkpointing.
+   bool mExtendedFlag    = false;
+   int mNumChannels      = 1;
+   bool mCheckpointFlag  = true; // Derived class can set this to false to suppress checkpointing.
    // See the comments on mBufferLabel for details.
 
    LayerGeometry const *mLayerGeometry = nullptr;

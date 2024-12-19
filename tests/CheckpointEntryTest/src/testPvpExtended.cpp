@@ -31,7 +31,11 @@ void testPvpExtended(std::shared_ptr<PV::FileManager const> fileManager) {
    // CheckpointEntryLayerBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
    CheckpointEntryLayerBuffer<float> checkpointEntryPvp{
-         "checkpointEntryPvpExtended", checkpointData.data(), &loc, true /*extended*/};
+         "checkpointEntryPvpExtended",
+         checkpointData.data(),
+         &loc,
+         false /*broadcastFlag*/,
+         true /*extendedFlag*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.
@@ -64,14 +68,14 @@ void testPvpExtended(std::shared_ptr<PV::FileManager const> fileManager) {
       float correctValue = inBorder ? 0.0f : correctData.at(k);
       FatalIf(
             checkpointData.at(k) != correctValue,
-            "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
+            "testPvpExtended failed: data at rank %d, index %d is %f, but should be %f\n",
             fileManager->getMPIBlock()->getGlobalRank(),
             k,
             (double)checkpointData.at(k),
             (double)correctValue);
    }
    MPI_Barrier(fileManager->getMPIBlock()->getComm());
-   InfoLog() << "testDataPvpExtended passed.\n";
+   InfoLog() << "testPvpExtended passed.\n";
 }
 
 PVLayerLoc initLocPvpExtended(std::shared_ptr<PV::MPIBlock const> mpiBlock) {

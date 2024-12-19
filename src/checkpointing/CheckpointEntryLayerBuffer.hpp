@@ -21,15 +21,18 @@ class CheckpointEntryLayerBuffer : public CheckpointEntryLayerPvp<T> {
          std::string const &name,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended)
-         : CheckpointEntryLayerPvp<T>(name, layerLoc, extended), mDataPointer(dataPtr) {}
+         bool broadcastFlag,
+         bool extendedFlag)
+         : CheckpointEntryLayerPvp<T>(name, layerLoc, broadcastFlag, extendedFlag),
+           mDataPointer(dataPtr) {}
    CheckpointEntryLayerBuffer(
          std::string const &objName,
          std::string const &dataName,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended)
-         : CheckpointEntryLayerPvp<T>(objName, dataName, layerLoc, extended),
+         bool broadcastFlag,
+         bool extendedFlag)
+         : CheckpointEntryLayerPvp<T>(objName, dataName, layerLoc, broadcastFlag, extendedFlag),
            mDataPointer(dataPtr) {}
 
   protected:

@@ -204,13 +204,13 @@ int run(
        layerLoc, filename, fileManager, timestamp, layerData, dataExtendedFlag, fileExtendedFlag);
    if (status != PV_SUCCESS) { return status; }
 
-   // Read back the file outside of the LayerFile framework, to verify its contents
+   // Read back the file outside of the SparseLayerFile framework, to verify its contents
    InfoLog() << "Verifying header contents...\n";
    correctHeader.nBands = layerLoc.nbatch * mpiBlock->getBatchDimension();
    status = checkHeader(layerLoc, filename, fileManager, correctHeader);
    if (status != PV_SUCCESS) { return status; }
 
-   InfoLog() << "Verifying LayerFile write...\n";
+   InfoLog() << "Verifying SparseLayerFile write...\n";
    std::vector<SparseList<float>> correctData =
          generateCorrectFileDataFrame1(layerLoc, dataExtendedFlag, fileExtendedFlag, mpiBlock);
 
@@ -229,14 +229,14 @@ int run(
    timestamp = 8.0;
    layerData = generateLayerDataFrame(layerLoc, dataExtendedFlag, frame2Seed);
 
-   // Write data outside of the LayerFile framework, to verify reading from a file works.
+   // Write data outside of the SparseLayerFile framework, to verify reading from a file works.
    InfoLog() << "Writing layer data (2)...\n";
    status = writeFrameToFileStream(
        layerLoc, filename, fileManager, timestamp, layerData, dataExtendedFlag, fileExtendedFlag);
    if (status != PV_SUCCESS) { return status; }
 
-   // Read data back using LayerFile.
-   InfoLog() << "Verifying LayerFile read...\n";
+   // Read data back using SparseLayerFile.
+   InfoLog() << "Verifying SparseLayerFile read...\n";
    std::vector<SparseList<float>> frame2 = readFrame2(
          layerLoc, filename, fileManager, timestamp, dataExtendedFlag, fileExtendedFlag);
    status = verifyRead(layerData, frame2, layerLoc, dataExtendedFlag, fileExtendedFlag);
@@ -891,7 +891,7 @@ int writeFrameToSparseLayerFile(
       std::vector<SparseList<float>> writeData,
       bool dataExtendedFlag,
       bool fileExtendedFlag) {
-   // Create the pointer for the LayerFile object.
+   // Create the pointer for the SparseLayerFile object.
    std::unique_ptr<SparseLayerFile> sparseLayerFile;
 
    // Create the file in write mode.

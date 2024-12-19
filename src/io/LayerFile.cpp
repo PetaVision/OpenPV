@@ -107,6 +107,11 @@ void LayerFile::setIndex(int index) {
    int blockBatchDim = mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch;
    int frameNumber   = index * blockBatchDim;
    if (mReadOnly) {
+      FatalIf(
+            mLayerIO->getNumFrames() == 0,
+            "Read-only file \"%s\" has zero frames; cannot set index to %d\n",
+            mPath.c_str(),
+            index);
       frameNumber = frameNumber % mLayerIO->getNumFrames();
    }
    if (frameNumber < 0) {

@@ -19,14 +19,19 @@ class CheckpointEntryDataStore : public CheckpointEntryLayerPvp<float> {
    CheckpointEntryDataStore(
          std::string const &name,
          DataStore *dataStore,
-         PVLayerLoc const *layerLoc)
-         : CheckpointEntryLayerPvp<float>(name, layerLoc, true), mDataStore(dataStore) {}
+         PVLayerLoc const *layerLoc,
+         bool broadcastFlag)
+         : CheckpointEntryLayerPvp<float>(
+               name, layerLoc, broadcastFlag, true /*extendedFlag*/),
+           mDataStore(dataStore) {}
    CheckpointEntryDataStore(
          std::string const &objName,
          std::string const &dataName,
          DataStore *dataStore,
-         PVLayerLoc const *layerLoc)
-         : CheckpointEntryLayerPvp<float>(objName, dataName, layerLoc, true),
+         PVLayerLoc const *layerLoc,
+         bool broadcastFlag)
+         : CheckpointEntryLayerPvp<float>(
+               objName, dataName, layerLoc, broadcastFlag, true /*extendedFlag*/),
            mDataStore(dataStore) {}
 
    virtual void

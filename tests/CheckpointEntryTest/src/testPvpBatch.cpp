@@ -38,7 +38,8 @@ void testPvpBatch(std::shared_ptr<PV::FileManager const> fileManager) {
          std::string("checkpointEntryPvpBatch"),
          checkpointData.data(),
          &loc,
-         false /*not extended*/};
+         false /*broadcastFlag*/,
+         false /*extendedFlag*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.
@@ -63,14 +64,14 @@ void testPvpBatch(std::shared_ptr<PV::FileManager const> fileManager) {
    for (int k = 0; k < localSize; k++) {
       FatalIf(
             checkpointData.at(k) != correctData.at(k),
-            "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
+            "testPvpBatch failed: data at rank %d, index %d is %f, but should be %f\n",
             fileManager->getMPIBlock()->getGlobalRank(),
             k,
             (double)checkpointData.at(k),
             (double)correctData.at(k));
    }
    MPI_Barrier(fileManager->getMPIBlock()->getComm());
-   InfoLog() << "testDataPvpBatch passed.\n";
+   InfoLog() << "testPvpBatch passed.\n";
 }
 
 PVLayerLoc initLocPvpBatch(std::shared_ptr<PV::MPIBlock const> mpiBlock) {

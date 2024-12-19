@@ -25,7 +25,7 @@ class InternalStateBuffer : public RestrictedBuffer {
     */
 
    /**
-    * @brief initVType: Specifies how to initialize the V buffer.
+    * @brief InitVType: Specifies how to initialize the V buffer.
     * @details Possible choices include
     * - @link ConstantV::ioParamsFillGroup ConstantV@endlink: Sets V to a constant value
     * - @link ZeroV::ioParamsFillGroup ZeroV@endlink: Sets V to zero
@@ -53,6 +53,9 @@ class InternalStateBuffer : public RestrictedBuffer {
    virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;

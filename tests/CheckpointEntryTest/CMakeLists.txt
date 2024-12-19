@@ -3,6 +3,7 @@ set(SRC_CPP
   src/testSeparatedName.cpp
   src/testDataNoBroadcast.cpp
   src/testDataWithBroadcast.cpp
+  src/testPvpBroadcastLayer.cpp
   src/testPvpExtended.cpp
   src/testPvpRestricted.cpp
   src/testPvpBatch.cpp
@@ -12,6 +13,7 @@ set(SRC_HPP
   src/testSeparatedName.cpp
   src/testDataNoBroadcast.hpp
   src/testDataWithBroadcast.hpp
+  src/testPvpBroadcastLayer.hpp
   src/testPvpExtended.hpp
   src/testPvpRestricted.hpp
   src/testPvpBatch.hpp

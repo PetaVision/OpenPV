@@ -42,7 +42,7 @@ void LayerGeometry::ioParam_broadcastFlag(enum ParamsIOFlag ioFlag) {
 void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
    assert(!parameters()->presentAndNotBeenRead(getName(), "broadcastFlag"));
    if (mBroadcastFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "broadcastFlag")) {
+      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "nxScale")) {
          WarnLog().printf(
                "%s has broadcastFlag = true; therefore nxScale is ignored.\n",
                getDescription_c());
@@ -56,7 +56,7 @@ void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
 void LayerGeometry::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
    assert(!parameters()->presentAndNotBeenRead(getName(), "broadcastFlag"));
    if (mBroadcastFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "broadcastFlag")) {
+      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "nyScale")) {
          WarnLog().printf(
                "%s has broadcastFlag = true; therefore nyScale is ignored.\n",
                getDescription_c());

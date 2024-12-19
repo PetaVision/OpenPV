@@ -5,8 +5,8 @@
  *      Author: peteschultz
  */
 
-#ifndef SPARSELAYERFLAGPUBLISHERCOMPONENT_HPP_
-#define SPARSELAYERFLAGPUBLISHERCOMPONENT_HPP_
+#ifndef PUBLISHERCOMPONENT_HPP_
+#define PUBLISHERCOMPONENT_HPP_
 
 #include "components/BasePublisherComponent.hpp"
 
@@ -51,4 +51,4 @@ class PublisherComponent : public BasePublisherComponent {
 
 } // namespace PV
 
-#endif // SPARSELAYERFLAGPUBLISHERCOMPONENT_HPP_
+#endif // PUBLISHERCOMPONENT_HPP_

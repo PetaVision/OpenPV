@@ -151,7 +151,8 @@ int run(int argc, char *argv[]) {
          std::string("TestBuffer"),
          testValues.data(),
          &loc,
-         false /*not extended*/);
+         false /*broadcastFlag*/,
+         false /*extendedFlag*/);
 
    bool registerSucceeded =
          checkpointer->registerCheckpointEntry(checkpointEntry, false /*treat as non-constant*/);

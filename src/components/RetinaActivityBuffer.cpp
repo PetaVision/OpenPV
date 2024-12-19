@@ -165,6 +165,7 @@ void RetinaActivityBuffer::registerSinceLastSpike(Checkpointer *checkpointer) {
          "SinceLastSpike",
          mSinceLastSpike.data(),
          getLayerLoc(),
+         mLayerGeometry->getBroadcastFlag(),
          true /*extended buffer*/);
    bool registerSucceeded =
          checkpointer->registerCheckpointEntry(checkpointEntry, false /*not constant*/);

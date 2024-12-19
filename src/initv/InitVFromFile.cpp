@@ -6,7 +6,9 @@
  */
 
 #include "InitVFromFile.hpp"
+#include "components/LayerGeometry.hpp"
 #include "io/FileManager.hpp"
+#include "io/BroadcastLayerFile.hpp"
 #include "io/LayerFile.hpp"
 #include "utils/PathComponents.hpp"
 
@@ -50,6 +52,33 @@ void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
          ioFlag, getName(), "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
 }
 
+Response::Status InitVFromFile::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   Response::Status status = BaseInitV::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *objectTable = message->mObjectTable;
+   FatalIf(
+         objectTable == nullptr,
+         "%s CommunicateInitInfo message sent with null object table\n",
+         getDescription_c());
+   auto *layerGeometry = objectTable->findObject<LayerGeometry>(getName());
+   FatalIf(
+         layerGeometry == nullptr,
+         "%s could not find a LayerGeometry object\n",
+         getDescription_c());
+   if (!layerGeometry->getInitInfoCommunicatedFlag()) {
+      InfoLog().printf(
+            "%s must wait until the LayerGeometry component finishes its CommunicateInitInfo stage.\n",
+            getDescription_c());
+      return Response::POSTPONE;
+   }
+   mBroadcastFlag = layerGeometry->getBroadcastFlag();
+
+   return Response::SUCCESS;
+}
+
 void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
    std::string dir  = dirName(mVfilename);
    std::string base = baseName(mVfilename);
@@ -67,22 +96,40 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
                "filename \"%s\" has fileType %d,  which is not supported for InitVFromFile.\n",
                mVfilename, fileType);
       }
-      LayerFile inputLayerFile(
-            fileManager,
-            base,
-            *loc,
-            false /*dataExtendedFlag*/,
-            false /*fileExtendedFlag*/,
-            true /*readOnlyFlag*/,
-            false /*clobberFlag*/,
-            false /*verifyWritesFlag*/);
-      // booleans are dataExtended=false, fileExtended=false, readOnly=true, verifyWrites=false
-      for (int b = 0; b < loc->nbatch; ++b) {
-         float *Vbatch = &V[b * loc->nx * loc->ny * loc->nf];
-         inputLayerFile.setDataLocation(Vbatch, b);
+      if (mBroadcastFlag) {
+         pvAssert(loc->nx == 1 and loc->ny == 1);
+         BroadcastLayerFile inputLayerFile(
+               fileManager,
+               base,
+               loc->nf,
+               loc->nbatch,
+               true /*readOnlyFlag*/,
+               false /*clobberFlag*/,
+               false /*verifyWritesFlag*/);
+         for (int b = 0; b < loc->nbatch; ++b) {
+            float *Vbatch = &V[b * loc->nx * loc->ny * loc->nf];
+            inputLayerFile.setDataLocation(Vbatch, b);
+         }
+         inputLayerFile.setIndex(mFrameNumber);
+         inputLayerFile.read();
       }
-      inputLayerFile.setIndex(mFrameNumber);
-      inputLayerFile.read();
+      else {
+         LayerFile inputLayerFile(
+               fileManager,
+               base,
+               *loc,
+               false /*dataExtendedFlag*/,
+               false /*fileExtendedFlag*/,
+               true /*readOnlyFlag*/,
+               false /*clobberFlag*/,
+               false /*verifyWritesFlag*/);
+         for (int b = 0; b < loc->nbatch; ++b) {
+            float *Vbatch = &V[b * loc->nx * loc->ny * loc->nf];
+            inputLayerFile.setDataLocation(Vbatch, b);
+         }
+         inputLayerFile.setIndex(mFrameNumber);
+         inputLayerFile.read();
+      }
    }
    else { // TODO: Treat as an image file
       if (fileManager->isRoot()) {

@@ -22,6 +22,7 @@ void testSeparatedName(std::shared_ptr<PV::MPIBlock const> mpiBlock) {
                                                              "name",
                                                              (float *)nullptr,
                                                              (PVLayerLoc const *)nullptr,
+                                                             false /*not extended*/,
                                                              false /*no broadcast*/};
 
    std::string const &entryPvpName = separatedNameEntryPvp.getName();

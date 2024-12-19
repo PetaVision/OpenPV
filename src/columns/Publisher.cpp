@@ -19,7 +19,8 @@ Publisher::Publisher(
       float const *data,
       PVLayerLoc const *loc,
       int numLevels,
-      bool isSparse) {
+      bool isSparse,
+      bool broadcastFlag) {
    mLayerCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
 
    int const nxExt           = loc->nx + loc->halo.lt + loc->halo.rt;
@@ -33,9 +34,11 @@ Publisher::Publisher(
    mLayerCube->numActive     = nullptr;
    mLayerCube->activeIndices = nullptr;
 
+   mBroadcastFlag = broadcastFlag;
+
    int const numBuffers = loc->nbatch; // DataStore buffers correspond to batch elements
 
-   store = new DataStore(numBuffers, numItemsInBatch, numLevels, isSparse);
+   mStore = new DataStore(numBuffers, numItemsInBatch, numLevels, isSparse);
 
    mBorderExchanger = new BorderExchange(mpiBlock, *loc);
 
@@ -52,7 +55,7 @@ Publisher::Publisher(
 
 Publisher::~Publisher() {
    delete mpiRequestsBuffer;
-   delete store;
+   delete mStore;
    delete mBorderExchanger;
    free(mLayerCube);
    delete mIncreaseLevelTimer;
@@ -65,7 +68,7 @@ void Publisher::checkpointDataStore(
       char const *bufferName) {
    bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryDataStore>(
-               objectName, bufferName, store, &mLayerCube->loc),
+               objectName, bufferName, mStore, &mLayerCube->loc, mBroadcastFlag),
          false /*not constant*/);
    FatalIf(
          !registerSucceeded,
@@ -75,8 +78,8 @@ void Publisher::checkpointDataStore(
 }
 
 void Publisher::updateAllActiveIndices() {
-   if (store->isSparse()) {
-      for (int l = 0; l < store->getNumLevels(); l++) {
+   if (mStore->isSparse()) {
+      for (int l = 0; l < mStore->getNumLevels(); l++) {
          updateActiveIndices(l);
       }
    }
@@ -84,17 +87,17 @@ void Publisher::updateAllActiveIndices() {
 
 PVLayerCube Publisher::createCube(int delay) {
    wait(delay);
-   return store->createCube(mLayerCube->loc, delay);
+   return mStore->createCube(mLayerCube->loc, delay);
 }
 
 void Publisher::updateActiveIndices(int delay) {
-   if (store->isSparse()) {
-      for (int b = 0; b < store->getNumBuffers(); b++) {
+   if (mStore->isSparse()) {
+      for (int b = 0; b < mStore->getNumBuffers(); b++) {
          // Active indices stored as local extended values
-         if (*store->numActiveBuffer(b, delay) < 0L) {
-            store->updateActiveIndices(b, delay);
+         if (*mStore->numActiveBuffer(b, delay) < 0L) {
+            mStore->updateActiveIndices(b, delay);
          }
-         pvAssert(*store->numActiveBuffer(b, delay) >= 0L);
+         pvAssert(*mStore->numActiveBuffer(b, delay) >= 0L);
       }
    }
 }
@@ -112,10 +115,10 @@ int Publisher::publish(double lastUpdateTime) {
 
    memcpy(recvBuf, sendBuf, dataSize);
    exchangeBorders(&mLayerCube->loc, 0);
-   store->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
+   mStore->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
 
-   for (int b = 0; b < store->getNumBuffers(); b++) {
-      store->markActiveIndicesOutOfSync(b, 0);
+   for (int b = 0; b < mStore->getNumBuffers(); b++) {
+      mStore->markActiveIndicesOutOfSync(b, 0);
    }
    // Updating active indices is done after MPI wait in HyPerCol
    // to avoid race condition because exchangeBorders mpi is async
@@ -124,11 +127,11 @@ int Publisher::publish(double lastUpdateTime) {
 }
 
 void Publisher::copyForward(double lastUpdateTime) {
-   if (store->getNumLevels() > 1) {
+   if (mStore->getNumLevels() > 1) {
       float *recvBuf  = recvBuffer(0); // Grab all of the buffer, allocated continuously
       size_t dataSize = mLayerCube->numItems * sizeof(float);
       memcpy(recvBuf, recvBuffer(0 /*bufferId*/, 1), dataSize);
-      store->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
+      mStore->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
       updateActiveIndices(0); // alternately, could copy active indices forward as well.
    }
 }
@@ -214,7 +217,7 @@ void Publisher::increaseTimeLevel() {
 
    mIncreaseLevelTimer->start();
    mpiRequestsBuffer->newLevel();
-   store->newLevelIndex();
+   mStore->newLevelIndex();
    mIncreaseLevelTimer->stop();
 }
 

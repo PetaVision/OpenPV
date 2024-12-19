@@ -47,12 +47,16 @@ class InitVFromFile : public BaseInitV {
    InitVFromFile();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
   private:
    int initialize_base();
 
   private:
    char *mVfilename = nullptr;
    int mFrameNumber = 0;
+   bool mBroadcastFlag = false;
 }; // end class InitVFromFile
 
 } // end namespace PV

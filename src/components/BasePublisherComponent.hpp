@@ -5,8 +5,8 @@
  *      Author: peteschultz
  */
 
-#ifndef PUBLISHERCOMPONENT_HPP_
-#define PUBLISHERCOMPONENT_HPP_
+#ifndef BASEPUBLISHERCOMPONENT_HPP_
+#define BASEPUBLISHERCOMPONENT_HPP_
 
 #include "columns/BaseObject.hpp"
 
@@ -129,7 +129,7 @@ class BasePublisherComponent : public BaseObject {
   protected:
    bool mSparseLayerFlag = false; // If true, Publisher uses sparse representation.
    // BasePublisherComponent does not provide any mechanism for setting this flag,
-   // but subclasses can.
+   // but derived classes can.
 
    ActivityBuffer *mActivity                = nullptr;
    BoundaryConditions *mBoundaryConditions  = nullptr;
@@ -163,4 +163,4 @@ class BasePublisherComponent : public BaseObject {
 
 } // namespace PV
 
-#endif // PUBLISHERCOMPONENT_HPP_
+#endif // BASEPUBLISHERCOMPONENT_HPP_
