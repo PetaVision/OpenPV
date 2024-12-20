@@ -761,11 +761,21 @@ void InputActivityBuffer::fitBufferToGlobalLayer(Buffer<float> &buffer, int bloc
          loc->nf);
 
    if (mAutoResizeFlag) {
-      BufferUtils::rescale(
-            buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor);
-      buffer.translate(
-            -mOffsetX + mRandomShiftX[blockBatchElement],
-            -mOffsetY + mRandomShiftY[blockBatchElement]);
+      bool sameDims = (buffer.getWidth() == targetWidth and buffer.getHeight() == targetHeight);
+      bool noOffsetX = (mOffsetX == 0 and mMaxShiftX == 0);
+      bool noOffsetY = (mOffsetY == 0 and mMaxShiftY == 0);
+      if (sameDims and noOffsetX and noOffsetY) {
+         WarnLog().printf(
+               "Input layer \"%s\" has AutoResizeFlag set but no resizing is necessary.\n",
+               getName());
+      }
+      else {
+         BufferUtils::rescale(
+               buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor);
+         buffer.translate(
+               -mOffsetX + mRandomShiftX[blockBatchElement],
+               -mOffsetY + mRandomShiftY[blockBatchElement]);
+      }
    }
    else {
       buffer.grow(targetWidth, targetHeight, mAnchor);
