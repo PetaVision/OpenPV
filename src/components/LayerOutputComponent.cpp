@@ -173,6 +173,7 @@ int LayerOutputComponent::openOutputStateFile(
                false /*readOnlyFlag*/,
                checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
                checkpointer->doesVerifyWrites());
+         mDenseBroadcastFile->respond(message); // BroadcastLayerFile needs to register data
       }
       else {
          mDenseFile = std::make_shared<LayerFile>(
