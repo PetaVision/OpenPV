@@ -1,8 +1,10 @@
 #include "BroadcastLayerFile.hpp"
 
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "io/FileStreamBuilder.hpp"
 
 #include <algorithm> // std::copy
+#include <memory>
 
 namespace PV {
 
@@ -35,6 +37,21 @@ void BroadcastLayerFile::initializeLayerIO(bool clobberFlag) {
                .get();
 
    mLayerIO = std::unique_ptr<LayerIO>(new LayerIO(fileStream, 1 /*nx*/, 1 /*ny*/, mNumFeatures));
+}
+
+Response::Status BroadcastLayerFile::processCheckpointRead(double simTime) {
+   auto status = CheckpointerDataInterface::processCheckpointRead(simTime);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   int index = mNumFrames / (mFileManager->getMPIBlock()->getBatchDimension() * mLocalBatchWidth);
+   setIndex(index);
+   if (mFileManager->isRoot() and mLayerIO->getFrameNumber() < mLayerIO->getNumFrames()) {
+      WarnLog() << "Truncating \"" << getPath() << "\" to " << mLayerIO->getFrameNumber()
+                << " frames.\n";
+      truncate(mIndex);
+   }
+   return Response::SUCCESS;
 }
 
 void BroadcastLayerFile::read() {
@@ -92,6 +109,35 @@ void BroadcastLayerFile::readInternal(double &timestamp, bool checkTimestampCons
    }
 
    setIndex(mIndex + 1);
+}
+
+Response::Status
+BroadcastLayerFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = CheckpointerDataInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer  = message->mDataRegistry;
+   std::string dir     = dirName(mPath);
+   std::string base    = stripExtension(mPath);
+   std::string objName = dir + "/" + base;
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("numframes"),
+         &mNumFrames,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   auto filePosEntry = std::make_shared<CheckpointEntryFilePosition>(
+         objName, std::string("filepos"), mLayerIO->getFileStream());
+   bool registerSucceeded =
+         checkpointer->registerCheckpointEntry(filePosEntry, false /*not constant for entire run*/);
+   FatalIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         mPath.c_str(),
+         filePosEntry->getName().c_str());
+   return Response::SUCCESS;
 }
 
 void BroadcastLayerFile::setIndex(int index) {

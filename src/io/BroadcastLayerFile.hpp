@@ -46,6 +46,12 @@ class BroadcastLayerFile : public CheckpointerDataInterface {
    float *getDataLocation(int index) { return mDataLocations.at(index); }
    void setDataLocation(float *location, int index) { mDataLocations.at(index) = location; }
 
+  protected:
+   virtual Response::Status processCheckpointRead(double simTime) override;
+
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
   private:
    void initializeLayerIO(bool clobberFlag);
    void readInternal(double &timestamp, bool checkTimestampConsistency);
