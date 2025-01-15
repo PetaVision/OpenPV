@@ -77,7 +77,7 @@ class CheckpointerDataInterface : public Observer {
    // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
    // the initial state is loaded from the initializeFromCheckpointDir.
    // If the flag is false or the parent's initializeFromCheckpointDir is empty,
-   // the initial siate is calculated using setInitialValues().
+   // the initial state is calculated using setInitialValues().
    bool mInitializeFromCheckpointFlag = false;
 
   private:
