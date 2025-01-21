@@ -12,7 +12,7 @@ fi
 
 test -e output && rm -r output
 
-export MPICOMMAND="mpiexec -n 16 --oversubscribe"
+export MPICOMMAND="${MPIPROGRAM} -n 16 --oversubscribe"
 export PVEXECUTABLE="${1}"
 export RUNNAME=MtoN2
 export RUNDESC="16 processes, M-to-N test 2"
