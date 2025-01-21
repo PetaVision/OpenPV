@@ -10,7 +10,7 @@ fi
 
 test -e output && rm -r output
 
-export MPICOMMAND="mpiexec -n 4"
+export MPICOMMAND="${MPIPROGRAM} -n 4"
 export PVEXECUTABLE="${1}"
 export RUNNAME=batchMPI
 export RUNDESC="Four processes, batch MPI"
