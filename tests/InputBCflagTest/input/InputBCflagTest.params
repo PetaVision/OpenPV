@@ -256,7 +256,6 @@ IdentConn "OutputToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 0;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 IdentConn "ExpectedOutputToComparison" = {
@@ -264,7 +263,6 @@ IdentConn "ExpectedOutputToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 1;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 HyPerConn "NormalizedInputToNormalizedOutput" = {
@@ -295,7 +293,6 @@ IdentConn "NormalizedOutputToComparisonNormalized" = {
     postLayerName                       = "ComparisonNormalized";
     channelCode                         = 0;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 IdentConn "ExpectedNormalizedOutputToComparisonNormalized" = {
@@ -303,7 +300,6 @@ IdentConn "ExpectedNormalizedOutputToComparisonNormalized" = {
     postLayerName                       = "ComparisonNormalized";
     channelCode                         = 1;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 RequireAllZeroActivityProbe "Probe" = {
