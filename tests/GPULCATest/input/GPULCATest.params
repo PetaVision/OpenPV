@@ -128,7 +128,6 @@ IdentConn "InputToResidualCPU" = {
     postLayerName                       = "ResidualCPU";
     channelCode                         = 0;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 HyPerConn "V1CPUToResidualCPU" = {
@@ -191,7 +190,6 @@ IdentConn "ReconstructionCPUToResidualCPU" = {
     postLayerName                       = "ResidualCPU";
     channelCode                         = 1;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 AdaptiveTimeScaleProbe "AdaptiveTimeScalesCPU" = {
@@ -341,7 +339,6 @@ IdentConn "ReconstructionGPUToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 0;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 IdentConn "ReconstructionCPUToComparison" = {
@@ -349,7 +346,6 @@ IdentConn "ReconstructionCPUToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 1;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 RequireAllZeroActivityProbe "ComparisonTest" = {

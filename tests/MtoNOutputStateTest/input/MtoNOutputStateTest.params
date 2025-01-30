@@ -78,7 +78,6 @@ IdentConn "IdentConn" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     receiveGpu                          = false;
-    initWeightsFile                     = NULL;
 };
 
 IndexWeightConn "SharedWeights" = {
