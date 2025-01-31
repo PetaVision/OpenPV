@@ -1,5 +1,5 @@
-#ifndef IMAGEBYLISTUSINGTIMESTAMP_HPP_
-#define IMAGEBYLISTUSINGTIMESTAMP_HPP_
+#ifndef FIXEDIMAGESEQUENCEBYLIST_HPP_
+#define FIXEDIMAGESEQUENCEBYLIST_HPP_
 
 #include "FixedImageSequence.hpp"
 
@@ -14,4 +14,4 @@ class FixedImageSequenceByList : public FixedImageSequence {
    virtual void defineImageSequence() override;
 }; // end class FixedImageSequenceByList
 
-#endif // IMAGEBYLISTUSINGTIMESTAMP_HPP_
+#endif // FIXEDIMAGESEQUENCEBYLIST_HPP_

@@ -1,5 +1,5 @@
-#ifndef ACCUMULATE_FUNCTION_HPP_
-#define ACCUMULATE_FUNCTION_HPP_
+#ifndef ACCUMULATE_FUNCTIONS_HPP_
+#define ACCUMULATE_FUNCTIONS_HPP_
 
 #include "include/pv_common.h"
 
@@ -40,4 +40,4 @@ void pvpatch_sum_pooling_from_post(
       int sf);
 } // namespace PV
 
-#endif // ACCUMULATE_FUNCTION_HPP_
+#endif // ACCUMULATE_FUNCTIONS_HPP_

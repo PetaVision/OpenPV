@@ -5,8 +5,8 @@
  *      Author: Sheng Lundquist
  */
 
-#ifndef IMAGEACTIVITYUPDATER_HPP_
-#define IMAGEACTIVITYUPDATER_HPP_
+#ifndef IMAGEACTIVITYBUFFER_HPP_
+#define IMAGEACTIVITYBUFFER_HPP_
 
 #include "components/InputActivityBuffer.hpp"
 #include "structures/Image.hpp"
@@ -82,4 +82,4 @@ class ImageActivityBuffer : public InputActivityBuffer {
 
 } // namespace PV
 
-#endif // IMAGEACTIVITYUPDATER_HPP_
+#endif // IMAGEACTIVITYBUFFER_HPP_

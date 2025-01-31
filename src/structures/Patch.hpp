@@ -5,8 +5,8 @@
  *      Author: Pete Schultz
  */
 
-#ifndef PVPATCH_HPP_
-#define PVPATCH_HPP_
+#ifndef PATCH_HPP_
+#define PATCH_HPP_
 
 #include <cstdint>
 
@@ -19,4 +19,4 @@ struct Patch {
 
 } // end namespace PV
 
-#endif // PVPATCH_HPP_
+#endif // PATCH_HPP_

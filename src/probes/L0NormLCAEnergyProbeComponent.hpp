@@ -1,5 +1,5 @@
-#ifndef VTHRESHENERGYPROBECOMPONENT_HPP_
-#define VTHRESHENERGYPROBECOMPONENT_HPP_
+#ifndef L0NORMLCAENERGYPROBECOMPONENT_HPP_
+#define L0NORMLCAENERGYPROBECOMPONENT_HPP_
 
 #include "columns/Messages.hpp"
 #include "io/PVParams.hpp"
@@ -41,4 +41,4 @@ class L0NormLCAEnergyProbeComponent : public EnergyProbeComponent {
 
 } // namespace PV
 
-#endif // VTHRESHENERGYPROBECOMPONENT_HPP_
+#endif // L0NORMLCAENERGYPROBECOMPONENT_HPP_

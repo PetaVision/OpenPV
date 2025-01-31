@@ -5,11 +5,10 @@
  *      Author: Pete Schultz
  */
 
-#ifndef IMAGEACTIVITYUPDATER_HPP_
-#define IMAGEACTIVITYUPDATER_HPP_
+#ifndef PVPLISTACTIVITYBUFFER_HPP_
+#define PVPLISTACTIVITYBUFFER_HPP_
 
 #include "components/InputActivityBuffer.hpp"
-#include "structures/Image.hpp"
 #include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
@@ -62,4 +61,4 @@ class PvpListActivityBuffer : public InputActivityBuffer {
 
 } // namespace PV
 
-#endif // IMAGEACTIVITYUPDATER_HPP_
+#endif // PVPLISTACTIVITYBUFFER_HPP_

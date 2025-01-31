@@ -1,5 +1,5 @@
-#ifndef STATSBUFFERTYPE_HPP_
-#define STATSBUFFERTYPE_HPP_
+#ifndef STATSPROBETYPES_HPP_
+#define STATSPROBETYPES_HPP_
 
 #include <cfloat>
 #include <cmath>
@@ -42,4 +42,4 @@ struct LayerStats {
 
 } // namespace PV
 
-#endif // STATSBUFFERTYPE_HPP_
+#endif // STATSPROBETYPES_HPP_

@@ -1,5 +1,5 @@
-#ifndef MAXPOOLTESTLAYER_HPP_
-#define MAXPOOLTESTLAYER_HPP_
+#ifndef MASKTESTLAYER_HPP_
+#define MASKTESTLAYER_HPP_
 
 #include <layers/ANNLayer.hpp>
 
@@ -20,4 +20,4 @@ class MaskTestLayer : public PV::ANNLayer {
 };
 
 } /* namespace PV */
-#endif
+#endif // MASKTESTLAYER_HPP_

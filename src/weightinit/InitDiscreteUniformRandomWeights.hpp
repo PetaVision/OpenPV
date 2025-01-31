@@ -5,8 +5,8 @@
  *      Author: peteschultz
  */
 
-#ifndef INITDISCRETERANDOMWEIGHTS_HPP_
-#define INITDISCRETERANDOMWEIGHTS_HPP_
+#ifndef INITDISCRETEUNIFORMRANDOMWEIGHTS_HPP_
+#define INITDISCRETEUNIFORMRANDOMWEIGHTS_HPP_
 
 #include "InitRandomWeights.hpp"
 
@@ -58,4 +58,4 @@ class InitDiscreteUniformRandomWeights : public InitRandomWeights {
 }; // class InitDiscreteUniformRandomWeights
 
 } /* namespace PV */
-#endif /* INITDISCRETERANDOMWEIGHTS_HPP_ */
+#endif /* INITDISCRETEUNIFORMRANDOMWEIGHTS_HPP_ */

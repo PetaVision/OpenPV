@@ -5,8 +5,8 @@
  *      Author: peteschultz
  */
 
-#ifndef CLONEKERNELCONNTESTPROBE_HPP_
-#define CLONEKERNELCONNTESTPROBE_HPP_
+#ifndef CLONEHYPERCONNTESTPROBE_HPP_
+#define CLONEHYPERCONNTESTPROBE_HPP_
 
 #include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
@@ -24,4 +24,4 @@ class CloneHyPerConnTestProbe : public PV::StatsProbeImmediate {
 };
 
 } /* namespace PV */
-#endif /* CLONEKERNELCONNTESTPROBE_HPP_ */
+#endif /* CLONEHYPERCONNTESTPROBE_HPP_ */

@@ -5,8 +5,8 @@
  *      Author: pschultz
  */
 
-#ifndef OBSERVERTABLECOMPONENT_HPP_
-#define OBSERVERTABLECOMPONENT_HPP_
+#ifndef OBSERVERTABLE_HPP_
+#define OBSERVERTABLE_HPP_
 
 #include "observerpattern/Observer.hpp"
 #include <map>
@@ -93,4 +93,4 @@ class ObserverTable : public Observer {
 // Template method implementations
 #include "ObserverTable.tpp"
 
-#endif // OBSERVERTABLECOMPONENT_HPP_
+#endif // OBSERVERTABLE_HPP_

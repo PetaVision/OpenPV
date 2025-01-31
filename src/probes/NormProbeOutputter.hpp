@@ -1,5 +1,5 @@
-#ifndef L1NORMPROBEOUTPUTTER_HPP_
-#define L1NORMPROBEOUTPUTTER_HPP_
+#ifndef NORMPROBEOUTPUTTER_HPP_
+#define NORMPROBEOUTPUTTER_HPP_
 
 #include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
@@ -35,4 +35,4 @@ class NormProbeOutputter : public BaseProbeOutputter {
 
 } // namespace PV
 
-#endif // L1NORMPROBEOUTPUTTER_HPP_
+#endif // NORMPROBEOUTPUTTER_HPP_
