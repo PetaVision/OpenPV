@@ -92,7 +92,7 @@ std::vector<float> checkFrame(std::shared_ptr<FileStream> fileStream) {
    int const nypCorrect = 4;
    int const nfpCorrect = 1;
    int const numPatchesCorrect = 4;
-   FatalIf(!fileStream, "checkFrame called with null fileStream");
+   FatalIf(!fileStream, "checkFrame called with null fileStream\n");
    BufferUtils::WeightHeader header;
    FatalIf(
          sizeof(header) != 104UL,

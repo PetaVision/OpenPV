@@ -170,7 +170,7 @@ void testCrop() {
       testBuffer.crop(4, 4, anchor);
       std::vector<float> contents = testBuffer.asVector();
       for (std::size_t i = 0; i < contents.size(); ++i) {
-         FatalIf(contents.at(i) != bufferContents.at(i), "Failed (same size crop).");
+         FatalIf(contents.at(i) != bufferContents.at(i), "Failed (same size crop).\n");
       }
    }
 

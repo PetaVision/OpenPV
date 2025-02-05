@@ -515,7 +515,7 @@ void Checkpointer::findWarmStartDirectory() {
                "Restart flag set, but unable to determine restart directory.\n");
          FatalIf(
                !isCompleteCheckpoint(std::string(mLastCheckpointDir)),
-               "Restart flag set but \"%s\" does not appear to be a complete checkpoint",
+               "Restart flag set but \"%s\" does not appear to be a complete checkpoint\n",
                mLastCheckpointDir);
          mCheckpointReadDirectory = strdup(mLastCheckpointDir);
       }

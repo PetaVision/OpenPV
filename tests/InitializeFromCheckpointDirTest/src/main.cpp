@@ -72,11 +72,11 @@ int main(int argc, char *argv[]) {
    double const stopTime2 = hc2->getStopTime();
 
    PV::HyPerLayer *outputLayer = dynamic_cast<PV::HyPerLayer *>(hc2->getObjectFromName("Output"));
-   FatalIf(outputLayer == nullptr, "No layer named \"Output\".");
+   FatalIf(outputLayer == nullptr, "No layer named \"Output\".\n");
    auto *outputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          outputPublisher == nullptr,
-         "%s does not have a BasePublisherComponent.",
+         "%s does not have a BasePublisherComponent.\n",
          outputLayer->getDescription_c());
 
    double const totalTime = stopTime1 + stopTime2;

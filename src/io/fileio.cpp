@@ -57,7 +57,7 @@ static inline int makeDirectory(char const *dir) {
    int status     = 0;
 
    char *workingDir = strdup(dir);
-   FatalIf(workingDir == nullptr, "makeDirectory: unable to duplicate path \"%s\".", dir);
+   FatalIf(workingDir == nullptr, "makeDirectory: unable to duplicate path \"%s\".\n", dir);
 
    int len = strlen(workingDir);
    if (workingDir[len - 1] == '/')

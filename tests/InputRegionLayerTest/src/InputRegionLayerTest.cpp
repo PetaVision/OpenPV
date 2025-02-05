@@ -62,13 +62,13 @@ T *getObjectFromName(std::string const &objectName, PV::HyPerCol *hc) {
    auto *baseObject = hc->getObjectFromName(objectName);
    FatalIf(
          baseObject == nullptr,
-         "No group named \"%s\" in %s",
+         "No group named \"%s\" in %s\n",
          objectName.c_str(),
          paramsFile.c_str());
    auto *object = dynamic_cast<T *>(baseObject);
    FatalIf(
          object == nullptr,
-         "No %s named \"%s\" in %s",
+         "No %s named \"%s\" in %s\n",
          objectType<T>(),
          objectName.c_str(),
          paramsFile.c_str());
