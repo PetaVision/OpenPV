@@ -169,6 +169,16 @@ LIFTestProbe::~LIFTestProbe() {}
 Response::Status
 LIFTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = StatsProbeImmediate::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   FatalIf(getTargetLayer() == nullptr, "%s failed to set target layer.\n", getDescription_c());
+   if (!getTargetLayer()->getInitInfoCommunicatedFlag()) {
+      InfoLog().printf(
+            "%s must postpone until target layer \"%s\" finishes its CommunicateInitInfo stage.\n",
+            getDescription_c(), getTargetLayer()->getName());
+      return Response::POSTPONE;
+   }
    FatalIf(
          getTargetLayer()->getLayerLoc()->nbatch != 1,
          "%s requires nbatch = 1.\n",
