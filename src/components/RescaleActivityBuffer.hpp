@@ -6,7 +6,12 @@
 #ifndef RESCALEACTIVITYBUFFER_HPP_
 #define RESCALEACTIVITYBUFFER_HPP_
 
-#include "ActivityBuffer.hpp"
+#include "ActivityBuffer.hpp"           // for ActivityBuffer
+
+#include "columns/Communicator.hpp"     // for Communicator
+#include "columns/Messages.hpp"         // for CommunicateInitInfoMessage
+#include "io/PVParams.hpp"              // for ParamsIOFlag, PVParams
+#include "observerpattern/Response.hpp" // for Response::Status
 
 namespace PV {
 

@@ -3,8 +3,25 @@
  */
 
 #include "RescaleActivityBuffer.hpp"
+
 #include "components/OriginalLayerNameParam.hpp"
-#include <stdio.h>
+
+#include "arch/mpi/mpi.h"                         // for MPI_Allreduce, MPI_...
+#include "cMakeHeader.h"                          // for PV_USE_OPENMP_THREADS
+#include "components/ActivityBuffer.hpp"          // for ActivityBuffer
+#include "components/OriginalLayerNameParam.hpp"  // for OriginalLayerNameParam
+#include "include/PVLayerLoc.hpp"                 // for PVLayerLoc, PVHalo
+#include "include/pv_common.h"                    // for PV_SUCCESS
+#include "observerpattern/ObserverTable.hpp"      // for ObserverTable
+#include "utils/PVAssert.hpp"                     // for pvAssert
+#include "utils/PVLog.hpp"                        // for Fatal, Log, FatalIf
+#include "utils/conversions.hpp"                  // for kIndexExtended, kIndex
+#include <algorithm>                              // for max
+#include <cfloat>                                 // for FLT_MIN
+#include <cmath>                                  // for sqrt, exp
+#include <cstdlib>                                // for free
+#include <cstring>                                // for strcmp, memset
+#include <vector>                                 // for vector
 
 namespace PV {
 RescaleActivityBuffer::RescaleActivityBuffer() {}
@@ -16,7 +33,7 @@ RescaleActivityBuffer::RescaleActivityBuffer(
    initialize(name, params, comm);
 }
 
-RescaleActivityBuffer::~RescaleActivityBuffer() { free(mRescaleMethod); }
+RescaleActivityBuffer::~RescaleActivityBuffer() { std::free(mRescaleMethod); }
 
 void RescaleActivityBuffer::initialize(
       const char *name,
@@ -25,7 +42,7 @@ void RescaleActivityBuffer::initialize(
    ActivityBuffer::initialize(name, params, comm);
 }
 
-// This is almost exactly duplicate of CloneInternalStateBuffer::communicateInitInfo; a separate
+// This is almost an exact duplicate of CloneInternalStateBuffer::communicateInitInfo; a separate
 // method is necessary because CloneISB is an InternalStateBuffer, but RescaleActivityBuffer is
 // an ActivityBuffer.
 Response::Status RescaleActivityBuffer::communicateInitInfo(
@@ -66,39 +83,39 @@ Response::Status RescaleActivityBuffer::communicateInitInfo(
 int RescaleActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ActivityBuffer::ioParamsFillGroup(ioFlag);
    ioParam_rescaleMethod(ioFlag);
-   if (strcmp(mRescaleMethod, "maxmin") == 0) {
+   if (std::strcmp(mRescaleMethod, "maxmin") == 0) {
       mMethodCode = MAXMIN;
       ioParam_targetMax(ioFlag);
       ioParam_targetMin(ioFlag);
    }
-   else if (strcmp(mRescaleMethod, "meanstd") == 0) {
+   else if (std::strcmp(mRescaleMethod, "meanstd") == 0) {
       mMethodCode = MEANSTD;
       ioParam_targetMean(ioFlag);
       ioParam_targetStd(ioFlag);
    }
-   else if (strcmp(mRescaleMethod, "pointmeanstd") == 0) {
+   else if (std::strcmp(mRescaleMethod, "pointmeanstd") == 0) {
       mMethodCode = POINTMEANSTD;
       ioParam_targetMean(ioFlag);
       ioParam_targetStd(ioFlag);
    }
-   else if (strcmp(mRescaleMethod, "l2") == 0) {
+   else if (std::strcmp(mRescaleMethod, "l2") == 0) {
       mMethodCode = L2;
       ioParam_patchSize(ioFlag);
    }
-   else if (strcmp(mRescaleMethod, "l2NoMean") == 0) {
+   else if (std::strcmp(mRescaleMethod, "l2NoMean") == 0) {
       mMethodCode = L2NOMEAN;
       ioParam_patchSize(ioFlag);
    }
-   else if (strcmp(mRescaleMethod, "pointResponseNormalization") == 0) {
+   else if (std::strcmp(mRescaleMethod, "pointResponseNormalization") == 0) {
       mMethodCode = POINTRESPONSENORMALIZATION;
    }
-   else if (strcmp(mRescaleMethod, "zerotonegative") == 0) {
+   else if (std::strcmp(mRescaleMethod, "zerotonegative") == 0) {
       mMethodCode = ZEROTONEGATIVE;
    }
-   else if (strcmp(mRescaleMethod, "softmax") == 0) {
+   else if (std::strcmp(mRescaleMethod, "softmax") == 0) {
       mMethodCode = SOFTMAX;
    }
-   else if (strcmp(mRescaleMethod, "logreg") == 0) {
+   else if (std::strcmp(mRescaleMethod, "logreg") == 0) {
       mMethodCode = LOGREG;
    }
    else {
@@ -153,7 +170,7 @@ void RescaleActivityBuffer::ioParam_patchSize(enum ParamsIOFlag ioFlag) {
 Response::Status
 RescaleActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    float *A = mBufferData.data();
-   memset(A, 0, sizeof(float) * getBufferSizeAcrossBatch());
+   std::memset(A, 0, sizeof(float) * getBufferSizeAcrossBatch());
    return Response::SUCCESS;
 }
 
@@ -285,16 +302,16 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   locOriginal->halo.rt,
                   locOriginal->halo.dn,
                   locOriginal->halo.up);
-            sumsq += (originalABatch[kextOriginal] - mean) * (originalABatch[kextOriginal] - mean);
+            auto diffFromMean = originalABatch[kextOriginal] - mean;
+            sumsq += diffFromMean * diffFromMean;
          }
 
          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
-         float std = sqrtf(sumsq / numGlobalNeurons);
+         float stdev = std::sqrt(sumsq / numGlobalNeurons);
          // The difference between the if and the else clauses is only in the computation of
-         // A[kext], but this
-         // way the std != 0.0 conditional is only evaluated once, not every time through the
-         // for-loop.
-         if (std != 0.0f) {
+         // A[kext], but this way the stdev != 0.0 conditional is only evaluated once, not every
+         // time through the for-loop.
+         if (stdev != 0.0f) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -318,7 +335,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      locOriginal->halo.dn,
                      locOriginal->halo.up);
                ABatch[kext] =
-                     ((originalABatch[kextOriginal] - mean) * (mTargetStd / std) + mTargetMean);
+                     ((originalABatch[kextOriginal] - mean) * (mTargetStd / stdev) + mTargetMean);
             }
          }
          else {
@@ -390,12 +407,11 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
 
          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
-         float std = sqrtf(sumsq / numGlobalNeurons);
+         float stdev = std::sqrt(sumsq / numGlobalNeurons);
          // The difference between the if and the else clauses is only in the computation of
-         // A[kext], but this
-         // way the std != 0.0 conditional is only evaluated once, not every time through the
-         // for-loop.
-         if (std != 0.0f) {
+         // A[kext], but this way the stdev != 0.0 conditional is only evaluated once, not every
+         // time through the for-loop.
+         if (stdev != 0.0f) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -420,7 +436,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      locOriginal->halo.up);
                ABatch[kext] =
                      ((originalABatch[kextOriginal] - mean)
-                      * (1.0f / (std * sqrtf((float)mPatchSize))));
+                      * (1.0f / (stdev * std::sqrt((float)mPatchSize))));
             }
          }
          else {
@@ -474,12 +490,11 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
 #endif // PV_USE_MPI
 
-         float std = sqrt(sumsq / numGlobalNeurons);
+         float stdev = std::sqrt(sumsq / numGlobalNeurons);
          // The difference between the if and the else clauses is only in the computation of
-         // A[kext], but this
-         // way the std != 0.0 conditional is only evaluated once, not every time through the
-         // for-loop.
-         if (std != 0.0f) {
+         // A[kext], but this way the stdev != 0.0 conditional is only evaluated once, not every
+         // time through the for-loop.
+         if (stdev != 0.0f) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -503,7 +518,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      locOriginal->halo.dn,
                      locOriginal->halo.up);
                ABatch[kext] =
-                     ((originalABatch[kextOriginal]) * (1.0f / (std * sqrtf((float)mPatchSize))));
+                     ((originalABatch[kextOriginal]) * (1.0f / (stdev * std::sqrt((float)mPatchSize))));
             }
          }
          else {
@@ -561,12 +576,11 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                         nf);
                   sumsq += (originalABatch[kext]) * (originalABatch[kext]);
                }
-               float divisor = sqrtf(sumsq);
+               float divisor = std::sqrt(sumsq);
                // Difference in the if-part and else-part is only in the value assigned to A[kext],
-               // but this way the std != 0
-               // conditional does not have to be reevaluated every time through the for loop.
-               // can't pragma omp parallel the for loops because it was already parallelized in the
-               // outermost for-loop
+               // but this way the divisor != 0 conditional does not have to be reevaluated every
+               // time through the for loop. Can't pragma omp parallel the for loops because it was
+               // already parallelized in the outermost for-loop
                if (divisor != 0) {
                   for (int iF = 0; iF < nf; iF++) {
                      int kextOrig = kIndex(
@@ -636,13 +650,12 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                         nf);
                   sumsq += (originalABatch[kext] - mean) * (originalABatch[kext] - mean);
                }
-               float std = sqrtf(sumsq / nf);
+               float stdev = std::sqrt(sumsq / nf);
                // Difference in the if-part and else-part is only in the value assigned to A[kext],
-               // but this way the std != 0
-               // conditional does not have to be reevaluated every time through the for loop.
-               // can't pragma omp parallel the for loops because it was already parallelized in the
-               // outermost for-loop
-               if (std != 0) {
+               // but this way the stdev != 0 conditional does not have to be reevaluated every
+               // time through the for loop. Can't pragma omp parallel the for loops because it was
+               // already parallelized in the outermost for-loop
+               if (stdev != 0.0f) {
                   for (int iF = 0; iF < nf; iF++) {
                      int kextOrig = kIndex(
                            iX,
@@ -654,7 +667,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      int kext = kIndex(
                            iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                      ABatch[kext] =
-                           ((originalABatch[kextOrig] - mean) * (mTargetStd / std) + mTargetMean);
+                           ((originalABatch[kextOrig] - mean) * (mTargetStd / stdev) + mTargetMean);
                   }
                }
                else {
@@ -709,7 +722,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                         nx + haloOrig->lt + haloOrig->rt,
                         ny + haloOrig->dn + haloOrig->up,
                         nf);
-                  sumexpx += expf(originalABatch[kextOrig] - maxvalue);
+                  sumexpx += std::exp(originalABatch[kextOrig] - maxvalue);
                }
                // can't pragma omp parallel the for loops because it was already parallelized in the
                // outermost for-loop
@@ -724,7 +737,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   int kext =
                         kIndex(iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                   if (sumexpx != 0.0f && sumexpx == sumexpx) { // Check for zero and NaN
-                     ABatch[kext] = expf(originalABatch[kextOrig] - maxvalue) / sumexpx;
+                     ABatch[kext] = std::exp(originalABatch[kextOrig] - maxvalue) / sumexpx;
                   }
                   else {
                      ABatch[kext] = 0.0f;
@@ -760,7 +773,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   locOriginal->halo.rt,
                   locOriginal->halo.dn,
                   locOriginal->halo.up);
-            ABatch[kext] = 1.0f / (1.0f + expf(originalABatch[kextOriginal]));
+            ABatch[kext] = 1.0f / (1.0f + std::exp(originalABatch[kextOriginal]));
          }
       }
       else if (mMethodCode == ZEROTONEGATIVE) {
