@@ -5,7 +5,7 @@
 #include "columns/Messages.hpp"
 #include "components/BasePublisherComponent.hpp"
 #include "components/PhaseParam.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Response.hpp"

@@ -11,7 +11,7 @@
 #include "arch/mpi/mpi.h"
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/DataStore.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "structures/PVLayerCube.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/BorderExchange.hpp"

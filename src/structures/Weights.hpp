@@ -10,7 +10,7 @@
 
 #include "checkpointing/Checkpointer.hpp"
 #include "structures/PatchGeometry.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "structures/WeightData.hpp"
 #include <memory>
 #include <string>

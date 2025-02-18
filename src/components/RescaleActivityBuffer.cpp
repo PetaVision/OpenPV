@@ -10,7 +10,7 @@
 #include "cMakeHeader.h"                          // for PV_USE_OPENMP_THREADS
 #include "components/ActivityBuffer.hpp"          // for ActivityBuffer
 #include "components/OriginalLayerNameParam.hpp"  // for OriginalLayerNameParam
-#include "include/PVLayerLoc.hpp"                 // for PVLayerLoc, PVHalo
+#include "structures/PVLayerLoc.hpp"                 // for PVLayerLoc, PVHalo
 #include "include/pv_common.h"                    // for PV_SUCCESS
 #include "observerpattern/ObserverTable.hpp"      // for ObserverTable
 #include "utils/PVAssert.hpp"                     // for pvAssert

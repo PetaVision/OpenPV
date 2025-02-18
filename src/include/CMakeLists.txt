@@ -1,5 +1,4 @@
 set (PVLibSrcHpp ${PVLibSrcHpp}
-   ${SUBDIR}/PVLayerLoc.hpp
 )
 
 set (PVLibSrcH ${PVLibSrcH}

@@ -7,7 +7,7 @@
 
 #include "InitWeights.hpp"
 #include "components/WeightsPair.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "io/BroadcastPreWeightsFile.hpp"
 #include "io/FileManager.hpp"
 #include "io/FileStream.hpp"
