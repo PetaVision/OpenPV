@@ -173,29 +173,10 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return status;
 }
 
-Weights::WeightsType WeightsPair::calcWeightsType(HyPerLayer *pre, HyPerLayer *post) {
-   Weights::WeightsType weightsType;
-   if (mSharedWeights->getSharedWeightsFlag()) {
-      weightsType = Weights::WeightsType::SHARED;
-   }
-   else {
-      auto *preGeometry = pre->getComponentByType<LayerGeometry>();
-      bool preIsBroadcast = preGeometry->getBroadcastFlag();
-      if (preIsBroadcast) {
-         weightsType = Weights::WeightsType::BROADCASTPRE;
-      }
-      else {
-         weightsType = Weights::WeightsType::LOCALPATCH;
-      }
-   }
-   return weightsType;
-}
-
 void WeightsPair::createPreWeights(std::string const &weightsName) {
    pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);
    HyPerLayer *pre  = mConnectionData->getPre();
    HyPerLayer *post = mConnectionData->getPost();
-   Weights::WeightsType weightsType = calcWeightsType(pre, post);
    mPreWeights = new Weights(
          weightsName,
          mPatchSize->getPatchSizeX(),
@@ -204,7 +185,7 @@ void WeightsPair::createPreWeights(std::string const &weightsName) {
          mConnectionData->getPre()->getLayerLoc(),
          mConnectionData->getPost()->getLayerLoc(),
          mArborList->getNumAxonalArbors(),
-         weightsType,
+         mSharedWeights->getSharedWeightsFlag(),
          std::numeric_limits<double>::lowest() /*timestamp, set to value "close to" -infinity*/);
 }
 
@@ -218,7 +199,6 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
    int nxpPost      = PatchSize::calcPostPatchSize(nxpPre, preLoc->nx, postLoc->nx);
    int nypPre       = mPatchSize->getPatchSizeY();
    int nypPost      = PatchSize::calcPostPatchSize(nypPre, preLoc->ny, postLoc->ny);
-   Weights::WeightsType weightsType = calcWeightsType(post, pre);
    mPostWeights = new Weights(
          weightsName,
          nxpPost,
@@ -227,7 +207,7 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
          postLoc,
          preLoc,
          mArborList->getNumAxonalArbors(),
-         weightsType,
+         mSharedWeights->getSharedWeightsFlag(),
          std::numeric_limits<double>::lowest() /*timestamp, set to value "close to" -infinity*/);
 }
 
@@ -311,44 +291,39 @@ void WeightsPair::openOutputStateFile(
    std::string outputStatePath(getName());
    outputStatePath.append(".pvp");
 
-   switch (mPreWeights->getWeightsType()) {
-      case Weights::WeightsType::SHARED:
-          mWeightsFile = std::make_shared<SharedWeightsFile>(
-                outputFileManager,
-                outputStatePath,
-                mPreWeights->getData(),
-                getWriteCompressedWeights(),
-                false /*readOnlyFlag*/,
-                checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-                checkpointer->doesVerifyWrites());
-          break;
-      case Weights::WeightsType::LOCALPATCH:
-         mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
-               outputFileManager,
-               outputStatePath,
-               mPreWeights->getData(),
-               mConnectionData->getPre()->getLayerLoc(),
-               mConnectionData->getPost()->getLayerLoc(),
-               true /*fileExtendedFlag*/,
-               getWriteCompressedWeights(),
-               false /*readOnlyFlag*/,
-               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-               checkpointer->doesVerifyWrites());
-          break;
-      case Weights::WeightsType::BROADCASTPRE:
-         mWeightsFile = std::make_shared<BroadcastPreWeightsFile>(
-               outputFileManager,
-               outputStatePath,
-               mPreWeights->getData(),
-               mConnectionData->getPre()->getLayerLoc()->nf,
-               getWriteCompressedWeights(),
-               false /*readOnlyFlag*/,
-               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-               checkpointer->doesVerifyWrites());
-          break;
-      default:
-         Fatal().printf("Unrecognized WeightsType %d\n", mPreWeights->getWeightsType());
-         break;
+   if (mPreWeights->getSharedWeightsFlag()) {
+       mWeightsFile = std::make_shared<SharedWeightsFile>(
+             outputFileManager,
+             outputStatePath,
+             mPreWeights->getData(),
+             getWriteCompressedWeights(),
+             false /*readOnlyFlag*/,
+             checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+             checkpointer->doesVerifyWrites());
+   }
+   else if (mPreWeights->prelayerIsBroadcast()) {
+      mWeightsFile = std::make_shared<BroadcastPreWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPreWeights->getData(),
+            mConnectionData->getPre()->getLayerLoc()->nf,
+            getWriteCompressedWeights(),
+            false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+            checkpointer->doesVerifyWrites());
+   }
+   else {
+      mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPreWeights->getData(),
+            mConnectionData->getPre()->getLayerLoc(),
+            mConnectionData->getPost()->getLayerLoc(),
+            true /*fileExtendedFlag*/,
+            getWriteCompressedWeights(),
+            false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+            checkpointer->doesVerifyWrites());
    }
    mWeightsFile->respond(message); // WeightsFile needs to register filepos
 }

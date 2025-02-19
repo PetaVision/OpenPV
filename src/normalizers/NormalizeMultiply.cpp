@@ -81,9 +81,9 @@ int NormalizeMultiply::normalizeWeights() {
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
    Weights *weights0 = mWeightsList[0];
-   bool weights0Shared = weights0->weightsTypeIsShared();
+   bool weights0Shared = weights0->getSharedWeightsFlag();
    for (auto &weights : mWeightsList) {
-      bool weightsShared = weights->weightsTypeIsShared();
+      bool weightsShared = weights->getSharedWeightsFlag();
       if (weightsShared != weights0Shared) {
          if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(

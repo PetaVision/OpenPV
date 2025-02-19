@@ -96,6 +96,7 @@ Weights createOriginalWeights(
    preLoc.ny           = preLoc.nyGlobal / comm->numCommRows();
    preLoc.ky0          = preLoc.ny * comm->commRow();
    preLoc.nf           = nfPre;
+   preLoc.bcast        = 0;
    preLoc.halo.lt      = marginXPre;
    preLoc.halo.rt      = marginXPre;
    preLoc.halo.dn      = marginYPre;
@@ -113,6 +114,7 @@ Weights createOriginalWeights(
    postLoc.ny           = postLoc.nyGlobal / comm->numCommRows();
    postLoc.ky0          = postLoc.ny * comm->commRow();
    postLoc.nf           = nfPost;
+   postLoc.bcast        = 0;
    postLoc.halo.lt      = marginXPost;
    postLoc.halo.rt      = marginXPost;
    postLoc.halo.dn      = marginYPost;
@@ -131,7 +133,7 @@ Weights createOriginalWeights(
          &preLoc,
          &postLoc,
          numArbors,
-         sharedFlag ? Weights::WeightsType::SHARED : Weights::WeightsType::LOCALPATCH,
+         sharedFlag,
          timestamp);
 
    int const numKernelsPre = originalWeights.getGeometry()->getNumKernels();
@@ -232,7 +234,7 @@ int checkTransposeOfTranspose(
          &originalWeights.getGeometry()->getPreLoc(),
          &originalWeights.getGeometry()->getPostLoc(),
          originalWeights.getNumArbors(),
-         originalWeights.getWeightsType(),
+         originalWeights.getSharedWeightsFlag(),
          originalWeights.getTimestamp());
    transposeOfTranspose.allocateDataStructures();
    TransposeWeights::transpose(&transposeWeights, &transposeOfTranspose, comm);

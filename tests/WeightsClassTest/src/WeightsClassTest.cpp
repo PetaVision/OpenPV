@@ -140,6 +140,7 @@ void testOneToOneShared() {
    preLoc.nx       = 8;
    preLoc.ny       = 8;
    preLoc.nf       = 3;
+   preLoc.bcast    = 0;
    preLoc.halo.lt  = 2;
    preLoc.halo.rt  = 2;
    preLoc.halo.dn  = 2;
@@ -147,6 +148,7 @@ void testOneToOneShared() {
    postLoc.nx      = 8;
    postLoc.ny      = 8;
    postLoc.nf      = 10;
+   postLoc.bcast   = 0;
    postLoc.halo.lt = 0;
    postLoc.halo.rt = 0;
    postLoc.halo.dn = 0;
@@ -158,7 +160,7 @@ void testOneToOneShared() {
    int nfp = 10;
 
    PV::Weights weightsObject(
-         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::SHARED, 0.0);
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true /*SharedWeightsFlag*/, 0.0);
 
    testWeights(weightsObject, 1, 1, preLoc.nf, nxp, nyp, nfp);
 }
@@ -188,7 +190,7 @@ void testOneToOneLocalPatch() {
    int nfp = 10;
 
    PV::Weights weightsObject(
-         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::LOCALPATCH, 0.0);
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false /*SharedWeightsFlag*/, 0.0);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
@@ -220,7 +222,7 @@ void testOneToManyShared() {
    int nfp = 10;
 
    PV::Weights weightsObject(
-         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::SHARED, 0.0);
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true /*SharedWeightsFlag*/, 0.0);
 
    testWeights(weightsObject, 1, 1, preLoc.nf, nxp, nyp, nfp);
 }
@@ -250,7 +252,7 @@ void testOneToManyLocalPatch() {
    int nfp = 10;
 
    PV::Weights weightsObject(
-         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::LOCALPATCH, 0.0);
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false /*SharedWeightsFlag*/, 0.0);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
@@ -285,7 +287,7 @@ void testManyToOneShared() {
    int yStride = preLoc.ny / postLoc.ny;
 
    PV::Weights weightsObject(
-         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::SHARED, 0.0);
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true /*SharedWeightsFlag*/, 0.0);
 
    testWeights(weightsObject, xStride, yStride, preLoc.nf, nxp, nyp, nfp);
 }
@@ -315,7 +317,7 @@ void testManyToOneLocalPatch() {
    int nfp = 10;
 
    PV::Weights weightsObject(
-         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, PV::Weights::WeightsType::LOCALPATCH, 0.0);
+         name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false /*SharedWeightsFlag*/, 0.0);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;

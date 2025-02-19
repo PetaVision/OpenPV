@@ -109,7 +109,7 @@ InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> messa
       readWeights(mFilename, mFrameNumber);
    }
    else {
-      initRNGs(mWeights->weightsTypeIsShared());
+      initRNGs(mWeights->getSharedWeightsFlag());
       calcWeights();
    } // mFilename != null
    mWeights->setTimestamp(0.0);
@@ -192,7 +192,7 @@ int InitWeights::readWeights(
    }
 
    std::shared_ptr<WeightsFile> weightsFile = nullptr;
-   if (mWeights->weightsTypeIsShared()) {
+   if (mWeights->getSharedWeightsFlag()) {
       weightsFile = std::make_shared<SharedWeightsFile>(
             fileManager,
             filename,
@@ -203,7 +203,7 @@ int InitWeights::readWeights(
             false /*verifyWrites*/);
    }
    else {
-      if (mWeights->weightsTypeIsBroadcastPre()) {
+      if (mWeights->prelayerIsBroadcast()) {
          weightsFile = std::make_shared<BroadcastPreWeightsFile>(
                fileManager,
                filename,
@@ -215,7 +215,6 @@ int InitWeights::readWeights(
                false /*verifyWritesFlag*/);
       }
       else {
-         pvAssert(mWeights->weightsTypeIsLocalPatch());
          weightsFile = std::make_shared<LocalPatchWeightsFile>(
                fileManager,
                filename,
@@ -244,7 +243,7 @@ int InitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx, int *ky, int *
    PVLayerLoc const &postLoc = mWeights->getGeometry()->getPostLoc();
 
    int xDataIndex, yDataIndex, fDataIndex;
-   if (mWeights->weightsTypeIsShared()) {
+   if (mWeights->getSharedWeightsFlag()) {
 
       int nxData = mWeights->getNumDataPatchesX();
       int nyData = mWeights->getNumDataPatchesY();
