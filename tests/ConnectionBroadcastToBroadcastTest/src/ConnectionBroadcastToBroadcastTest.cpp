@@ -43,66 +43,80 @@ int main(int argc, char *argv[]) {
    FatalIf(
          !(*weightsStream), "Unable to open \"%s\" for reading.\n", weightsFilename.c_str());
 
-   // Read header and check important values
-   BufferUtils::WeightHeader header;
-   weightsStream->read(&header, sizeof(BufferUtils::WeightHeader));
-   if (checkHeaderValue(header.baseHeader.nx, 1, fileDesc.c_str(), "nx") == false) {
-      status = PV_FAILURE;
-   }
-   if (checkHeaderValue(header.baseHeader.ny, 1, fileDesc.c_str(), "ny") == false) {
-      status = PV_FAILURE;
-   }
-   if (checkHeaderValue(header.baseHeader.nf, nfPre, fileDesc.c_str(), "nf") == false) {
-      status = PV_FAILURE;
-   }
-   if (checkHeaderValue(header.nxp, 1, fileDesc.c_str(), "nxp") == false) {
-      status = PV_FAILURE;
-   }
-   if (checkHeaderValue(header.nyp, 1, fileDesc.c_str(), "nyp") == false) {
-      status = PV_FAILURE;
-   }
-   if (checkHeaderValue(header.nfp, nfPost, fileDesc.c_str(), "nfp") == false) {
-      status = PV_FAILURE;
-   }
-   FatalIf(status != PV_SUCCESS, "%s does not have the correct header.\n", fileDesc.c_str());
-   std::printf("\n");
+   long weightsFileSize = weightsStream->getFileSize();
+   int frameCount = 0;
+   while (weightsStream->getInPos() < weightsFileSize) {
+      ++frameCount;
 
-   // Read weights, sanity-checking patch headers as we go.
-   // There should be nfPre patches, each with nfPost values.
-   // Each patch should have a header with nx=1, ny=1, offset=0.
-   std::vector<std::vector<float>> values(nfPre);
-   for (auto &v : values) { v.resize(nfPost); }
-   for (int patch = 0; patch < nfPre; ++patch) {
-      std::string patchDesc("File \"" + weightsFilename + "\" patch " + std::to_string(patch));
-      Patch patchHeader;
-      weightsStream->read(&patchHeader, sizeof(Patch));
-      if (checkHeaderValue(patchHeader.nx, 1, patchDesc.c_str(), "nx") == false) {
+      // Read header and check important values
+      BufferUtils::WeightHeader header;
+      weightsStream->read(&header, sizeof(BufferUtils::WeightHeader));
+      if (checkHeaderValue(header.baseHeader.nx, 1, fileDesc.c_str(), "nx") == false) {
          status = PV_FAILURE;
       }
-      if (checkHeaderValue(patchHeader.ny, 1, patchDesc.c_str(), "nx") == false) {
+      if (checkHeaderValue(header.baseHeader.ny, 1, fileDesc.c_str(), "ny") == false) {
          status = PV_FAILURE;
       }
-      if (checkHeaderValue(patchHeader.offset, 0, patchDesc.c_str(), "nx") == false) {
+      if (checkHeaderValue(header.baseHeader.nf, nfPre, fileDesc.c_str(), "nf") == false) {
          status = PV_FAILURE;
       }
-      FatalIf(status != PV_SUCCESS, "%s does not have the correct header.\n", fileDesc.c_str());
-      weightsStream->read(values[patch].data(), nfPost * sizeof(float));
-   }
+      if (checkHeaderValue(header.nxp, 1, fileDesc.c_str(), "nxp") == false) {
+         status = PV_FAILURE;
+      }
+      if (checkHeaderValue(header.nyp, 1, fileDesc.c_str(), "nyp") == false) {
+         status = PV_FAILURE;
+      }
+      if (checkHeaderValue(header.nfp, nfPost, fileDesc.c_str(), "nfp") == false) {
+         status = PV_FAILURE;
+      }
+      FatalIf(
+            status != PV_SUCCESS,
+            "%s frame %ld does not have the correct header.\n",
+            fileDesc.c_str(), frameCount);
 
-   // Check the weight values.
-   for (int patch = 0; patch < nfPre; ++patch) {
-      for (int elem = 0; elem < nfPost; ++elem) {
-         float observed = values[patch][elem];
-         float correct = static_cast<float>( (patch + 1) * (elem + 1) * nbatch);
-         if (observed != correct) {
-            ErrorLog().printf(
-                  "Patch %d, element %d is %f instead of correct value %f\n",
-                  patch, elem, static_cast<double>(observed), static_cast<double>(correct));
+      // Read weights, sanity-checking patch headers as we go.
+      // There should be nfPre patches, each with nfPost values.
+      // Each patch should have a header with nx=1, ny=1, offset=0.
+      std::vector<std::vector<float>> values(nfPre);
+      for (auto &v : values) { v.resize(nfPost); }
+      for (int patch = 0; patch < nfPre; ++patch) {
+         std::string patchDesc("File \"#1\" frame #2, patch #3");
+         patchDesc.replace(patchDesc.find("#3"), 2, std::to_string(patch));
+         patchDesc.replace(patchDesc.find("#2"), 2, std::to_string(frameCount));
+         patchDesc.replace(patchDesc.find("#1"), 2, weightsFilename);
+
+         Patch patchHeader;
+         weightsStream->read(&patchHeader, sizeof(Patch));
+         if (checkHeaderValue(patchHeader.nx, 1, patchDesc.c_str(), "nx") == false) {
             status = PV_FAILURE;
          }
+         if (checkHeaderValue(patchHeader.ny, 1, patchDesc.c_str(), "nx") == false) {
+            status = PV_FAILURE;
+         }
+         if (checkHeaderValue(patchHeader.offset, 0, patchDesc.c_str(), "nx") == false) {
+            status = PV_FAILURE;
+         }
+         FatalIf(status != PV_SUCCESS, "%s does not have the correct patch header.\n", patchDesc.c_str());
+         weightsStream->read(values[patch].data(), nfPost * sizeof(float));
       }
+   
+      // Check the weight values.
+      for (int patch = 0; patch < nfPre; ++patch) {
+         for (int elem = 0; elem < nfPost; ++elem) {
+            float observed = values[patch][elem];
+            float correct = static_cast<float>( (patch + 1) * (elem + 1) * nbatch * frameCount);
+            if (observed != correct) {
+               ErrorLog().printf(
+                     "Frame %ld, patch %d, element %d is %f instead of correct value %f\n",
+                     frameCount, patch, elem,
+                     static_cast<double>(observed), static_cast<double>(correct));
+               status = PV_FAILURE;
+            }
+         }
+      }
+      FatalIf(status != PV_SUCCESS, "%s does not have the correct values.\n", fileDesc.c_str());
    }
-   FatalIf(status != PV_SUCCESS, "%s does not have the correct values.\n", fileDesc.c_str());
+   weightsStream = nullptr; // close the weights file
 
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
