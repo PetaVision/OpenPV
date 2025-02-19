@@ -307,6 +307,7 @@ void WeightsPair::openOutputStateFile(
             outputStatePath,
             mPreWeights->getData(),
             mConnectionData->getPre()->getLayerLoc()->nf,
+            mConnectionData->getPost()->getLayerLoc()->bcast,
             getWriteCompressedWeights(),
             false /*readOnlyFlag*/,
             checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,

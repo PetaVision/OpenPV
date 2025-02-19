@@ -29,6 +29,7 @@ class BroadcastPreWeightsFile : public WeightsFile {
          std::string const &path,
          std::shared_ptr<WeightData> weightData,
          int nfPre,
+         bool postIsBroadcastFlag,
          bool compressedFlag,
          bool readOnlyFlag,
          bool clobberFlag,
@@ -55,6 +56,7 @@ class BroadcastPreWeightsFile : public WeightsFile {
    int getNfPre() const { return mNfPre; }
    // nfRestrictedPost would be the same as patchSizeF
    int getNumArbors() const { return mNumArbors; }
+   bool getPostIsBroadcastFlag() const { return mPostIsBroadcastFlag; }
    bool getCompressedFlag() const { return mCompressedFlag; }
    bool getReadOnly() const { return mReadOnly; }
    bool getVerifyWrites() const { return mVerifyWrites; }
@@ -78,9 +80,14 @@ class BroadcastPreWeightsFile : public WeightsFile {
 
    bool isRoot() { return mFileManager->isRoot(); }
 
-   void readInternal(double &timestamp);
-
    BufferUtils::WeightHeader createHeader(double timestamp, float minWgt, float maxWgt) const;
+
+   void readInternal(double &timestamp);
+   void readPostIsBroadcast(double &timestamp);
+   void readPostIsNotBroadcast(double &timestamp);
+
+   void writePostIsBroadcast(double timestamp);
+   void writePostIsNotBroadcast(double timestamp);
 
   private:
    std::shared_ptr<FileManager const> mFileManager;
@@ -92,6 +99,7 @@ class BroadcastPreWeightsFile : public WeightsFile {
    // mNfRestrictedPost would be the same as patchSizeF
    // mNumPatchesF is the same as mNfPre; mNumPatchesX and mNumPatchesY are always 1
    int mNumArbors;
+   bool mPostIsBroadcastFlag;
    bool mCompressedFlag;
    bool mReadOnly;
    bool mVerifyWrites;

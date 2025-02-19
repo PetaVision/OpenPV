@@ -209,6 +209,7 @@ int InitWeights::readWeights(
                filename,
                mWeights->getData(),
                mWeights->getGeometry()->getPreLoc().nf,
+               mWeights->getGeometry()->getPostLoc().bcast,
                compressedFlag,
                true /*readOnlyFlag*/,
                false /*clobberFlag*/,
