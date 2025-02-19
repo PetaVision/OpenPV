@@ -55,8 +55,7 @@ class PV_Init {
    int initialize();
 
    // Below are get-methods for retrieving command line arguments from the
-   // Arguments object.  Note that there are both getParams and
-   // getParamsFile methods.
+   // Arguments object.
 
    /**
     * Returns a copy of the args array.  It uses malloc and strdup, so the caller
