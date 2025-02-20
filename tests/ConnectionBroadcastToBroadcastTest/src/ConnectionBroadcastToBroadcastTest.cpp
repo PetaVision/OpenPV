@@ -1,5 +1,40 @@
 /*
  * ConnectionBroadcastToBroadcastTest.cpp
+ *
+ * This system test checks whether a connection that has broadcast layers for
+ * both pre- and post- layers works properly.
+ *
+ * It loads three params files in the course of its run; hence a params file
+ * should not be specified on the command line.
+ *
+ * Each of the three params files feature a ConstantLayer "Pre",
+ * a ConstantLayer "Post", and a HyPerConn "PreToPost".
+ * The "Pre" layer is 1x1x6 with values 1,2,3,4,5,6
+ * The "Post" layer is 1x1x4 with values 1,2,3,4
+ * The "PreToPost" connection can therefore be represented as a 4x6 matrix.
+ * It has plasticity on, with dWMax=1, and an update period of 5. Hence every
+ * The batch size is 12; hence every five timesteps, the weights increase by
+ *       [  12  24  36  48  60  72 ]
+ *       [  24  48  72  96 120 144 ]
+ *   A = [  36  72 108 144 180 216 ]
+ *       [  48  96 144 192 240 288 ]
+ *
+ * The differences between the params files is only in the initialization of
+ * the weights. The first params file, "BaseRun.params", initializes the
+ * weights with zeros. Hence at t=5, the weights are A and at t=10, they are
+ * 2*A.
+ *
+ * The second params file, "InitializeFromCheckpoint.params", sets the
+ * "initializeFromCheckpointDir" parameter to Checkpoint06 of the previous run.
+ * Hence the weights start at A, become 2*A at t=5, and 3*A at t=10.
+ *
+ * The third params file, "InitWeightFromFile.params", sets the initWeightsFile
+ * to Checkpoint07 of the InitializeFromCheckpoint run. Hence the weights
+ * start at 2*A, become 3*A at t=5, and 4*A at t=10.
+ *
+ * After running the params file, the program reads the output/PreToPost.pvp
+ * and output/Checkpoints/Checkpoint10/PreToPost_W.pvp file to verify that
+ * they have the correct output.
  */
 
 #include <columns/buildandrun.hpp>
@@ -25,8 +60,8 @@ int checkFrame(
       int frameNumber,
       int displayPeriod);
 bool checkHeaderValue(int observed, int correct, char const *headerDesc, char const *valueDesc);
-int checkResults(PV_Init &pv_initObj);
-int runParams(PV_Init &pv_initObj, char const *paramsFile);
+int checkResults(PV_Init &pv_initObj, int displayPeriodOffset);
+int testParams(PV_Init &pv_initObj, char const *paramsFile, int displayPeriodOffset);
 
 int main(int argc, char *argv[]) {
    // Run params file
@@ -35,19 +70,9 @@ int main(int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
 
-   char const *baseParamsFile = "input/ConnectionBroadcastToBroadcastTest.params";
-   status = runParams(pv_initObj, baseParamsFile);
-   FatalIf(status != PV_SUCCESS, "Run with params \"%s\" failed.\n", baseParamsFile);
-
-   // Only root processes need to check the output
-   auto outputFileManager = pv_initObj.getCommunicator()->getOutputFileManager();
-   if (outputFileManager->isRoot()) {
-      status = checkResults(pv_initObj);
-   }
-   FatalIf(
-         status != PV_SUCCESS, "Checking output from params file \"%s\" failed.\n", baseParamsFile);
-
-
+   status = testParams(pv_initObj, "input/BaseRun.params", 0);
+   status = testParams(pv_initObj, "input/InitializeFromCheckpoint.params", 1);
+   status = testParams(pv_initObj, "input/InitWeightFromFile.params", 2);
 
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -140,7 +165,7 @@ int checkFrame(
    return status;
 }
 
-int checkResults(PV_Init &pv_initObj) {
+int checkResults(PV_Init &pv_initObj, int displayPeriodOffset) {
    int status = PV_SUCCESS;
    // Read params values we'll need later
    PVParams *params = pv_initObj.getParams();
@@ -158,7 +183,8 @@ int checkResults(PV_Init &pv_initObj) {
    int frameCount = 0;
    while (weightsStream->getInPos() < weightsFileSize) {
       ++frameCount;
-      status = checkFrame(weightsStream, nfPre, nfPost, nbatch, frameCount, frameCount);
+      status = checkFrame(
+            weightsStream, nfPre, nfPost, nbatch, frameCount, frameCount + displayPeriodOffset);
    }
    weightsStream = nullptr; // close the weights file
 
@@ -181,14 +207,24 @@ int checkResults(PV_Init &pv_initObj) {
    FatalIf(!(*checkpointStream), "Unable to open \"%s\" for reading.\n", checkpointPath.c_str());
 
    // Check the checkpointed file
-   status = checkFrame(checkpointStream, nfPre, nfPost, nbatch, 1, frameCount);
+   status = checkFrame(
+         checkpointStream, nfPre, nfPost, nbatch, 1, frameCount + displayPeriodOffset);
    checkpointStream = nullptr; // close the checkpoints file
 
    return status;
 }
 
-int runParams(PV_Init &pv_initObj, char const *paramsFile) {
-   pv_initObj.setParams("input/ConnectionBroadcastToBroadcastTest.params");
+int testParams(PV_Init &pv_initObj, char const *paramsFile, int displayPeriodOffset) {
+   pv_initObj.setParams(paramsFile);
    int status = buildandrun(&pv_initObj, nullptr, nullptr);
+   FatalIf(status != PV_SUCCESS, "Run with params \"%s\" failed.\n", paramsFile);
+
+   // Only root processes need to check the output
+   auto outputFileManager = pv_initObj.getCommunicator()->getOutputFileManager();
+   if (outputFileManager->isRoot()) {
+      status = checkResults(pv_initObj, displayPeriodOffset);
+   }
+   FatalIf(
+         status != PV_SUCCESS, "Checking output from params file \"%s\" failed.\n", paramsFile);
    return status;
 }
