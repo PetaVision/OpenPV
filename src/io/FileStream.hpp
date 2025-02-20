@@ -36,6 +36,7 @@ class FileStream : public PrintStream {
    operator bool() const { return mFStream ? true : false; }
    long getOutPos();
    long getInPos();
+   long getFileSize();
    std::string const &getFileName() const { return mFileName; }
 
   protected:

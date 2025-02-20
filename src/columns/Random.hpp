@@ -22,7 +22,7 @@
 #define RANDOM_HPP_
 
 #include "utils/cl_random.h"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "include/pv_common.h"
 #include <vector>
 

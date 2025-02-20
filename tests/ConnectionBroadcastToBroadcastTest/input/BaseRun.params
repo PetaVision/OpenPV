@@ -1,0 +1,90 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "ConnectionBroadcastToBroadcastTest.params";
+    randomSeed                          = 1739401462;
+    nx                                  = 16;
+    ny                                  = 16;
+    nbatch                              = 12;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = false;
+    outputPath                          = "output";
+    verifyWrites                        = true;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "output/Checkpoints";
+    lastCheckpointDir                   = NULL;
+    initializeFromCheckpointDir         = "";
+};
+
+ConstantLayer "Pre" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = true;
+    nf                                  = 6;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/initialPre.pvp";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+ConstantLayer "Post" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = true;
+    nf                                  = 4;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/initialPost.pvp";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerConn "PreToPost" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = -1;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 4;
+    sharedWeights                       = false;
+    writeStep                           = 5.0;
+    initialWriteTime                    = 5.0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0;
+    connectOnlySameFeatures             = false;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = true;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 5;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    weightL1Decay                       = 0;
+    weightL2Decay                       = 0;
+    dWMax                               = 1;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+    combine_dW_with_W_flag              = false;
+};

@@ -12,6 +12,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/MPIBlock.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
+   ${SUBDIR}/PVLayerLoc.hpp
    ${SUBDIR}/RingBuffer.hpp
    ${SUBDIR}/WeightData.hpp
    ${SUBDIR}/Weights.hpp

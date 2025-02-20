@@ -10,7 +10,7 @@
 
 #include "checkpointing/Checkpointer.hpp"
 #include "structures/PatchGeometry.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "structures/WeightData.hpp"
 #include <memory>
 #include <string>
@@ -28,7 +28,7 @@ namespace PV {
  * object). It handles shared weights, local patch weights, or broadcast-pre weights,
  * and handles multiple arbors.
  *
- * If the WeightsType is shared, NumDataPatchesX is PreLoc.nx / PostLoc.nx if this quantity is
+ * If the weights are shared, NumDataPatchesX is PreLoc.nx / PostLoc.nx if this quantity is
  * greater than one, and 1 otherwise. Note that the PatchGeometry object requires that
  * the quotient of PreLoc.nx and PostLoc.nx be an integral power of two (1, 2, 4, 8, ...; or
  * 1/2, 1/4, 1/8, ...).
@@ -39,8 +39,6 @@ namespace PV {
 class Weights {
 
   public:
-   enum class WeightsType { SHARED, LOCALPATCH, BROADCASTPRE };
-
    /**
     * Instantiates the Weights object and then calls the initialize() method with the arguments
     * after the name argument.
@@ -53,7 +51,7 @@ class Weights {
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
          int numArbors,
-         WeightsType weightsType,
+         bool sharedWeightsFlag,
          double timestamp);
 
    Weights(std::string const &name, Weights const *baseWeights);
@@ -102,12 +100,9 @@ class Weights {
    void copyToGPU();
 #endif // PV_USE_CUDA
 
-   /** The get-method for the WeightsType flag */
-   WeightsType getWeightsType() const { return mWeightsType; }
-
-   bool weightsTypeIsShared() const { return mWeightsType == WeightsType::SHARED; }
-   bool weightsTypeIsLocalPatch() const { return mWeightsType == WeightsType::LOCALPATCH; }
-   bool weightsTypeIsBroadcastPre() const { return mWeightsType == WeightsType::BROADCASTPRE; }
+   bool getSharedWeightsFlag() const { return mSharedWeightsFlag; }
+   bool prelayerIsBroadcast() const { return mGeometry->getPreLoc().bcast; }
+   bool postlayerIsBroadcast() const { return mGeometry->getPostLoc().bcast; }
 
    /** The get-method for the name of the object */
    std::string const &getName() const { return mName; }
@@ -258,7 +253,7 @@ class Weights {
    void initialize(
          std::shared_ptr<PatchGeometry> geometry,
          int numArbors,
-         WeightsType weightsType,
+         bool sharedWeightsFlag,
          double timestamp);
 
    /** A constructor that uses the geometry of an existing Weights object.
@@ -277,7 +272,7 @@ class Weights {
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
          int numArbors,
-         WeightsType weightsType,
+         bool sharedWeightsFlag,
          double timestamp);
 
    void setName(std::string const &name) { mName = name; }
@@ -295,7 +290,7 @@ class Weights {
    std::string mName;
    std::shared_ptr<PatchGeometry> mGeometry = nullptr;
    int mNumArbors;
-   WeightsType mWeightsType;
+   bool mSharedWeightsFlag;
    double mTimestamp;
    int mNumDataPatchesX;
    int mNumDataPatchesY;

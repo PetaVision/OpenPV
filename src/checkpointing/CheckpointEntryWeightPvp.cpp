@@ -29,44 +29,40 @@ void CheckpointEntryWeightPvp::write(
    std::string filename = generateFilename(std::string("pvp"));
    std::shared_ptr<WeightsFile> weightsFile;
 
-   switch(mWeights->getWeightsType()) {
-      case Weights::WeightsType::SHARED:
-         weightsFile = std::make_shared<SharedWeightsFile>(
+   if (mWeights->getSharedWeightsFlag()) {
+      weightsFile = std::make_shared<SharedWeightsFile>(
+         fileManager,
+         filename,
+         mWeights->getData(),
+         mCompressFlag,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         verifyWritesFlag);
+   }
+   else if (mWeights->prelayerIsBroadcast()) {
+      weightsFile = std::make_shared<BroadcastPreWeightsFile>(
             fileManager,
             filename,
             mWeights->getData(),
+            mWeights->getGeometry()->getPreLoc().nf,
+            mWeights->getGeometry()->getPostLoc().bcast,
             mCompressFlag,
             false /*readOnlyFlag*/,
             true /*clobberFlag*/,
             verifyWritesFlag);
-         break;
-      case Weights::WeightsType::LOCALPATCH:
-         weightsFile = std::make_shared<LocalPatchWeightsFile>(
-               fileManager,
-               filename,
-               mWeights->getData(),
-               &mWeights->getGeometry()->getPreLoc(),
-               &mWeights->getGeometry()->getPostLoc(),
-               true /*fileExtendedFlag*/,
-               mCompressFlag,
-               false /*readOnlyFlag*/,
-               true /*clobberFlag*/,
-               verifyWritesFlag);
-         break;
-      case Weights::WeightsType::BROADCASTPRE:
-         weightsFile = std::make_shared<BroadcastPreWeightsFile>(
-               fileManager,
-               filename,
-               mWeights->getData(),
-               mWeights->getGeometry()->getPreLoc().nf,
-               mCompressFlag,
-               false /*readOnlyFlag*/,
-               true /*clobberFlag*/,
-               verifyWritesFlag);
-         break;
-      default:
-         Fatal().printf("Unrecognized WeightsType %d\n", mWeights->getWeightsType());
-         break;
+   }
+   else {
+      weightsFile = std::make_shared<LocalPatchWeightsFile>(
+            fileManager,
+            filename,
+            mWeights->getData(),
+            &mWeights->getGeometry()->getPreLoc(),
+            &mWeights->getGeometry()->getPostLoc(),
+            true /*fileExtendedFlag*/,
+            mCompressFlag,
+            false /*readOnlyFlag*/,
+            true /*clobberFlag*/,
+            verifyWritesFlag);
    }
    weightsFile->write(simTime);
 }
@@ -90,44 +86,40 @@ void CheckpointEntryWeightPvp::read(
    std::string filename = generateFilename(std::string("pvp"));
    std::shared_ptr<WeightsFile> weightsFile;
 
-   switch(mWeights->getWeightsType()) {
-      case Weights::WeightsType::SHARED:
-         weightsFile = std::make_shared<SharedWeightsFile>(
+   if (mWeights->getSharedWeightsFlag()) {
+      weightsFile = std::make_shared<SharedWeightsFile>(
+         fileManager,
+         filename,
+         mWeights->getData(),
+         mCompressFlag,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWritesFlag*/);
+   }
+   else if (mWeights->prelayerIsBroadcast()) {
+      weightsFile = std::make_shared<BroadcastPreWeightsFile>(
             fileManager,
             filename,
             mWeights->getData(),
+            mWeights->getGeometry()->getPreLoc().nf,
+            mWeights->getGeometry()->getPostLoc().bcast,
             mCompressFlag,
             true /*readOnlyFlag*/,
             false /*clobberFlag*/,
             false /*verifyWritesFlag*/);
-         break;
-      case Weights::WeightsType::LOCALPATCH:
-         weightsFile = std::make_shared<LocalPatchWeightsFile>(
-               fileManager,
-               filename,
-               mWeights->getData(),
-               &mWeights->getGeometry()->getPreLoc(),
-               &mWeights->getGeometry()->getPostLoc(),
-               true /*fileExtendedFlag*/,
-               mCompressFlag,
-               true /*readOnlyFlag*/,
-               false /*clobberFlag*/,
-               false /*verifyWritesFlag*/);
-         break;
-      case Weights::WeightsType::BROADCASTPRE:
-         weightsFile = std::make_shared<BroadcastPreWeightsFile>(
-               fileManager,
-               filename,
-               mWeights->getData(),
-               mWeights->getGeometry()->getPreLoc().nf,
-               mCompressFlag,
-               true /*readOnlyFlag*/,
-               false /*clobberFlag*/,
-               false /*verifyWritesFlag*/);
-         break;
-      default:
-         Fatal().printf("Unrecognized WeightsType %d\n", mWeights->getWeightsType());
-         break;
+   }
+   else {
+      weightsFile = std::make_shared<LocalPatchWeightsFile>(
+            fileManager,
+            filename,
+            mWeights->getData(),
+            &mWeights->getGeometry()->getPreLoc(),
+            &mWeights->getGeometry()->getPostLoc(),
+            true /*fileExtendedFlag*/,
+            mCompressFlag,
+            true /*readOnlyFlag*/,
+            false /*clobberFlag*/,
+            false /*verifyWritesFlag*/);
    }
    double simTime;
    weightsFile->read(simTime);

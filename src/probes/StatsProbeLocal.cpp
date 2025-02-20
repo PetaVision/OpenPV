@@ -4,7 +4,7 @@
 #include "components/ActivityComponent.hpp"
 #include "components/BasePublisherComponent.hpp"
 #include "components/InternalStateBuffer.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "probes/BufferParamUserSpecified.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"

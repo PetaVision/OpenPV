@@ -9,7 +9,7 @@
 #define CHECKPOINTENTRYRANDSTATE_HPP_
 
 #include "CheckpointEntry.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "utils/cl_random.h"
 
 namespace PV {

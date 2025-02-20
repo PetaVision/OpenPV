@@ -37,9 +37,9 @@ void TransposeWeights::transpose(
       Communicator const *comm,
       int arbor) {
    // TODO: Check if preWeights's preLoc is postWeights's postLoc and vice versa
-   bool sharedFlag = preWeights->weightsTypeIsShared();
+   bool sharedFlag = preWeights->getSharedWeightsFlag();
    FatalIf(
-         postWeights->weightsTypeIsShared() != sharedFlag,
+         postWeights->getSharedWeightsFlag() != sharedFlag,
          "Transposing weights %s to %s, but SharedFlag values do not match.\n",
          preWeights->getName().c_str(),
          postWeights->getName().c_str());

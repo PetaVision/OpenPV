@@ -6,7 +6,7 @@
 #define BORDEREXCHANGE_HPP_
 
 #include "arch/mpi/mpi.h"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "structures/MPIBlock.hpp"
 #include <vector>
 

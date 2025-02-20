@@ -9,7 +9,7 @@
 #define CUDAPOOLINGDELIVERKERNEL_HPP_
 
 #include "arch/cuda/CudaKernel.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 
 namespace PVCuda {
 

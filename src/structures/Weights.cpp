@@ -15,8 +15,6 @@
 
 namespace PV {
 
-using WeightsType = Weights::WeightsType;
-
 Weights::Weights(
       std::string const &name,
       int patchSizeX,
@@ -25,11 +23,12 @@ Weights::Weights(
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
       int numArbors,
-      WeightsType weightsType,
+      bool sharedWeightsFlag,
       double timestamp) {
    setName(name);
    initialize(
-         patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, weightsType, timestamp);
+         patchSizeX, patchSizeY, patchSizeF,
+         preLoc, postLoc, numArbors, sharedWeightsFlag, timestamp);
 }
 
 Weights::Weights(std::string const &name, Weights const *baseWeights) {
@@ -40,16 +39,34 @@ Weights::Weights(std::string const &name, Weights const *baseWeights) {
 void Weights::initialize(
       std::shared_ptr<PatchGeometry> geometry,
       int numArbors,
-      WeightsType weightsType,
+      bool sharedWeightsFlag,
       double timestamp) {
    FatalIf(
          mGeometry != nullptr,
          "Weights object \"%s\" has already been initialized.\n",
          getName().c_str());
-   mGeometry   = geometry;
-   mNumArbors  = numArbors;
-   mWeightsType = weightsType;
-   mTimestamp  = timestamp;
+   if (sharedWeightsFlag) {
+      bool connectsBroadcastLayer = false;
+      if (geometry->getPreLoc().bcast) {
+         ErrorLog().printf(
+               "Weights \"%s\" has SharedWeights flag on but pre-layer is broadcast.\n",
+               getName().c_str());
+         connectsBroadcastLayer = true;
+      }
+      if (geometry->getPostLoc().bcast) {
+         ErrorLog().printf(
+               "Weights \"%s\" has SharedWeights flag on but post-layer is broadcast.\n",
+               getName().c_str());
+         connectsBroadcastLayer = true;
+      }
+      FatalIf(
+            connectsBroadcastLayer,
+            "A connection to or from a broadcast layer must have its SharedWeights flag false.\n");
+   }
+   mGeometry          = geometry;
+   mNumArbors         = numArbors;
+   mSharedWeightsFlag = sharedWeightsFlag;
+   mTimestamp         = timestamp;
 
    initNumDataPatches();
 
@@ -63,7 +80,7 @@ void Weights::initialize(Weights const *baseWeights) {
    initialize(
          geometry,
          baseWeights->getNumArbors(),
-         baseWeights->getWeightsType(),
+         baseWeights->getSharedWeightsFlag(),
          baseWeights->getTimestamp());
 }
 
@@ -74,13 +91,13 @@ void Weights::initialize(
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
       int numArbors,
-      WeightsType weightsType,
+      bool sharedWeightsFlag,
       double timestamp) {
-   int nxp = weightsType == Weights::WeightsType::BROADCASTPRE ? postLoc->nx : patchSizeX;
-   int nyp = weightsType == Weights::WeightsType::BROADCASTPRE ? postLoc->ny : patchSizeY;
+   int nxp = preLoc->bcast ? postLoc->nx : patchSizeX;
+   int nyp = preLoc->bcast ? postLoc->ny : patchSizeY;
    auto geometry = std::make_shared<PatchGeometry>(
          mName.c_str(), nxp, nyp, patchSizeF, preLoc, postLoc);
-   initialize(geometry, numArbors, weightsType, timestamp);
+   initialize(geometry, numArbors, sharedWeightsFlag, timestamp);
 }
 
 void Weights::setMargins(PVHalo const &preHalo, PVHalo const &postHalo) {
@@ -102,7 +119,7 @@ void Weights::allocateDataStructures() {
             getPatchSizeX(), getPatchSizeY(), getPatchSizeF(),
             getNumDataPatchesX(), getNumDataPatchesY(), getNumDataPatchesF());
    }
-   if (weightsTypeIsShared() and getNumDataPatches() > 0) {
+   if (getSharedWeightsFlag() and getNumDataPatches() > 0) {
       int const numPatches = mGeometry->getNumPatches();
       dataIndexLookupTable.resize(numPatches);
       for (int p = 0; p < numPatches; p++) {
@@ -135,7 +152,7 @@ void Weights::allocateCudaBuffers() {
 
    if (getNumDataPatches() > 0) {
       std::vector<int> hostPatchToDataLookupVector(numPatches);
-      if (weightsTypeIsShared()) {
+      if (getSharedWeightsFlag()) {
          for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
             hostPatchToDataLookupVector[patchIndex] = dataIndexLookupTable[patchIndex];
          }
@@ -179,7 +196,7 @@ void Weights::checkpointWeightPvp(
 }
 
 void Weights::initNumDataPatches() {
-   if (weightsTypeIsShared()) {
+   if (getSharedWeightsFlag()) {
       setNumDataPatches(
             mGeometry->getNumKernelsX(), mGeometry->getNumKernelsY(), mGeometry->getNumKernelsF());
    }
@@ -202,7 +219,7 @@ float *Weights::getData(int arbor) { return mData->getData(arbor); }
 float const *Weights::getData(int arbor) const { return mData->getData(arbor); }
 
 float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
-   int dataIndex = weightsTypeIsShared() ?  dataIndexLookupTable[patchIndex] : patchIndex;
+   int dataIndex = getSharedWeightsFlag() ?  dataIndexLookupTable[patchIndex] : patchIndex;
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
@@ -211,7 +228,7 @@ float *Weights::getDataFromPatchIndexWithOffset(int arbor, int patchIndex) {
 }
 
 int Weights::calcDataIndexFromPatchIndex(int patchIndex) const {
-   if (weightsTypeIsShared()) {
+   if (getSharedWeightsFlag()) {
       int numPatchesX = mGeometry->getNumPatchesX();
       int numPatchesY = mGeometry->getNumPatchesY();
       int numPatchesF = mGeometry->getNumPatchesF();
@@ -251,7 +268,7 @@ float Weights::calcMinWeight() {
 
 float Weights::calcMinWeight(int arbor) {
    float arborMin = FLT_MAX;
-   if (weightsTypeIsShared()) {
+   if (getSharedWeightsFlag()) {
       float *arborStart = getData(arbor);
       float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
       for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {
@@ -294,7 +311,7 @@ float Weights::calcMaxWeight() {
 
 float Weights::calcMaxWeight(int arbor) {
    float arborMax = -FLT_MAX;
-   if (weightsTypeIsShared()) {
+   if (getSharedWeightsFlag()) {
       float *arborStart = getData(arbor);
       float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
       for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {

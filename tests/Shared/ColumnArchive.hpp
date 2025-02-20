@@ -11,7 +11,7 @@
 #include <columns/ComponentBasedObject.hpp>
 #include <columns/HyPerCol.hpp>
 #include <components/BasePublisherComponent.hpp>
-#include <include/PVLayerLoc.hpp>
+#include <structures/PVLayerLoc.hpp>
 
 struct LayerArchive {
    std::string name;

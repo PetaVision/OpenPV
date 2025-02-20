@@ -5,6 +5,8 @@
 #ifndef PVLAYERLOC_HPP_
 #define PVLAYERLOC_HPP_
 
+#include <cstdlib>
+
 /**
  * PVHalo describes the padding for a layer.  Padding must
  * be at least the number of boundary cells, nb, but may be
@@ -22,6 +24,7 @@ struct PVLayerLoc {
    int nbatch, nx, ny, nf; // local number of grid pts in each dimension
    int nbatchGlobal, nxGlobal, nyGlobal; // total number of grid pts in the global space
    int kb0, kx0, ky0; // origin of the local layer in global index space
+   int bcast; // 0 for nonbroadcast layer; 1 for broadcast layers. Other values not defined
    PVHalo halo; // padding for memory (must include nb)
 };
 

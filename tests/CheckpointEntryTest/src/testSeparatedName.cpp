@@ -1,7 +1,7 @@
 #include "testSeparatedName.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "checkpointing/CheckpointEntryLayerBuffer.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "utils/PVLog.hpp"
 #include <memory>
 

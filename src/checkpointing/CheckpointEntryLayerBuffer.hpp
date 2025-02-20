@@ -9,7 +9,7 @@
 #define CHECKPOINTENTRYLAYERBUFFER_HPP_
 
 #include "CheckpointEntryLayerPvp.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include <string>
 
 namespace PV {

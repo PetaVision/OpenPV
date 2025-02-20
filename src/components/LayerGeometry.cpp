@@ -112,6 +112,7 @@ void LayerGeometry::setLayerLoc(
       mNyScale           = nyLayer / message->mNyGlobal;
       layerLoc->nyGlobal = nyLayer;
       // For broadcast layers, NxScale and NyScale shouldn't be used; they're set here just in case
+      layerLoc->bcast    = 1;
    }
    else {
       int statusx = calculateScaledSize(&layerLoc->nxGlobal, mNxScale, message->mNxGlobal, 'x'); 
@@ -119,6 +120,7 @@ void LayerGeometry::setLayerLoc(
       if (statusx != PV_SUCCESS or statusy != PV_SUCCESS) {
          status = PV_FAILURE;
       }
+      layerLoc->bcast = 0;
    }
 
    if (status == PV_SUCCESS) {

@@ -13,7 +13,7 @@
 #include "components/ConnectionData.hpp"
 #include "components/PatchSize.hpp"
 #include "components/WeightsPair.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "include/pv_common.h"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Observer.hpp"

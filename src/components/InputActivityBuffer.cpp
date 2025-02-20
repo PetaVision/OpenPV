@@ -10,7 +10,7 @@
 #include "cMakeHeader.h"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "columns/RandomSeed.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "io/FileStreamBuilder.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/BufferUtilsMPI.hpp"

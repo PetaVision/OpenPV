@@ -9,6 +9,7 @@ BroadcastPreWeightsFile::BroadcastPreWeightsFile(
       std::string const &path,
       std::shared_ptr<WeightData> weightData,
       int nfPre,
+      bool postIsBroadcastFlag,
       bool compressedFlag,
       bool readOnlyFlag,
       bool clobberFlag,
@@ -21,6 +22,7 @@ BroadcastPreWeightsFile::BroadcastPreWeightsFile(
         mPatchSizeF(weightData->getPatchSizeF()),
         mNfPre(nfPre),
         mNumArbors(weightData->getNumArbors()),
+        mPostIsBroadcastFlag(postIsBroadcastFlag),
         mCompressedFlag(compressedFlag),
         mReadOnly(readOnlyFlag),
         mVerifyWrites(verifyWrites) {
@@ -42,6 +44,34 @@ void BroadcastPreWeightsFile::read(double &timestamp) {
 }
 
 void BroadcastPreWeightsFile::write(double timestamp) {
+   if (getPostIsBroadcastFlag()) {
+      writePostIsBroadcast(timestamp);
+   }
+   else {
+      writePostIsNotBroadcast(timestamp);
+   }
+}
+
+void BroadcastPreWeightsFile::writePostIsBroadcast(double timestamp) {
+   float minValue, maxValue;
+   mWeightData->calcExtremeWeights(minValue, maxValue);
+   if (isRoot()) {
+      mBroadcastPreWeightsIO->setHeaderTimestamp(timestamp);
+      mBroadcastPreWeightsIO->setHeaderExtremeVals(minValue, maxValue);
+      mBroadcastPreWeightsIO->writeHeader();
+      mBroadcastPreWeightsIO->writeRegion(
+            *mWeightData,
+            0 /*xStart*/,
+            0 /*yStart*/,
+            0 /*fStart*/,
+            0 /*fPreStart*/,
+            0 /*arborIndexStart*/);
+      mBroadcastPreWeightsIO->finishWrite();
+   }
+   setIndex(getIndex() + 1);
+}
+
+void BroadcastPreWeightsFile::writePostIsNotBroadcast(double timestamp) {
    float extremeValues[2]; // extremeValues[0] is the min; extremeValues[1] is the max.
    mWeightData->calcExtremeWeights(extremeValues[0], extremeValues[1]);
    int root         = mFileManager->getRootProcessRank();
@@ -200,12 +230,19 @@ void BroadcastPreWeightsFile::initializeBroadcastPreWeightsIO(bool clobberFlag) 
          FileStreamBuilder(
                mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites)
                .get();
-   auto mpiBlock             = mFileManager->getMPIBlock();
+
+   int ioPatchSizeX = mPatchSizePerProcX;
+   int ioPatchSizeY = mPatchSizePerProcY;
+   if (!getPostIsBroadcastFlag()) {
+      auto mpiBlock = mFileManager->getMPIBlock();
+      ioPatchSizeX *= mpiBlock->getNumColumns();
+      ioPatchSizeY *= mpiBlock->getNumRows();
+   }
 
    mBroadcastPreWeightsIO = std::unique_ptr<BroadcastPreWeightsIO>(new BroadcastPreWeightsIO(
          fileStream,
-         mPatchSizePerProcX * mpiBlock->getNumColumns(),
-         mPatchSizePerProcY * mpiBlock->getNumRows(),
+         ioPatchSizeX,
+         ioPatchSizeY,
          mPatchSizeF,
          mNfPre,
          mNumArbors,
@@ -213,6 +250,36 @@ void BroadcastPreWeightsFile::initializeBroadcastPreWeightsIO(bool clobberFlag) 
 }
 
 void BroadcastPreWeightsFile::readInternal(double &timestamp) {
+   if (getPostIsBroadcastFlag()) {
+      readPostIsBroadcast(timestamp);
+   }
+   else {
+      readPostIsNotBroadcast(timestamp);
+   }
+}
+
+void BroadcastPreWeightsFile::readPostIsBroadcast(double &timestamp) {
+   if (isRoot()) {
+      mBroadcastPreWeightsIO->readHeader();
+      timestamp = mBroadcastPreWeightsIO->getHeaderTimestamp();
+      mBroadcastPreWeightsIO->readRegion(
+            *mWeightData,
+            0 /*xStart*/,
+            0 /*yStart*/,
+            0 /*fStart*/,
+            0 /*fPreStart*/,
+            0 /*arborIndexStart*/);
+   }
+   MPI_Bcast(
+         mWeightData->getData(0 /*arbor*/),
+         mWeightData->getNumValuesPerArbor(),
+         MPI_FLOAT,
+         mFileManager->getRootProcessRank(),
+         mFileManager->getMPIBlock()->getComm());
+   setIndex(getIndex() + 1);
+}
+
+void BroadcastPreWeightsFile::readPostIsNotBroadcast(double &timestamp) {
    long numValues = mWeightData->getNumValuesPerArbor();
    auto mpiBlock  = mFileManager->getMPIBlock();
    if (isRoot()) {

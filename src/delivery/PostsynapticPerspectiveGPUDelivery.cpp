@@ -223,7 +223,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          syp,
          numPerStride,
          mDeltaTimeFactor,
-         postWeights->weightsTypeIsShared(),
+         postWeights->getSharedWeightsFlag(),
 
          mDevicePostToPreActivity,
          d_PreData,

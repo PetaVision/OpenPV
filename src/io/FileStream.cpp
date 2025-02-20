@@ -177,4 +177,12 @@ long FileStream::getOutPos() { return mFStream.tellp(); }
 
 long FileStream::getInPos() { return mFStream.tellg(); }
 
+long FileStream::getFileSize() {
+   long origPos = getInPos();
+   setInPos(0L, std::ios_base::end);
+   long fileSize = getInPos();
+   setInPos(origPos, std::ios_base::beg);
+   return fileSize;
+}
+
 } /* namespace PV */

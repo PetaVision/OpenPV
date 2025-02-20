@@ -7,7 +7,7 @@
 
 #include "InitWeights.hpp"
 #include "components/WeightsPair.hpp"
-#include "include/PVLayerLoc.hpp"
+#include "structures/PVLayerLoc.hpp"
 #include "io/BroadcastPreWeightsFile.hpp"
 #include "io/FileManager.hpp"
 #include "io/FileStream.hpp"
@@ -109,7 +109,7 @@ InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> messa
       readWeights(mFilename, mFrameNumber);
    }
    else {
-      initRNGs(mWeights->weightsTypeIsShared());
+      initRNGs(mWeights->getSharedWeightsFlag());
       calcWeights();
    } // mFilename != null
    mWeights->setTimestamp(0.0);
@@ -192,7 +192,7 @@ int InitWeights::readWeights(
    }
 
    std::shared_ptr<WeightsFile> weightsFile = nullptr;
-   if (mWeights->weightsTypeIsShared()) {
+   if (mWeights->getSharedWeightsFlag()) {
       weightsFile = std::make_shared<SharedWeightsFile>(
             fileManager,
             filename,
@@ -203,19 +203,19 @@ int InitWeights::readWeights(
             false /*verifyWrites*/);
    }
    else {
-      if (mWeights->weightsTypeIsBroadcastPre()) {
+      if (mWeights->prelayerIsBroadcast()) {
          weightsFile = std::make_shared<BroadcastPreWeightsFile>(
                fileManager,
                filename,
                mWeights->getData(),
                mWeights->getGeometry()->getPreLoc().nf,
+               mWeights->getGeometry()->getPostLoc().bcast,
                compressedFlag,
                true /*readOnlyFlag*/,
                false /*clobberFlag*/,
                false /*verifyWritesFlag*/);
       }
       else {
-         pvAssert(mWeights->weightsTypeIsLocalPatch());
          weightsFile = std::make_shared<LocalPatchWeightsFile>(
                fileManager,
                filename,
@@ -244,7 +244,7 @@ int InitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx, int *ky, int *
    PVLayerLoc const &postLoc = mWeights->getGeometry()->getPostLoc();
 
    int xDataIndex, yDataIndex, fDataIndex;
-   if (mWeights->weightsTypeIsShared()) {
+   if (mWeights->getSharedWeightsFlag()) {
 
       int nxData = mWeights->getNumDataPatchesX();
       int nyData = mWeights->getNumDataPatchesY();

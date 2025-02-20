@@ -45,7 +45,7 @@ int NormalizeL2::normalizeWeights() {
 
    float scaleFactor = 1.0f;
    if (mNormalizeFromPostPerspective) {
-      if (!weights0->weightsTypeIsShared()) {
+      if (!weights0->getSharedWeightsFlag()) {
          Fatal().printf(
                "NormalizeL2 error for %s: normalizeFromPostPerspective is true but connection does "
                "not use shared weights.\n",
