@@ -29,10 +29,12 @@ ActivityHeader readActivityHeader(FileStream &fStream) {
 }
 
 SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
+   fStream.setInPos(0L, std::ios_base::beg);
    ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
-         upToIndex > header.nBands,
-         "buildSparseFileTable requested frame %d / %d.\n",
+         upToIndex >= header.nBands,
+         "buildSparseFileTable() requested frame %d "
+         "when there are only %d (zero-indexed) frames.\n",
          upToIndex,
          header.nBands);
 

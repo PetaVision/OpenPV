@@ -17,12 +17,12 @@ BroadcastLayerFile::BroadcastLayerFile(
       bool clobberFlag,
       bool verifyWrites)
       : CheckpointerDataInterface(),
-        mFileManager(fileManager),
-        mPath(path),
-        mNumFeatures(numFeatures),
-        mLocalBatchWidth(localBatchWidth),
-        mReadOnly(readOnlyFlag),
-        mVerifyWrites(verifyWrites) {
+         mFileManager(fileManager),
+         mPath(path),
+         mNumFeatures(numFeatures),
+         mLocalBatchWidth(localBatchWidth),
+         mReadOnly(readOnlyFlag),
+         mVerifyWrites(verifyWrites) {
    CheckpointerDataInterface::initialize();
    mDataLocations.resize(localBatchWidth);
    initializeLayerIO(clobberFlag);
