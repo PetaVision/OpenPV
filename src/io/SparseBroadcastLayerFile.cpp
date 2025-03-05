@@ -32,7 +32,11 @@ void SparseBroadcastLayerFile::read() {
    readInternal(dummyTimestamp, false);
 }
 
-void SparseBroadcastLayerFile::read(double &timestamp) { readInternal(timestamp, true); }
+void SparseBroadcastLayerFile::read(double &timestamp) {
+   readInternal(timestamp, true);
+   auto mpiComm = mFileManager->getMPIBlock()->getComm();
+   MPI_Bcast(&timestamp, 1, MPI_DOUBLE, mFileManager->getRootProcessRank(), mpiComm);
+}
 
 void SparseBroadcastLayerFile::write(double timestamp) {
    if (isRoot()) {

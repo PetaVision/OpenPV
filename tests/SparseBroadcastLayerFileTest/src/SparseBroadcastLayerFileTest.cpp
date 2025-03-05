@@ -21,14 +21,14 @@
 
 using namespace PV;
 
-// Calculates the file position of the start of a given index.
-// (If the file has n batch elements, as specified by the mpiBlock and the localBatchWidth
-// arguments, index k corresponds to PVP-file frame k*n.)
-long int calcFilePosition(
-      std::shared_ptr<MPIBlock const> mpiBlock, int localBatchWidth, int numFeatures, int index);
+// // Calculates the file position of the start of a given index.
+// // (If the file has n batch elements, as specified by the mpiBlock and the localBatchWidth
+// // arguments, index k corresponds to PVP-file frame k*n.)
+// long int calcFilePosition(
+//       std::shared_ptr<MPIBlock const> mpiBlock, int localBatchWidth, int numFeatures, int index);
 
-// Calculates the size of one PVP-file frame, in bytes.
-long int calcFrameSize(int numFeatures);
+// // Calculates the size of one PVP-file frame, in bytes.
+// long int calcFrameSize(int numFeatures);
 
 // Recursively deletes the contents of the directory specified by path, and removes the directory
 // itself, unless path is "." or ends in "/."
@@ -125,21 +125,21 @@ int main(int argc, char *argv[]) {
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-long int calcFilePosition(
-      std::shared_ptr<MPIBlock const> mpiBlock, int localBatchWidth, int numFeatures, int index) {
-   long int frameSize = calcFrameSize(numFeatures);
-   long int framesPerIndex = static_cast<long int>(localBatchWidth * mpiBlock->getBatchDimension());
-   long int indexSize = frameSize * framesPerIndex;
-   long int filePosition = 80L + indexSize * static_cast<long int>(index); // header is 80 bytes
-   return filePosition;
-}
+// long int calcFilePosition(
+//       std::shared_ptr<MPIBlock const> mpiBlock, int localBatchWidth, int numFeatures, int index) {
+//    long int frameSize = calcFrameSize(numFeatures);
+//    long int framesPerIndex = static_cast<long int>(localBatchWidth * mpiBlock->getBatchDimension());
+//    long int indexSize = frameSize * framesPerIndex;
+//    long int filePosition = 80L + indexSize * static_cast<long int>(index); // header is 80 bytes
+//    return filePosition;
+// }
 
-long int calcFrameSize(int numFeatures) {
-   long int frameDataSize =
-         static_cast<long int>(numFeatures) * static_cast<long int>(sizeof(float));
-   long int frameSize = static_cast<long int>(sizeof(double)) + frameDataSize; // Add timestamp
-   return frameSize;
-}
+// long int calcFrameSize(int numFeatures) {
+//    long int frameDataSize =
+//          static_cast<long int>(numFeatures) * static_cast<long int>(sizeof(float));
+//    long int frameSize = static_cast<long int>(sizeof(double)) + frameDataSize; // Add timestamp
+//    return frameSize;
+// }
 
 int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string const &path) {
    int status = PV_SUCCESS;
@@ -404,9 +404,9 @@ int runTests(std::shared_ptr<FileManager> fileManager) {
    if (status == PV_SUCCESS) {
       status = testRead(fileManager, numFeatures, globalBatchWidth);
    }
-   // if (status == PV_SUCCESS) {
-   //    status = testReadMultipleFrames(fileManager, numFeatures, globalBatchWidth);
-   // }
+   if (status == PV_SUCCESS) {
+      status = testReadMultipleFrames(fileManager, numFeatures, globalBatchWidth);
+   }
    // if (status == PV_SUCCESS) {
    //    status = testReadRandomAccess(fileManager, numFeatures, globalBatchWidth);
    // }
@@ -448,10 +448,8 @@ int testRead(
          false /*clobberFlag*/,
          false /*verifyWrites*/);
    std::vector<SparseList<float>> readBackData(localBatchWidth);
-   for (auto &d : readBackData) {
-      d.reset(1, 1, numFeatures);
-   }
    for (int b = 0; b < localBatchWidth; ++b) {
+      readBackData[b].reset(1, 1, numFeatures);
       readBackStream.setListLocation(&readBackData[b], b);
    }
    readBackStream.read();
@@ -464,64 +462,64 @@ int testRead(
    return status;
 }
 
-// int testReadMultipleFrames(
-//       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
-//    int status = PV_SUCCESS;
-//    auto mpiBlock = fileManager->getMPIBlock();
-//    std::string filename("testReadMultipleFrames.pvp");
-//    std::vector<double> timestamps{20.0, 22.0, 24.0, 26.0};
-//    std::vector<float> starts{10.0f, 11.0f, 12.0f, 13.0f};
-//    float step = 1.0f;
-//    float batchStep = 16.0f;
+int testReadMultipleFrames(
+      std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
+   int status = PV_SUCCESS;
+   auto mpiBlock = fileManager->getMPIBlock();
+   std::string filename("testReadMultipleFrames.pvp");
+   std::vector<double> timestamps{20.0, 22.0, 24.0, 26.0};
+   std::vector<float> starts{10.0f, 11.0f, 12.0f, 13.0f};
+   float step = 3.0f;
+   float batchStep = 16.0f;
 
-//    // Make test data using FileStream primitive functions, without using SparseBroadcastLayerFile.
-//    for (int index = 0; index < 4; ++index) {
-//       auto layerData = makeSparseBroadcastLayerData(
-//             mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
-//       writeUsingFileStreamPrimitives(fileManager, filename, layerData, timestamps[index], index);
-//    }
+   // Make test data using FileStream primitive functions, without using SparseBroadcastLayerFile.
+   std::vector<std::vector<SparseList<float>>> testData(4);
+   for (int index = 0; index < 4; ++index) {
+      testData[index] = makeSparseBroadcastLayerData(
+            mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
+      writeUsingFileStreamPrimitives(
+            fileManager, filename, testData[index], timestamps[index], index);
+   }
 
-//    // Read back the test data using SparseBroadcastLayerFile.
-//    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
-//    SparseBroadcastLayerFile readBackStream(
-//          fileManager,
-//          filename,
-//          numFeatures,
-//          localBatchWidth,
-//          true /*readOnlyFlag*/,
-//          false /*clobberFlag*/,
-//          false /*verifyWrites*/);
-//    std::vector<SparseList<float>> readBackData(localBatchWidth);
-//    for (int b = 0; b < localBatchWidth; ++b) {
-//       readBackData[b].resize(numFeatures);
-//       readBackStream.setDataLocation(readBackData[b].data(), b);
-//    }
-//    for (int index = 0; index < 4; ++index) {
-//       double timestamp;
-//       readBackStream.read(timestamp);
-//       int currentIndex = readBackStream.getIndex();
-//       if (currentIndex != index + 1) {
-//          status = PV_FAILURE;
-//          ErrorLog().printf(
-//                "testReadMultipleFrames(): "
-//                "after reading index %d, index was %d instead of expected %d\n",
-//                index, currentIndex, index + 1);
-//       }
-//       if (timestamp != timestamps[index]) {
-//          status = PV_FAILURE;
-//          ErrorLog().printf(
-//                "testReadMultipleFrames() index %d read timestamp %f instead of expected %f\n",
-//                index, timestamp, timestamps[index]);
-//       }
-//       auto layerData = makeSparseBroadcastLayerData(
-//             mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
-//       if (compareLayerData(layerData, readBackData) != PV_SUCCESS) {
-//          status = PV_FAILURE;
-//          ErrorLog().printf("testReadMultipleFrames() failed on index %d.\n", index);
-//       }
-//    }
-//    return status;
-// }
+   // Read back the test data using SparseBroadcastLayerFile.
+   int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
+   SparseBroadcastLayerFile readBackStream(
+         fileManager,
+         filename,
+         numFeatures,
+         localBatchWidth,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWrites*/);
+   std::vector<SparseList<float>> readBackData(localBatchWidth);
+   for (int b = 0; b < localBatchWidth; ++b) {
+      readBackData[b].reset(1, 1, numFeatures);
+      readBackStream.setListLocation(&readBackData[b], b);
+   }
+   for (int index = 0; index < 4; ++index) {
+      double timestamp;
+      readBackStream.read(timestamp);
+      int currentIndex = readBackStream.getIndex();
+      if (currentIndex != index + 1) {
+         status = PV_FAILURE;
+         ErrorLog().printf(
+               "testReadMultipleFrames(): "
+               "after reading index %d, index was %d instead of expected %d\n",
+               index, currentIndex, index + 1);
+      }
+      if (timestamp != timestamps[index]) {
+         status = PV_FAILURE;
+         ErrorLog().printf(
+               "testReadMultipleFrames() index %d read timestamp %f instead of expected %f\n",
+               index, timestamp, timestamps[index]);
+      }
+      if (compareLayerData(testData[index], readBackData) != PV_SUCCESS) {
+         status = PV_FAILURE;
+         ErrorLog().printf("testReadMultipleFrames() failed on index %d.\n", index);
+      }
+   }
+   return status;
+}
 
 // int testReadRandomAccess(
 //       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
@@ -775,10 +773,11 @@ int writeUsingFileStreamPrimitives(
       BufferUtils::SparseFileTable sparseFileTable;
       if (fileSize > 0L) {
          pvAssert(fileSize > 80L);
+         fileStream->setInPos(0L, std::ios_base::beg);
          BufferUtils::ActivityHeader fileHeader;
          fileStream->read(&fileHeader, sizeof(fileHeader));
          int numBands = fileHeader.nBands;
-         sparseFileTable = BufferUtils::buildSparseFileTable(*fileStream, numBands);
+         sparseFileTable = BufferUtils::buildSparseFileTable(*fileStream, numBands - 1);
       }
       int numFrames = static_cast<int>(sparseFileTable.frameStartOffsets.size());
       int newNumFrames = std::max(numFrames, fileBatchWidth * (index + 1));
@@ -789,7 +788,7 @@ int writeUsingFileStreamPrimitives(
       fileStream->write(&header, 80L);
       long int newFilePos = 80L;
       if (sparseFileTable.frameStartOffsets.empty() == false) {
-         int bandIndex = index * fileBatchWidth;
+         int bandIndex = index * fileBatchWidth - 1;
          newFilePos = sparseFileTable.frameStartOffsets.at(bandIndex);
          newFilePos += sparseFileTable.frameLengths.at(bandIndex) * static_cast<long>(sizeof(long));
          newFilePos += static_cast<long>(sizeof(double) + sizeof(int));
