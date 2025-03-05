@@ -407,9 +407,9 @@ int runTests(std::shared_ptr<FileManager> fileManager) {
    if (status == PV_SUCCESS) {
       status = testReadMultipleFrames(fileManager, numFeatures, globalBatchWidth);
    }
-   // if (status == PV_SUCCESS) {
-   //    status = testReadRandomAccess(fileManager, numFeatures, globalBatchWidth);
-   // }
+   if (status == PV_SUCCESS) {
+      status = testReadRandomAccess(fileManager, numFeatures, globalBatchWidth);
+   }
    // if (status == PV_SUCCESS) {
    //    status = testWrite(fileManager, numFeatures, globalBatchWidth);
    // }
@@ -521,78 +521,78 @@ int testReadMultipleFrames(
    return status;
 }
 
-// int testReadRandomAccess(
-//       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
-//    int status = PV_SUCCESS;
-//    auto mpiBlock = fileManager->getMPIBlock();
-//    std::string filename("testReadRandomAccess.pvp");
-//    std::vector<double> timestamps{28.0, 30.0, 32.0, 34.0};
-//    std::vector<float> starts{14.0f, 15.0f, 16.0f, 17.0f};
-//    float step = 1.0f;
-//    float batchStep = 16.0f;
+int testReadRandomAccess(
+      std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
+   int status = PV_SUCCESS;
+   auto mpiBlock = fileManager->getMPIBlock();
+   std::string filename("testReadRandomAccess.pvp");
+   std::vector<double> timestamps{28.0, 30.0, 32.0, 34.0};
+   std::vector<float> starts{14.0f, 15.0f, 16.0f, 17.0f};
+   float step = 1.0f;
+   float batchStep = 16.0f;
 
-//    // Make test data using FileStream primitive functions, without using SparseBroadcastLayerFile.
-//    for (int index = 0; index < 4; ++index) {
-//       auto layerData = makeSparseBroadcastLayerData(
-//             mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
-//       writeUsingFileStreamPrimitives(fileManager, filename, layerData, timestamps[index], index);
-//    }
+   // Make test data using FileStream primitive functions, without using SparseBroadcastLayerFile.
+   std::vector<std::vector<SparseList<float>>> testData(4);
+   for (int index = 0; index < 4; ++index) {
+      testData[index] = makeSparseBroadcastLayerData(
+            mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
+      writeUsingFileStreamPrimitives(
+            fileManager, filename, testData[index], timestamps[index], index);
+   }
 
-//    // Create SparseBroadcastLayerFile object to read the data back.
-//    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
-//    SparseBroadcastLayerFile readBackStream(
-//          fileManager,
-//          filename,
-//          numFeatures,
-//          localBatchWidth,
-//          true /*readOnlyFlag*/,
-//          false /*clobberFlag*/,
-//          false /*verifyWrites*/);
-//    std::vector<SparseList<float>> readBackData(localBatchWidth);
-//    for (int b = 0; b < localBatchWidth; ++b) {
-//       readBackData[b].resize(numFeatures);
-//       readBackStream.setDataLocation(readBackData[b].data(), b);
-//    }
+   // Create SparseBroadcastLayerFile object to read the data back.
+   int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
+   SparseBroadcastLayerFile readBackStream(
+         fileManager,
+         filename,
+         numFeatures,
+         localBatchWidth,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWrites*/);
+   std::vector<SparseList<float>> readBackData(localBatchWidth);
+   for (int b = 0; b < localBatchWidth; ++b) {
+      readBackData[b].reset(1, 1, numFeatures);
+      readBackStream.setListLocation(&readBackData[b], b);
+   }
 
-//    if (status == PV_SUCCESS) {
-//       int startingIndex = readBackStream.getIndex();
-//       if (startingIndex != 0) {
-//          ErrorLog().printf(
-//                "testReadRandomAccess() expected index to initialize with value 0; "
-//                "instead it was %d\n",
-//                startingIndex);
-//          status = PV_FAILURE;
-//       }
-//    }
+   if (status == PV_SUCCESS) {
+      int startingIndex = readBackStream.getIndex();
+      if (startingIndex != 0) {
+         ErrorLog().printf(
+               "testReadRandomAccess() expected index to initialize with value 0; "
+               "instead it was %d\n",
+               startingIndex);
+         status = PV_FAILURE;
+      }
+   }
 
-//    // Position the stream to index 1.
-//    if (status == PV_SUCCESS) {
-//       readBackStream.setIndex(1);
-//       for (int b = 0; b < localBatchWidth; ++b) {
-//          std::vector<SparseList<float>> readIndex1(1);
-//          readBackData[b].resize(numFeatures);
-//          readBackStream.setDataLocation(readBackData[b].data(), b);
-//       }
-//       double timestamp;
-//       readBackStream.read(timestamp);
-//       auto layerData = makeSparseBroadcastLayerData(
-//             mpiBlock, numFeatures, globalBatchWidth, starts[1], step, batchStep);
-//       if (timestamp != timestamps[1]) {
-//          status = PV_FAILURE;
-//          ErrorLog().printf(
-//                "testRandomAccess() timestamps do not match: expected %f, observed %f\n",
-//                timestamps[1], timestamp);
-//       }
-//       if (compareLayerData(layerData, readBackData) != PV_SUCCESS) {
-//          status = PV_FAILURE;
-//          ErrorLog().printf("testRandomAccess() failed random access read of index 1.\n");
-//       }
-//    }
-//    if (status != PV_SUCCESS) {
-//       ErrorLog().printf("testRandomAccess() failed.\n");
-//    }
-//    return status;
-// }
+   // Position the stream to index 1.
+   if (status == PV_SUCCESS) {
+      readBackStream.setIndex(1);
+      for (int b = 0; b < localBatchWidth; ++b) {
+         std::vector<SparseList<float>> readIndex1(1);
+         readBackData[b].reset(1, 1, numFeatures);
+         readBackStream.setListLocation(&readBackData[b], b);
+      }
+      double timestamp;
+      readBackStream.read(timestamp);
+      if (timestamp != timestamps[1]) {
+         status = PV_FAILURE;
+         ErrorLog().printf(
+               "testRandomAccess() timestamps do not match: expected %f, observed %f\n",
+               timestamps[1], timestamp);
+      }
+      if (compareLayerData(testData[1], readBackData) != PV_SUCCESS) {
+         status = PV_FAILURE;
+         ErrorLog().printf("testRandomAccess() failed random access read of index 1.\n");
+      }
+   }
+   if (status != PV_SUCCESS) {
+      ErrorLog().printf("testRandomAccess() failed.\n");
+   }
+   return status;
+}
 
 // int testWrite(
 //       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
