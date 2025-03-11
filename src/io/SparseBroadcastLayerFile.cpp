@@ -229,9 +229,50 @@ void SparseBroadcastLayerFile::gather(
    int rootProc = 0;
    int tag = 3715 + localBatchIndex;
    SparseList<float> const *localSparseList = getListLocation(localBatchIndex);
+   auto mpiBlock = mFileManager->getMPIBlock();
    if (isRoot()) {
+      rootSparseList->reset(1, 1, localSparseList->getFeatures());
+      int sourceRank = mpiBlock->calcRankFromRowColBatch(0, 0, mpiBatchIndex);
+      if (sourceRank == rootProc) {
+         rootSparseList->set(localSparseList->getContents());
+      }
+      else {
+         MPI_Status mpiStatus;
+         MPI_Probe(sourceRank, tag, mpiBlock->getComm(), &mpiStatus);
+         int count;
+         MPI_Get_count(&mpiStatus, MPI_BYTE, &count);
+         int sizePerEntry = static_cast<int>(sizeof(SparseList<float>::Entry));
+         FatalIf(
+               count % sizePerEntry != 0,
+               "SparseBroadcastLayerFile::scatter() receiving %d bytes, "
+               "which is not a multiple of sparse entry size of %d bytes.\n",
+               count, sizePerEntry);
+         int numEntries = count / sizePerEntry;
+         std::vector<SparseList<float>::Entry> sparseContents(numEntries);
+         MPI_Recv(
+               sparseContents.data(),
+               count,
+               MPI_BYTE,
+               rootProc,
+               tag,
+               mpiBlock->getComm(),
+               MPI_STATUS_IGNORE);
+         rootSparseList->set(sparseContents);
+      }
    }
    else {
+      bool batchMatch = mpiBlock->getBatchIndex() == mpiBatchIndex;
+      bool baseRowColumn = mpiBlock->getRowIndex() == 0 and mpiBlock->getColumnIndex() == 0;
+      if (batchMatch and baseRowColumn) {
+         auto sparseContents = localSparseList->getContents();
+         MPI_Send(
+               sparseContents.data(),
+               static_cast<int>(sizeof(SparseList<float>::Entry) * sparseContents.size()),
+               MPI_BYTE,
+               rootProc,
+               tag,
+               mpiBlock->getComm());
+      }
    }
 }
 

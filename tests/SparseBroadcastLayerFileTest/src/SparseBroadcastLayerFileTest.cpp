@@ -21,15 +21,6 @@
 
 using namespace PV;
 
-// // Calculates the file position of the start of a given index.
-// // (If the file has n batch elements, as specified by the mpiBlock and the localBatchWidth
-// // arguments, index k corresponds to PVP-file frame k*n.)
-// long int calcFilePosition(
-//       std::shared_ptr<MPIBlock const> mpiBlock, int localBatchWidth, int numFeatures, int index);
-
-// // Calculates the size of one PVP-file frame, in bytes.
-// long int calcFrameSize(int numFeatures);
-
 // Recursively deletes the contents of the directory specified by path, and removes the directory
 // itself, unless path is "." or ends in "/."
 int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string const &path);
@@ -62,6 +53,12 @@ int readUsingFileStreamPrimitives(
       int index);
 
 int runTests(std::shared_ptr<FileManager> fileManager);
+
+BufferUtils::SparseFileTable setFilePositionFromIndex(
+      FileStream &fileStream,
+      std::shared_ptr<MPIBlock const> mpiBlock,
+      int localBatchWidth,
+      int index);
 
 int testRead(
       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth);
@@ -124,22 +121,6 @@ int main(int argc, char *argv[]) {
 
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-// long int calcFilePosition(
-//       std::shared_ptr<MPIBlock const> mpiBlock, int localBatchWidth, int numFeatures, int index) {
-//    long int frameSize = calcFrameSize(numFeatures);
-//    long int framesPerIndex = static_cast<long int>(localBatchWidth * mpiBlock->getBatchDimension());
-//    long int indexSize = frameSize * framesPerIndex;
-//    long int filePosition = 80L + indexSize * static_cast<long int>(index); // header is 80 bytes
-//    return filePosition;
-// }
-
-// long int calcFrameSize(int numFeatures) {
-//    long int frameDataSize =
-//          static_cast<long int>(numFeatures) * static_cast<long int>(sizeof(float));
-//    long int frameSize = static_cast<long int>(sizeof(double)) + frameDataSize; // Add timestamp
-//    return frameSize;
-// }
 
 int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string const &path) {
    int status = PV_SUCCESS;
@@ -261,141 +242,170 @@ std::vector<SparseList<float>> makeSparseBroadcastLayerData(
    return result;
 }
 
-// int readUsingFileStreamPrimitives(
-//       std::shared_ptr<FileManager const> fileManager,
-//       std::string const &path,
-//       std::vector<SparseList<float>> &layerData,
-//       double *timestampPtr,
-//       int index) {
-//    int status = PV_SUCCESS;
-//    auto fileStream = FileStreamBuilder(
-//       fileManager,
-//       path,
-//       false /*isTextFlag*/,
-//       true /*readOnlyFlag*/,
-//       false /*clobberFlag*/,
-//       false /*verifyWritesFlag*/).get();
-//    auto mpiBlock = fileManager->getMPIBlock();
-//    int numBatchProcs = mpiBlock->getBatchDimension();
-//    FatalIf(
-//          numBatchProcs <= 0,
-//          "MPIBlock's BatchDimension must be positive (value is %d)\n",
-//          numBatchProcs);
-//    int localBatchWidth = static_cast<int>(layerData.size());
-//    FatalIf(
-//          localBatchWidth <= 0,
-//          "readUsingFileStreamPrimitives() called with layerData vector of length %d\n",
-//          localBatchWidth);
-//    int expectedFileBatchWidth = localBatchWidth * numBatchProcs;
-//    std::vector<double> timestamps(expectedFileBatchWidth);
+int readUsingFileStreamPrimitives(
+      std::shared_ptr<FileManager const> fileManager,
+      std::string const &path,
+      std::vector<SparseList<float>> &layerData,
+      double *timestampPtr,
+      int index) {
+   int status = PV_SUCCESS;
+   int const sizeSparseListEntry = static_cast<int>(sizeof(SparseList<float>::Entry));
+   auto fileStream = FileStreamBuilder(
+      fileManager,
+      path,
+      false /*isTextFlag*/,
+      true /*readOnlyFlag*/,
+      false /*clobberFlag*/,
+      false /*verifyWritesFlag*/).get();
+   auto mpiBlock = fileManager->getMPIBlock();
+   int numBatchProcs = mpiBlock->getBatchDimension();
+   FatalIf(
+         numBatchProcs <= 0,
+         "MPIBlock's BatchDimension must be positive (value is %d)\n",
+         numBatchProcs);
+   int localBatchWidth = static_cast<int>(layerData.size());
+   FatalIf(
+         localBatchWidth <= 0,
+         "readUsingFileStreamPrimitives() called with layerData vector of length %d\n",
+         localBatchWidth);
+   int expectedFileBatchWidth = localBatchWidth * numBatchProcs;
+   std::vector<double> timestamps(expectedFileBatchWidth);
 
-//    if (fileStream) {
-//       // Read header
-//       fileStream->setInPos(0L, std::ios_base::beg);
-//       BufferUtils::ActivityHeader header;
-//       fileStream->read(&header, 80L);
+   if (fileStream) {
+      // Read header
+      fileStream->setInPos(0L, std::ios_base::beg);
+      BufferUtils::ActivityHeader header;
+      fileStream->read(&header, 80L);
 
-//       // Sanity check header values
-//       if (header.fileType != PVP_ACT_SPARSEVALUES_FILE_TYPE) {
-//          ErrorLog().printf(
-//                "readUsingFileStreamPrimitives(): file \"%s\" is not a sparse pvp file.\n",
-//                path.c_str());
-//          return PV_FAILURE;
-//       }
-//       if (header.nx != 1 or header.ny != 1) {
-//          ErrorLog().printf(
-//                "readUsingFileStreamPrimitives(): file \"%s\" is not a 1-by-1-by-nf pvp file.\n",
-//                path.c_str());
-//          return PV_FAILURE;
-//       }
-//       int numFramesInFile = header.nBands;
-//       if (numFramesInFile % expectedFileBatchWidth != 0) {
-//          ErrorLog().printf(
-//                "readUsingFileStreamPrimitives(): file \"%s\" has expected batch width of %d, "
-//                "but the header.nbands value %d is not a multiple of this number.\n",
-//                path.c_str(),
-//                expectedFileBatchWidth,
-//                header.nBands);
-//          return PV_FAILURE;
-//       }
-//       if (index * expectedFileBatchWidth > numFramesInFile) {
-//          ErrorLog().printf(
-//             "readUsingFileStreamPrimitives() called with index %d and expectedFileBatchWidth %d, "
-//             "but file \"%s\" only has %d PVP frames.\n",
-//             index,
-//             expectedFileBatchWidth,
-//             path.c_str(),
-//             numFramesInFile);
-//          return PV_FAILURE;
-//       }
+      // Sanity check header values
+      if (header.fileType != PVP_ACT_SPARSEVALUES_FILE_TYPE) {
+         ErrorLog().printf(
+               "readUsingFileStreamPrimitives(): file \"%s\" is not a sparse pvp file.\n",
+               path.c_str());
+         return PV_FAILURE;
+      }
+      if (header.nx != 1 or header.ny != 1) {
+         ErrorLog().printf(
+               "readUsingFileStreamPrimitives(): file \"%s\" is not a 1-by-1-by-nf pvp file.\n",
+               path.c_str());
+         return PV_FAILURE;
+      }
+      int numFramesInFile = header.nBands;
+      if (numFramesInFile % expectedFileBatchWidth != 0) {
+         ErrorLog().printf(
+               "readUsingFileStreamPrimitives(): file \"%s\" has expected batch width of %d, "
+               "but the header.nbands value %d is not a multiple of this number.\n",
+               path.c_str(),
+               expectedFileBatchWidth,
+               header.nBands);
+         return PV_FAILURE;
+      }
+      if (index * expectedFileBatchWidth > numFramesInFile) {
+         ErrorLog().printf(
+            "readUsingFileStreamPrimitives() called with index %d and expectedFileBatchWidth %d, "
+            "but file \"%s\" only has %d PVP frames.\n",
+            index,
+            expectedFileBatchWidth,
+            path.c_str(),
+            numFramesInFile);
+         return PV_FAILURE;
+      }
 
-//       // Move to file position specified by index argument, and read data
-//       int numFeatures = header.nf;
-//       long int filePos = calcFilePosition(mpiBlock, localBatchWidth, numFeatures, index);
-//       fileStream->setInPos(filePos, std::ios_base::beg);
-//       std::vector<SparseList<float>> values(expectedFileBatchWidth);
-//       for (int b = 0; b < expectedFileBatchWidth; ++b) {
-//          values[b].resize(numFeatures);
-//          fileStream->read(&timestamps.at(b), 8L);
-//          fileStream->read(values[b].data(), 4L * static_cast<long int>(numFeatures));
-//       }
-//       MPI_Bcast(
-//             timestamps.data(), expectedFileBatchWidth, MPI_DOUBLE, 0 /*root*/, mpiBlock->getComm());
+      // Move to file position specified by index argument, and read data
+      int numFeatures = header.nf;
+      MPI_Bcast(&numFeatures, 1, MPI_INT, 0 /*root*/, mpiBlock->getComm());
 
-//       // Distribute values to rest of MPIBlock.
-//       int sendSize = localBatchWidth * numFeatures;
-//       std::vector<float> sendData(sendSize);
-//       for (int b = 0; b < localBatchWidth; ++b) {
-//          layerData[b].resize(numFeatures);
-//          std::copy(values[b].cbegin(), values[b].cend(), layerData[b].data());
-//       }
-//       for (int r = 1; r < mpiBlock->getSize(); ++r) {
-//          int mpiBatchIndex = mpiBlock->calcBatchIndexFromRank(r);
-//          for (int b = 0; b < localBatchWidth; ++b) {
-//             int globalBatchIndex = b + localBatchWidth * mpiBatchIndex;
-//             // SCRABBLE use the sendData vector to consolidate, so as to only do one MPI_Send
-//             MPI_Send(
-//                   values[globalBatchIndex].data(),
-//                   numFeatures,
-//                   MPI_FLOAT,
-//                   r,
-//                   345 + b /*tag*/,
-//                   mpiBlock->getComm());
-//          }
-//       }
-//    }
-//    else {
-//       MPI_Bcast(
-//             timestamps.data(), expectedFileBatchWidth, MPI_DOUBLE, 0 /*root*/, mpiBlock->getComm());
-//       for (int b = 0; b < localBatchWidth; ++b) {
-//          MPI_Status mpiStatus;
-//          MPI_Probe(0 /*source*/, 345 + b /*tag*/, mpiBlock->getComm(), &mpiStatus);
-//          int numFeatures;
-//          MPI_Get_count(&mpiStatus, MPI_FLOAT, &numFeatures);
-//          layerData[b].resize(numFeatures);
-//          MPI_Recv(
-//                layerData[b].data(),
-//                numFeatures,
-//                MPI_FLOAT,
-//                0 /*source*/,
-//                345 + b /*tag*/,
-//                mpiBlock->getComm(),
-//                MPI_STATUS_IGNORE);
-//       }
-//    }
+      setFilePositionFromIndex(*fileStream, mpiBlock, localBatchWidth, index);
+      std::vector<std::vector<SparseList<float>::Entry>> valuesFromFile(expectedFileBatchWidth);
+      for (int b = 0; b < expectedFileBatchWidth; ++b) {
+         fileStream->read(&timestamps.at(b), 8L);
+         int numEntries;
+         fileStream->read(&numEntries, 4L);
+         valuesFromFile[b].resize(numEntries);
+         long int sizeInBytes = numEntries * static_cast<long>(sizeof(SparseList<float>::Entry));
+         fileStream->read(valuesFromFile[b].data(), sizeInBytes);
+      }
+      MPI_Bcast(
+            timestamps.data(), expectedFileBatchWidth, MPI_DOUBLE, 0 /*root*/, mpiBlock->getComm());
 
-//    // check timestamp consistency
-//    auto firstNonEqualPair =
-//          std::adjacent_find(timestamps.cbegin(), timestamps.cend(), std::not_equal_to<float>());
-//    if (firstNonEqualPair == timestamps.cend()) {
-//       if (timestampPtr) { *timestampPtr = timestamps.at(0); }
-//    }
-//    else {
-//       status = PV_FAILURE;
-//       ErrorLog().printf("timestamps did not agree across all batch elements\n");
-//    }
-//    return status;
-// }
+      // Distribute values to rest of MPIBlock.
+      int sendSize = localBatchWidth * numFeatures;
+      std::vector<float> sendData(sendSize);
+      for (int b = 0; b < localBatchWidth; ++b) {
+         layerData[b].reset(1, 1, numFeatures);
+         layerData[b].set(valuesFromFile[b]);
+      }
+      for (int r = 1; r < mpiBlock->getSize(); ++r) {
+         int mpiBatchIndex = mpiBlock->calcBatchIndexFromRank(r);
+         for (int b = 0; b < localBatchWidth; ++b) {
+            int globalBatchIndex = b + localBatchWidth * mpiBatchIndex;
+            MPI_Send(
+                  valuesFromFile[globalBatchIndex].data(),
+                  sizeSparseListEntry * static_cast<int>(valuesFromFile[globalBatchIndex].size()),
+                  MPI_BYTE,
+                  r,
+                  345 + b /*tag*/,
+                  mpiBlock->getComm());
+            auto numValues = valuesFromFile[globalBatchIndex].size();
+            for (decltype(numValues) iii = 0; iii < numValues; ++iii) {
+               InfoLog().printf(
+                     "Sending value %zu of %zu in batch element %d to rank %d: index %d, value %f\n",
+                     iii, numValues, b, r,
+                     valuesFromFile[globalBatchIndex][iii].index,
+                     (double)(valuesFromFile[globalBatchIndex][iii].value));
+            }
+         }
+      }
+   }
+   else {
+      int numFeatures;
+      MPI_Bcast(&numFeatures, 1, MPI_INT, 0 /*root*/, mpiBlock->getComm());
+      MPI_Bcast(
+            timestamps.data(), expectedFileBatchWidth, MPI_DOUBLE, 0 /*root*/, mpiBlock->getComm());
+      for (int b = 0; b < localBatchWidth; ++b) {
+         layerData[b].reset(1, 1, numFeatures);
+         MPI_Status mpiStatus;
+         MPI_Probe(0 /*source*/, 345 + b /*tag*/, mpiBlock->getComm(), &mpiStatus);
+         int count;
+         MPI_Get_count(&mpiStatus, MPI_BYTE, &count);
+         int numEntries = count / sizeSparseListEntry;
+         FatalIf(
+               numEntries * sizeSparseListEntry != count,
+               "readUsingFileStreamPrimitives received an MPI message of %d bytes, which is "
+               "not a multiple of %d (the size of one sparse entry.\n",
+               count, sizeSparseListEntry);
+         std::vector<SparseList<float>::Entry> values(numEntries);
+         MPI_Recv(
+               values.data(),
+               count,
+               MPI_BYTE,
+               0 /*source*/,
+               345 + b /*tag*/,
+               mpiBlock->getComm(),
+               MPI_STATUS_IGNORE);
+         layerData[b].set(values);
+         for (int entry = 0; entry < numEntries; ++entry) {
+            InfoLog().printf(
+                  "Receiving value %d of %d in batch element %d on rank %d: index %d, value %f\n",
+                  entry, numEntries, b, mpiBlock->getRank(),
+                  values[entry].index,
+                  (double)(values[entry].value));
+         }
+      }
+   }
+
+   // check timestamp consistency
+   auto firstNonEqualPair =
+         std::adjacent_find(timestamps.cbegin(), timestamps.cend(), std::not_equal_to<float>());
+   if (firstNonEqualPair == timestamps.cend()) {
+      if (timestampPtr) { *timestampPtr = timestamps.at(0); }
+   }
+   else {
+      status = PV_FAILURE;
+      ErrorLog().printf("timestamps did not agree across all batch elements\n");
+   }
+   return status;
+}
 
 int runTests(std::shared_ptr<FileManager> fileManager) {
    int status = PV_SUCCESS;
@@ -410,9 +420,9 @@ int runTests(std::shared_ptr<FileManager> fileManager) {
    if (status == PV_SUCCESS) {
       status = testReadRandomAccess(fileManager, numFeatures, globalBatchWidth);
    }
-   // if (status == PV_SUCCESS) {
-   //    status = testWrite(fileManager, numFeatures, globalBatchWidth);
-   // }
+   if (status == PV_SUCCESS) {
+      status = testWrite(fileManager, numFeatures, globalBatchWidth);
+   }
    // if (status == PV_SUCCESS) {
    //    status = testWriteMultipleFrames(fileManager, numFeatures, globalBatchWidth);
    // }
@@ -420,6 +430,36 @@ int runTests(std::shared_ptr<FileManager> fileManager) {
    //    status = testTruncate(fileManager, numFeatures, globalBatchWidth);
    // }
    return status;
+}
+
+BufferUtils::SparseFileTable setFilePositionFromIndex(
+      FileStream &fileStream,
+      std::shared_ptr<MPIBlock const> mpiBlock,
+      int localBatchWidth,
+      int index) {
+   int framesPerIndex = localBatchWidth * mpiBlock->getBatchDimension();
+   int frameInFile = index * framesPerIndex;
+   fileStream.setInPos(0L, std::ios_base::beg);
+   BufferUtils::ActivityHeader header;
+   fileStream.read(&header, 80L);
+   int numBandsInFile = header.nBands;
+   FatalIf(
+         numBandsInFile < frameInFile,
+         "setFilePositionFromIndex() called with index %d and %d frames per index, "
+         "but \"%s\" has only %d frames.\n",
+         index, framesPerIndex, fileStream.getFileName());
+   BufferUtils::SparseFileTable sparseFileTable =
+         BufferUtils::buildSparseFileTable(fileStream, numBandsInFile - 1);
+   if (frameInFile == numBandsInFile) {
+      fileStream.setInPos(0L, std::ios_base::end);
+   }
+   else {
+      fileStream.setInPos(sparseFileTable.frameStartOffsets[frameInFile], std::ios_base::beg);
+   }
+   if (fileStream.writeable()) {
+      fileStream.setOutPos(fileStream.getInPos(), std::ios_base::beg);
+   }
+   return sparseFileTable;
 }
 
 int testRead(
@@ -528,7 +568,7 @@ int testReadRandomAccess(
    std::string filename("testReadRandomAccess.pvp");
    std::vector<double> timestamps{28.0, 30.0, 32.0, 34.0};
    std::vector<float> starts{14.0f, 15.0f, 16.0f, 17.0f};
-   float step = 1.0f;
+   float step = 3.0f;
    float batchStep = 16.0f;
 
    // Make test data using FileStream primitive functions, without using SparseBroadcastLayerFile.
@@ -594,49 +634,49 @@ int testReadRandomAccess(
    return status;
 }
 
-// int testWrite(
-//       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
-//    int status = PV_SUCCESS;
-//    float start      = 2.0f;
-//    float step       = 1.0f;
-//    float batchStep  = 16.0f;
-//    double timestamp = 20.0;
+int testWrite(
+      std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
+   int status = PV_SUCCESS;
+   float start      = 2.0f;
+   float step       = 3.0f;
+   float batchStep  = 16.0f;
+   double timestamp = 20.0;
 
-//    // Create a test file using SparseBroadcastLayerFile
-//    std::string filename("testWrite.pvp");
-//    auto mpiBlock = fileManager->getMPIBlock();
-//    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
-//    SparseBroadcastLayerFile testFile(
-//          fileManager,
-//          filename,
-//          numFeatures,
-//          localBatchWidth,
-//          false /*readOnlyFlag*/,
-//          true /*clobberFlag*/,
-//          false /*verifyWrites*/);
-//    auto layerData = makeSparseBroadcastLayerData(
-//          mpiBlock, numFeatures, globalBatchWidth, start, step, batchStep);
-//    for (int b = 0; b < localBatchWidth; ++b) {
-//       testFile.setDataLocation(layerData[b].data(), b);
-//    }
-//    testFile.write(timestamp);
+   // Create a test file using SparseBroadcastLayerFile
+   std::string filename("testWrite.pvp");
+   auto mpiBlock = fileManager->getMPIBlock();
+   int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
+   SparseBroadcastLayerFile testFile(
+         fileManager,
+         filename,
+         numFeatures,
+         localBatchWidth,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         false /*verifyWrites*/);
+   auto layerData = makeSparseBroadcastLayerData(
+         mpiBlock, numFeatures, globalBatchWidth, start, step, batchStep);
+   for (int b = 0; b < localBatchWidth; ++b) {
+      testFile.setListLocation(&layerData[b], b);
+   }
+   testFile.write(timestamp);
 
-//    // Read back the data using FileStream, without using SparseBroadcastLayerFile, and compare
-//    std::vector<SparseList<float>> dataFromFile(localBatchWidth);
-//    status = readUsingFileStreamPrimitives(
-//          fileManager,
-//          filename,
-//          dataFromFile,
-//          nullptr /*timestampPtr*/,
-//          0 /*index*/);
-//    if (status == PV_SUCCESS) {
-//       status = compareLayerData(layerData, dataFromFile);
-//    }
-//    if (status != PV_SUCCESS) {
-//       ErrorLog().printf("testWrite() failed.\n");
-//    }
-//    return status;
-// }
+   // Read back the data using FileStream, without using SparseBroadcastLayerFile, and compare
+   std::vector<SparseList<float>> dataFromFile(localBatchWidth);
+   status = readUsingFileStreamPrimitives(
+         fileManager,
+         filename,
+         dataFromFile,
+         nullptr /*timestampPtr*/,
+         0 /*index*/);
+   if (status == PV_SUCCESS) {
+      status = compareLayerData(layerData, dataFromFile);
+   }
+   if (status != PV_SUCCESS) {
+      ErrorLog().printf("testWrite() failed.\n");
+   }
+   return status;
+}
 
 // int testWriteMultipleFrames(
 //       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
