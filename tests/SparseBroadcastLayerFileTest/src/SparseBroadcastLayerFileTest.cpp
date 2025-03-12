@@ -423,9 +423,9 @@ int runTests(std::shared_ptr<FileManager> fileManager) {
    if (status == PV_SUCCESS) {
       status = testWrite(fileManager, numFeatures, globalBatchWidth);
    }
-   // if (status == PV_SUCCESS) {
-   //    status = testWriteMultipleFrames(fileManager, numFeatures, globalBatchWidth);
-   // }
+   if (status == PV_SUCCESS) {
+      status = testWriteMultipleFrames(fileManager, numFeatures, globalBatchWidth);
+   }
    // if (status == PV_SUCCESS) {
    //    status = testTruncate(fileManager, numFeatures, globalBatchWidth);
    // }
@@ -678,109 +678,109 @@ int testWrite(
    return status;
 }
 
-// int testWriteMultipleFrames(
-//       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
-//    int status = PV_SUCCESS;
-//    std::string filename("testWriteMultipleFrames.pvp");
-//    auto mpiBlock = fileManager->getMPIBlock();
-//    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
-//    std::vector<float> starts{10.0f, 15.0f, 20.0f, 25.0f};
-//    float step        = 1.0f;
-//    float batchStep   = 16.0f;
-//    std::vector<double> timestamps{21.0f, 22.0f, 23.0f, 24.0f};
+int testWriteMultipleFrames(
+      std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
+   int status = PV_SUCCESS;
+   std::string filename("testWriteMultipleFrames.pvp");
+   auto mpiBlock = fileManager->getMPIBlock();
+   int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
+   std::vector<float> starts{10.0f, 15.0f, 20.0f, 25.0f};
+   float step        = 3.0f;
+   float batchStep   = 16.0f;
+   std::vector<double> timestamps{21.0f, 22.0f, 23.0f, 24.0f};
 
-//    // Create a test file using SparseBroadcastLayerFile
-//    SparseBroadcastLayerFile testFile(
-//          fileManager,
-//          filename,
-//          numFeatures,
-//          localBatchWidth,
-//          false /*readOnlyFlag*/,
-//          true /*clobberFlag*/,
-//          false /*verifyWrites*/);
-//    for (int index = 0; index < 4; ++index) {
-//       auto layerData = makeSparseBroadcastLayerData(
-//             mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
-//       for (int b = 0; b < localBatchWidth; ++b) {
-//          testFile.setDataLocation(layerData[b].data(), b);
-//       }
-//       testFile.write(timestamps[index]);
-//       int currentIndex = testFile.getIndex();
-//       if (currentIndex != index + 1) {
-//          status = PV_FAILURE;
-//          ErrorLog().printf(
-//                "testWriteMultipleFrames(): "
-//                "after writing index %d, index was %d instead of expected %d\n",
-//                index, currentIndex, index + 1);
-//       }
-//    }
+   // Create a test file using SparseBroadcastLayerFile
+   SparseBroadcastLayerFile testFile(
+         fileManager,
+         filename,
+         numFeatures,
+         localBatchWidth,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         false /*verifyWrites*/);
+   for (int index = 0; index < 4; ++index) {
+      auto layerData = makeSparseBroadcastLayerData(
+            mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
+      for (int b = 0; b < localBatchWidth; ++b) {
+         testFile.setListLocation(&layerData[b], b);
+      }
+      testFile.write(timestamps[index]);
+      int currentIndex = testFile.getIndex();
+      if (currentIndex != index + 1) {
+         status = PV_FAILURE;
+         ErrorLog().printf(
+               "testWriteMultipleFrames(): "
+               "after writing index %d, index was %d instead of expected %d\n",
+               index, currentIndex, index + 1);
+      }
+   }
 
-//    // Read back the data using FileStream, without using SparseBroadcastLayerFile, and compare
-//    std::vector<SparseList<float>> dataFromFile(localBatchWidth);
-//    for (int index = 0; index < 4; ++index) {
-//       double timestamp;
-//       status = readUsingFileStreamPrimitives(
-//             fileManager,
-//             filename,
-//             dataFromFile,
-//             &timestamp,
-//             index);
-//       if (timestamp != timestamps[index]) {
-//          status = PV_FAILURE;
-//          ErrorLog().printf(
-//                "testWriteMultipleFrames() index %d read timestamp %f instead of expected %f\n",
-//                index, timestamp, timestamps[index]);
-//       }
-//       if (status == PV_SUCCESS) {
-//          auto layerData = makeSparseBroadcastLayerData(
-//                mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
-//          status = compareLayerData(layerData, dataFromFile);
-//       }
-//       if (status != PV_SUCCESS) {
-//          ErrorLog().printf("testWrite() failed.\n");
-//       }
-//    }
+   // Read back the data using FileStream, without using SparseBroadcastLayerFile, and compare
+   std::vector<SparseList<float>> dataFromFile(localBatchWidth);
+   for (int index = 0; index < 4; ++index) {
+      double timestamp;
+      status = readUsingFileStreamPrimitives(
+            fileManager,
+            filename,
+            dataFromFile,
+            &timestamp,
+            index);
+      if (timestamp != timestamps[index]) {
+         status = PV_FAILURE;
+         ErrorLog().printf(
+               "testWriteMultipleFrames() index %d read timestamp %f instead of expected %f\n",
+               index, timestamp, timestamps[index]);
+      }
+      if (status == PV_SUCCESS) {
+         auto layerData = makeSparseBroadcastLayerData(
+               mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
+         status = compareLayerData(layerData, dataFromFile);
+      }
+      if (status != PV_SUCCESS) {
+         ErrorLog().printf("testWrite() failed.\n");
+      }
+   }
 
-//    // Test random-access
-//    if (status == PV_SUCCESS) {
-//       starts[1] = 7.0f;
-//       timestamps[1] = 100.0f;
-//       testFile.setIndex(1);
-//       auto layerData = makeSparseBroadcastLayerData(
-//             mpiBlock, numFeatures, globalBatchWidth, starts[1], step, batchStep);
-//       for (int b = 0; b < localBatchWidth; ++b) {
-//          testFile.setDataLocation(layerData[b].data(), b);
-//       }
-//       testFile.write(timestamps[1]);
-//       testFile.setIndex(0);
-//       for (int index = 0; index < 4; ++index) {
-//          double timestamp;
-//          status = readUsingFileStreamPrimitives(
-//                fileManager,
-//                filename,
-//                dataFromFile,
-//                &timestamp,
-//                index);
-//          if (timestamp != timestamps[index]) {
-//             status = PV_FAILURE;
-//             ErrorLog().printf(
-//                   "testWriteMultipleFrames() index %d read timestamp %f instead of expected %f\n",
-//                   index, timestamp, timestamps[index]);
-//          }
-//          if (status == PV_SUCCESS) {
-//             auto layerData = makeSparseBroadcastLayerData(
-//                   mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
-//             status = compareLayerData(layerData, dataFromFile);
-//          }
-//          if (status != PV_SUCCESS) { break; }
-//       }
-//    }
-//    if (status != PV_SUCCESS) {
-//       ErrorLog().printf("testWrite() failed.\n");
-//    }
+   // Test random-access
+   if (status == PV_SUCCESS) {
+      starts[1] = 7.0f;
+      timestamps[1] = 100.0f;
+      testFile.setIndex(1);
+      auto layerData = makeSparseBroadcastLayerData(
+            mpiBlock, numFeatures, globalBatchWidth, starts[1], step, batchStep);
+      for (int b = 0; b < localBatchWidth; ++b) {
+         testFile.setListLocation(&layerData[b], b);
+      }
+      testFile.write(timestamps[1]);
+      testFile.setIndex(0);
+      for (int index = 0; index <= 1; ++index) {
+         double timestamp;
+         status = readUsingFileStreamPrimitives(
+               fileManager,
+               filename,
+               dataFromFile,
+               &timestamp,
+               index);
+         if (timestamp != timestamps[index]) {
+            status = PV_FAILURE;
+            ErrorLog().printf(
+                  "testWriteMultipleFrames() index %d read timestamp %f instead of expected %f\n",
+                  index, timestamp, timestamps[index]);
+         }
+         if (status == PV_SUCCESS) {
+            auto layerData = makeSparseBroadcastLayerData(
+                  mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
+            status = compareLayerData(layerData, dataFromFile);
+         }
+         if (status != PV_SUCCESS) { break; }
+      }
+   }
+   if (status != PV_SUCCESS) {
+      ErrorLog().printf("testWrite() failed.\n");
+   }
 
-//    return status;
-// }
+   return status;
+}
 
 // int testTruncate(
 //       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
