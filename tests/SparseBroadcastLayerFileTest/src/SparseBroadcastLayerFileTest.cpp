@@ -426,9 +426,9 @@ int runTests(std::shared_ptr<FileManager> fileManager) {
    if (status == PV_SUCCESS) {
       status = testWriteMultipleFrames(fileManager, numFeatures, globalBatchWidth);
    }
-   // if (status == PV_SUCCESS) {
-   //    status = testTruncate(fileManager, numFeatures, globalBatchWidth);
-   // }
+   if (status == PV_SUCCESS) {
+      status = testTruncate(fileManager, numFeatures, globalBatchWidth);
+   }
    return status;
 }
 
@@ -782,11 +782,48 @@ int testWriteMultipleFrames(
    return status;
 }
 
-// int testTruncate(
-//       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
-//    int status = PV_SUCCESS;
-//    return status;
-// }
+int testTruncate(
+      std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
+   int status = PV_SUCCESS;
+   std::string filename("testTruncate.pvp");
+   auto mpiBlock = fileManager->getMPIBlock();
+   int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
+   std::vector<float> starts{10.0f, 15.0f, 20.0f, 25.0f};
+   float step        = 3.0f;
+   float batchStep   = 12.0f;
+   std::vector<double> timestamps{25.0f, 26.0f, 27.0f, 28.0f};
+
+   // Create a test file with four frames.
+   SparseBroadcastLayerFile testFile(
+         fileManager,
+         filename,
+         numFeatures,
+         localBatchWidth,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         false /*verifyWrites*/);
+   for (int index = 0; index < 4; ++index) {
+      auto layerData = makeSparseBroadcastLayerData(
+            mpiBlock, numFeatures, globalBatchWidth, starts[index], step, batchStep);
+      for (int b = 0; b < localBatchWidth; ++b) {
+         testFile.setListLocation(&layerData[b], b);
+      }
+      testFile.write(timestamps[index]);
+      int currentIndex = testFile.getIndex();
+      if (currentIndex != index + 1) {
+         status = PV_FAILURE;
+         ErrorLog().printf(
+               "testWriteMultipleFrames(): "
+               "after writing index %d, index was %d instead of expected %d\n",
+               index, currentIndex, index + 1);
+      }
+   }
+
+   // Truncate file to two frames
+   testFile.truncate(2);
+
+   return status;
+}
 
 int writeUsingFileStreamPrimitives(
       std::shared_ptr<FileManager const> fileManager,

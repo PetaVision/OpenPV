@@ -134,6 +134,33 @@ void SparseLayerIO::close() {
    if (mFileStream) { mFileStream->close(); }
 }
 
+void SparseLayerIO::truncate(int newNumFrames) {
+   if (!mFileStream) { return; }
+   FatalIf(
+         !mFileStream->writeable(),
+         "SparseBroadcastLayerFile \"%s\" is read-only and cannot be truncated.\n",
+         mFileStream->getFileName().c_str());
+
+   if (newNumFrames > mNumFrames) {
+      WarnLog().printf(
+            "Attempt to truncate \"%s\" to index %d, but file's max index is only %d\n",
+            mFileStream->getFileName().c_str(), newNumFrames, mNumFrames);
+      return;
+   }
+   int currentFrameNumber    = getFrameNumber();
+   int newFrameNumber = std::min(newNumFrames, currentFrameNumber);
+   setFrameNumber(newFrameNumber);
+   long filePosition = calcFilePositionFromFrameNumber(newNumFrames);
+   std::string path = mFileStream->getFileName().c_str();
+   close();
+   int truncateStatus = ::truncate(path.c_str(), static_cast<off_t>(filePosition));
+   FatalIf(truncateStatus, "Unable to truncate \"%s\" to length %ld: %s\n",
+         path.c_str(), filePosition, std::strerror(errno));
+   open();
+   setHeaderNBands();
+   setFrameNumber(newFrameNumber);
+}
+
 void SparseLayerIO::setFrameNumber(int frame) {
    if (!mFileStream) { return; }
    mFrameNumber = frame;

@@ -73,7 +73,7 @@ void SparseBroadcastLayerFile::truncate(int index) {
          "SparseBroadcastLayerFile \"%s\" is read-only and cannot be truncated.\n",
          mPath.c_str());
    if (isRoot()) {
-      int curFrameNumber    = mSparseLayerIO->getFrameNumber();
+      int currentFrameNumber    = mSparseLayerIO->getFrameNumber();
       int lastFrameNumber   = mSparseLayerIO->getNumFrames();
       int batchSize         = mFileManager->getMPIBlock()->getBatchDimension() * mLocalBatchWidth;
       int targetFrameNumber = index * batchSize;
@@ -85,12 +85,9 @@ void SparseBroadcastLayerFile::truncate(int index) {
                lastFrameNumber / batchSize);
          return;
       }
-      int newFrameNumber = curFrameNumber > targetFrameNumber ? targetFrameNumber : curFrameNumber;
-      long filePosition  = mSparseLayerIO->calcFilePositionFromFrameNumber(newFrameNumber);
-      mSparseLayerIO->close();
-      mFileManager->truncate(mPath, filePosition);
-      mSparseLayerIO->open();
-      int newIndex = index < getIndex() ? index : getIndex();
+      mSparseLayerIO->truncate(targetFrameNumber);
+      int newFrameNumber = std::min(currentFrameNumber, targetFrameNumber);
+      int newIndex = mSparseLayerIO->getFrameNumber() / batchSize;
       setIndex(newIndex);
    }
 }
