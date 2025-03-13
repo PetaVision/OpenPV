@@ -163,16 +163,40 @@ void LayerIO::initializeNumFrames() {
 
    getFileStream()->setInPos(0L, std::ios_base::end);
    long eofPosition = getFileStream()->getInPos();
-   if (getFileStream()->writeable()) {
-      if (eofPosition == 0L) {
-         writeHeader();
-      }
+   if (eofPosition == 0L) {
+      FatalIf(
+            !getFileStream()->writeable(),
+            "Layer file \"%s\" was opened in read-only mode but is empty.\n",
+            getFileStream()->getFileName());
+      writeHeader();
+      getFileStream()->setOutPos(0L, std::ios_base::end);
+      eofPosition = getFileStream()->getOutPos();
+      getFileStream()->setInPos(eofPosition, std::ios_base::beg);
+   }
+   else {
+      checkHeader();
       getFileStream()->setInPos(0L, std::ios_base::end);
-      eofPosition = getFileStream()->getInPos();
-      getFileStream()->setOutPos(eofPosition, std::ios_base::beg);
+      if (getFileStream()->writeable()) {
+         getFileStream()->setOutPos(eofPosition, std::ios_base::beg);
+      }
+      else {
+         getFileStream()->setInPos(80L, std::ios_base::beg);
+      }
    }
 
    mNumFrames = calcFrameNumberFromFilePosition(eofPosition);
+}
+
+void LayerIO::checkHeader() {
+   getFileStream()->setInPos(0L, std::ios_base::beg);
+   BufferUtils::ActivityHeader header;
+   getFileStream()->read(&header, 80L);
+   FatalIf(
+         header.nx != mWidth or header.ny != mHeight or header.nf != mNumFeatures,
+         "Layer file \"%s\" dimensions %d-by-%d-by-%d do not agree with "
+         "LayerIO parameters %d-by-%d-by-%d\n",
+         getFileStream()->getFileName().c_str(), header.nx, header.ny, header.nf,
+         mWidth, mHeight, mNumFeatures);
 }
 
 void LayerIO::setHeaderNBands() {
