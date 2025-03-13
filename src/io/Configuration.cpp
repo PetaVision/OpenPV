@@ -80,9 +80,17 @@ Configuration::ConfigurationType Configuration::getType(std::string const &name)
    return (location == mConfigTypeMap.end()) ? CONFIG_UNRECOGNIZED : location->second;
 }
 
+std::string Configuration::createErrorMessage(
+      std::string const &typeString, std::string const &argument) const {
+   std::string errorMessage("Configuration does not have an argument \"#1\" of type \"#2\"");
+   errorMessage.replace(errorMessage.find("#1"), 2, argument);
+   errorMessage.replace(errorMessage.find("#2"), 2, typeString);
+   return errorMessage;
+}
+
 bool const &Configuration::getBooleanArgument(std::string const &name) const {
    if (getType(name) != CONFIG_BOOL) {
-      throw std::invalid_argument("getBooleanArgument");
+      throw std::invalid_argument(createErrorMessage(name, "Boolean"));
    }
    auto location = mBooleanConfigMap.find(name);
    pvAssert(location != mBooleanConfigMap.end());
@@ -91,7 +99,7 @@ bool const &Configuration::getBooleanArgument(std::string const &name) const {
 
 int const &Configuration::getIntegerArgument(std::string const &name) const {
    if (getType(name) != CONFIG_INT) {
-      throw std::invalid_argument("getIntegerArgument");
+      throw std::invalid_argument(createErrorMessage(name, "Integer"));
    }
    auto location = mIntegerConfigMap.find(name);
    pvAssert(location != mIntegerConfigMap.end());
@@ -100,7 +108,7 @@ int const &Configuration::getIntegerArgument(std::string const &name) const {
 
 unsigned int const &Configuration::getUnsignedIntArgument(std::string const &name) const {
    if (getType(name) != CONFIG_UNSIGNED) {
-      throw std::invalid_argument("getUnsignedIntArgument");
+      throw std::invalid_argument(createErrorMessage(name, "UnsignedInt"));
    }
    auto location = mUnsignedIntConfigMap.find(name);
    pvAssert(location != mUnsignedIntConfigMap.end());
@@ -109,7 +117,7 @@ unsigned int const &Configuration::getUnsignedIntArgument(std::string const &nam
 
 std::string const &Configuration::getStringArgument(std::string const &name) const {
    if (getType(name) != CONFIG_STRING) {
-      throw std::invalid_argument("getStringArgument");
+      throw std::invalid_argument(createErrorMessage(name, "String"));
    }
    auto location = mStringConfigMap.find(name);
    pvAssert(location != mStringConfigMap.end());
@@ -119,7 +127,7 @@ std::string const &Configuration::getStringArgument(std::string const &name) con
 Configuration::IntOptional const &
 Configuration::getIntOptionalArgument(std::string const &name) const {
    if (getType(name) != CONFIG_INT_OPTIONAL) {
-      throw std::invalid_argument("getIntOptionalArgument");
+      throw std::invalid_argument(createErrorMessage(name, "IntOptional"));
    }
    auto location = mIntOptionalConfigMap.find(name);
    pvAssert(location != mIntOptionalConfigMap.end());
