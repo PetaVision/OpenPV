@@ -1,0 +1,87 @@
+//
+// SparseBroadcastSystemTest.params
+//
+
+//  A params file for testing I/O for a layer with sparseFlag and broadcastFlag both true.
+//  A 1x1x16 sparse broadcast layer uses InitVFromFile (which tests reading).
+//  A connection then connects it to a second 1x1x16 sparse broadcast layer. The action
+//  of the connection is to reorder the features, multiplying each by 1/2, 1, or 2.
+//  Hence the second layer is equally sparse but distinct.
+//  After the PetaVision run concludes, the root process or processes read the output
+//  file from the second layer and check the contents (which tests writing).
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 32;
+   ny = 32;
+   nbatch = 4;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "SparseBroadcastSystemTest.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+ConstantLayer "SparseBroadcast1" = {
+    broadcastFlag = true;
+    nf = 16;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = true;
+    mirrorBCflag = true;
+    useInputBCflag = false;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "input/SparseBroadcastInput.pvp";
+};
+
+HyPerLayer "SparseBroadcast2" = {
+    broadcastFlag = true;
+    nf = 16;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 10.0;
+    sparseLayer = true;
+    mirrorBCflag = true;
+    updateGpu = false;
+    InitVType = "ZeroV";
+};
+
+//
+// connection
+//
+
+HyPerConn "SparseBroadcast1ToSparseBroadcast2" = {
+    initializeFromCheckpointFlag = false;
+    preLayerName = "SparseBroadcast1";
+    postLayerName = "SparseBroadcast2";
+    receiveGpu = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+    channelCode = 0;
+    numAxonalArbors = 1;
+    delay = [0.000000];
+    nxp = 1;
+    nyp = 1;
+    nfp = 16;
+    sharedWeights = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/Weights.pvp";
+    normalizeMethod = "none";
+    plasticityFlag = false;
+};
