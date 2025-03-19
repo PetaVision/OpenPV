@@ -54,6 +54,7 @@ class SparseLayerIO {
 
    void open();
    void close();
+   void truncate(int newNumFrames);
 
    std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
 

@@ -50,6 +50,30 @@ class InitVFromFile : public BaseInitV {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   void readBroadcastLayerFile(
+         float *V,
+         std::shared_ptr<FileManager> fileManager,
+         std::string const &filename,
+         PVLayerLoc const &loc);
+
+   void readLayerFile(
+         float *V,
+         std::shared_ptr<FileManager> fileManager,
+         std::string const &filename,
+         PVLayerLoc const &loc);
+
+   void readSparseBroadcastLayerFile(
+         float *V,
+         std::shared_ptr<FileManager> fileManager,
+         std::string const &filename,
+         PVLayerLoc const &loc);
+
+   void readSparseLayerFile(
+         float *V,
+         std::shared_ptr<FileManager> fileManager,
+         std::string const &filename,
+         PVLayerLoc const &loc);
+
   private:
    int initialize_base();
 

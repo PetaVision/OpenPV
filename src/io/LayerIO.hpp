@@ -66,6 +66,7 @@ class LayerIO {
    // returns the number of bytes in the buffer data if it has the right dimensions;
    // fatal errors otherwise.
    long checkBufferDimensions(Buffer<float> const &buffer);
+   void checkHeader();
    void initializeNumFrames();
    void setHeaderNBands();
    void writeHeader();

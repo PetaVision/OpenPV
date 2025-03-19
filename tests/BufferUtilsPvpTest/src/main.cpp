@@ -161,9 +161,9 @@ void testSparseFile(const char *fName) {
             (int)timeStamp);
 
       FatalIf(
-            list.getContents().size() != 13,
+            list.getNumEntries() != 13,
             "Expected 13 values, found %d.\n",
-            list.getContents().size());
+            list.getNumEntries());
 
       Buffer<float> buffer(5, 5, 1);
       list.toBuffer(buffer, 0.0f);

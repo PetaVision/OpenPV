@@ -19,6 +19,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/randomstateio.cpp
    ${SUBDIR}/SharedWeightsFile.cpp
    ${SUBDIR}/SharedWeightsIO.cpp
+   ${SUBDIR}/SparseBroadcastLayerFile.cpp
    ${SUBDIR}/SparseLayerBatchGatherScatter.cpp
    ${SUBDIR}/SparseLayerFile.cpp
    ${SUBDIR}/SparseLayerIO.cpp
@@ -46,6 +47,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/randomstateio.hpp
    ${SUBDIR}/SharedWeightsFile.hpp
    ${SUBDIR}/SharedWeightsIO.hpp
+   ${SUBDIR}/SparseBroadcastLayerFile.hpp
    ${SUBDIR}/SparseLayerBatchGatherScatter.hpp
    ${SUBDIR}/SparseLayerFile.hpp
    ${SUBDIR}/SparseLayerIO.hpp

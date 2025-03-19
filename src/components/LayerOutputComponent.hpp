@@ -14,6 +14,7 @@
 #include "components/LayerGeometry.hpp"
 #include "io/BroadcastLayerFile.hpp"
 #include "io/LayerFile.hpp"
+#include "io/SparseBroadcastLayerFile.hpp"
 #include "io/SparseLayerFile.hpp"
 #include "structures/SparseList.hpp"
 #include "utils/Timer.hpp"
@@ -97,6 +98,12 @@ class LayerOutputComponent : public BaseObject {
     */
    virtual void writeActivitySparse(double simTime, PVLayerCube &cube);
 
+   /**
+    * Appends the current activity to the OutputStateStream for sparse broadcast layers
+    * Called by outputState.
+    */
+   virtual void writeActivitySparseBroadcast(double simTime, PVLayerCube &cube);
+
   protected:
    double mInitialWriteTime = 0.0; // time of first output
    double mWriteTime        = 0.0; // time of next output
@@ -110,8 +117,7 @@ class LayerOutputComponent : public BaseObject {
    std::shared_ptr<LayerFile> mDenseFile                    = nullptr;
    std::shared_ptr<BroadcastLayerFile> mDenseBroadcastFile  = nullptr;
    std::shared_ptr<SparseLayerFile> mSparseFile             = nullptr;
-   // std::shared_ptr<BroadcastLayerFile> mSparseBroadcastFile = nullptr; // not implemented yet
-   void *mSparseBroadcastFile = nullptr; // placeholder
+   std::shared_ptr<SparseBroadcastLayerFile> mSparseBroadcastFile = nullptr; // not implemented yet
    std::vector<SparseList<float> > mSparseListVector;
 
    // WriteActivityCalls and WriteActivitySparseCalls are maintained for backwards compatibility

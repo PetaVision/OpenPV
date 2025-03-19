@@ -59,6 +59,7 @@ class Configuration {
    bool setIntOptionalArgument(std::string const &name, IntOptional const &value);
 
   private:
+   std::string createErrorMessage(std::string const &typeString, std::string const &argument) const;
    void registerArgument(std::string const &name, ConfigurationType type);
    void registerBooleanArgument(std::string const &name);
    void registerIntegerArgument(std::string const &name);

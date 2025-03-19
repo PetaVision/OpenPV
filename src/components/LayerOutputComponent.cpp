@@ -151,17 +151,31 @@ int LayerOutputComponent::openOutputStateFile(
    bool broadcastFlag    = mLayerGeometry->getBroadcastFlag();
    bool sparseLayerFlag  = mPublisher->getSparseLayerFlag();
    if (sparseLayerFlag /* TODO implement sparse broadcast layer files */) {
-      mSparseFile = std::make_shared<SparseLayerFile>(
-            outputFileManager,
-            outputStatePath,
-            *loc,
-            true /*dataExtendedFlag*/,
-            false /*fileExtendedFlag*/,
-            false /*readOnlyFlag*/,
-            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-            checkpointer->doesVerifyWrites());
-      mSparseListVector.resize(loc->nbatch);
-      mSparseFile->respond(message); // SparseLayerFile needs to register data
+      if (broadcastFlag) {
+         mSparseBroadcastFile = std::make_shared<SparseBroadcastLayerFile>(
+               outputFileManager,
+               outputStatePath,
+               loc->nf,
+               loc->nbatch,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+         mSparseListVector.resize(loc->nbatch);
+         mSparseBroadcastFile->respond(message); // SparseBroadcastLayerFile needs to register data
+      }
+      else {
+         mSparseFile = std::make_shared<SparseLayerFile>(
+               outputFileManager,
+               outputStatePath,
+               *loc,
+               true /*dataExtendedFlag*/,
+               false /*fileExtendedFlag*/,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites());
+         mSparseListVector.resize(loc->nbatch);
+         mSparseFile->respond(message); // SparseLayerFile needs to register data
+      }
    }
    else {
       if (broadcastFlag) {
@@ -208,6 +222,10 @@ Response::Status LayerOutputComponent::outputState(double simTime, double deltaT
          pvAssert(!(mDenseFile or mDenseBroadcastFile or mSparseBroadcastFile));
          writeActivitySparse(simTime, cube);
       }
+      else if (mSparseBroadcastFile) {
+         pvAssert(!(mDenseFile or mDenseBroadcastFile or mSparseFile));
+         writeActivitySparseBroadcast(simTime, cube);
+      }
       else if (mDenseFile) {
          pvAssert(!(mDenseBroadcastFile or mSparseFile or mSparseBroadcastFile));
          writeActivityDense(simTime, cube);
@@ -245,6 +263,29 @@ void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube
       mSparseFile->setListLocation(&mSparseListVector[b], b);
    }
    mSparseFile->write(simTime);
+   int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
+   mWriteActivitySparseCalls += blockBatchDimension * loc->nbatch;
+}
+
+// write sparse, broadcast activity
+void LayerOutputComponent::writeActivitySparseBroadcast(double simTime, PVLayerCube &cube) {
+   pvAssert(mSparseBroadcastFile);
+   PVLayerLoc const *loc = &cube.loc;
+   int const nf          = loc->nf;
+   int const nbatch      = loc->nbatch;
+   pvAssert(cube.numItems == nbatch * nf);
+   for (int b = 0; b < loc->nbatch; ++b) {
+      auto *activeIndicesBatch   = (SparseList<float>::Entry const *)cube.activeIndices;
+      auto *activeIndicesElement = &activeIndicesBatch[b * nf];
+      mSparseListVector[b].reset(1, 1, nf);
+
+      for (long int k = 0; k < cube.numActive[b]; k++) {
+         SparseList<float>::Entry const &entry = activeIndicesElement[k];
+         mSparseListVector[b].addEntry(entry);
+      }
+      mSparseBroadcastFile->setListLocation(&mSparseListVector[b], b);
+   }
+   mSparseBroadcastFile->write(simTime);
    int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
    mWriteActivitySparseCalls += blockBatchDimension * loc->nbatch;
 }
