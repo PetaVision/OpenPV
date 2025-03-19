@@ -250,7 +250,7 @@ void SparseBroadcastLayerFile::gather(
                sparseContents.data(),
                count,
                MPI_BYTE,
-               rootProc,
+               sourceRank,
                tag,
                mpiBlock->getComm(),
                MPI_STATUS_IGNORE);
@@ -262,9 +262,11 @@ void SparseBroadcastLayerFile::gather(
       bool baseRowColumn = mpiBlock->getRowIndex() == 0 and mpiBlock->getColumnIndex() == 0;
       if (batchMatch and baseRowColumn) {
          auto sparseContents = localSparseList->getContents();
+         int count = static_cast<int>(sizeof(SparseList<float>::Entry) * sparseContents.size());
+
          MPI_Send(
                sparseContents.data(),
-               static_cast<int>(sizeof(SparseList<float>::Entry) * sparseContents.size()),
+               count,
                MPI_BYTE,
                rootProc,
                tag,

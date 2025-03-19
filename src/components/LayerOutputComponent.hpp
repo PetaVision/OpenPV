@@ -98,6 +98,12 @@ class LayerOutputComponent : public BaseObject {
     */
    virtual void writeActivitySparse(double simTime, PVLayerCube &cube);
 
+   /**
+    * Appends the current activity to the OutputStateStream for sparse broadcast layers
+    * Called by outputState.
+    */
+   virtual void writeActivitySparseBroadcast(double simTime, PVLayerCube &cube);
+
   protected:
    double mInitialWriteTime = 0.0; // time of first output
    double mWriteTime        = 0.0; // time of next output

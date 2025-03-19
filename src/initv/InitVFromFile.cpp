@@ -10,6 +10,8 @@
 #include "io/FileManager.hpp"
 #include "io/BroadcastLayerFile.hpp"
 #include "io/LayerFile.hpp"
+#include "io/SparseBroadcastLayerFile.hpp"
+#include "io/SparseLayerFile.hpp"
 #include "utils/PathComponents.hpp"
 
 namespace PV {
@@ -88,47 +90,39 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
    bool isPvpFile   = (ext == ".pvp");
    if (isPvpFile) {
       auto inputFile = fileManager->open(base, std::ios_base::in, false);
+      int fileType;
       if (fileManager->isRoot()) {
          BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*inputFile);
-         int fileType                       = header.fileType;
-         FatalIf(
-               fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
-               "filename \"%s\" has fileType %d,  which is not supported for InitVFromFile.\n",
-               mVfilename, fileType);
+         fileType = header.fileType;
       }
-      if (mBroadcastFlag) {
-         pvAssert(loc->nx == 1 and loc->ny == 1);
-         BroadcastLayerFile inputLayerFile(
-               fileManager,
-               base,
-               loc->nf,
-               loc->nbatch,
-               true /*readOnlyFlag*/,
-               false /*clobberFlag*/,
-               false /*verifyWritesFlag*/);
-         for (int b = 0; b < loc->nbatch; ++b) {
-            float *Vbatch = &V[b * loc->nx * loc->ny * loc->nf];
-            inputLayerFile.setDataLocation(Vbatch, b);
-         }
-         inputLayerFile.setIndex(mFrameNumber);
-         inputLayerFile.read();
-      }
-      else {
-         LayerFile inputLayerFile(
-               fileManager,
-               base,
-               *loc,
-               false /*dataExtendedFlag*/,
-               false /*fileExtendedFlag*/,
-               true /*readOnlyFlag*/,
-               false /*clobberFlag*/,
-               false /*verifyWritesFlag*/);
-         for (int b = 0; b < loc->nbatch; ++b) {
-            float *Vbatch = &V[b * loc->nx * loc->ny * loc->nf];
-            inputLayerFile.setDataLocation(Vbatch, b);
-         }
-         inputLayerFile.setIndex(mFrameNumber);
-         inputLayerFile.read();
+      MPI_Bcast(
+            &fileType,
+            1 /*count*/,
+            MPI_INT,
+            fileManager->getRootProcessRank(),
+            fileManager->getMPIBlock()->getComm());
+      switch (fileType) {
+         case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+            if (mBroadcastFlag) {
+               readSparseBroadcastLayerFile(V, fileManager, base, *loc);
+            }
+            else {
+               readSparseLayerFile(V, fileManager, base, *loc);
+            }
+            break;
+         case PVP_NONSPIKING_ACT_FILE_TYPE:
+            if (mBroadcastFlag) {
+               readBroadcastLayerFile(V, fileManager, base, *loc);
+            }
+            else {
+               readLayerFile(V, fileManager, base, *loc);
+            }
+            break;
+         default:
+            Fatal().printf(
+                  "InitVFromFile \"%s\" is not an activity file (file type %d)\n",
+                  mVfilename, fileType);
+            break;
       }
    }
    else { // TODO: Treat as an image file
@@ -137,6 +131,122 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
       }
       MPI_Barrier(fileManager->getMPIBlock()->getComm());
       exit(EXIT_FAILURE);
+   }
+}
+
+void InitVFromFile::readBroadcastLayerFile(
+      float *V,
+      std::shared_ptr<FileManager> fileManager,
+      std::string const &filename,
+      PVLayerLoc const &loc) {
+   pvAssert(loc.nx == 1 and loc.ny == 1);
+   BroadcastLayerFile inputLayerFile(
+         fileManager,
+         filename,
+         loc.nf,
+         loc.nbatch,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWritesFlag*/);
+   for (int b = 0; b < loc.nbatch; ++b) {
+      float *Vbatch = &V[b * loc.nx * loc.ny * loc.nf];
+      inputLayerFile.setDataLocation(Vbatch, b);
+   }
+   inputLayerFile.setIndex(mFrameNumber);
+   inputLayerFile.read();
+}
+
+void InitVFromFile::readLayerFile(
+      float *V,
+      std::shared_ptr<FileManager> fileManager,
+      std::string const &filename,
+      PVLayerLoc const &loc) {
+   LayerFile inputLayerFile(
+         fileManager,
+         filename,
+         loc,
+         false /*dataExtendedFlag*/,
+         false /*fileExtendedFlag*/,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWritesFlag*/);
+   for (int b = 0; b < loc.nbatch; ++b) {
+      float *Vbatch = &V[b * loc.nx * loc.ny * loc.nf];
+      inputLayerFile.setDataLocation(Vbatch, b);
+   }
+   inputLayerFile.setIndex(mFrameNumber);
+   inputLayerFile.read();
+}
+void InitVFromFile::readSparseBroadcastLayerFile(
+      float *V,
+      std::shared_ptr<FileManager> fileManager,
+      std::string const &filename,
+      PVLayerLoc const &loc) {
+   pvAssert(loc.nx == 1 and loc.ny == 1);
+   SparseBroadcastLayerFile inputLayerFile(
+         fileManager,
+         filename,
+         loc.nf,
+         loc.nbatch,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWrites*/);
+   std::vector<SparseList<float>> sparseLists(loc.nbatch);
+   for (int b = 0; b < loc.nbatch; ++b) {
+      inputLayerFile.setListLocation(&sparseLists.at(b), b);
+   }
+   inputLayerFile.setIndex(mFrameNumber);
+   inputLayerFile.read();
+   for (int b = 0; b < loc.nbatch; ++b) {
+      float *Vbatch = &V[b * loc.nf];
+      std::vector<SparseList<float>::Entry> sparseContents = sparseLists[b].getContents();
+      for (auto const &entry : sparseContents) {
+         int index = entry.index;
+         FatalIf(
+               index >= loc.nf or index < 0,
+               "SparseBroadcastLayerFile \"%s\" batch element %d has index %d, "
+               "which is out of bounds for a 1-by-1-by-%d layer.\n",
+               filename, b, index, loc.nf);
+         float value = entry.value;
+         Vbatch[index] = value;
+      }
+   }
+}
+
+void InitVFromFile::readSparseLayerFile(
+      float *V,
+      std::shared_ptr<FileManager> fileManager,
+      std::string const &filename,
+      PVLayerLoc const &loc) {
+   SparseLayerFile inputLayerFile(
+         fileManager,
+         filename,
+         loc,
+         false /*dataExtendedFlag*/,
+         false /*fileExtendedFlag*/,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWritesFlag*/);
+   std::vector<SparseList<float>> sparseLists(loc.nbatch);
+   for (int b = 0; b < loc.nbatch; ++b) {
+      inputLayerFile.setListLocation(&sparseLists.at(b), b);
+   }
+   inputLayerFile.setIndex(mFrameNumber);
+   inputLayerFile.read();
+   for (int b = 0; b < loc.nbatch; ++b) {
+      int neuronsPerBatchElement = loc.nx * loc.ny * loc.nf;
+      float *Vbatch = &V[b * neuronsPerBatchElement];
+      std::vector<SparseList<float>::Entry> contents = sparseLists[b].getContents();
+      for (auto const &entry : contents) {
+         int index = entry.index;
+         FatalIf(
+               index >= neuronsPerBatchElement or index < 0,
+               "SparseLayerFile \"%s\" batch element %d has index %d, which is out of bounds "
+               "for a %d-by-%d-by-%d layer.\n",
+               filename, b, index, loc.nx, loc.ny, loc.nf);
+         float value = entry.value;
+         Vbatch[index] = value;
+      }
    }
 }
 

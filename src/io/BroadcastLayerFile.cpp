@@ -71,43 +71,55 @@ void BroadcastLayerFile::readInternal(double &timestamp, bool checkTimestampCons
       bool checkTimestampActive = false;
       // If checkTimestampConsistency is set, checkTimestampActive becomes true after first read
       Buffer<float> rootBuffer(1, 1, mNumFeatures);
-      int mpiBatchDimension = mpiBlock->getBatchDimension();
-      for (int mpiBatchIndex = 0; mpiBatchIndex < mpiBatchDimension; ++mpiBatchIndex) {
-         for (int b = 0; b < mLocalBatchWidth; ++b) {
-            double thisTimestamp;
-            mLayerIO->read(rootBuffer, thisTimestamp);
-            if (checkTimestampActive and thisTimestamp != timestamp) {
-               WarnLog() << "BroadcastLayerFile::read() frame timestamps are inconsistent\n";
+      int blockBatchDimension = mpiBlock->getBatchDimension();
+      int elementsPerBlock = mLocalBatchWidth * blockBatchDimension;
+      for (int blockElement = 0; blockElement < elementsPerBlock; ++blockElement) {
+         int mpiBatchIndex = blockElement % blockBatchDimension;
+         int localBatchElement = blockElement / blockBatchDimension;
+         double thisTimestamp;
+         mLayerIO->read(rootBuffer, thisTimestamp);
+         if (checkTimestampActive and thisTimestamp != timestamp) {
+            WarnLog() << "BroadcastLayerFile::read() frame timestamps are inconsistent\n";
+         }
+         checkTimestampActive = checkTimestampConsistency;
+         // If we don't care about the timestamp, checkTimestampActive never becomes true and
+         // the warning above is never triggered.
+         timestamp = thisTimestamp;
+         if (mReadOnly and mLayerIO->getFrameNumber() == mLayerIO->getNumFrames()) {
+            mLayerIO->setFrameNumber(0);
+         }
+         float const *rootData = rootBuffer.asVector().data();
+         for (int r = 0; r < mpiBlock->getNumRows(); ++r) {
+            for (int c = 0; c < mpiBlock->getNumColumns(); ++c) {
+               int rank = mpiBlock->calcRankFromRowColBatch(r, c, mpiBatchIndex);
+               if (rank == mFileManager->getRootProcessRank()) {
+                  std::copy(rootData, &rootData[mNumFeatures], getDataLocation(localBatchElement));
+               }
+               else {
+                  MPI_Send(
+                        rootData,
+                        mNumFeatures,
+                        MPI_FLOAT,
+                        rank,
+                        1731 + localBatchElement /*tag*/,
+                        mpiBlock->getComm());
+               }
             }
-            checkTimestampActive = checkTimestampConsistency;
-            // If we don't care about the timestamp, checkTimestampActive never becomes true and
-            // the warning above is never triggered.
-            timestamp = thisTimestamp;
-            if (mReadOnly and mLayerIO->getFrameNumber() == mLayerIO->getNumFrames()) {
-               mLayerIO->setFrameNumber(0);
-            }
-            float const *rootDataLocation = rootBuffer.asVector().data();
-            std::copy(rootDataLocation, &rootDataLocation[mNumFeatures], getDataLocation(b));
-            MPI_Bcast(
-                  getDataLocation(b),
-                  mNumFeatures,
-                  MPI_FLOAT,
-                  mFileManager->getRootProcessRank(),
-                  mpiBlock->getComm());
          }
       }
    }
    else {
       for (int b = 0; b < mLocalBatchWidth; ++b) {
-         MPI_Bcast(
+         MPI_Recv(
                getDataLocation(b),
                mNumFeatures,
                MPI_FLOAT,
                mFileManager->getRootProcessRank(),
-               mpiBlock->getComm());
+               1731 + b /*tag*/,
+               mpiBlock->getComm(),
+               MPI_STATUS_IGNORE);
       }
    }
-
    setIndex(mIndex + 1);
 }
 

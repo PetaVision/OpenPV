@@ -1,0 +1,94 @@
+//
+// InitVFromFileTest.params
+
+// A params file for testing the InitVFromFile parameter for initializing a layer.
+// There are four layers, for different types of PVP files with which to initialize a layer:
+// sparse/dense, and broacast/non-broadcast, in each of the four combinations.
+//
+// Each layer writes its output, and after the PetaVision run is finished, the root process or
+// processes reads the output file and checks that the value is correct.
+
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 8;
+   ny = 8;
+   nbatch = 4;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+ConstantLayer "DenseNonbroadcast" = {
+    broadcastFlag = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    writeStep = 10;
+    initialWriteTime = 10;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "input/DenseNonbroadcast.pvp";
+};
+
+ConstantLayer "DenseBroadcast" = {
+    broadcastFlag = true;
+    nf = 16;
+    phase = 0;
+    writeStep = 10;
+    initialWriteTime = 10;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "input/DenseBroadcast.pvp";
+};
+
+ConstantLayer "SparseNonbroadcast" = {
+    broadcastFlag = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    writeStep = 10;
+    initialWriteTime = 10;
+    sparseLayer = true;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "input/SparseNonbroadcast.pvp";
+};
+
+ConstantLayer "SparseBroadcast" = {
+    broadcastFlag = true;
+    nf = 16;
+    phase = 0;
+    writeStep = 10;
+    initialWriteTime = 10;
+    sparseLayer = true;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "input/SparseBroadcast.pvp";
+};

@@ -102,7 +102,6 @@ void SparseLayerBatchGatherScatter::scatter(
    
    int nxExtLocal = mLayerLoc.nx + mLayerLoc.halo.lt + mLayerLoc.halo.rt;
    int nyExtLocal = mLayerLoc.ny + mLayerLoc.halo.dn + mLayerLoc.halo.up;
-   localSparseList->reset(nxExtLocal, nyExtLocal, mLayerLoc.nf);
    if (mMPIBlock->getRank() == mRootProcessRank) {
       SparseList<float> rootCopy = *rootSparseList;
       int nxResGlobal = mLayerLoc.nx * mMPIBlock->getNumColumns();
@@ -120,7 +119,6 @@ void SparseLayerBatchGatherScatter::scatter(
             if (sendRank != mRootProcessRank) {
                std::vector<SparseList<float>::Entry> sendBuffer = sendList.getContents();
                int numToSend = static_cast<int>(sendBuffer.size());
-               MPI_Send(&numToSend, 1, MPI_INT, sendRank, 33, mMPIBlock->getComm());
                MPI_Send(
                      sendBuffer.data(),
                      numToSend * static_cast<int>(sizeof(SparseList<float>::Entry)),
@@ -130,15 +128,23 @@ void SparseLayerBatchGatherScatter::scatter(
                      mMPIBlock->getComm());
             }
             else {
+               localSparseList->reset(nxExtLocal, nyExtLocal, mLayerLoc.nf);
                localSparseList->set(sendList.getContents());
             }
          }
       }
    }
    else if (mpiBatchIndex == mMPIBlock->getBatchIndex()) {
-      int numToRecv = 0;
-      MPI_Recv(
-            &numToRecv, 1, MPI_INT, mRootProcessRank, 33, mMPIBlock->getComm(), MPI_STATUS_IGNORE);
+      MPI_Status mpiStatus;
+      MPI_Probe(mRootProcessRank, 34 /*tag*/, mMPIBlock->getComm(), &mpiStatus);
+      int count = 0;
+      MPI_Get_count(&mpiStatus, MPI_BYTE, &count);
+      int numToRecv = count / static_cast<int>(sizeof(SparseList<float>::Entry));
+      FatalIf(
+            numToRecv * static_cast<int>(sizeof(SparseList<float>::Entry)) != count,
+            "Rank %d received a sparse list of %d bytes, "
+            "which is not a multiple of the sparse list entry size of %zu bytes.\n",
+            mMPIBlock->getGlobalRank(), sizeof(SparseList<float>::Entry));
       std::vector<SparseList<float>::Entry> recvBuffer(numToRecv);
       MPI_Recv(
             recvBuffer.data(),
@@ -148,6 +154,7 @@ void SparseLayerBatchGatherScatter::scatter(
             34,
             mMPIBlock->getComm(),
             MPI_STATUS_IGNORE);
+      localSparseList->reset(nxExtLocal, nyExtLocal, mLayerLoc.nf);
       localSparseList->set(recvBuffer);
    }
 }
