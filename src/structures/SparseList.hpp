@@ -231,6 +231,7 @@ class SparseList {
    int getWidth() const { return mWidth; }
    int getHeight() const { return mHeight; }
    int getFeatures() const { return mFeatures; }
+   std::size_t getNumEntries() const { return mContents.size(); }
 
    void set(const vector<Entry> &values) { mContents = values; }
 
