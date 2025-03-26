@@ -27,7 +27,10 @@ void SquaredGSynAccumulator::initialize(
 
 void SquaredGSynAccumulator::setObjectType() { mObjectType = "SquaredGSynAccumulator"; }
 
-void SquaredGSynAccumulator::initializeChannelCoefficients() { mChannelCoefficients = {1.0f}; }
+void SquaredGSynAccumulator::initializeChannelCoefficients() {
+   mChannelCoefficients.resize(1);
+   mChannelCoefficients[0] = 1.0f;
+}
 
 void SquaredGSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
    float const *gSynExc = mLayerInput->getChannelData(CHANNEL_EXC);

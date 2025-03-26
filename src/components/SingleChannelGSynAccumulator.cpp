@@ -28,7 +28,8 @@ void SingleChannelGSynAccumulator::initialize(
 void SingleChannelGSynAccumulator::setObjectType() { mObjectType = "SingleChannelGSynAccumulator"; }
 
 void SingleChannelGSynAccumulator::initializeChannelCoefficients() {
-   mChannelCoefficients = {1.0f};
+   mChannelCoefficients.resize(1);
+   mChannelCoefficients[0] = 1.0f;
 }
 
 void SingleChannelGSynAccumulator::ioParam_channelIndices(enum ParamsIOFlag ioFlag) {
