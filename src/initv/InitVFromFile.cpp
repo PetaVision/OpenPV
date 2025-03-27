@@ -206,7 +206,7 @@ void InitVFromFile::readSparseBroadcastLayerFile(
                index >= loc.nf or index < 0,
                "SparseBroadcastLayerFile \"%s\" batch element %d has index %d, "
                "which is out of bounds for a 1-by-1-by-%d layer.\n",
-               filename, b, index, loc.nf);
+               filename.c_str(), b, index, loc.nf);
          float value = entry.value;
          Vbatch[index] = value;
       }
@@ -243,7 +243,7 @@ void InitVFromFile::readSparseLayerFile(
                index >= neuronsPerBatchElement or index < 0,
                "SparseLayerFile \"%s\" batch element %d has index %d, which is out of bounds "
                "for a %d-by-%d-by-%d layer.\n",
-               filename, b, index, loc.nx, loc.ny, loc.nf);
+               filename.c_str(), b, index, loc.nx, loc.ny, loc.nf);
          float value = entry.value;
          Vbatch[index] = value;
       }
