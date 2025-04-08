@@ -167,7 +167,7 @@ void LayerIO::initializeNumFrames() {
       FatalIf(
             !getFileStream()->writeable(),
             "Layer file \"%s\" was opened in read-only mode but is empty.\n",
-            getFileStream()->getFileName());
+            getFileStream()->getFileName().c_str());
       writeHeader();
       getFileStream()->setOutPos(0L, std::ios_base::end);
       eofPosition = getFileStream()->getOutPos();

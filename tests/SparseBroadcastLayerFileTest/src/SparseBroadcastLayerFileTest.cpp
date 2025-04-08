@@ -447,7 +447,7 @@ BufferUtils::SparseFileTable setFilePositionFromIndex(
          numBandsInFile < frameInFile,
          "setFilePositionFromIndex() called with index %d and %d frames per index, "
          "but \"%s\" has only %d frames.\n",
-         index, framesPerIndex, fileStream.getFileName());
+         index, framesPerIndex, fileStream.getFileName().c_str());
    BufferUtils::SparseFileTable sparseFileTable =
          BufferUtils::buildSparseFileTable(fileStream, numBandsInFile - 1);
    if (frameInFile == numBandsInFile) {
