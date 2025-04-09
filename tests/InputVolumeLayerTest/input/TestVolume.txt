@@ -1,0 +1,3 @@
+input/Folder1/
+input/Folder2/
+input/Folder3/

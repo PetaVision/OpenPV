@@ -1,0 +1,213 @@
+//
+// InputVolumeLayerTest.params
+
+//  A params file to test InputVolumeLayer
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    nbatch                              = 4;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+};
+
+//
+// layers
+//
+
+InputVolumeLayer "InputVolumeLayer" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 5;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+    	      	
+    displayPeriod                       = 2;
+
+    inputPath                           = "input/TestVolume.txt";
+    useInputBCflag                      = false;
+    inverseFlag                         = false; 
+    normalizeLuminanceFlag              = false;
+    autoResizeFlag                      = false;
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    padValue                            = 0.0;
+    imageChannel                        = 0;
+    batchMethod                         = "byFile";
+    percentageZ                         = 100.0;
+    offsetAnchorZ                       = "c";
+};
+
+ImageLayer "ImageLayer1" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 2;
+    inputPath                           = "input/ImageLayer1.txt";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    resetToStartOnLoop                  = false;
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 2;
+    initialWriteTime                    = 0;
+};
+
+ImageLayer "ImageLayer2" = {
+    #include "ImageLayer1";
+    @inputPath = "input/ImageLayer2.txt";
+};
+
+ImageLayer "ImageLayer3" = {
+    #include "ImageLayer1";
+    @inputPath = "input/ImageLayer3.txt";
+};
+
+ImageLayer "ImageLayer4" = {
+    #include "ImageLayer1";
+    @inputPath = "input/ImageLayer4.txt";
+};
+
+ImageLayer "ImageLayer5" = {
+    #include "ImageLayer1";
+    @inputPath = "input/ImageLayer5.txt";
+};
+
+HyPerLayer "ImageLayerCombined" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 5;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ConstantV";
+    valueV                              = 0.0;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 5;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ConstantV";
+    valueV                              = 0.0;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerConn "ImageLayer1ToImageLayerCombined" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "ImageLayer1";
+    postLayerName                       = "ImageLayerCombined";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 5;
+    sharedWeights                       = true;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/CombineImageLayers1.pvp";
+    frameNumber                         = 0;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = false;
+};
+
+HyPerConn "ImageLayer2ToImageLayerCombined" = {
+    #include "ImageLayer1ToImageLayerCombined";
+    @preLayerName = "ImageLayer2";
+    @initWeightsFile = "input/CombineImageLayers2.pvp";
+};
+
+HyPerConn "ImageLayer3ToImageLayerCombined" = {
+    #include "ImageLayer1ToImageLayerCombined";
+    @preLayerName = "ImageLayer3";
+    @initWeightsFile = "input/CombineImageLayers3.pvp";
+};
+
+HyPerConn "ImageLayer4ToImageLayerCombined" = {
+    #include "ImageLayer1ToImageLayerCombined";
+    @preLayerName = "ImageLayer4";
+    @initWeightsFile = "input/CombineImageLayers4.pvp";
+};
+
+HyPerConn "ImageLayer5ToImageLayerCombined" = {
+    #include "ImageLayer1ToImageLayerCombined";
+    @preLayerName = "ImageLayer5";
+    @initWeightsFile = "input/CombineImageLayers5.pvp";
+};
+
+IdentConn "InputVolumeLayerToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "InputVolumeLayer";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = 0;
+};
+
+IdentConn "ImageLayerCombinedToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "ImageLayerCombined";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonTest" = {
+    targetLayer                         = "Comparison";
+};

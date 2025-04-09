@@ -33,10 +33,10 @@ HyPerCol "column" = {
 // layers
 //
 
-//All layers are subclasses of hyperlayer
+//All layers are subclasses of HyPerLayer
 
 
-// this is a input layer
+// this is an input layer
 PvpLayer "Input" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
@@ -58,7 +58,7 @@ PvpLayer "Input" = {
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    padValue = false;
+    padValue = 0.0;
 };
 
 //an output layer
