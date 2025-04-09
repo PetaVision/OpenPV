@@ -43,6 +43,9 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/InputLayerUpdateController.cpp
    ${SUBDIR}/InputRegionActivityBuffer.cpp
    ${SUBDIR}/InputRegionActivityComponent.cpp
+   ${SUBDIR}/InputVolumeActivityBuffer.cpp
+   ${SUBDIR}/InputVolumeActivityComponent.cpp
+   ${SUBDIR}/InputVolumeLayerUpdateController.cpp
    ${SUBDIR}/InternalStateBuffer.cpp
    ${SUBDIR}/ISTAInternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
@@ -135,6 +138,9 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/InputLayerUpdateController.hpp
    ${SUBDIR}/InputRegionActivityBuffer.hpp
    ${SUBDIR}/InputRegionActivityComponent.hpp
+   ${SUBDIR}/InputVolumeActivityBuffer.hpp
+   ${SUBDIR}/InputVolumeActivityComponent.hpp
+   ${SUBDIR}/InputVolumeLayerUpdateController.hpp
    ${SUBDIR}/InternalStateBuffer.hpp
    ${SUBDIR}/ISTAInternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp

@@ -16,6 +16,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerLCALayer.cpp
    ${SUBDIR}/ImageLayer.cpp
    ${SUBDIR}/InputLayer.cpp
+   ${SUBDIR}/InputVolumeLayer.cpp
    ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.cpp
    ${SUBDIR}/LeakyIntegrator.cpp
@@ -53,8 +54,9 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/ImageLayer.hpp
-   ${SUBDIR}/InputLayer.cpp
-   ${SUBDIR}/InputRegionLayer.cpp
+   ${SUBDIR}/InputLayer.hpp
+   ${SUBDIR}/InputVolumeLayer.hpp
+   ${SUBDIR}/InputRegionLayer.hpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp

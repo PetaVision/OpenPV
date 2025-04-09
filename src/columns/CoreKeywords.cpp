@@ -26,6 +26,7 @@
 #include "layers/GaussianNoiseLayer.hpp"
 #include "layers/HyPerLCALayer.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "layers/InputVolumeLayer.hpp"
 #include "layers/ISTALayer.hpp"
 #include "layers/ImageLayer.hpp"
 #include "layers/InputRegionLayer.hpp"
@@ -146,6 +147,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("GaussianNoiseLayer", Factory::create<GaussianNoiseLayer>);
    factory->registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    factory->registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
+   factory->registerKeyword("InputVolumeLayer", Factory::create<InputVolumeLayer>);
    factory->registerKeyword("ISTALayer", Factory::create<ISTALayer>);
    factory->registerKeyword("ImageLayer", Factory::create<ImageLayer>);
    factory->registerKeyword("InputRegionLayer", Factory::create<InputRegionLayer>);
