@@ -49,6 +49,22 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 
    auto *objectTable        = message->mObjectTable;
    mGroupHead               = objectTable->findObject<NormalizeBase>(mNormalizeGroupName);
+   FatalIf(
+         mGroupHead == nullptr,
+         "%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
+         getDescription_c(),
+         mNormalizeGroupName);
+   FatalIf(
+         !strcmp(mGroupHead->getName(), getName()),
+         "%s: normalizeGroupName must point to a connection other than itself.\n",
+         getDescription_c());
+   FatalIf(
+         !strcmp(mGroupHead->getObjectType().c_str(), "normalizeGroup"),
+         "%s: normalizeGroupName points to \"%s\", but that connection itself has "
+         "normalizeMethod set to normalizeGroup.\n",
+         getDescription_c(),
+         mGroupHead->getName());
+
    if (mGroupHead == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
