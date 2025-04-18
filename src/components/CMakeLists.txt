@@ -12,6 +12,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BinningActivityBuffer.cpp
    ${SUBDIR}/BoundaryConditions.cpp
    ${SUBDIR}/CloneInternalStateBuffer.cpp
+   ${SUBDIR}/CloneLayerGeometry.cpp
    ${SUBDIR}/CloneWeightsPair.cpp
    ${SUBDIR}/ComponentBuffer.cpp
    ${SUBDIR}/ConnectionData.cpp
@@ -103,6 +104,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BoundaryConditions.hpp
    ${SUBDIR}/CloneActivityComponent.hpp
    ${SUBDIR}/CloneInternalStateBuffer.hpp
+   ${SUBDIR}/CloneLayerGeometry.hpp
    ${SUBDIR}/CloneWeightsPair.hpp
    ${SUBDIR}/ComponentBuffer.hpp
    ${SUBDIR}/ConnectionData.hpp

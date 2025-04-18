@@ -8,6 +8,7 @@
 #include "CloneVLayer.hpp"
 #include "components/CloneActivityComponent.hpp"
 #include "components/CloneInternalStateBuffer.hpp"
+#include "components/CloneLayerGeometry.hpp"
 #include "components/HyPerActivityBuffer.hpp"
 
 namespace PV {
@@ -36,6 +37,10 @@ void CloneVLayer::fillComponentTable() {
 
 OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
+}
+
+LayerGeometry *CloneVLayer::createLayerGeometry() {
+   return new CloneLayerGeometry(getName(), parameters(), mCommunicator);
 }
 
 LayerInputBuffer *CloneVLayer::createLayerInput() { return nullptr; }

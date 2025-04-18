@@ -29,19 +29,18 @@ namespace PV {
  *
  * a LayerGeometry component that defines the dimensions of the layer.
  *
- * a LayerUpdateController component that determines whether the layer
- * acts on a given timestep.
+ * a LayerUpdateController component that determines whether the layer acts on a given timestep.
  *
  * a LayerInputBuffer component that receives synaptic input from a connection.
  *
- * an ActivityComponent that uses the contents of the LayerInputBuffer to
- * maintain the ActivityBuffer within the ActivityComponent.
+ * an ActivityComponent that uses the contents of the LayerInputBuffer to maintain the
+ * ActivityBuffer within the ActivityComponent.
  *
- * a PublisherComponent which manages a ring buffer of delays and makes the
- * activity available to other objects in the HyPerCol hierarchy.
+ * a PublisherComponent which manages a ring buffer of delays and makes the activity available to
+ * other objects in the HyPerCol hierarchy.
  *
- * a PhaseParam component which gives each layer a phase, creating a partial ordering
- * of layer updates within a timestep.
+ * a PhaseParam component which gives each layer a phase, creating a partial ordering of layer
+ * updates within a timestep.
  *
  * a LayerOutputComponent to output the state of the layer.
  *
