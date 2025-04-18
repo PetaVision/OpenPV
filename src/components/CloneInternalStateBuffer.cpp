@@ -47,13 +47,13 @@ Response::Status CloneInternalStateBuffer::communicateInitInfo(
    if (mOriginalBuffer == nullptr) {
       auto *objectTable            = message->mObjectTable;
       auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
-      if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
-         return Response::POSTPONE;
-      }
       FatalIf(
             originalLayerNameParam == nullptr,
             "%s could not find an OriginalLayerNameParam.\n",
             getDescription_c());
+      if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
+         return Response::POSTPONE;
+      }
 
       // Retrieve original layer's InternalStateBuffer
       char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();

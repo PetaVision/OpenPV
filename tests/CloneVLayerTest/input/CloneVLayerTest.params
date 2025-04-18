@@ -82,9 +82,6 @@ ANNLayer "Output" = {
 };
 
 CloneVLayer "Clone" = {
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 8; // 8 outputs 
     phase = 2;
     triggerLayerName = NULL;
     writeStep = 1.0;

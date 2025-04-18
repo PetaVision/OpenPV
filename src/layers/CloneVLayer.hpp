@@ -23,6 +23,7 @@ class CloneVLayer : public HyPerLayer {
    CloneVLayer();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void fillComponentTable() override;
+   virtual LayerGeometry *createLayerGeometry() override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
