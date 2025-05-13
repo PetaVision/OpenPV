@@ -16,6 +16,8 @@ Response::Status ColumnEnergyProbe::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   FatalIf(
+         mTerms.empty(), "%s has no probes attached to it.\n", getDescription_c());
    for (auto *term : mTerms) {
       if (!term->getDataStructuresAllocatedFlag()) {
          InfoLog().printf(

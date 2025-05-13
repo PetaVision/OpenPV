@@ -91,6 +91,7 @@ std::vector<char> ProbeDataBuffer<T>::pack() const {
 
 template <typename T>
 void ProbeDataBuffer<T>::store(ProbeData<T> const &newData) {
+   FatalIf(newData.size() == 0, "ProbeDataBuffer::store() called with empty argument\n");
    if (!mBatchWidth) {
       mBatchWidth = newData.size();
    }
