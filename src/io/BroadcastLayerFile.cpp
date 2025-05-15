@@ -224,17 +224,43 @@ void BroadcastLayerFile::write(double timestamp) {
    auto mpiBlock = mFileManager->getMPIBlock();
    if (mFileManager->isRoot()) {
       Buffer<float> writeBuffer(1 /*nx*/, 1 /*ny*/, mNumFeatures);
-      for (int mpiBatchIndex = 0; mpiBatchIndex < mpiBlock->getBatchDimension(); ++mpiBatchIndex) {
+      float *writeData = writeBuffer.asVector().data();
+      int blockBatchDimension = mpiBlock->getBatchDimension();
+      for (int m = 0; m < blockBatchDimension; ++m) {
+         int sourceRank = mpiBlock->calcRankFromRowColBatch(0, 0, m);
          for (int b = 0; b < mLocalBatchWidth; ++b) {
-            float *writeBufferLocation = writeBuffer.asVector().data();
-            float const *layerData = getDataLocation(b);
-            std::copy(layerData, &layerData[mNumFeatures], writeBufferLocation);
+            if (sourceRank == mpiBlock->getRank()) {
+               float const *dataLocation = getDataLocation(b);
+               std::copy(dataLocation, &dataLocation[mNumFeatures], writeData);
+            }
+            else {
+               MPI_Recv(
+                  writeData,
+                  mNumFeatures,
+                  MPI_FLOAT,
+                  sourceRank,
+                  1831 + b /*tag*/,
+                  mpiBlock->getComm(),
+                  MPI_STATUS_IGNORE);
+            }
             mLayerIO->write(writeBuffer, timestamp);
          }
       }
    }
-   // No need for nonroot processes to do anything since all processes have the same data in a
-   // broadcast layer
+   else if (mpiBlock->getRowIndex() == 0 and mpiBlock->getColumnIndex() == 0) {
+      // A broadcast layer has the same data across all rows and columns, so processes
+      // with row index or column index nonzero does not have to do anything.
+      int m = mpiBlock->getBatchIndex();
+      for (int b = 0; b < mLocalBatchWidth; ++b) {
+         MPI_Send(
+            getDataLocation(b),
+            mNumFeatures,
+            MPI_FLOAT,
+            mFileManager->getRootProcessRank(),
+            1831 + b /*tag*/,
+            mpiBlock->getComm());
+      }
+   }
    setIndex(mIndex + 1);
 }
 
