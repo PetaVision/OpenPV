@@ -74,8 +74,8 @@ void BroadcastLayerFile::readInternal(double &timestamp, bool checkTimestampCons
       int blockBatchDimension = mpiBlock->getBatchDimension();
       int elementsPerBlock = mLocalBatchWidth * blockBatchDimension;
       for (int blockElement = 0; blockElement < elementsPerBlock; ++blockElement) {
-         int mpiBatchIndex = blockElement % blockBatchDimension;
-         int localBatchElement = blockElement / blockBatchDimension;
+         int mpiBatchIndex = blockElement / mLocalBatchWidth;
+         int localBatchElement = blockElement % mLocalBatchWidth;
          double thisTimestamp;
          mLayerIO->read(rootBuffer, thisTimestamp);
          if (checkTimestampActive and thisTimestamp != timestamp) {

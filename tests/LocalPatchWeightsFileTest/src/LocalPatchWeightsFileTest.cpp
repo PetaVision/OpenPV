@@ -491,6 +491,7 @@ PVLayerLoc createLayerLoc(
    loc.nyGlobal     = nyGlobal;
    loc.nf           = nf;
    LayerGeometry::setLocalLayerLocFields(&loc, pv_Init.getCommunicator(), label);
+   loc.bcast   = 0;
    loc.halo.lt = xMargin;
    loc.halo.rt = xMargin;
    loc.halo.dn = yMargin;
@@ -767,7 +768,7 @@ void writeToFileStream(
          } // mpiColumn
       } // mpiRow
    } // if isRoot()
-   else {
+   else if (mpiBlock->getBatchIndex() == 0) {
       for (int a = 0; a < numArbors; ++a) {
          MPI_Send(weightData->getData(a), static_cast<int>(bufferSize), MPI_FLOAT,
          0 /*receiving rank*/, 140 + a /*tag*/, mpiBlock->getComm());

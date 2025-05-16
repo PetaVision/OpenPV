@@ -226,7 +226,7 @@ std::vector<std::vector<float>> makeBroadcastLayerData(
    int status = PV_SUCCESS;
    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
    pvAssert(localBatchWidth * mpiBlock->getGlobalBatchDimension() == globalBatchWidth);
-   int kb0 = localBatchWidth *(mpiBlock->getStartBatch() + mpiBlock->getBatchIndex());
+   int kb0 = localBatchWidth * (mpiBlock->getStartBatch() + mpiBlock->getBatchIndex());
    std::vector<std::vector<float>> result(localBatchWidth);
    for (int b = 0; b < localBatchWidth; ++b) {
       int globalBatchIndex = b + kb0;
