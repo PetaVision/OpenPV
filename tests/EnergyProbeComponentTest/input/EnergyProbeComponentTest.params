@@ -18,6 +18,30 @@ HyPerCol "column" = {
     initializeFromCheckpointDir         = "";
 };
 
+ConstantLayer "Layer" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+L2NormProbe "LayerProbe" = {
+    targetLayer                         = "Layer";
+    energyProbe                         = "TestColumnEnergyProbe";
+    coefficient                         = 2.25;
+};
+
 ColumnEnergyProbe "TestColumnEnergyProbe" = {
     message                             = "TestColumnEnergyProbe";
     textOutputFlag                      = false;

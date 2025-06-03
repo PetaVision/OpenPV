@@ -1,35 +1,23 @@
 #include <arch/mpi/mpi.h>
+#include <columns/buildandrun.hpp>
 #include <columns/HyPerCol.hpp>
-#include <columns/Messages.hpp>
 #include <columns/PV_Init.hpp>
 #include <include/pv_common.h>
 #include <io/PVParams.hpp>
 #include <observerpattern/ObserverTable.hpp>
 #include <probes/ColumnEnergyProbe.hpp>
-#include <probes/EnergyProbeComponent.hpp>
+#include <probes/L2NormProbe.hpp>
 #include <utils/PVLog.hpp>
 
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-using PV::HyPerCol;
-using PV::ColumnEnergyProbe;
-using PV::PV_Init;
-using PV::PVParams;
-using PV::EnergyProbeComponent;
-
-EnergyProbeComponent initEnergyProbeObject(
-      HyPerCol &hypercol,
-      std::string const &componentName,
-      std::string const &energyProbeName,
-      double coefficient);
-PVParams generateParams(std::string const &componentName, std::string const &energyProbeName, double coefficient, MPI_Comm mpiComm);
-int run(PV::PV_Init &pv_init);
+int checkResult(HyPerCol *hc, int argc, char *argv[]);
 
 int main(int argc, char **argv) {
-   PV_Init pv_init(&argc, &argv, false);
-   int status = run(pv_init);
+   PV::PV_Init pv_init(&argc, &argv, false);
+   int status = buildandrun(&pv_init, nullptr /*custominit*/, checkResult);
 
    if (status == PV_SUCCESS) {
       InfoLog() << "Test passed.\n";
@@ -38,61 +26,37 @@ int main(int argc, char **argv) {
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-PVParams generateParams(std::string const &componentName, std::string const &energyProbeName, double coefficient, MPI_Comm mpiComm) {
-   std::string paramsString;
-   paramsString.append("debugParsing = false;\n");
-   paramsString.append("EnergyProbeComponent \"").append(componentName).append("\" = {\n");
-   paramsString.append("   energyProbe = \"").append(energyProbeName).append("\";\n");
-   paramsString.append("   coefficient = \"").append(std::to_string(coefficient)).append("\";\n");
-   paramsString.append("};\n");
-
-   PVParams params(paramsString.data(), paramsString.size(), 1UL, mpiComm);
-   return params;
-}
-
-EnergyProbeComponent initEnergyProbeObject(
-      HyPerCol &hypercol,
-      std::string const &componentName,
-      std::string const &energyProbeName,
-      double coefficient) {
-   std::string paramsString;
-
-   MPI_Comm mpiComm = hypercol.getCommunicator()->globalCommunicator();
-   PVParams params = generateParams(componentName, energyProbeName, coefficient, mpiComm);
-
-   EnergyProbeComponent energyProbeObject(componentName.c_str(), &params);
-   energyProbeObject.ioParamsFillGroup(PV::PARAMS_IO_READ);
-
-   PV::ObserverTable objectTable = hypercol.getAllObjectsFlat();
-   auto communicateMessage       = std::make_shared<PV::CommunicateInitInfoMessage>(
-         &objectTable,
-         hypercol.getDeltaTime(),
-         hypercol.getNxGlobal(),
-         hypercol.getNyGlobal(),
-         hypercol.getNBatchGlobal(),
-         hypercol.getNumThreads());
-   energyProbeObject.communicateInitInfo(communicateMessage);
-
-   return energyProbeObject;
-}
-
-int run(PV::PV_Init &pv_init) {
-   PV::HyPerCol hypercol(&pv_init);
-   hypercol.allocateColumn();
-
-   std::string componentName("Probe");
+int checkResult(HyPerCol *hypercol, int argc, char *argv[]) {
+   std::string componentName("LayerProbe");
    std::string columnEnergyProbeName("TestColumnEnergyProbe");
-   double coefficient = 2.25;
-   EnergyProbeComponent energyComponentProbeObj =
-         initEnergyProbeObject(hypercol, componentName, columnEnergyProbeName, coefficient);
 
-   auto *objectFromColumn = hypercol.getObjectFromName(columnEnergyProbeName);
-   ColumnEnergyProbe *probeFromColumn = dynamic_cast<ColumnEnergyProbe *>(objectFromColumn);
-   ColumnEnergyProbe *probeFromEnergyProbeComponent = energyComponentProbeObj.getEnergyProbe();
+   auto *objectFromColumn = hypercol->getObjectFromName(columnEnergyProbeName);
+   PV::ColumnEnergyProbe *columnProbe = dynamic_cast<PV::ColumnEnergyProbe *>(objectFromColumn);
    FatalIf(
-         probeFromEnergyProbeComponent != probeFromColumn,
-         "EnergyProbeComponent::getEnergyProbe() failed (return value %p instead of %p)\n",
-         probeFromEnergyProbeComponent,
-         probeFromColumn);
+         columnProbe == nullptr, "No ColumnEnergyProbe \"%s\" in params.\n", columnEnergyProbeName);
+
+   objectFromColumn = hypercol->getObjectFromName(componentName);
+   PV::L2NormProbe *l2normProbe = dynamic_cast<PV::L2NormProbe *>(objectFromColumn);
+   FatalIf(
+         l2normProbe == nullptr, "No L2NormProbe \"%s\" in params.\n", componentName);
+
+   double coefficient = l2normProbe->getCoefficient();
+   auto l2normValues = l2normProbe->getValues();
+   auto columnValues = columnProbe->getValues();
+
+   FatalIf(
+         columnValues.size() != l2normValues.size(),
+         "Column probe has a different number of values than layer probe: %zu versus %zu\n",
+         columnValues.size(), l2normValues.size());
+
+   int status = PV_SUCCESS;
+   auto N = columnValues.size();
+   for (decltype(N) n = 0; n < N; ++n) {
+      if (columnValues[n] != l2normValues[n] * coefficient) {
+         ErrorLog().printf("Discrepancy in value %d: column should be %f * %f = %f, but is %f\n",
+         n, coefficient, l2normValues[n], coefficient * l2normValues[n], columnValues[n]);
+         status = PV_FAILURE;
+      }
+   }
    return PV_SUCCESS;
 }
