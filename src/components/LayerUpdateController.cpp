@@ -7,6 +7,7 @@
 
 #include "LayerUpdateController.hpp"
 #include "components/InternalStateBuffer.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <cmath>
 
 namespace PV {
@@ -200,6 +201,13 @@ void LayerUpdateController::setTriggerResetComponent(ObserverTable const *table)
    else {
       resetLayerName = mTriggerResetLayerName;
    }
+
+   auto resetLayer = table->findObject<HyPerLayer>(resetLayerName);
+   FatalIf(
+         resetLayer == nullptr,
+         "%s triggerResetLayerName points to \"%s\", which is not a layer in the column.\n",
+         getDescription_c(),
+         resetLayerName);
 
    mTriggerResetComponent = table->findObject<ActivityComponent>(resetLayerName);
    FatalIf(
