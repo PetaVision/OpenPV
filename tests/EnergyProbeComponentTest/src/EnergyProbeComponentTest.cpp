@@ -33,12 +33,13 @@ int checkResult(HyPerCol *hypercol, int argc, char *argv[]) {
    auto *objectFromColumn = hypercol->getObjectFromName(columnEnergyProbeName);
    PV::ColumnEnergyProbe *columnProbe = dynamic_cast<PV::ColumnEnergyProbe *>(objectFromColumn);
    FatalIf(
-         columnProbe == nullptr, "No ColumnEnergyProbe \"%s\" in params.\n", columnEnergyProbeName);
+         columnProbe == nullptr,
+         "No ColumnEnergyProbe \"%s\" in params.\n", columnEnergyProbeName.c_str());
 
    objectFromColumn = hypercol->getObjectFromName(componentName);
    PV::L2NormProbe *l2normProbe = dynamic_cast<PV::L2NormProbe *>(objectFromColumn);
    FatalIf(
-         l2normProbe == nullptr, "No L2NormProbe \"%s\" in params.\n", componentName);
+         l2normProbe == nullptr, "No L2NormProbe \"%s\" in params.\n", componentName.c_str());
 
    double coefficient = l2normProbe->getCoefficient();
    auto l2normValues = l2normProbe->getValues();
