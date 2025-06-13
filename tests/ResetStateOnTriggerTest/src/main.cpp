@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
    PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    pv_initObj.registerKeyword(
          "ResetStateOnTriggerTestProbe", Factory::create<ResetStateOnTriggerTestProbe>);
-   int status = buildandrun(&pv_initObj);
+   int status = buildandrun(&pv_initObj, nullptr, customexit);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

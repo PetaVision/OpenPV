@@ -10,10 +10,6 @@ set(SRC_HPP
   src/ResetStateOnTriggerTestProbeOutputter.hpp
 )
 
-set(TEST_PARAMS "ResetStateOnTriggerTest")
-
-if (PV_USE_CUDA)
-  set(TEST_PARAMS ${TEST_PARAMS} ResetStateOnTriggerGPU)
-endif()
+set(TEST_PARAMS "ResetStateOnTriggerTest" "ResetStateOnTriggerBroadcast")
 
 pv_add_test(PARAMS ${TEST_PARAMS} SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})

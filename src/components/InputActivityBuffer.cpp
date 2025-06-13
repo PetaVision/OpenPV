@@ -732,8 +732,14 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
             cropToMPIBlock(mInputData.at(b));
             cropToMPIBlock(mInputRegion.at(b));
          }
-         // Each MPIBlock sends the local portions.
-         scatterInput(b, m);
+         if (getLayerLoc()->bcast) {
+            // Broadcast the local portions to the non-root processes in the I/O MPIBlock
+            broadcastInput(b, m);
+         }
+         else {
+            // Scatter the local portions to the non-root processes in the I/O MPIBlock
+            scatterInput(b, m);
+         }
       }
    }
    for (auto &r : mInputRegionTargets) {
@@ -747,11 +753,18 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
 
 void InputActivityBuffer::fitBufferToGlobalLayer(Buffer<float> &buffer, int blockBatchElement) {
    pvAssert(getCommunicator()->getIOMPIBlock()->getRank() == 0);
-   const PVLayerLoc *loc  = getLayerLoc();
-   int const xMargins     = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
-   int const yMargins     = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
-   const int targetWidth  = loc->nxGlobal + xMargins;
-   const int targetHeight = loc->nyGlobal + yMargins;
+   PVLayerLoc const *loc  = getLayerLoc();
+   int targetWidth, targetHeight;
+   if (loc->bcast) {
+      targetWidth  = loc->nx;
+      targetHeight = loc->ny;
+   }
+   else {
+      int const xMargins = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
+      int const yMargins = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
+      targetWidth        = loc->nxGlobal + xMargins;
+      targetHeight       = loc->nyGlobal + yMargins;
+   }
 
    FatalIf(
          buffer.getFeatures() != loc->nf,
@@ -916,6 +929,70 @@ void InputActivityBuffer::cropToMPIBlock(Buffer<float> &buffer) {
    int const blockWidth  = ioMPIBlock->getNumColumns() * loc->nx + xMargins;
    int const blockHeight = ioMPIBlock->getNumRows() * loc->ny + yMargins;
    buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
+}
+
+void InputActivityBuffer::broadcastInput(int localBatchIndex, int mpiBatchIndex) {
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   if (ioMPIBlock->getRank() == 0) {
+      for (int r = 0; r < ioMPIBlock->getNumRows(); ++r) {
+         for (int c = 0; c < ioMPIBlock->getNumColumns(); ++c) {
+            int destRank = ioMPIBlock->calcRankFromRowColBatch(r, c, mpiBatchIndex);
+            if (destRank == ioMPIBlock->getRank()) { continue; }
+            Buffer<float> &dataBuffer = mInputData.at(localBatchIndex);
+            float const *dataPointer = dataBuffer.asVector().data();
+            MPI_Send(
+                  dataPointer,
+                  getLayerLoc()->nf,
+                  MPI_FLOAT,
+                  destRank,
+                  1760 + localBatchIndex /*tag*/,
+                  ioMPIBlock->getComm());
+         }
+      }
+   }
+   else {
+      int const procBatchIndex = ioMPIBlock->getBatchIndex();
+      if (procBatchIndex != mpiBatchIndex) { return; }
+      int sourceRank = 0;
+      mInputData.resize(getLayerLoc()->nbatch);
+      Buffer<float> &dataBuffer = mInputData.at(localBatchIndex);
+      dataBuffer.resize(1, 1, getLayerLoc()->nf);
+      float *dataPointer = &dataBuffer.asVector().at(0);
+      MPI_Recv(
+            dataPointer,
+            getLayerLoc()->nf,
+            MPI_FLOAT,
+            sourceRank,
+            1760 + localBatchIndex /*tag*/,
+            ioMPIBlock->getComm(),
+            MPI_STATUS_IGNORE);
+   }
+
+   if (ioMPIBlock->getBatchIndex() != mpiBatchIndex) {
+      return;
+   }
+   // All processes that make it to this point have the indicated MPI batch index,
+   // and dataBuffer has the correct data for the indicated batch index.
+   // We now copy the data into the activity buffer.
+   float *activityData  = getReadWritePointer();
+   int const bufferSize = getBufferSize();
+
+   Buffer<float> &dataBuffer = mInputData.at(localBatchIndex);
+   // Sanity checks on buffer sizes
+   FatalIf(
+         dataBuffer.getHeight() != 1,
+         "Buffer from disk should have ny=1, but it is %d\n", dataBuffer.getHeight());
+   FatalIf(
+         dataBuffer.getWidth() != 1,
+         "Buffer from disk should have nx=1, but it is %d\n", dataBuffer.getHeight());
+   FatalIf(
+         dataBuffer.getFeatures() != bufferSize,
+         "Buffer from disk should have %d features, but it has %d\n",
+         dataBuffer.getHeight(), bufferSize);
+   float *activityBatch = &activityData[localBatchIndex * bufferSize];
+   for (int n = 0; n < bufferSize; ++n) {
+      activityBatch[n] = dataBuffer.at(0,0,n);
+   }
 }
 
 void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {

@@ -73,39 +73,6 @@ void ResetStateOnTriggerTestProbeOutputter::printGlobalStatsBuffer(
       printDiscrepancies(returnOutputStream(b), numDiscrepancies, timestamp, b);
    }
 #endif // PV_USE_MPI
-
-#ifdef ATIK
-   if (getCommunicator()->commRank() != 0) {
-      return;
-   }
-   if (mProbeStatus != PV_SUCCESS) {
-      pvAssert((std::size_t)nBatch == mOutputStreams.size());
-      int globalBatchSize = nBatch * getCommunicator()->getIOMPIBlock()->getGlobalBatchDimension();
-      for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {
-         int nnz = (int)nearbyint(numDiscreps[localBatchIndex]);
-         if (globalBatchSize == 1) {
-            pvAssert(localBatchIndex == 0);
-            output(localBatchIndex)
-                  .printf(
-                        "%s: t=%f, %d neuron%s the wrong value.\n",
-                        getDescription_c(),
-                        simTime,
-                        nnz,
-                        nnz == 1 ? " has" : "s have");
-         }
-         else {
-            output(localBatchIndex)
-                  .printf(
-                        "%s: t=%f, batch element %d, %d neuron%s the wrong value.\n",
-                        getDescription_c(),
-                        simTime,
-                        localBatchIndex,
-                        nnz,
-                        nnz == 1 ? " has" : "s have");
-         }
-      }
-   }
-#endif // ATIK
 }
 
 void ResetStateOnTriggerTestProbeOutputter::printDiscrepancies(

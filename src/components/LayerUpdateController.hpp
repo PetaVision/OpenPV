@@ -29,12 +29,6 @@ class LayerUpdateController : public BaseObject {
     */
 
    /**
-    * @brief triggerFlag: triggerFlag is obsolete. If triggerLayerName is NULL or the empty string,
-    * triggering is not used. If triggerLayerName is set to a nonempty string, triggering is used.
-    */
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief triggerLayerName: Specifies the name of the layer that this layer triggers off of.
     * If set to NULL or the empty string, the layer does not trigger but updates its state on every
     * timestep.

@@ -489,8 +489,8 @@ kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int u
 //           globalIndexFromLocal but without using MPI.
 CONVERSIONS_SPECIFIER inline int globalIndexFromLocal(int kl, const PVLayerLoc loc) {
 #ifdef PV_USE_MPI
-   int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
-   int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
+   int kxg = (loc.bcast ? 0 : loc.kx0) + kxPos(kl, loc.nx, loc.ny, loc.nf);
+   int kyg = (loc.bcast ? 0 : loc.ky0) + kyPos(kl, loc.nx, loc.ny, loc.nf);
    int kf  = featureIndex(kl, loc.nx, loc.ny, loc.nf);
    return kIndex(kxg, kyg, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
 #else

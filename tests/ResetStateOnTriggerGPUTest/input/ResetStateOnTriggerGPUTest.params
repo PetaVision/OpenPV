@@ -36,14 +36,14 @@ HyPerCol "column" = {
     progressInterval                    = 5;
     writeProgressToErr                  = false;
     verifyWrites                        = false;
-    outputPath                          = "output/ResetStateOnTriggerTest";
+    outputPath                          = "output/ResetStateOnTriggerGPU";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 8;
     ny                                  = 8;
     nbatch                              = 1;
     checkpointWrite                     = false;
-    lastCheckpointDir                   = "output/ResetStateOnTriggerTest/Last";
+    lastCheckpointDir                   = "output/ResetStateOnTriggerGPU/Last";
     errorOnNotANumber                   = true;
 };
 
@@ -101,6 +101,7 @@ PvpLayer "ResetLayer" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
+    writeImages                         = 0;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     useInputBCflag                      = false;
@@ -114,7 +115,7 @@ PvpLayer "ResetLayer" = {
     resetToStartOnLoop                  = false;
 };
 
-LeakyIntegrator "TestLayer" = {
+HyPerLCALayer "TestLayerCPU" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -138,17 +139,87 @@ LeakyIntegrator "TestLayer" = {
     integrationTime                     = infinity;
 };
 
-IdentConn "InputLayerToTestLayer" = {
+HyPerLCALayer "TestLayerGPU" = {
+    #include "TestLayerCPU";
+    @updateGpu                          = true;
+};
+
+HyPerLayer "Difference" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    phase                               = 2;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = 0;
+    updateGpu                           = false;
+};
+
+PtwiseQuotientLayer "RelativeError" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    phase                               = 3;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = 0;
+    updateGpu                           = false;
+};
+
+IdentConn "InputLayerToTestLayerCPU" = {
     preLayerName                        = "InputLayer";
-    postLayerName                       = "TestLayer";
+    postLayerName                       = "TestLayerCPU";
     channelCode                         = 0;
     delay                               = [0.000000];
 };
 
-ResetStateOnTriggerTestProbe "TestProbe" = {
-    targetLayer                         = "TestLayer";
+IdentConn "InputLayerToTestLayerGPU" = {
+    preLayerName                        = "InputLayer";
+    postLayerName                       = "TestLayerGPU";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "TestLayerGPUToDifference" = {
+    preLayerName                        = "TestLayerGPU";
+    postLayerName                       = "Difference";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "TestLayerCPUToDifference" = {
+    preLayerName                        = "TestLayerCPU";
+    postLayerName                       = "Difference";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+IdentConn "DifferenceToRelativeError" = {
+    preLayerName                        = "Difference";
+    postLayerName                       = "RelativeError";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "TestLayerCPUToRelativeError" = {
+    preLayerName                        = "TestLayerCPU";
+    postLayerName                       = "RelativeError";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+RequireAllZeroActivityProbe "TestProbe" = {
+    targetLayer                         = "RelativeError";
     message                             = "TestProbe";
     textOutputFlag                      = true;
     probeOutputFile                     = "TestProbe.txt";
     triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 1e-6;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
 };
