@@ -306,8 +306,16 @@ class InputActivityBuffer : public ActivityBuffer {
    void cropToMPIBlock(Buffer<float> &buffer);
 
    /**
+    * This method sends the mInputData buffer to the activity buffers of the several MPI
+    * processes. It is called by all processes, during retrieveInput(), when the PVLayerLoc
+    * has broadcast flag on.
+    */
+   void broadcastInput(int localBatchIndex, int mpiBatchIndex);
+
+   /**
     * This method scatters the mInputData buffer to the activity buffers of the several MPI
-    * processes. It is called by all processes, during retrieveInput().
+    * processes. It is called by all processes, during retrieveInput(), when the PVLayerLoc
+    * has broadcast flag off.
     */
    void scatterInput(int localBatchIndex, int mpiBatchIndex);
 

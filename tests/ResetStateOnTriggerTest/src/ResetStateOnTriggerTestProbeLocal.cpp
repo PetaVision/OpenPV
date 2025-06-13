@@ -32,7 +32,7 @@ void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &value
             int kex          = calcExtendedIndex(k, loc);
             float a          = activity[kex];
             int kGlobal      = PV::globalIndexFromLocal(k, *loc);
-            int correctValue = 4 * kGlobal * ((inttime + 4) % 5 + 1)
+            int correctValue = 4 * (kGlobal + 1) * ((inttime + 4) % 5 + 1)
                                + (kGlobal == ((((inttime - 1) / 5) * 5) + 1) % NGlobal);
             if (a != (float)correctValue) {
                ++numDiscrepancies;

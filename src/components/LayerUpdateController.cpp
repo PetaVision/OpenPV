@@ -60,26 +60,11 @@ void LayerUpdateController::initMessageActionMap() {
 void LayerUpdateController::setObjectType() { mObjectType = "LayerUpdateController"; }
 
 int LayerUpdateController::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerOffset(ioFlag);
    ioParam_triggerBehavior(ioFlag);
    ioParam_triggerResetLayerName(ioFlag);
    return PV_SUCCESS;
-}
-
-// triggerFlag was deprecated Aug 7, 2015 and marked obsolete Nov 20, 2018.
-// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
-// setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
-void LayerUpdateController::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && parameters()->present(getName(), "triggerFlag")) {
-      FatalIf(
-            parameters()->present(getName(), "triggerFlag"),
-            "%s sets triggerFlag, but this flag is obsolete.\n"
-            "   If triggerLayerName is a nonempty string, triggering will be on;\n"
-            "   if triggerLayerName is empty or null, triggering will be off.\n",
-            getDescription_c());
-   }
 }
 
 void LayerUpdateController::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
