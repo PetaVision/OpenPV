@@ -1,0 +1,140 @@
+// A system test for PoolingConn on the CPU, with sumpooling from the presynaptic perspective.
+// An 8x8x3 layer consisting of small integer values is the input for sum pooling with a 3x3 kernel.
+// The sum pooling is calculated in two ways:
+//   (1) Using PoolingConn with pvpatchAccumulateType = "sumpooling"
+//   (2) Using a convolutional connection with 3x3 patch size, where the weights are either ones or zeros
+// Since the inputs are integers, roundoff is not an issue and the results should be the same.
+// They are compared by attaching a RequireAllZeroActivityProbe to the difference.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1.0;
+    randomSeed = 1234567890;
+    stopTime = 10.0;
+    progressInterval = 1.0;
+    outputPath = "output/sumpoolTestPre";
+    printParamsFilename = "pv.params";
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+
+    lastCheckpointDir = "output/sumpoolTestPre/Last";
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+    nbatch = 2;
+};
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    displayPeriod = 0;
+    inputPath = "input/Input.pvp";
+
+    phase = 0; 
+};
+
+HyPerLayer "SumPool" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    phase = 1; 
+    triggerLayerName = NULL;
+};
+
+HyPerLayer "Simulation" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    phase = 1; 
+    triggerLayerName = NULL;
+};
+
+HyPerLayer "Comparison" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    InitVType = "ZeroV";
+
+    phase = 2; 
+    triggerLayerName = NULL;
+};
+
+PoolingConn "InputToSumPool" = {
+    preLayerName = "Input";
+    postLayerName = "SumPool";
+    channelCode = 0;
+    nxp = 3; 
+    nyp = 3; 
+    
+    pvpatchAccumulateType = "sumpooling";
+     
+    delay = 0;
+
+    updateGSynFromPostPerspective = false;
+
+    needPostIndexLayer = false;
+};
+
+HyPerConn "InputToSimulation" = {
+    preLayerName = "Input";
+    postLayerName = "Simulation";
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 3; 
+    nyp = 3; 
+    numAxonalArbors = 1;
+    
+    pvpatchAccumulateType = "convolve";
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/simulate3x3sumpool.pvp";
+    normalizeMethod = "none";
+     
+    delay = 0;
+
+    updateGSynFromPostPerspective = false;
+
+    plasticityFlag = false;
+};
+
+IdentConn "SumPoolToComparison" = {
+   channelCode = 0;
+   delay = 0;
+};
+
+IdentConn "SimulationToComparison" = {
+   channelCode = 1;
+   delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonProbe.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false;
+    immediateExitOnFailure = false;
+};
