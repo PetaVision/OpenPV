@@ -9,7 +9,6 @@
 #define WEIGHTSPAIR_HPP_
 
 #include "components/ArborList.hpp"
-#include "components/SharedWeights.hpp"
 #include "components/WeightsPairInterface.hpp"
 #include "io/WeightsFile.hpp"
 #include "structures/Weights.hpp"
@@ -93,7 +92,6 @@ class WeightsPair : public WeightsPairInterface {
    bool mWriteCompressedCheckpoints = false;
 
    ArborList *mArborList         = nullptr;
-   SharedWeights *mSharedWeights = nullptr;
    double mWriteTime             = 0.0;
 
    std::shared_ptr<WeightsFile> mWeightsFile;

@@ -11,6 +11,7 @@
 #include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/PatchSize.hpp"
+#include "components/SharedWeights.hpp"
 #include "structures/Weights.hpp"
 
 namespace PV {
@@ -81,6 +82,7 @@ class WeightsPairInterface : public BaseObject {
   protected:
    PatchSize *mPatchSize           = nullptr;
    ConnectionData *mConnectionData = nullptr;
+   SharedWeights *mSharedWeights = nullptr;
 
    Weights *mPreWeights  = nullptr;
    Weights *mPostWeights = nullptr;

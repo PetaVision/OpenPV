@@ -72,6 +72,21 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return Response::POSTPONE;
    }
 
+   if (mSharedWeights == nullptr) {
+      mSharedWeights = message->mObjectTable->findObject<SharedWeights>(getName());
+      pvAssert(mSharedWeights);
+   }
+
+   if (!mSharedWeights->getInitInfoCommunicatedFlag()) {
+      if (mCommunicator->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until the SharedWeights component has finished its "
+               "communicateInitInfo stage.\n",
+               getDescription_c());
+      }
+      return status + Response::POSTPONE;
+   }
+
    HyPerLayer *pre  = mConnectionData->getPre();
    HyPerLayer *post = mConnectionData->getPost();
    pvAssert(pre and post);

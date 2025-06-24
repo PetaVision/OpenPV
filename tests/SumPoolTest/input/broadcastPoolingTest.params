@@ -92,6 +92,7 @@ PoolingConn "InputToSumPool" = {
     channelCode = 0;
     nxp = 1; 
     nyp = 1; 
+    sharedWeights = false;
     
     pvpatchAccumulateType = "sumpooling";
      
@@ -121,14 +122,14 @@ HyPerConn "InputToSimulationSumPool" = {
     plasticityFlag = false;
 };
 
-// TransposePoolingConn "SumPoolToUnpool" = {
-//     preLayerName = "SumPool";
-//     postLayerName = "Unpool";
-//     channelCode = 0;
-//     originalConnName = "InputToSumPool";
-//     delay = 0;
-//     updateGSynFromPostPerspective = false;
-// };
+TransposePoolingConn "SumPoolToUnpool" = {
+    preLayerName = "SumPool";
+    postLayerName = "Unpool";
+    channelCode = 0;
+    originalConnName = "InputToSumPool";
+    delay = 0;
+    updateGSynFromPostPerspective = false;
+};
 
 TransposeConn "SimulationSumPoolToSimulationUnpool" = {
     preLayerName = "SimulationSumPool";
@@ -138,26 +139,26 @@ TransposeConn "SimulationSumPoolToSimulationUnpool" = {
     originalConnName = "InputToSimulationSumPool";
 };
 
-// IdentConn "UnpoolToComparison" = {
-//     preLayerName = "Unpool";
-//     postLayerName = "Comparison";
-//     channelCode = 0;
-//     delay = 0;
-// };
-// 
-// IdentConn "SimulationUnpoolToComparison" = {
-//     preLayerName = "Unpool";
-//     postLayerName = "Comparison";
-//     channelCode = 1;
-//     delay = 0;
-// };
-// 
-// RequireAllZeroActivityProbe "ComparisonProbe" = {
-//     targetLayer = "Comparison";
-//     message = NULL;
-//     textOutputFlag = true;
-//     probeOutputFile = "ComparisonProbe.txt";
-//     triggerLayerName = NULL;
-//     nnzThreshold = 0.0;
-//     exitOnFailure = false;
-// };
+IdentConn "UnpoolToComparison" = {
+    preLayerName = "Unpool";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "SimulationUnpoolToComparison" = {
+    preLayerName = "Unpool";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonProbe.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false;
+};

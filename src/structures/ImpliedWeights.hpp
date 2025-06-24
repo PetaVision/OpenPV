@@ -39,6 +39,7 @@ class ImpliedWeights : public Weights {
          int patchSizeF,
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
+         bool sharedWgtsFlag,
          double timestamp);
 
    virtual ~ImpliedWeights() {}

@@ -37,6 +37,8 @@ class PoolingConn : public BaseConnection {
 
    virtual PatchSize *createPatchSize();
 
+   virtual SharedWeights *createSharedWeights();
+
    virtual WeightsPairInterface *createWeightsPair();
 
   protected:

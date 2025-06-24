@@ -29,6 +29,10 @@ void PoolingConn::fillComponentTable() {
    if (mPatchSize) {
       addUniqueComponent(mPatchSize);
    }
+   auto *sharedWeights = createSharedWeights();
+   if (sharedWeights) {
+      addUniqueComponent(sharedWeights);
+   }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
       addUniqueComponent(mWeightsPair);
@@ -41,6 +45,10 @@ BaseDelivery *PoolingConn::createDeliveryObject() {
 
 PatchSize *PoolingConn::createPatchSize() {
    return new PatchSize(getName(), parameters(), mCommunicator);
+}
+
+SharedWeights *PoolingConn::createSharedWeights() {
+   return new SharedWeights(getName(), parameters(), mCommunicator);
 }
 
 WeightsPairInterface *PoolingConn::createWeightsPair() {

@@ -2,7 +2,7 @@ set(SRC_CPP
   src/SumPoolTest.cpp
 )
 
-set(TEST_PARAMS "sumpoolTestPre;sumpoolTestPost;unpoolTestPre;unpoolTestPost")
+set(TEST_PARAMS "sumpoolTestPre;sumpoolTestPost;unpoolTestPre;unpoolTestPost;broadcastPoolingTest")
 
 if (PV_USE_CUDA)
   set(TEST_PARAMS "${TEST_PARAMS};sumpoolTestPostGPU")

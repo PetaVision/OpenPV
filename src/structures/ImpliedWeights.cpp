@@ -18,18 +18,10 @@ ImpliedWeights::ImpliedWeights(
       int patchSizeF,
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
+      bool sharedWgtsFlag,
       double timestamp) {
-   FatalIf(
-         preLoc->bcast,
-         "ImpliedWeights \"%s\" cannot have a broadcast pre-layer\n",
-         name.c_str());
-   FatalIf(
-         postLoc->bcast,
-         "ImpliedWeights \"%s\" cannot have a broadcast post-layer\n",
-         name.c_str());
    setName(name);
-   int const numArbors       = 1;
-   bool const sharedWgtsFlag = true;
+   int const numArbors = 1;
    Weights::initialize(
          patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWgtsFlag, timestamp);
 }
