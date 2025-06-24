@@ -29,6 +29,8 @@ class TransposePoolingConn : public PoolingConn {
 
    virtual PatchSize *createPatchSize() override;
 
+   virtual SharedWeights *createSharedWeights() override;
+
    virtual OriginalConnNameParam *createOriginalConnNameParam();
 
   protected:

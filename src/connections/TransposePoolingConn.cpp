@@ -5,6 +5,7 @@
  */
 
 #include "TransposePoolingConn.hpp"
+#include "components/DependentSharedWeights.hpp"
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/TransposePatchSize.hpp"
 #include "delivery/TransposePoolingDelivery.hpp"
@@ -43,6 +44,10 @@ BaseDelivery *TransposePoolingConn::createDeliveryObject() {
 
 PatchSize *TransposePoolingConn::createPatchSize() {
    return new TransposePatchSize(getName(), parameters(), mCommunicator);
+}
+
+SharedWeights *TransposePoolingConn::createSharedWeights() {
+   return new DependentSharedWeights(getName(), parameters(), mCommunicator);
 }
 
 OriginalConnNameParam *TransposePoolingConn::createOriginalConnNameParam() {

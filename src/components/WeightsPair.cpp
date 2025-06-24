@@ -151,21 +151,6 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return status + Response::POSTPONE;
    }
 
-   if (mSharedWeights == nullptr) {
-      mSharedWeights = message->mObjectTable->findObject<SharedWeights>(getName());
-      pvAssert(mSharedWeights);
-   }
-
-   if (!mSharedWeights->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until the SharedWeights component has finished its "
-               "communicateInitInfo stage.\n",
-               getDescription_c());
-      }
-      return status + Response::POSTPONE;
-   }
-
    if (!parameters()->present(getName(), "writeStep")) {
       setDefaultWriteStep(message);
    }

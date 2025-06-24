@@ -2111,9 +2111,7 @@ void PVParams::action_include_directive(const char *stringval) {
       }
    }
    // If group not found
-   if (!includeGroup) {
-      ErrorLog().printf("Include: include group %s is not defined.\n", param_value);
-   }
+   FatalIf(!includeGroup, "Include: include group %s is not defined.\n", param_value);
    // Check keyword of group
    if (std::strcmp(includeGroup->getGroupKeyword(), mCurrGroupKeyword) != 0) {
       ErrorLog().printf(
