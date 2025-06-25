@@ -107,8 +107,9 @@ HyPerConn "InputToSimulation" = {
     numAxonalArbors = 1;
     
     pvpatchAccumulateType = "convolve";
-    weightInitType = "FileWeight";
-    initWeightsFile = "input/simulate3x3sumpool.pvp";
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    connectOnlySameFeatures = true;
     normalizeMethod = "none";
      
     delay = 0;
