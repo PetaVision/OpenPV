@@ -329,8 +329,12 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    if (mAccumulateType == AVGPOOLING) {
       PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
       PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
-      float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
-      float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
+      int nxPre             = postLoc->bcast ? preLoc->nxGlobal : preLoc->nx;
+      int nyPre             = postLoc->bcast ? preLoc->nyGlobal : preLoc->ny;
+      int nxPost            = postLoc->nx;
+      int nyPost            = postLoc->ny;
+      float relative_XScale = (float)nxPre / (float)nxPost;
+      float relative_YScale = (float)nyPre / (float)nyPost;
       float nxp                 = (float)mPatchSize->getPatchSizeX();
       float nyp                 = (float)mPatchSize->getPatchSizeY();
       w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
@@ -487,8 +491,12 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 
    float w = 1.0f;
    if (mAccumulateType == AVGPOOLING) {
-      float relative_XScale = (float)preLoc->nx / (float)postLoc->nx;
-      float relative_YScale = (float)preLoc->ny / (float)postLoc->ny;
+      int nxPre             = postLoc->bcast ? preLoc->nxGlobal : preLoc->nx;
+      int nyPre             = postLoc->bcast ? preLoc->nyGlobal : preLoc->ny;
+      int nxPost            = postLoc->nx;
+      int nyPost            = postLoc->ny;
+      float relative_XScale = (float)nxPre / (float)nxPost;
+      float relative_YScale = (float)nyPre / (float)nyPost;
       float nxp             = (float)mPatchSize->getPatchSizeX();
       float nyp             = (float)mPatchSize->getPatchSizeY();
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
@@ -656,6 +664,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
             (accumulateFunctionPointer)(
                   kPreGlobalExt, nk, postPatchStart + y * sy + offset, a, &w, auxPtr, sf);
          }
+         if (auxPtr) { printf("meep!\n"); }
       }
 #ifdef PV_USE_OPENMP_THREADS
       // Accumulate back into gSyn
