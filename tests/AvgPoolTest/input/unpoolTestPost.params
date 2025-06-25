@@ -1,0 +1,179 @@
+// A system test for TransposePoolingConn with average pooling from the postsynaptic perspective.
+// An 8x8x3 layer consisting of small integer values is avgpooled into a 4x4x3 layer, and
+// then unpooled to an 8x8x3 layer.
+// The average pooling and unpooling are calculated in two ways:
+//   (1) Using PoolingConn with pvpatchAccumulateType = "avgpooling", and then using a
+//       TransposePoolingConn
+//   (2) Using a 2-to-1 connection with 1x1 patch size, where the weights are either ones or zeros,
+//       and then using a TransposeConn.
+// Since the inputs are integers, roundoff is not an issue and the results should be the same.
+// They are compared by attaching a RequireAllZeroActivityProbe to the difference.
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1.0;
+    randomSeed = 1234567890;
+    stopTime = 10.0;
+    progressInterval = 1.0;
+    outputPath = "output/unpoolTestPost";
+    printParamsFilename = "pv.params";
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+
+    lastCheckpointDir = "output/unpoolTestPost/Last";
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+    nbatch = 2;
+};
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    displayPeriod = 0;
+    inputPath = "input/Input.pvp";
+
+    phase = 0; 
+};
+
+HyPerLayer "AvgPool" = {
+    nxScale = .5;
+    nyScale = .5;
+    nf = 3;
+    writeStep = 0.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    InitVType = "ZeroV";
+
+    phase = 1; 
+    triggerLayerName = NULL;
+};
+
+HyPerLayer "SimulationAvgPool" = {
+    #include "AvgPool";
+};
+
+HyPerLayer "Unpool" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 0.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    InitVType = "ZeroV";
+
+    phase = 3; 
+    triggerLayerName = NULL;
+};
+
+HyPerLayer "IntermediateLayer" = {
+    #include "Unpool";
+    @phase = 2;
+};
+
+HyPerLayer "SimulationUnpool" = {
+    #include "Unpool";
+};
+
+HyPerLayer "Comparison" = {
+    #include "Unpool";
+    @phase = 4;
+};
+
+PoolingConn "InputToAvgPool" = {
+    preLayerName = "Input";
+    postLayerName = "AvgPool";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    
+    pvpatchAccumulateType = "avgpooling";
+     
+    delay = 0;
+
+    updateGSynFromPostPerspective = true;
+};
+
+HyPerConn "InputToSimulationAvgPool" = {
+    preLayerName = "Input";
+    postLayerName = "SimulationAvgPool";
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    
+    pvpatchAccumulateType = "convolve";
+    weightInitType = "UniformWeight";
+    weightInit = 0.25;
+    connectOnlySameFeatures = true;
+    normalizeMethod = "none";
+     
+    delay = 0;
+
+    updateGSynFromPostPerspective = true;
+
+    plasticityFlag = false;
+};
+
+TransposePoolingConn "AvgPoolToUnpool" = {
+    preLayerName = "AvgPool";
+    postLayerName = "Unpool";
+    channelCode = 0;
+    originalConnName = "InputToAvgPool";
+    delay = 0;
+    updateGSynFromPostPerspective = false;
+};
+
+TransposeConn "SimulationAvgPoolToIntermediateLayer" = {
+    preLayerName = "SimulationAvgPool";
+    postLayerName = "IntermediateLayer";
+    channelCode = 0;
+    delay = 0;
+    originalConnName = "InputToSimulationAvgPool";
+};
+
+RescaleConn "IntermediateLayerToSimulationUnpool" = {
+    preLayerName = "IntermediateLayer";
+    postLayerName = "SimulationUnpool";
+    channelCode = 0;
+    scale = 4.0;
+    delay = 0;
+};
+
+IdentConn "UnpoolToComparison" = {
+    preLayerName = "Unpool";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "SimulationUnpoolToComparison" = {
+    preLayerName = "SimulationUnpool";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonProbe.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false;
+};
