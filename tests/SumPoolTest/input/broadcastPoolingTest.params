@@ -17,12 +17,12 @@ HyPerCol "column" = {
     randomSeed = 1234567890;
     stopTime = 10.0;
     progressInterval = 1.0;
-    outputPath = "output/unpoolTestPre";
+    outputPath = "output/broadcastPoolingTest";
     printParamsFilename = "pv.params";
     initializeFromCheckpointDir = "";
     checkpointWrite = false;
 
-    lastCheckpointDir = "output/unpoolTestPre/Last";
+    lastCheckpointDir = "output/broadcastPoolingTest/Last";
     writeProgressToErr = true;
     verifyWrites = false;
     errorOnNotANumber = false;
@@ -111,8 +111,9 @@ HyPerConn "InputToSimulationSumPool" = {
     numAxonalArbors = 1;
     
     pvpatchAccumulateType = "convolve";
-    weightInitType = "FileWeight";
-    initWeightsFile = "input/simulate2to1sumpool.pvp";
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    connectOnlySameFeatures = true;
     normalizeMethod = "none";
      
     delay = 0;
@@ -147,7 +148,7 @@ IdentConn "UnpoolToComparison" = {
 };
 
 IdentConn "SimulationUnpoolToComparison" = {
-    preLayerName = "Unpool";
+    preLayerName = "SimulationUnpool";
     postLayerName = "Comparison";
     channelCode = 1;
     delay = 0;
