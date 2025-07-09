@@ -13,7 +13,8 @@
 namespace PV {
 
 /**
- * A component to contain the internal state (membrane potential) of a HyPerLayer.
+ * A LayerInputBuffer type for receiving the locations of the maxima when maxpooling is with
+ * needPostIndexLayer is true.
  */
 class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
   public:

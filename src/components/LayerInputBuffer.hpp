@@ -19,7 +19,7 @@
 namespace PV {
 
 /**
- * A component to contain the internal state (membrane potential) of a HyPerLayer.
+ * A component to contain the input buffers (GSyn) of a HyPerLayer.
  */
 class LayerInputBuffer : public ComponentBuffer {
   protected:
