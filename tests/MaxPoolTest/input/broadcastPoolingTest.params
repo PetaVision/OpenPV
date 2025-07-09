@@ -1,0 +1,197 @@
+// A system test for TransposePoolingConn with maxpooling from the presynaptic perspective.
+// An 8x8x3 layer consisting of small integer values is maxpooled into a 4x4x3 layer, and
+// then unpooled to an 8x8x3 layer.
+// The result is compared to the correct values using a RequireAllZeroActivityProbe.
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1.0;
+    randomSeed = 1234567890;
+    stopTime = 10.0;
+    progressInterval = 1.0;
+    outputPath = "output/broadcastPoolingTest";
+    printParamsFilename = "pv.params";
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+
+    lastCheckpointDir = "output/broadcastPoolingTest/Last";
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+    nbatch = 2;
+};
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    displayPeriod = 0;
+    inputPath = "input/BroadcastInput.pvp";
+
+    phase = 0; 
+};
+
+HyPerLayer "MaxPool" = {
+    broadcastFlag = true;
+    nf = 3;
+    writeStep = 0.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    InitVType = "ZeroV";
+
+    phase = 1; 
+    triggerLayerName = NULL;
+};
+
+ConstantLayer "CorrectMaxPool" = {
+    broadcastFlag = true;
+    nf = 3;
+    writeStep = 0.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    phase = 1; 
+    triggerLayerName = NULL;
+    InitVType = "InitVFromFile";
+    Vfilename = "input/BroadcastPoolingCorrect.pvp";
+};
+
+PoolingIndexLayer "MaxPoolIndex" = {
+    broadcastFlag = true;
+    nf = 3;
+    writeStep = 0.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    InitVType = "ZeroV";
+
+    phase = 2; 
+    triggerLayerName = NULL;
+};
+
+HyPerLayer "ComparisonMaxPool" = {
+    #include "MaxPool";
+    @phase = 4;
+};
+
+HyPerLayer "Unpool" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 0.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    InitVType = "ZeroV";
+
+    phase = 3; 
+    triggerLayerName = NULL;
+};
+
+ConstantLayer "CorrectUnpool" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 0.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    InitVType = "InitVFromFile";
+    Vfilename = "input/BroadcastUnpoolingCorrect.pvp";
+
+    phase = 3; 
+    triggerLayerName = NULL;
+};
+
+HyPerLayer "ComparisonUnpool" = {
+    #include "Unpool";
+    @phase = 4;
+};
+
+PoolingConn "InputToMaxPool" = {
+    preLayerName = "Input";
+    postLayerName = "MaxPool";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    sharedWeights = false;
+    
+    pvpatchAccumulateType = "maxpooling";
+
+    updateGSynFromPostPerspective = false;
+    needPostIndexLayer = true;
+    postIndexLayerName = "MaxPoolIndex";
+};
+
+TransposePoolingConn "MaxPoolToUnpool" = {
+    preLayerName = "MaxPool";
+    postLayerName = "Unpool";
+    channelCode = 0;
+    originalConnName = "InputToMaxPool";
+    updateGSynFromPostPerspective = false;
+};
+
+IdentConn "MaxPoolToComparisonMaxPool" = {
+    preLayerName = "MaxPool";
+    postLayerName = "ComparisonMaxPool";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "CorrectMaxPoolToComparisonMaxPool" = {
+    preLayerName = "CorrectMaxPool";
+    postLayerName = "ComparisonMaxPool";
+    channelCode = 1;
+    delay = 0;
+};
+
+IdentConn "UnpoolToComparisonUnpool" = {
+    preLayerName = "Unpool";
+    postLayerName = "ComparisonUnpool";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "CorrectUnpoolToComparisonUnpool" = {
+    preLayerName = "CorrectUnpool";
+    postLayerName = "ComparisonUnpool";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonMaxPoolProbe" = {
+    targetLayer = "ComparisonMaxPool";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonMaxPoolProbe.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false;
+};
+
+RequireAllZeroActivityProbe "ComparisonUnpoolProbe" = {
+    targetLayer = "ComparisonUnpool";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonUnpoolProbe.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false;
+};

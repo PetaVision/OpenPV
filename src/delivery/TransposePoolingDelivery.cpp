@@ -86,14 +86,28 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
          "%s: original connection \"%s\" does not have a PoolingDelivery component.\n",
          getDescription_c(),
          originalConnName);
+   if (!originalPoolingDelivery->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
    mAccumulateType = originalPoolingDelivery->getAccumulateType();
    mReceiveGpu     = originalPoolingDelivery->getReceiveGpu();
+   mMPIReductionOp = originalPoolingDelivery->getMPIReductionOp();
 #ifdef PV_USE_CUDA
    mUsingGPUFlag = originalPoolingDelivery->isUsingGPU();
 #endif // PV_USE_CUDA
    auto *originalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
+   if (originalPostIndexLayer and !originalPostIndexLayer->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
    if (originalPostIndexLayer) {
       mOriginalPostIndexData = originalPostIndexLayer->getComponentByType<BasePublisherComponent>();
+   }
+   if (!mReceiveGpu) {
+      FatalIf(
+            mAccumulateType == PoolingDelivery::MAXPOOLING and mOriginalPostIndexData == nullptr,
+            "TransposePoolingConn \"%s\" original conn \"%s\" is maxpooling, "
+            "but needPostIndexLayer is set to false.\n",
+            getName(), originalConnName);
    }
 
    auto *originalConnectionData = objectTable->findObject<ConnectionData>(originalConnName);
@@ -107,7 +121,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    mOriginalPostGSyn = originalConnectionData->getPost()->getComponentByType<LayerInputBuffer>();
 
    // If receiveGpu is false, we need to read updateGSynFromPostPerspective.
-   // If it is true, we use the CUDA routine, which always uses the post perspective.
+   // If it is true, we use the CUDA routine, which currently only has the post perspective.
    if (!mReceiveGpu) {
       parameters()->ioParamValue(
             PARAMS_IO_READ,
@@ -122,14 +136,21 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
             getName(), "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 
-   mPatchSize = objectTable->findObject<DependentPatchSize>(getName());
+   mPatchSize = objectTable->findObject<TransposePatchSize>(getName());
    FatalIf(
          mPatchSize == nullptr,
-         "%s requires a DependentPatchSize component.\n",
+         "%s requires a TransposePatchSize component.\n",
          getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
+   int original_nxp = mPatchSize->getOriginalPatchSizeX();
+   int original_nyp = mPatchSize->getOriginalPatchSizeY();
+   FatalIf(
+         original_nxp != 1 or original_nyp != 1,
+         "TransposePoolingConn \"%s\" original connection \"%s\" has patch size nxp=%d, nyp=%d. "
+         "The original connection of a transpose pooling connection must have nxp=1, nyp=1.\n",
+         getName(), originalConnName, original_nxp, original_nyp);
 
    mWeightsPair = objectTable->findObject<ImpliedWeightsPair>(getName());
    FatalIf(

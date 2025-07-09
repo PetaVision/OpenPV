@@ -13,13 +13,16 @@
 namespace PV {
 
 /**
- * A component to contain the internal state (membrane potential) of a HyPerLayer.
+ * A LayerInputBuffer type for receiving the locations of the maxima when maxpooling is with
+ * needPostIndexLayer is true.
  */
 class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
   public:
    PoolingIndexLayerInputBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PoolingIndexLayerInputBuffer();
+
+   virtual void recvAllSynapticInput(double simTime, double deltaTime) override {}
 
    float *getIndexBuffer(int b) { return &mBufferData[b * getBufferSize()]; }
 
@@ -28,6 +31,8 @@ class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual void setObjectType() override;
+
+   virtual MPI_Op setReductionOp() override;
 
    virtual void resetGSynBuffers(double simulationTime, double dt) override;
 

@@ -20,6 +20,9 @@ namespace PV {
 class TransposePatchSize : public DependentPatchSize {
   public:
    TransposePatchSize(char const *name, PVParams *params, Communicator const *comm);
+   int getOriginalPatchSizeX() const { return mOriginalPatchSizeX; }
+   int getOriginalPatchSizeY() const { return mOriginalPatchSizeY; }
+   int getOriginalPatchSizeF() const { return mOriginalPatchSizeF; }
    virtual ~TransposePatchSize();
 
   protected:
@@ -33,6 +36,10 @@ class TransposePatchSize : public DependentPatchSize {
    virtual void setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) override;
    virtual void setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) override;
 
+  protected:
+   int mOriginalPatchSizeX;
+   int mOriginalPatchSizeY;
+   int mOriginalPatchSizeF;
 }; // class TransposePatchSize
 
 } // namespace PV

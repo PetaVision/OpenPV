@@ -1,0 +1,108 @@
+// A system test for PoolingConn on the CPU, with maxpooling from the presynaptic perspective.
+// An 8x8x3 layer consisting of small integer values is the input for max pooling with a 3x3 kernel.
+// The result is compared to the correct values using a RequireAllZeroActivityProbe.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1.0;
+    randomSeed = 1234567890;
+    stopTime = 10.0;
+    progressInterval = 1.0;
+    outputPath = "output/maxpoolTestPre";
+    printParamsFilename = "pv.params";
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+
+    lastCheckpointDir = "output/maxpoolTestPre/Last";
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+    nbatch = 2;
+};
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    displayPeriod = 0;
+    inputPath = "input/Input.pvp";
+
+    phase = 0; 
+};
+
+HyPerLayer "MaxPool" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+
+    phase = 1; 
+    triggerLayerName = NULL;
+};
+
+ConstantLayer "Correct" = {
+    #include "MaxPool";
+    InitVType = "InitVFromFile";
+    Vfilename = "input/maxpool3x3correct.pvp";
+};
+
+HyPerLayer "Comparison" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    InitVType = "ZeroV";
+
+    phase = 2; 
+    triggerLayerName = NULL;
+};
+
+PoolingConn "InputToMaxPool" = {
+    preLayerName = "Input";
+    postLayerName = "MaxPool";
+    channelCode = 0;
+    nxp = 3; 
+    nyp = 3; 
+    
+    pvpatchAccumulateType = "maxpooling";
+     
+    delay = 0;
+
+    updateGSynFromPostPerspective = false;
+
+    needPostIndexLayer = false;
+};
+
+IdentConn "MaxPoolToComparison" = {
+   channelCode = 0;
+   delay = 0;
+};
+
+IdentConn "CorrectToComparison" = {
+   channelCode = 1;
+   delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonProbe.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false;
+    immediateExitOnFailure = false;
+};

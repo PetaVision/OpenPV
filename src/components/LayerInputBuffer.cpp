@@ -85,11 +85,30 @@ void LayerInputBuffer::addDeliverySource(LayerInputDelivery *deliverySource) {
    // insert() is done for backward compatibility; push_back should work just as well.
 }
 
+MPI_Op LayerInputBuffer::setReductionOp() {
+   if (!mDeliverySources.empty()) {
+      mMPIReductionOp = mDeliverySources[0]->getMPIReductionOp();
+      for (auto *d : mDeliverySources) {
+         FatalIf(
+               d->getMPIReductionOp() != mMPIReductionOp,
+               "Connections \"%s\" and \"%s\" both connect to layer \"%s\", "
+               "but they have different reduction types.\n",
+               mDeliverySources[0]->getName(), d->getName(), getName());
+      }
+   }
+   return mMPIReductionOp;
+}
+
 Response::Status LayerInputBuffer::allocateDataStructures() {
    auto status = ComponentBuffer::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
+
+   // Checking that all delivery sources have the same reduction type (max vs. sum vs. ?)
+   // waits until allocateDataStructures because the delivery source might not set its reduction
+   // type until communicate, and this is the easiest way to avoid a postponement loop.
+   setReductionOp();
 
 #ifdef PV_USE_CUDA
    // Separating GPU and CPU delivery sources has to wait until allocateDataStructures
@@ -238,7 +257,7 @@ void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
             mBufferData.data(), 
             mBufferData.size(),
             MPI_FLOAT,
-            MPI_SUM,
+            mMPIReductionOp,
             getCommunicator()->communicator());
       mBroadcastReduceTimer->stop();
    }

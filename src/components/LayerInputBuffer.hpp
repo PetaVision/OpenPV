@@ -19,7 +19,7 @@
 namespace PV {
 
 /**
- * A component to contain the internal state (membrane potential) of a HyPerLayer.
+ * A component to contain the input buffers (GSyn) of a HyPerLayer.
  */
 class LayerInputBuffer : public ComponentBuffer {
   protected:
@@ -82,6 +82,8 @@ class LayerInputBuffer : public ComponentBuffer {
     */
    bool isAllInputReady();
 
+   virtual MPI_Op setReductionOp();
+
    virtual void resetGSynBuffers(double simTime, double dt);
 
    /**
@@ -95,7 +97,6 @@ class LayerInputBuffer : public ComponentBuffer {
 #endif // PV_USE_CUDA
 
   protected:
-   std::vector<double> mChannelTimeConstants;
    LayerGeometry const *mLayerGeometry = nullptr;
    std::vector<LayerInputDelivery *> mDeliverySources;
    bool mHasReceived = false;
@@ -107,6 +108,7 @@ class LayerInputBuffer : public ComponentBuffer {
    PVCuda::CudaTimer *mReceiveInputCudaTimer = nullptr;
    Timer *mCopyFromCudaTimer = nullptr;
 #endif
+   MPI_Op mMPIReductionOp;
 };
 
 } // namespace PV

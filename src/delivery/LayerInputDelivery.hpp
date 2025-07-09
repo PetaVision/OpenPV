@@ -67,6 +67,7 @@ class LayerInputDelivery : public BaseObject {
 
    ChannelType getChannelCode() const { return mChannelCode; }
    bool getReceiveGpu() const { return mReceiveGpu; }
+   MPI_Op getMPIReductionOp() const { return mMPIReductionOp; }
 
   protected:
    LayerInputDelivery() {}
@@ -80,6 +81,7 @@ class LayerInputDelivery : public BaseObject {
   protected:
    ChannelType mChannelCode = CHANNEL_EXC;
    bool mReceiveGpu         = false;
+   MPI_Op mMPIReductionOp;
 };
 
 } // namespace PV
