@@ -8,7 +8,7 @@
 #ifndef TRANSPOSEPOOLINGDELIVERY_HPP_
 #define TRANSPOSEPOOLINGDELIVERY_HPP_
 
-#include "components/DependentPatchSize.hpp"
+#include "components/TransposePatchSize.hpp"
 #include "components/ImpliedWeightsPair.hpp"
 #include "delivery/BaseDelivery.hpp"
 #include "delivery/PoolingDelivery.hpp"
@@ -99,7 +99,7 @@ class TransposePoolingDelivery : public BaseDelivery {
    PoolingDelivery::AccumulateType mAccumulateType = PoolingDelivery::UNDEFINED;
    bool mUpdateGSynFromPostPerspective             = false;
 
-   DependentPatchSize *mPatchSize   = nullptr;
+   TransposePatchSize *mPatchSize   = nullptr;
    ImpliedWeightsPair *mWeightsPair = nullptr;
    BasePublisherComponent *mOriginalPostIndexData =
          nullptr; // Used by deliverPresynapticPerspective

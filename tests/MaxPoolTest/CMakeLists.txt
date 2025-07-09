@@ -1,16 +1,11 @@
 set(SRC_CPP
-  src/GateMaxPoolTestBuffer.cpp
-  src/GateMaxPoolTestLayer.cpp
-  src/MaxPoolTest.cpp
-  src/MaxPoolTestBuffer.cpp
-  src/MaxPoolTestLayer.cpp
+   src/MaxPoolTest.cpp
 )
 
-set(SRC_HPP
-  src/GateMaxPoolTestBuffer.hpp
-  src/GateMaxPoolTestLayer.hpp
-  src/MaxPoolTestBuffer.hpp
-  src/MaxPoolTestLayer.hpp
-)
+set(TEST_PARAMS "maxpoolTestPre;maxpoolTestPost;unpoolTestPre;unpoolTestPost;broadcastPoolingTest")
 
-pv_add_test(PARAMS maxpooltest gateTest SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
+if (PV_USE_CUDA)
+  set(TEST_PARAMS "${TEST_PARAMS};maxpoolTestPostGPU")
+endif()
+
+pv_add_test(PARAMS ${TEST_PARAMS} SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})

@@ -5,11 +5,15 @@
  *      Author: Pete Schultz
  */
 
+#include "arch/mpi/mpi.h"
 #include "PoolingDelivery.hpp"
 #include "components/PoolingIndexLayerInputBuffer.hpp"
 #include "delivery/accumulate_functions.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "structures/Weights.hpp"
+
+#include <algorithm>
+#include <cassert>
 
 namespace PV {
 
@@ -46,6 +50,9 @@ void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
             "pvpatchAccumulateType \"%s\" is unrecognized.\n"
             "  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".\n",
             mPvpatchAccumulateTypeString);
+      if (mAccumulateType == MAXPOOLING) {
+         mMPIReductionOp = MPI_MAX;
+      }
    }
 }
 
@@ -138,6 +145,32 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (mNeedPostIndexLayer) {
       pvAssert(mPostIndexLayerName);
       mPostIndexLayer = objectTable->findObject<PoolingIndexLayer>(mPostIndexLayerName);
+      FatalIf(
+            mPostIndexLayer == nullptr,
+            "PoolingConn \"%s\" postIndexLayerName \"%s\" is not a PoolingIndexLayer\n",
+            getName(), mPostIndexLayerName);
+      if (!mPostIndexLayer->getInitInfoCommunicatedFlag()) {
+         return Response::POSTPONE;
+      }
+      pvAssert(mConnectionData->getInitInfoCommunicatedFlag());
+      pvAssert(mConnectionData->getPost()->getInitInfoCommunicatedFlag());
+      bool postIsBroadcast = mConnectionData->getPost()->getLayerLoc()->bcast;
+      bool indexLayerIsBroadcast = mPostIndexLayer->getLayerLoc()->bcast;
+      FatalIf(
+            indexLayerIsBroadcast != postIsBroadcast,
+            "PoolingConn \"%s\" post layer \"%s\" broadcast flag is %s but "
+            "post index layer \"%s\" broadcast flag is %s. They must agree.\n",
+            getName(),
+            mConnectionData->getPost()->getName(),
+            postIsBroadcast ? "true" : "false",
+            mPostIndexLayer->getName(),
+            postIsBroadcast ? "true" : "false");
+      mPostIndexBuffer = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
+      FatalIf(
+            mPostIndexBuffer == nullptr,
+            "%s does not have a PoolingIndexLayerInputBuffer component.\n",
+            mPostIndexLayer->getDescription_c());
+
    }
 
    if (mUpdateGSynFromPostPerspective) {
@@ -296,6 +329,9 @@ void PoolingDelivery::deliver(float *destBuffer) {
          deliverPresynapticPerspective(destBuffer);
       }
    }
+   if (mPostIndexBuffer and mPostIndexBuffer->getBroadcastFlag()) {
+      reducePostIndices();
+   }
 }
 
 void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
@@ -364,8 +400,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    clearGateIdxBuffer();
    float *gatePatchHead = nullptr;
    if (mNeedPostIndexLayer) {
-      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
-      gatePatchHead         = indexLayerInput->getIndexBuffer(0);
+      gatePatchHead         = mPostIndexBuffer->getIndexBuffer(0);
    }
 
    float resetVal = 0.0f;
@@ -528,9 +563,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       float *gSynPatchHeadBatch = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
       float *gatePatchHeadBatch = NULL;
       if (mNeedPostIndexLayer) {
-         auto *indexLayerInput =
-               mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
-         gatePatchHeadBatch = indexLayerInput->getIndexBuffer(b);
+         gatePatchHeadBatch = mPostIndexBuffer->getIndexBuffer(b);
       }
 
       SparseList<float>::Entry const *activeIndicesBatch = nullptr;
@@ -664,7 +697,6 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
             (accumulateFunctionPointer)(
                   kPreGlobalExt, nk, postPatchStart + y * sy + offset, a, &w, auxPtr, sf);
          }
-         if (auxPtr) { printf("meep!\n"); }
       }
 #ifdef PV_USE_OPENMP_THREADS
       // Accumulate back into gSyn
@@ -708,11 +740,9 @@ void PoolingDelivery::clearGateIdxBuffer() {
    pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    if (mNeedPostIndexLayer) {
       // Reset mPostIndexLayer's gsyn
-      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
-
-      int const numNeuronsAcrossBatch = indexLayerInput->getBufferSizeAcrossBatch();
-      int const numNeuronsAllChannels = numNeuronsAcrossBatch * indexLayerInput->getNumChannels();
-      float *gSynHead                 = indexLayerInput->getIndexBuffer(0);
+      int const numNeuronsAcrossBatch = mPostIndexBuffer->getBufferSizeAcrossBatch();
+      int const numNeuronsAllChannels = numNeuronsAcrossBatch * mPostIndexBuffer->getNumChannels();
+      float *gSynHead                 = mPostIndexBuffer->getIndexBuffer(0);
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
@@ -721,6 +751,57 @@ void PoolingDelivery::clearGateIdxBuffer() {
          gSynHead[k] = -1.0f;
       }
    }
+}
+
+void PoolingDelivery::reducePostIndices() {
+   // Only use this function if using post indices, and post layer is a broadcast layer.
+   // If post is broadcast, post indices layer also must be broadcast, since their sizes must agree
+   assert(mPostGSyn and mPostGSyn->getBroadcastFlag());
+   assert(mPostIndexBuffer and mPostIndexBuffer->getBroadcastFlag());
+   int postBufferSize = mPostGSyn->getBufferSizeAcrossBatch();
+   int postIndexBufferSize = mPostIndexBuffer->getBufferSizeAcrossBatch();
+   assert(postIndexBufferSize == postBufferSize);
+   float const *postData = mPostGSyn->getChannelData(mChannelCode);
+   float *postIndexData = mPostIndexBuffer->getIndexBuffer(0);
+   std::vector<float> gatheredIndices;
+   std::vector<float> gatheredValues;
+   float *gatheredIndicesPointer = nullptr;
+   float *gatheredValuesPointer = nullptr;
+   if (getCommunicator()->commRank() == 0) {
+      gatheredIndices.resize(postBufferSize * getCommunicator()->commSize());
+      gatheredValues.resize(postBufferSize * getCommunicator()->commSize());
+      gatheredIndicesPointer = &gatheredIndices[0];
+      gatheredValuesPointer = &gatheredValues[0];
+   }
+   MPI_Gather(
+         postIndexData, postBufferSize, MPI_FLOAT,
+         gatheredIndicesPointer, postBufferSize, MPI_FLOAT,
+         0 /*root process*/, getCommunicator()->communicator());
+   MPI_Gather(
+         postData, postBufferSize, MPI_FLOAT,
+         gatheredValuesPointer, postBufferSize, MPI_FLOAT,
+         0 /*root process*/, getCommunicator()->communicator());
+   if (getCommunicator()->commRank() == 0) {
+      int numProcs = getCommunicator()->commSize();
+      for (int n = 0; n < postBufferSize; ++n) {
+         float maximizer = gatheredIndices[n];
+         float maxvalue = gatheredValues[n];
+         for (int proc = 1; proc < numProcs; ++proc) {
+            float newvalue = gatheredValues[n + proc * postBufferSize];
+            if (newvalue > maxvalue) {
+               maxvalue = newvalue;
+               maximizer = gatheredIndices[n + proc * postBufferSize];
+            }
+         }
+         for (int proc = 0; proc < numProcs; ++proc) {
+            gatheredIndices[n + proc * postBufferSize] = maximizer;
+         }
+      }
+   }
+   MPI_Scatter(
+         gatheredIndicesPointer, postBufferSize, MPI_FLOAT,
+         postIndexData, postBufferSize, MPI_FLOAT,
+         0 /*root process*/, getCommunicator()->communicator());
 }
 
 bool PoolingDelivery::isAllInputReady() const {

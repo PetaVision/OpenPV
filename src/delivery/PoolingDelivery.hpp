@@ -10,6 +10,7 @@
 
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/PatchSize.hpp"
+#include "components/PoolingIndexLayerInputBuffer.hpp"
 #include "delivery/BaseDelivery.hpp"
 #include "layers/PoolingIndexLayer.hpp"
 #ifdef PV_USE_CUDA
@@ -127,6 +128,8 @@ class PoolingDelivery : public BaseDelivery {
 
    void clearGateIdxBuffer();
 
+   void reducePostIndices();
+
 #ifdef PV_USE_CUDA
    void deliverGPU(float *destBuffer);
 #endif // PV_USE_CUDA
@@ -140,9 +143,10 @@ class PoolingDelivery : public BaseDelivery {
    PatchSize *mPatchSize            = nullptr;
    ImpliedWeightsPair *mWeightsPair = nullptr;
 
-   bool mNeedPostIndexLayer           = false;
-   char *mPostIndexLayerName          = nullptr;
-   PoolingIndexLayer *mPostIndexLayer = nullptr;
+   bool mNeedPostIndexLayer                       = false;
+   char *mPostIndexLayerName                      = nullptr;
+   PoolingIndexLayer *mPostIndexLayer             = nullptr;
+   PoolingIndexLayerInputBuffer *mPostIndexBuffer = nullptr;
 
 #ifdef PV_USE_OPENMP_THREADS
    std::vector<std::vector<float>> mThreadGateIdxBuffer;

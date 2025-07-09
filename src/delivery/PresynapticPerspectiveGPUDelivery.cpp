@@ -29,7 +29,7 @@ void PresynapticPerspectiveGPUDelivery::initialize(
       PVParams *params,
       Communicator const *comm) {
    mReceiveGpu = true; // If it's false, we should be using a different class.
-   BaseObject::initialize(name, params, comm);
+   HyPerDelivery::initialize(name, params, comm);
 }
 
 void PresynapticPerspectiveGPUDelivery::setObjectType() {

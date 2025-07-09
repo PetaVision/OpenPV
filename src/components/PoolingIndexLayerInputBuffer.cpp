@@ -27,6 +27,15 @@ void PoolingIndexLayerInputBuffer::initialize(
 
 void PoolingIndexLayerInputBuffer::setObjectType() { mObjectType = "PoolingIndexLayerInputBuffer"; }
 
+MPI_Op PoolingIndexLayerInputBuffer::setReductionOp() {
+   FatalIf(
+         !mDeliverySources.empty(),
+         "PoolingIndexLayer \"%s\" cannot be a post-synaptic layer of any connection "
+         "(only the postIndexLayer of a PoolingConn). Error in connection \"%s\".\n",
+         getName(), mDeliverySources[0]->getName());
+   return mMPIReductionOp = MPI_MAX;
+}
+
 void PoolingIndexLayerInputBuffer::resetGSynBuffers(double simulationTime, double deltaTime) {
    // Reset GSynBuffers does nothing, as the orig pooling connection deals with clearing this buffer
 }

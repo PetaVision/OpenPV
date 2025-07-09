@@ -17,6 +17,7 @@ LayerInputDelivery::LayerInputDelivery(
 }
 
 void LayerInputDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   mMPIReductionOp = MPI_SUM; // This can be changed by derived classes if needed.
    BaseObject::initialize(name, params, comm);
 }
 

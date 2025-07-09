@@ -32,7 +32,7 @@ void PresynapticPerspectiveStochasticDelivery::initialize(
       PVParams *params,
       Communicator const *comm) {
    mReceiveGpu = false; // If it's true, we should be using a different class.
-   BaseObject::initialize(name, params, comm);
+   HyPerDelivery::initialize(name, params, comm);
 }
 
 void PresynapticPerspectiveStochasticDelivery::setObjectType() {

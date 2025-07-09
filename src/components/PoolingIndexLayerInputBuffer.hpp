@@ -21,6 +21,8 @@ class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
 
    virtual ~PoolingIndexLayerInputBuffer();
 
+   virtual void recvAllSynapticInput(double simTime, double deltaTime) override {}
+
    float *getIndexBuffer(int b) { return &mBufferData[b * getBufferSize()]; }
 
   protected:
@@ -28,6 +30,8 @@ class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual void setObjectType() override;
+
+   virtual MPI_Op setReductionOp() override;
 
    virtual void resetGSynBuffers(double simulationTime, double dt) override;
 
