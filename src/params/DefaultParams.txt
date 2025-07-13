@@ -115,7 +115,7 @@ Defaults "HyPerLayer" = {
     // InitV types
     valueV                              = -70.0; // Used by ConstantV
     minV                                = 0.0;   // Used by DiscreteUniformRandomV, UniformRandomV
-    // maxV defaults to minV + 1                 // Used by DiscreteUniformRandomV, UniformRandomV
+    maxV                                = 1.0;   // Used by DiscreteUniformRandomV, UniformRandomV
     numValues                           = 2;     // Used by DiscreteUniformRandomV, must be >= 2.
     meanV                               = 0.0;   // Used by GaussianRandomV
     sigmaV                              = 1.0;   // Used by GaussianRandomV

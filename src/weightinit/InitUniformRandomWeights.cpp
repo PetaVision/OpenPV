@@ -41,7 +41,12 @@ void InitUniformRandomWeights::ioParam_wMinInit(ParamsIOSwitch ioSwitch) {
 }
 
 void InitUniformRandomWeights::ioParam_wMaxInit(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("wMinInit"));
    mParamsIO->ioParam(ioSwitch, "wMaxInit", &mWMax);
+   FatalIf(
+         mWMax < mWMin,
+         "%s \"%s\" with UniformRandomV has wMaxInit = %f < wMinInit = %f\n",
+         mParamsIO->getKeyword(), mParamsIO->getName(), (double)mWMax, (double)mWMin);
 }
 
 void InitUniformRandomWeights::ioParam_sparseFraction(ParamsIOSwitch ioSwitch) {
@@ -57,20 +62,8 @@ void InitUniformRandomWeights::ioParam_minNNZ(ParamsIOSwitch ioSwitch) {
  * shrunken.
  */
 void InitUniformRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
-   double p;
-   if (mWMax <= mWMin) {
-      if (mWMax < mWMin) {
-         WarnLog().printf(
-               "uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n",
-               (double)mWMax,
-               (double)mWMin);
-         mWMax = mWMin;
-      }
-      p = 0.0;
-   }
-   else {
-      p = (double)(mWMax - mWMin) / (1.0 + (double)CL_RANDOM_MAX);
-   }
+   pvAssert(mWMax >= mWMin); // checked when reading params
+   double p = (double)(mWMax - mWMin) / (1.0 + (double)CL_RANDOM_MAX);
    float sparseFraction = mSparseFraction * (float)(1.0 + (double)CL_RANDOM_MAX);
 
    // loop over all post-synaptic cells in patch

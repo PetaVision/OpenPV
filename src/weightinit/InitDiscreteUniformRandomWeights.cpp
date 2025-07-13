@@ -46,7 +46,12 @@ void InitDiscreteUniformRandomWeights::ioParam_wMin(ParamsIOSwitch ioSwitch) {
 }
 
 void InitDiscreteUniformRandomWeights::ioParam_wMax(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("wMin"));
    mParamsIO->ioParam(ioSwitch, "wMax", &mWMax);
+   FatalIf(
+         mWMax <= mWMin,
+         "%s \"%s\" with UniformRandomV has wMax = %f <= wMin = %f\n",
+         mParamsIO->getKeyword(), mParamsIO->getName(), (double)mWMax, (double)mWMin);
 }
 
 void InitDiscreteUniformRandomWeights::ioParam_wNumValues(ParamsIOSwitch ioSwitch) {
@@ -63,8 +68,9 @@ void InitDiscreteUniformRandomWeights::ioParam_wNumValues(ParamsIOSwitch ioSwitc
  * shrunken.
  */
 void InitDiscreteUniformRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
-   // loop over all post-synaptic cells in patch
+   pvAssert(mWMax > mWMin and mNumValues >= 2); // checked when reading params
 
+   // loop over all post-synaptic cells in patch
    const int nxp       = mWeights->getPatchSizeX();
    const int nyp       = mWeights->getPatchSizeY();
    const int nfp       = mWeights->getPatchSizeF();

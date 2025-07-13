@@ -45,28 +45,15 @@ void UniformRandomV::ioParam_minV(ParamsIOSwitch ioSwitch) {
 
 void UniformRandomV::ioParam_maxV(ParamsIOSwitch ioSwitch) {
    pvAssert(!mParamsIO->presentAndNotBeenRead("minV"));
-   if (mParamsIO->isPresent("maxV")) {
-      mParamsIO->ioParam(ioSwitch, "maxV", &mMaxV);
-   }
-   else {
-      switch (ioSwitch) {
-         case ParamsIOSwitch::Read:
-            mMaxV = mMinV + 1.0f;
-            WarnLog().printf(
-                  "Using inferred value %f for parameter %s in group \"%s\"\n",
-                  (double)mMaxV, "maxV", getName());
-            break;
-         case ParamsIOSwitch::Write:
-            mParamsIO->ioParam(ioSwitch, "maxV", &mMaxV);
-            break;
-         default:
-            Fatal().printf("Unrecognized ParamsIOFlag %d\n", ioSwitch);
-            break;
-      }
-   }
+   mParamsIO->ioParam(ioSwitch, "maxV", &mMaxV);
+   FatalIf(
+         mMaxV < mMinV,
+         "%s \"%s\" with UniformRandomV has maxV = %f < minV = %f\n",
+         mParamsIO->getKeyword(), mParamsIO->getName(), (double)mMaxV, (double)mMinV);
 }
 
 void UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {
+   pvAssert(mMaxV >= mMinV); // checked when reading params
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
