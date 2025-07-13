@@ -269,8 +269,12 @@ ParamsIO::paramToString(T const &paramValue) {
 template <typename T>
 typename std::enable_if<std::is_same<T, std::string>::value, std::string>::type
 ParamsIO::paramToString(T const &paramValue) {
-   std::string result = "\"" + paramValue + "\"";
-   return result;
+   if (paramValue.empty()) {
+      return std::string("NULL");
+   }
+   else {
+      return "\"" + paramValue + "\"";
+   }
 }
 
 template <typename T>
