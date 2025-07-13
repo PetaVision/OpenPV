@@ -230,7 +230,7 @@ HyPerConn "RetinaToL0" = {
     nyp = 1;
     nfp = 4;
     writeStep = 1.0; // -1;
-    initialWriteTime = 0;
+    initialWriteTime = 0.0;
     
     weightInit=1;
     
@@ -282,7 +282,7 @@ HyPerConn "L0ToLx1" = {
     nyp = 5;
     nfp = 4;
     writeStep = 1.0; // -1;
-    initialWriteTime = 0;
+    initialWriteTime = 0.0;
 
     weightInit=1;
     
@@ -332,7 +332,7 @@ HyPerConn "L0ToLx2" = {
     nyp = 10;
     nfp = 8;
     writeStep = 1.0; // -1;
-    initialWriteTime = 0;
+    initialWriteTime = 0.0;
 
     weightInit=1;
     
@@ -382,7 +382,7 @@ HyPerConn "L0ToLx4" = {
     nyp = 20;
     nfp = 16;
     writeStep = 1.0; // -1;
-    initialWriteTime = 0;
+    initialWriteTime = 0.0;
 
     weightInit=1;
     
@@ -432,7 +432,7 @@ HyPerConn "L0ToLx1_2" = {
     nyp = 3;
     nfp = 2;
     writeStep = 1.0; // -1;
-    initialWriteTime = 0;
+    initialWriteTime = 0.0;
 
     weightInit=1;
     
@@ -482,7 +482,7 @@ HyPerConn "L0ToLx1_4" = {
     nyp = 1;
     nfp = 1;
     writeStep = 1.0; // -1;
-    initialWriteTime = 0;
+    initialWriteTime = 0.0;
 
     weightInit=1;
     

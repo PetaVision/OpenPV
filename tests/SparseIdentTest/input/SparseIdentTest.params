@@ -74,7 +74,7 @@ HyPerLayer "OutputIdent" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     sparseLayer                         = false;
     updateGpu                           = false;
 };
@@ -89,7 +89,7 @@ HyPerLayer "OutputRescale" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     sparseLayer                         = false;
     updateGpu                           = false;
 };

@@ -33,7 +33,7 @@ ConstantLayer "Layer" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 L2NormProbe "LayerProbe" = {

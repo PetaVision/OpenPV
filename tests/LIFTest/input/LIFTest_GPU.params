@@ -352,7 +352,7 @@ HyPerConn "GapTestToLIFGapTest" = {
     // writeCompressedWeights       = false;
     writeCompressedCheckpoints      = false;
     writeStep                       = -1;
-    // initialWriteTime             = 0;
+    // initialWriteTime             = 0.0;
 
     updateGSynFromPostPerspective   = true;
     receiveGpu = true;

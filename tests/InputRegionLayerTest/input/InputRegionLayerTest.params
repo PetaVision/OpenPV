@@ -53,7 +53,7 @@ PvpLayer "Input" = {
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     sparseLayer                         = false;
     updateGpu                           = false;
     displayPeriod                       = 0;
@@ -80,7 +80,7 @@ InputRegionLayer "InputRegion" = {
     nf                                  = 1;
     initializeFromCheckpointFlag        = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     originalLayerName                   = "Input";
 };
 
@@ -118,7 +118,7 @@ HyPerLayer "Comparison" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     sparseLayer                         = false;
     updateGpu                           = false;
 };
@@ -140,7 +140,7 @@ HyPerConn "InputToOutput" = {
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     nxp                                 = 3;

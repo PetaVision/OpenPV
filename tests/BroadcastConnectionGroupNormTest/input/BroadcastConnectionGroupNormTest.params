@@ -52,7 +52,7 @@ PvpLayer "Input" = {
     start_frame_index                   = [0.000000];
     updateGpu                           = false;
     sparseLayer                         = false;
-    writeStep                           = 0;
+    writeStep                           = 1.0;
     initialWriteTime                    = 1;
 };
 
@@ -98,7 +98,7 @@ HyPerConn "InputToOutput0" = {
     nyp                                 = 4;
     nfp                                 = 1;
     sharedWeights                       = false;
-    writeStep                           = 0.0;
+    writeStep                           = 1.0;
     initialWriteTime                    = 0.0;
     writeCompressedCheckpoints          = false;
     weightInitType                      = "UniformRandomWeight";

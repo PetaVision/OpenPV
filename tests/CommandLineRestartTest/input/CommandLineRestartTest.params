@@ -63,7 +63,7 @@ FailBeforeExpectedStartTimeLayer "Output" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     sparseLayer                         = false;
     updateGpu                           = false;
 };
@@ -87,7 +87,7 @@ HyPerConn "InputToOutput" = {
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     combine_dW_with_W_flag              = false;

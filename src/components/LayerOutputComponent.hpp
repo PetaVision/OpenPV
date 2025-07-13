@@ -40,7 +40,7 @@ class LayerOutputComponent : public BaseObject {
 
    /**
     * @brief writeStep: Specifies how often to output a pvp file for this layer
-    * @details Defaults to every timestep. -1 specifies not to write at all.
+    * @details A zero or negative value means do not write output. Defaults to zero.
     */
    virtual void ioParam_writeStep(ParamsIOSwitch ioSwitch);
 
@@ -74,8 +74,6 @@ class LayerOutputComponent : public BaseObject {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   virtual void setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message);
 
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;

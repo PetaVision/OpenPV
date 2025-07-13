@@ -33,7 +33,7 @@ ConstantLayer "Pre" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 ConstantLayer "Post" = {
@@ -49,7 +49,7 @@ ConstantLayer "Post" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 HyPerConn "PreToPost" = {

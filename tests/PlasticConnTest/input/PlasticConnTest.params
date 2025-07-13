@@ -41,7 +41,7 @@ PlasticConnTestLayer "Pre" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 PlasticConnTestLayer "Post" = {
@@ -56,7 +56,7 @@ PlasticConnTestLayer "Post" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 PvpLayer "TestInput" = {
@@ -84,7 +84,7 @@ PvpLayer "TestInput" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 HyPerLayer "TestOutput" = {
@@ -100,7 +100,7 @@ HyPerLayer "TestOutput" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 PvpLayer "CorrectValues" = {
@@ -128,7 +128,7 @@ PvpLayer "CorrectValues" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 HyPerLayer "Comparison" = {
@@ -144,7 +144,7 @@ HyPerLayer "Comparison" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 //
@@ -166,7 +166,7 @@ PlasticTestConn "PreToPost" = {
     nfp                                 = 1;
     sharedWeights                       = true;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     weightInitType                      = "UniformWeight";

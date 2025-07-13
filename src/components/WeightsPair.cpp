@@ -59,15 +59,12 @@ int WeightsPair::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
 }
 
 void WeightsPair::ioParam_writeStep(ParamsIOSwitch ioSwitch) {
-   bool warnIfAbsentFlag = false; // If not in params, will be set in CommunicateInitInfo stage
-   // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
-   // method also needs to be overridden.
-   mParamsIO->ioParam(ioSwitch, "writeStep", &mWriteStep, warnIfAbsentFlag);
+   mParamsIO->ioParam(ioSwitch, "writeStep", &mWriteStep, false /*warnIfAbsentFlag*/);
 }
 
 void WeightsPair::ioParam_initialWriteTime(ParamsIOSwitch ioSwitch) {
    pvAssert(!mParamsIO->presentAndNotBeenRead("writeStep"));
-   if (mWriteStep >= 0) {
+   if (mWriteStep > 0) {
       mParamsIO->ioParam(ioSwitch, "initialWriteTime", &mInitialWriteTime);
       if (ioSwitch == ParamsIOSwitch::Read) {
          if (mWriteStep > 0 && mInitialWriteTime < 0.0) {
@@ -139,10 +136,6 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return status + Response::POSTPONE;
    }
 
-   if (!mParamsIO->isPresent("writeStep")) {
-      setDefaultWriteStep(message);
-   }
-
    return status;
 }
 
@@ -182,20 +175,6 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
          mArborList->getNumAxonalArbors(),
          mSharedWeights->getSharedWeightsFlag(),
          std::numeric_limits<double>::lowest() /*timestamp, set to value "close to" -infinity*/);
-}
-
-void WeightsPair::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (mParamsIO->isPresent("writeStep")) {
-      mWriteStep = mParamsIO->readValue<double>("writeStep");
-   }
-   else {
-      mWriteStep = message->mDeltaTime;
-      WarnLog().printf(
-            "Using column's dt = %f for %s \"%s\" writeStep parameter\n",
-            mWriteStep,
-            getKeyword(),
-            getName());
-   }
 }
 
 void WeightsPair::allocatePreWeights() {

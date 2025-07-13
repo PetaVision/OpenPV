@@ -38,7 +38,7 @@ Retina "Input" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    
    spikingFlag = true;
@@ -61,7 +61,7 @@ ANNLayer "NormalizeSumOutput" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -80,7 +80,7 @@ ANNLayer "NormalizeSumCheck" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -99,7 +99,7 @@ ANNSquaredLayer "NormalizeL2Output" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -118,7 +118,7 @@ ANNLayer "NormalizeL2Check" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -137,7 +137,7 @@ ANNLayer "NormalizeMaxOutput" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -156,7 +156,7 @@ ANNLayer "NormalizeMaxCheck" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
 
@@ -175,7 +175,7 @@ ANNLayer "NormalizeContrastZeroMeanOutput" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -194,7 +194,7 @@ ANNSquaredLayer "NormalizeContrastZeroMeanOutputSquared" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -213,7 +213,7 @@ ANNLayer "NormalizeContrastZeroMeanCheckMean" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -232,7 +232,7 @@ ANNLayer "NormalizeContrastZeroMeanCheckVariance" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    

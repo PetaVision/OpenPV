@@ -64,7 +64,7 @@ ConstantLayer "ConstantOnes" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 HyPerLayer "Post" = {
@@ -125,7 +125,7 @@ HyPerLayer "Comparison" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 MomentumConn "PreToConstantOnes" = {
@@ -142,8 +142,8 @@ MomentumConn "PreToConstantOnes" = {
     nyp                                 = 1;
     nfp                                 = 1;
     sharedWeights                       = true;
-    writeStep                           = 0;
-    initialWriteTime                    = 0;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 0.0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     weightInitType                      = "UniformWeight";

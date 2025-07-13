@@ -81,7 +81,7 @@ HyPerLayer "Output" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 PvpLayer "Correct" = {
@@ -123,7 +123,7 @@ HyPerLayer "Comparison" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 HyPerConn "InputToOutput" = {

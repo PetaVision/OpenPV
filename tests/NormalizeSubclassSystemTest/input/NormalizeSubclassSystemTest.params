@@ -43,7 +43,7 @@ Retina "input" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    
    spikingFlag = true;
@@ -65,7 +65,7 @@ ANNLayer "NormalizeL3Output" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -84,7 +84,7 @@ PtwiseProductLayer "OutputSquared" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -103,7 +103,7 @@ PtwiseProductLayer "OutputCubed" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    
@@ -122,7 +122,7 @@ ANNLayer "NormalizeL3Check" = {
    mirrorBCflag = false;
    valueBC = 0.0;
    writeStep = 1;
-   initialWriteTime = 0;
+   initialWriteTime = 0.0;
    sparseLayer = false;
    InitVType = "ZeroV";
    

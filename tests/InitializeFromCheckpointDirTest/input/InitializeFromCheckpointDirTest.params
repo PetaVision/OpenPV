@@ -67,7 +67,7 @@ PvpLayer "Input" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 LeakyIntegrator "Output" = {
@@ -88,7 +88,7 @@ LeakyIntegrator "Output" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
 };
 
 IdentConn "InputToOutput" = {

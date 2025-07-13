@@ -51,14 +51,11 @@ int LayerOutputComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
 
 void LayerOutputComponent::ioParam_writeStep(ParamsIOSwitch ioSwitch) {
    mParamsIO->ioParam(ioSwitch, "writeStep", &mWriteStep, false /*warnIfAbsentFlag*/);
-   // If not in params, will be set in CommunicateInitInfo stage
-   // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
-   // method also needs to be overridden.
 }
 
 void LayerOutputComponent::ioParam_initialWriteTime(ParamsIOSwitch ioSwitch) {
    assert(!mParamsIO->presentAndNotBeenRead("writeStep"));
-   if (mWriteStep >= 0.0) {
+   if (mWriteStep > 0.0) {
       mParamsIO->ioParam(ioSwitch, "initialWriteTime", &mInitialWriteTime);
       if (ioSwitch == ParamsIOSwitch::Read && mWriteStep > 0.0 && mInitialWriteTime < 0.0) {
          double storeInitialWriteTime = mInitialWriteTime;
@@ -83,9 +80,6 @@ void LayerOutputComponent::ioParam_initialWriteTime(ParamsIOSwitch ioSwitch) {
 
 Response::Status LayerOutputComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (!mParamsIO->isPresent("writeStep")) {
-      setDefaultWriteStep(message);
-   }
    auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
@@ -97,15 +91,6 @@ Response::Status LayerOutputComponent::communicateInitInfo(
    mPublisher     = objectTable->findObject<BasePublisherComponent>(getName());
    FatalIf(mPublisher == nullptr, "%s requires a BasePublisherComponent.\n", getDescription_c());
    return Response::SUCCESS;
-}
-
-void LayerOutputComponent::setDefaultWriteStep(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   pvAssert(mParamsIO->isPresent("writeStep") == false);
-   mWriteStep = message->mDeltaTime;
-   WarnLog().printf(
-         "Using dt = %f for parameter \"%s\" in group \"%s\"\n",
-         mWriteStep, "writeStep", getName());
 }
 
 Response::Status LayerOutputComponent::registerData(

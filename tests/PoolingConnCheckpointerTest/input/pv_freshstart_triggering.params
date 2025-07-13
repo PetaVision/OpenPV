@@ -63,7 +63,7 @@ HyPerLayer "Output" = {
     valueV                              = 2;
     triggerLayerName                    = NULL;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 0.0;
     sparseLayer                         = false;
     updateGpu                           = false;
 };

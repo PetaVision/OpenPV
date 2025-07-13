@@ -61,7 +61,7 @@ ANNLayer "Downsampled" = {
     triggerLayerName            = "Input";
     triggerOffset               = 0;
     writeStep                   = -1;
-    initialWriteTime            = 0;
+    initialWriteTime            = 0.0;
     sparseLayer                 = false;
 
     VThresh                     = -infinity;

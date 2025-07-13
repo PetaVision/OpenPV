@@ -187,11 +187,6 @@ void CloneWeightsPair::createPostWeights(std::string const &weightsName) {
    mPostWeights = mOriginalWeightsPair->getPostWeights();
 }
 
-void CloneWeightsPair::setDefaultWriteStep(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   pvAssert(mWriteStep < 0); // CloneWeightsPair doesn't use WriteStep.
-}
-
 Response::Status CloneWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
 Response::Status
