@@ -27,7 +27,11 @@ class CheckStatsAllZeros {
    bool getExitOnFailure() const { return mExitOnFailure; }
    double getFirstFailureTime() const { return mFirstFailureTime; }
    bool getImmediateExitOnFailure() const { return mImmediateExitOnFailure; }
-   // std::string const &getName() const { return mName; }
+
+   std::string const &getName() const { return mParams->getName(); }
+   std::string const &getKeyword() const { return mParams->getKeyword(); }
+   char const *getName_c() const { return mParams->getName().c_str(); }
+   char const *getKeyword_c() const { return mParams->getKeyword().c_str(); }
 
   protected:
    void setFirstFailure(std::map<int, LayerStats const> const &failureMap, double failureTime);
@@ -36,14 +40,15 @@ class CheckStatsAllZeros {
          double badTime,
          std::string const &baseMessage) const;
 
+  protected:
+   std::shared_ptr<ParamGroup> mParams;
+   std::shared_ptr<ParamGroup> mDefaults;
+
   private:
    bool mExitOnFailure = true;
    std::map<int, LayerStats const> mFirstFailure;
    double mFirstFailureTime;
    bool mImmediateExitOnFailure = true;
-   // std::string mName;
-   std::shared_ptr<ParamGroup> mParams;
-   std::shared_ptr<ParamGroup> mDefaults;
 }; // class CheckStatsAllZeros
 
 } // namespace PV

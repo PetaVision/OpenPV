@@ -38,6 +38,7 @@
 #include <functional>
 #include <stdexcept>
 #include <string>
+#include <sstream>
 #include <time.h>
 #include <unistd.h>
 #include <utility>

@@ -4,8 +4,9 @@
 
 namespace PV {
 
-CheckStatsAllZerosCheckSigma::CheckStatsAllZerosCheckSigma(char const *objName, PVParams *params)
-      : CheckStatsAllZeros(objName, params) {}
+CheckStatsAllZerosCheckSigma::CheckStatsAllZerosCheckSigma(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults)
+      : CheckStatsAllZeros(params, defaults) {}
 
 CheckStatsAllZerosCheckSigma::~CheckStatsAllZerosCheckSigma() {}
 
@@ -37,7 +38,7 @@ CheckStatsAllZerosCheckSigma::checkStats(ProbeData<LayerStats> const &statsBatch
       auto message = errorMessage(result, statsBatch.getTimestamp(), "nonzero activity");
       if (badSigma) {
          message.append("Probe \"")
-               .append(getName())
+               .append(mParams->getName())
                .append("\": Nonzero standard deviation at time ");
          message.append(std::to_string(statsBatch.getTimestamp()));
          message.append("; tolerance is ").append(std::to_string(tolSigma)).append("\n");
