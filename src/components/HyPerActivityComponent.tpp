@@ -14,10 +14,10 @@ namespace PV {
 
 template <typename G, typename V, typename A>
 HyPerActivityComponent<G, V, A>::HyPerActivityComponent(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 template <typename G, typename V, typename A>
@@ -25,10 +25,10 @@ HyPerActivityComponent<G, V, A>::~HyPerActivityComponent() {}
 
 template <typename G, typename V, typename A>
 void HyPerActivityComponent<G, V, A>::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityComponent::initialize(name, params, comm);
+   ActivityComponent::initialize(params, defaults, comm);
 }
 
 template <typename G, typename V, typename A>
@@ -51,17 +51,17 @@ void HyPerActivityComponent<G, V, A>::fillComponentTable() {
 
 template <typename G, typename V, typename A>
 ActivityBuffer *HyPerActivityComponent<G, V, A>::createActivity() {
-   return new A(getName(), parameters(), mCommunicator);
+   return new A(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 template <typename G, typename V, typename A>
 InternalStateBuffer *HyPerActivityComponent<G, V, A>::createInternalState() {
-   return new V(getName(), parameters(), mCommunicator);
+   return new V(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 template <typename G, typename V, typename A>
 GSynAccumulator *HyPerActivityComponent<G, V, A>::createAccumulatedGSyn() {
-   return new G(getName(), parameters(), mCommunicator);
+   return new G(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 template <typename G, typename V, typename A>

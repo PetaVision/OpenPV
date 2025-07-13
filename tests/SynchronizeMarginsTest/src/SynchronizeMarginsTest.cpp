@@ -173,13 +173,22 @@ void initGeometries(
    *geomB = nullptr;
    *geomC = nullptr;
 
-   *geomA = new PV::LayerGeometry("A", hc->parameters(), hc->getCommunicator());
+   PV::PVParams *parameters = hc->getPV_InitObj()->getParams();
+   std::shared_ptr<PV::ParamsIO> paramsIO = nullptr;
+
+   paramsIO = parameters->makeParamsIO("A");
+   *geomA = new PV::LayerGeometry(
+          paramsIO->getParams(), paramsIO->getDefaults(), hc->getCommunicator());
    (*geomA)->respond(communicateMessagePtr);
 
-   *geomB = new PV::LayerGeometry("B", hc->parameters(), hc->getCommunicator());
+   paramsIO = parameters->makeParamsIO("B");
+   *geomB = new PV::LayerGeometry(
+          paramsIO->getParams(), paramsIO->getDefaults(), hc->getCommunicator());
    (*geomB)->respond(communicateMessagePtr);
 
-   *geomC = new PV::LayerGeometry("C", hc->parameters(), hc->getCommunicator());
+   paramsIO = parameters->makeParamsIO("C");
+   *geomC = new PV::LayerGeometry(
+          paramsIO->getParams(), paramsIO->getDefaults(), hc->getCommunicator());
    (*geomC)->respond(communicateMessagePtr);
 }
 

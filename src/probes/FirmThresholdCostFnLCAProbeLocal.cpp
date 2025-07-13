@@ -3,23 +3,23 @@
 namespace PV {
 
 FirmThresholdCostFnLCAProbeLocal::FirmThresholdCostFnLCAProbeLocal(
-      char const *objName,
-      PVParams *params) {
-   initialize(objName, params);
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-void FirmThresholdCostFnLCAProbeLocal::initialize(char const *objName, PVParams *params) {
-   FirmThresholdCostFnProbeLocal::initialize(objName, params);
+void FirmThresholdCostFnLCAProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   FirmThresholdCostFnProbeLocal::initialize(params, defaults);
 }
 
-void FirmThresholdCostFnLCAProbeLocal::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void FirmThresholdCostFnLCAProbeLocal::ioParam_VThresh(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       warnUnnecessaryParameter("VThresh");
    }
 }
 
-void FirmThresholdCostFnLCAProbeLocal::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void FirmThresholdCostFnLCAProbeLocal::ioParam_VWidth(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       warnUnnecessaryParameter("VWidth");
    }
 }
@@ -30,8 +30,8 @@ void FirmThresholdCostFnLCAProbeLocal::setFirmThresholdParams(double VThresh, do
 }
 
 void FirmThresholdCostFnLCAProbeLocal::warnUnnecessaryParameter(char const *paramName) {
-   if (getParams()->present(getName_c(), paramName)) {
-      char const *className = getParams()->groupKeywordFromName(getName_c());
+   if (mParamsIO->isPresent(paramName)) {
+      char const *className = mParamsIO->getKeyword().c_str();
       WarnLog().printf(
             "Parameter %s is present in the params file for %s \"%s\", but %s does not use it. "
             "Instead, %s is taken from the target layer.\n",
@@ -41,7 +41,7 @@ void FirmThresholdCostFnLCAProbeLocal::warnUnnecessaryParameter(char const *para
             className,
             paramName);
       // mark param as read so that presentAndNotBeenRead() doesn't trip up
-      getParams()->value(getName_c(), paramName);
+      double paramValue = mParamsIO->readValue<double>(paramName, false /*warnIfAbsentFlag*/);
    }
 }
 

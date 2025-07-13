@@ -218,7 +218,6 @@ TransposeConn "ResidualToV1" = {
     updateGSynFromPostPerspective       = true;
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
-    writeCompressedCheckpoints          = false;
     originalConnName                    = "V1ToResidual";
 };
 
@@ -262,7 +261,6 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
     probeOutputFile                     = "AdaptiveTimeScales.txt";
     triggerLayerName                    = "Input";
     triggerOffset                       = 0;
-    energyProbe                         = NULL;
     baseMax                             = 0.55;
     baseMin                             = 0.5;
     tauFactor                           = 0.1;
@@ -275,7 +273,6 @@ ColumnEnergyProbe "TotalEnergyProbe" = {
     textOutputFlag                      = true;
     probeOutputFile                     = "total_energy.txt";
     triggerLayerName                    = NULL;
-    energyProbe                         = NULL;
 };
 
 L2NormProbe "ReconstructionErrorProbe" = {
@@ -298,8 +295,6 @@ FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
     triggerLayerName                    = NULL;
     energyProbe                         = "TotalEnergyProbe";
     maskLayerName                       = NULL;
-    VThresh                             = 0.025;
-    VWidth                              = 0.025;
 };
 
 RequireAllZeroActivityProbe "ComparisonTest" = {
@@ -308,7 +303,6 @@ RequireAllZeroActivityProbe "ComparisonTest" = {
     textOutputFlag                      = true;
     probeOutputFile                     = "ComparisonTest.txt";
     triggerLayerName                    = NULL;
-    energyProbe                         = NULL;
     nnzThreshold                        = 1e-06;
     exitOnFailure                       = false;
 };

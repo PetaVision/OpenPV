@@ -9,14 +9,20 @@
 
 namespace PV {
 
-PhaseParam::PhaseParam(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+PhaseParam::PhaseParam(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 PhaseParam::~PhaseParam() {}
 
-void PhaseParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void PhaseParam::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void PhaseParam::setObjectType() { mObjectType = "PhaseParam"; }
@@ -32,13 +38,13 @@ void PhaseParam::initMessageActionMap() {
    mMessageActionMap.emplace("LayerSetMaxPhase", action);
 }
 
-int PhaseParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_phase(ioFlag);
+int PhaseParam::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_phase(ioSwitch);
    return PV_SUCCESS;
 }
 
-void PhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "phase", &mPhase, mPhase);
+void PhaseParam::ioParam_phase(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "phase", &mPhase);
    if (mPhase < 0) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(

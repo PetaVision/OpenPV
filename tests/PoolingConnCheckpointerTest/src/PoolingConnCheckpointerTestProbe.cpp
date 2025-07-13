@@ -19,24 +19,24 @@ using namespace PV;
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() {}
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 PoolingConnCheckpointerTestProbe::~PoolingConnCheckpointerTestProbe() {}
 
 void PoolingConnCheckpointerTestProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   return ColProbe::initialize(name, params, comm);
+   return ColProbe::initialize(params, defaults, comm);
 }
 
-void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
-   ColProbe::ioParam_textOutputFlag(ioFlag);
-   if (ioFlag == PARAMS_IO_READ && !getTextOutputFlag()) {
+void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(ParamsIOSwitch ioSwitch) {
+   ColProbe::ioParam_textOutputFlag(ioSwitch);
+   if (ioSwitch == ParamsIOSwitch::Read && !getTextOutputFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog()
                << getDescription()

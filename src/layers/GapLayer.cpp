@@ -12,19 +12,25 @@
 
 namespace PV {
 
-GapLayer::GapLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+GapLayer::GapLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 GapLayer::~GapLayer() {}
 
-void GapLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   CloneVLayer::initialize(name, params, comm);
+void GapLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   CloneVLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *GapLayer::createActivityComponent() {
    return new CloneActivityComponent<CloneInternalStateBuffer, GapActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

@@ -23,14 +23,20 @@ namespace PV {
 template <typename V, typename A>
 class CloneActivityComponent : public ActivityComponent {
   public:
-   CloneActivityComponent(char const *name, PVParams *params, Communicator const *comm);
+   CloneActivityComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~CloneActivityComponent();
 
   protected:
    CloneActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

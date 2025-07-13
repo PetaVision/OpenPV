@@ -20,19 +20,25 @@ ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    initialize_base();
 }
 
-ColProbe::ColProbe(const char *name, PVParams *params, Communicator const *comm) {
+ColProbe::ColProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    WarnLog() << "ColProbe has been deprecated. Derive probe classes from ProbeInterface instead.\n";
    // ColProbe was deprecated on Apr 19, 2023.
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ColProbe::~ColProbe() {}
 
 int ColProbe::initialize_base() { return PV_SUCCESS; }
 
-void ColProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseProbe::initialize(name, params, comm);
+void ColProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseProbe::initialize(params, defaults, comm);
 }
 
 void ColProbe::initMessageActionMap() {
@@ -52,14 +58,14 @@ void ColProbe::initMessageActionMap() {
    mMessageActionMap.emplace("ColProbeOutputState", action);
 }
 
-int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = PV::BaseProbe::ioParamsFillGroup(ioFlag);
+int ColProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = PV::BaseProbe::ioParamsFillGroup(ioSwitch);
    return status;
 }
 
-void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      targetName = strdup("");
+void ColProbe::ioParam_targetName(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      targetName = "";
    }
 }
 

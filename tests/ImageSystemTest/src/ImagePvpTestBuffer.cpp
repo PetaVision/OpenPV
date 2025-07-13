@@ -3,10 +3,10 @@
 namespace PV {
 
 ImagePvpTestBuffer::ImagePvpTestBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 Response::Status

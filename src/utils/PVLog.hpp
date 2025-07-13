@@ -261,7 +261,7 @@ template <>
 inline void WarnLogType::exit() {}
 template <>
 inline void FatalType::exit() {
-   ::exit(EXIT_FAILURE);
+   std::exit(EXIT_FAILURE);
 }
 template <>
 inline void ErrorLogType::exit() {}

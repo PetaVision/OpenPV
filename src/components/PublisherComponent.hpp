@@ -31,22 +31,28 @@ class PublisherComponent : public BasePublisherComponent {
     * @brief sparseLayer: Specifies if the layer should be considered sparse for optimization and
     * output
     */
-   virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sparseLayer(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of PublisherComponent parameters
 
   public:
-   PublisherComponent(char const *name, PVParams *params, Communicator const *comm);
+   PublisherComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~PublisherComponent();
 
   protected:
    PublisherComponent();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 }; // class PublisherComponent
 
 } // namespace PV

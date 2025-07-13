@@ -17,41 +17,42 @@
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
 
-InitVFromFile::InitVFromFile(char const *name, PVParams *params, Communicator const *comm) {
+InitVFromFile::InitVFromFile(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-InitVFromFile::~InitVFromFile() { free(mVfilename); }
+InitVFromFile::~InitVFromFile() {}
 
 int InitVFromFile::initialize_base() { return PV_SUCCESS; }
 
-void InitVFromFile::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseInitV::initialize(name, params, comm);
+void InitVFromFile::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseInitV::initialize(params, defaults, comm);
 }
 
-int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseInitV::ioParamsFillGroup(ioFlag);
-   ioParam_Vfilename(ioFlag);
-   ioParam_frameNumber(ioFlag);
+int InitVFromFile::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseInitV::ioParamsFillGroup(ioSwitch);
+   ioParam_Vfilename(ioSwitch);
+   ioParam_frameNumber(ioSwitch);
    return status;
 }
 
-void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
-   if (mVfilename == nullptr) {
-      Fatal().printf(
-            "InitVFromFile::initialize, group \"%s\": for InitVFromFile, string parameter "
-            "\"Vfilename\" "
-            "must be defined.  Exiting\n",
-            getName());
-   }
+void InitVFromFile::ioParam_Vfilename(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "Vfilename", &mVfilename);
+   FatalIf(
+         mVfilename.empty(),
+         "InitVFromFile, group \"%s\": string parameter \"Vfilename\" must be defined. Exiting.\n",
+         getName());
 }
 
-void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
+void InitVFromFile::ioParam_frameNumber(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "frameNumber", &mFrameNumber);
 }
 
 Response::Status InitVFromFile::communicateInitInfo(
@@ -121,16 +122,16 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
          default:
             Fatal().printf(
                   "InitVFromFile \"%s\" is not an activity file (file type %d)\n",
-                  mVfilename, fileType);
+                  mVfilename.c_str(), fileType);
             break;
       }
    }
    else { // TODO: Treat as an image file
       if (fileManager->isRoot()) {
-         ErrorLog().printf("InitVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
+         ErrorLog().printf("InitVFromFile: file \"%s\" is not a pvp file.\n", mVfilename.c_str());
       }
       MPI_Barrier(fileManager->getMPIBlock()->getComm());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 }
 

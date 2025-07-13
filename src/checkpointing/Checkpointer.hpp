@@ -12,7 +12,7 @@
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "columns/Communicator.hpp"
 #include "io/FileManager.hpp"
-#include "io/PVParams.hpp"
+#include "params/ParamsIO.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
@@ -35,25 +35,25 @@ class Checkpointer : public Subject {
     * opening the file in read mode and reading back the data and comparing it
     * to the data just written.
     */
-   virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
+   virtual void ioParam_verifyWrites(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
     */
-   void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWrite(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief ioParam_checkpointWriteInsideOutputPath: Flag to determine whether
     * the checkpointWriteDir is taken relative to the outputPath varia
     */
-   void ioParam_checkpointWriteInsideOutputPath(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteInsideOutputPath(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output
     * checkpoint
     * directory.
     */
-   void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteDir(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief mCheckpointWriteTriggerMode: If checkpointWrite is set, specifies
@@ -64,19 +64,19 @@ class Checkpointer : public Subject {
     * - time: Checkpoint off of simulation time
     * - clock: Checkpoint off of clock time. Not implemented yet.
     */
-   void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteTriggerMode(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief checkpointWriteStepInterval: If checkpointWrite on step, specifies
     * the number of steps between checkpoints.
     */
-   void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteStepInterval(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief checkpointWriteTimeInteval: If checkpointWrite on time, specifies
     * the amount of simulation time between checkpoints.
     */
-   void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteTimeInterval(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
@@ -84,13 +84,13 @@ class Checkpointer : public Subject {
     * time between checkpoints.  The units are specified using the parameter
     * checkpointWriteClockUnit
     */
-   void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteClockInterval(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
     * the units used in checkpointWriteClockInterval.
     */
-   void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteClockUnit(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief If checkpointWrite is true, checkpointIndexWidth specifies the
@@ -104,33 +104,33 @@ class Checkpointer : public Subject {
     * stopTime and dt.
     * The default value is -1 (infer the width).
     */
-   void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointIndexWidth(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * If checkpointWrite is true and this flag is true,
     * connections will only checkpoint if plasticityFlag=true.
     */
-   void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_suppressNonplasticCheckpoints(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
     * should delete older checkpoints when writing new ones.
     */
-   void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_deleteOlderCheckpoints(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief mNumCheckpointsKept: If mDeleteOlderCheckpoints is set,
     * keep this many checkpoints before deleting the checkpoint.
     * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
     */
-   void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_numCheckpointsKept(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief initializeFromCheckpointDir: Sets directory used by
     * Checkpointer::initializeFromCheckpoint(). Layers and connections use this
     * directory if they set their initializeFromCheckpointFlag parameter.
     */
-   void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_initializeFromCheckpointDir(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * @brief lastCheckpointDir: If checkpointWrite is not set, this required parameter specifies
@@ -138,7 +138,7 @@ class Checkpointer : public Subject {
     * Writing the last checkpoint can be suppressed by setting this string to the empty string.
     * Relative paths are relative to the working directory.
     */
-   void ioParam_lastCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_lastCheckpointDir(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -156,7 +156,7 @@ class Checkpointer : public Subject {
          std::vector<Timer const *> const &timers = std::vector<Timer const *>());
    ~Checkpointer();
 
-   void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParams(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
    void provideFinalStep(long int finalStep);
 
    template <typename T>
@@ -194,9 +194,9 @@ class Checkpointer : public Subject {
    bool isCompleteCheckpoint(std::string const &candidateCheckpoint) const;
 
    std::shared_ptr<MPIBlock const> getMPIBlock() { return mMPIBlock; }
-   bool doesVerifyWrites() const { return mVerifyWrites; }
+   bool doesVerifyWrites() const { return mVerifyWritesFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
-   char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
+   char const *getCheckpointWriteDir() const { return mCheckpointWriteDir.c_str(); }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
       return mCheckpointWriteTriggerMode;
    }
@@ -204,13 +204,13 @@ class Checkpointer : public Subject {
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    std::string const &getCheckpointReadDirectory() const { return mCheckpointReadDirectory; }
-   char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
-   char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
+   std::string const &getLastCheckpointDir() const { return mLastCheckpointDir; }
+   std::string getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
    std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
 
   private:
    void initBlockDirectoryName();
-   void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParamsFillGroup(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO);
 
    /**
     * If called when mCheckpointReadDirectory is a colon-separated list of
@@ -256,7 +256,7 @@ class Checkpointer : public Subject {
    /**
     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds
-    * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
+    * mCheckpointWriteClockInterval, it sets mLastCheckpointWallclock to the current
     * wall clock time and returns true. Otherwise it returns false.
     */
    bool scheduledWallclock();
@@ -316,23 +316,23 @@ class Checkpointer : public Subject {
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mWarmStart                                                         = false;
-   bool mVerifyWrites                                                      = true;
-   bool mCheckpointWriteFlag                                               = false;
-   char *mCheckpointWriteDir                                               = nullptr;
-   char *mCheckpointWriteTriggerModeString                                 = nullptr;
-   enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode             = NONE;
-   long int mCheckpointWriteStepInterval                                   = 1L;
-   double mCheckpointWriteSimtimeInterval                                  = 1.0;
-   std::time_t mCheckpointWriteWallclockInterval                           = 1L;
-   char *mCheckpointWriteWallclockUnit                                     = nullptr;
-   std::time_t mCheckpointWriteWallclockIntervalSeconds                    = 1L;
-   int mCheckpointIndexWidth                                               = -1;
-   bool mSuppressNonplasticCheckpoints                                     = false;
-   bool mDeleteOlderCheckpoints                                            = false;
-   int mNumCheckpointsKept                                                 = 2;
-   char *mLastCheckpointDir                                                = nullptr;
-   char *mInitializeFromCheckpointDir                                      = nullptr;
-   std::shared_ptr<FileManager> mInitializeFromCheckpointFileManager       = nullptr;
+   bool mVerifyWritesFlag;
+   bool mCheckpointWriteFlag;
+   std::string mCheckpointWriteDir;
+   std::string mCheckpointWriteTriggerModeString;
+   enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode = NONE;
+   long int mCheckpointWriteStepInterval;
+   double mCheckpointWriteSimtimeInterval;
+   std::time_t mCheckpointWriteClockInterval;
+   std::string mCheckpointWriteClockUnit;
+   std::time_t mCheckpointWriteClockIntervalSeconds;
+   int mCheckpointIndexWidth;
+   int mSuppressNonplasticCheckpoints;
+   int mDeleteOlderCheckpoints;
+   int mNumCheckpointsKept;
+   std::string mLastCheckpointDir;
+   std::string mInitializeFromCheckpointDir;
+   std::shared_ptr<FileManager> mInitializeFromCheckpointFileManager = nullptr;
    std::string mCheckpointReadDirectory;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
    double mNextCheckpointSimtime        = 0.0;

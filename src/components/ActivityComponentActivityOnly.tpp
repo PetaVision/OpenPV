@@ -12,10 +12,10 @@ namespace PV {
 
 template <typename A>
 ActivityComponentActivityOnly<A>::ActivityComponentActivityOnly(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 template <typename A>
@@ -23,10 +23,10 @@ ActivityComponentActivityOnly<A>::~ActivityComponentActivityOnly() {}
 
 template <typename A>
 void ActivityComponentActivityOnly<A>::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityComponent::initialize(name, params, comm);
+   ActivityComponent::initialize(params, defaults, comm);
 }
 
 template <typename A>
@@ -36,7 +36,7 @@ void ActivityComponentActivityOnly<A>::setObjectType() {
 
 template <typename A>
 ActivityBuffer *ActivityComponentActivityOnly<A>::createActivity() {
-   return new A(getName(), parameters(), mCommunicator);
+   return new A(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // namespace PV

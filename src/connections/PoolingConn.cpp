@@ -11,16 +11,22 @@
 
 namespace PV {
 
-PoolingConn::PoolingConn(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+PoolingConn::PoolingConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 PoolingConn::PoolingConn() {}
 
 PoolingConn::~PoolingConn() {}
 
-void PoolingConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseConnection::initialize(name, params, comm);
+void PoolingConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseConnection::initialize(params, defaults, comm);
 }
 
 void PoolingConn::fillComponentTable() {
@@ -40,19 +46,19 @@ void PoolingConn::fillComponentTable() {
 }
 
 BaseDelivery *PoolingConn::createDeliveryObject() {
-   return new PoolingDelivery(getName(), parameters(), mCommunicator);
+   return new PoolingDelivery(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 PatchSize *PoolingConn::createPatchSize() {
-   return new PatchSize(getName(), parameters(), mCommunicator);
+   return new PatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 SharedWeights *PoolingConn::createSharedWeights() {
-   return new SharedWeights(getName(), parameters(), mCommunicator);
+   return new SharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 WeightsPairInterface *PoolingConn::createWeightsPair() {
-   return new ImpliedWeightsPair(getName(), parameters(), mCommunicator);
+   return new ImpliedWeightsPair(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // namespace PV

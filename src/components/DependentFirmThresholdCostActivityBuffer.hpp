@@ -27,7 +27,7 @@ class DependentFirmThresholdCostActivityBuffer : public FirmThresholdCostActivit
     * @brief VThresh:
     * The threshold value to use in calculating the cost function. This parameter is required.
     */
-   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_VThresh(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief VWidth:
@@ -35,13 +35,13 @@ class DependentFirmThresholdCostActivityBuffer : public FirmThresholdCostActivit
     * linearly between A=AMin when V=VThresh and A=VThresh+VWidth-AShift when V=VThresh+VWidth.
     * Default is zero.
     */
-   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_VWidth(ParamsIOSwitch ioSwitch) override;
 
    /** @} */
   public:
    DependentFirmThresholdCostActivityBuffer(
-         char const *name,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          Communicator const *comm);
 
    virtual ~DependentFirmThresholdCostActivityBuffer();
@@ -52,7 +52,10 @@ class DependentFirmThresholdCostActivityBuffer : public FirmThresholdCostActivit
   protected:
    DependentFirmThresholdCostActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

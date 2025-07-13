@@ -14,14 +14,20 @@ namespace PV {
 
 class InitSmartWeights : public InitWeights {
   public:
-   InitSmartWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitSmartWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    InitSmartWeights();
    virtual ~InitSmartWeights();
 
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    void smartWeights(float *dataStart, int k);

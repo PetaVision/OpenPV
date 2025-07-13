@@ -1,0 +1,15 @@
+Defaults "NonsharedConnDebugInitWeights" = {
+    #include "HyPerConn";
+    #remove sharedWeights;
+};
+
+Defaults "SharedConnDebugInitWeights" = {
+    #include "HyPerConn";
+    #remove sharedWeights;
+};
+
+Defaults "InitWeightTestProbe" = {
+    #include "StatsProbe";
+    #remove buffer;
+    #remove immediateMPIAssembly;
+};

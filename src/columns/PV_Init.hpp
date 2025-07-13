@@ -13,7 +13,7 @@
 #include "columns/Communicator.hpp"
 #include "columns/KeywordHandler.hpp"
 #include "io/Configuration.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 
 #include <memory>
 #include <string>
@@ -214,6 +214,8 @@ class PV_Init {
     * If not using PV_USE_OPENMP_THREADS, returns 1.
     */
    int getMaxThreads() const { return mMaxThreads; }
+
+   int registerDefaults(std::string const &defaultsPath);
 
    /**
     * The method to add a new object type to the PV_Init object's class factory.

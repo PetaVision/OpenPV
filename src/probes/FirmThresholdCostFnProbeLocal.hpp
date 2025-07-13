@@ -1,7 +1,6 @@
 #ifndef FIRMTHRESHOLDCOSTFNPROBELOCAL_HPP_
 #define FIRMTHRESHOLDCOSTFNPROBELOCAL_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/CostFunctionSum.hpp"
 #include "probes/CostFunctions.hpp"
 #include "probes/NormProbeLocalTemplate.hpp"
@@ -14,18 +13,18 @@ typedef NormProbeLocalTemplate<FirmThresholdCostFunctionSum> BaseFirmThresholdCo
 
 class FirmThresholdCostFnProbeLocal : public BaseFirmThresholdCostFnProbeLocal {
   protected:
-   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VThresh(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_VWidth(ParamsIOSwitch ioSwitch);
 
   public:
-   FirmThresholdCostFnProbeLocal(char const *objName, PVParams *params);
+   FirmThresholdCostFnProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~FirmThresholdCostFnProbeLocal() {}
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    FirmThresholdCostFnProbeLocal() {}
    virtual std::shared_ptr<FirmThresholdCostFunctionSum const> createCostFunctionSum() override;
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
   protected:
    double mVThresh = 0.0;

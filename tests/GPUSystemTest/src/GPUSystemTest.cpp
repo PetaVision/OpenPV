@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
 #ifdef MAIN_USES_CUSTOM_GROUPS
    PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    pv_initObj.registerKeyword("GPUSystemTestProbe", Factory::create<GPUSystemTestProbe>);
+   pv_initObj.registerDefaults("input/DefaultParams.txt");
    status = buildandrun(&pv_initObj);
 #else
    status = buildandrun(argc, argv);

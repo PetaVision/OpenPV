@@ -15,23 +15,25 @@ ComponentBasedObject::ComponentBasedObject() {
 }
 
 void ComponentBasedObject::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
-   std::string componentTableName = std::string("ObserverTable \"") + name + "\"";
+   BaseObject::initialize(params, defaults, comm);
+   std::string componentTableName = std::string("ObserverTable \"") + getName() + "\"";
    Subject::initializeTable(componentTableName.c_str());
 }
 
-int ComponentBasedObject::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int ComponentBasedObject::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
    // Components, like all BaseObject-derived objects, read their params during instantiation.
    // When writing out the params file, ComponentBasedObjects must pass the write message
    // to their components.
-   if (ioFlag == PARAMS_IO_WRITE) {
+   if (ioSwitch == ParamsIOSwitch::Write) {
       for (auto *c : *mTable) {
          auto obj = dynamic_cast<BaseObject *>(c);
          if (obj) {
-            obj->ioParams(ioFlag, false, false);
+            obj->getParamsIO()->setPrintParamsStream(this->getParamsIO()->getPrintParamsStream());
+            obj->getParamsIO()->setPrintLuaStream(this->getParamsIO()->getPrintLuaStream());
+            obj->ioParams(ioSwitch, false, false);
          }
       }
    }

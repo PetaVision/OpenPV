@@ -12,63 +12,69 @@
 
 namespace PV {
 
-LayerGeometry::LayerGeometry(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+LayerGeometry::LayerGeometry(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 LayerGeometry::LayerGeometry() {}
 
 LayerGeometry::~LayerGeometry() {}
 
-void LayerGeometry::initialize(char const *name, PVParams *params, Communicator const *comm) {
+void LayerGeometry::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    std::memset(&mLayerLoc, 0, sizeof(mLayerLoc));
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void LayerGeometry::setObjectType() { mObjectType = "LayerGeometry"; }
 
-int LayerGeometry::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_broadcastFlag(ioFlag);
-   ioParam_nxScale(ioFlag);
-   ioParam_nyScale(ioFlag);
-   ioParam_nf(ioFlag);
+int LayerGeometry::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_broadcastFlag(ioSwitch);
+   ioParam_nxScale(ioSwitch);
+   ioParam_nyScale(ioSwitch);
+   ioParam_nf(ioSwitch);
    return PV_SUCCESS;
 }
 
-void LayerGeometry::ioParam_broadcastFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "broadcastFlag", &mBroadcastFlag, mBroadcastFlag);
+void LayerGeometry::ioParam_broadcastFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "broadcastFlag", &mBroadcastFlag);
 }
 
-void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "broadcastFlag"));
+void LayerGeometry::ioParam_nxScale(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("broadcastFlag"));
    if (mBroadcastFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "nxScale")) {
+      if (ioSwitch == ParamsIOSwitch::Read and mParamsIO->isPresent("nxScale")) {
          WarnLog().printf(
                "%s has broadcastFlag = true; therefore nxScale is ignored.\n",
                getDescription_c());
       }
    }
    else {
-      parameters()->ioParamValue(ioFlag, getName(), "nxScale", &mNxScale, mNxScale);
+      mParamsIO->ioParam(ioSwitch, "nxScale", &mNxScale);
    }
 }
 
-void LayerGeometry::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "broadcastFlag"));
+void LayerGeometry::ioParam_nyScale(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("broadcastFlag"));
    if (mBroadcastFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "nyScale")) {
+      if (ioSwitch == ParamsIOSwitch::Read and mParamsIO->isPresent("nyScale")) {
          WarnLog().printf(
                "%s has broadcastFlag = true; therefore nyScale is ignored.\n",
                getDescription_c());
       }
    }
    else {
-      parameters()->ioParamValue(ioFlag, getName(), "nyScale", &mNyScale, mNyScale);
+      mParamsIO->ioParam(ioSwitch, "nyScale", &mNyScale);
    }
 }
 
-void LayerGeometry::ioParam_nf(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nf", &mNumFeatures, mNumFeatures);
+void LayerGeometry::ioParam_nf(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nf", &mNumFeatures);
 }
 
 Response::Status

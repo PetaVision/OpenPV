@@ -9,35 +9,41 @@
 namespace PV {
 
 LinearTransformLayer::LinearTransformLayer(
-      const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+      
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 void LinearTransformLayer::initialize(
-      const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+      
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *LinearTransformLayer::createActivityComponent() {
-   std::string const &groupKeyword = parameters()->groupKeywordFromName(getName());
+   std::string const &groupKeyword = getKeyword();
 
    if (groupKeyword == "RotateLayer") {
       return new HyPerActivityComponent<
             GSynAccumulator,
             HyPerInternalStateBuffer,
-            RotateActivityBuffer>(getName(), parameters(), mCommunicator);
+            RotateActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
    }
    if (groupKeyword == "ScaleXLayer") {
       return new HyPerActivityComponent<
             GSynAccumulator,
             HyPerInternalStateBuffer,
-            ScaleXActivityBuffer>(getName(), parameters(), mCommunicator);
+            ScaleXActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
    }
    if (groupKeyword == "ScaleYLayer") {
       return new HyPerActivityComponent<
             GSynAccumulator,
             HyPerInternalStateBuffer,
-            ScaleYActivityBuffer>(getName(), parameters(), mCommunicator);
+            ScaleYActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
    }
    Fatal().printf(
          "LinearTransformLayer \"%s\" has unrecognized group keyword \"%s\"\n",

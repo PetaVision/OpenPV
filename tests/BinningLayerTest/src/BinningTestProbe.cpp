@@ -7,7 +7,7 @@
 
 #include "BinningTestProbe.hpp"
 #include "structures/PVLayerLoc.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "layers/BinningLayer.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Response.hpp"
@@ -28,15 +28,21 @@
 
 namespace PV {
 
-BinningTestProbe::BinningTestProbe(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+BinningTestProbe::BinningTestProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
-void BinningTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(name, params);
+void BinningTestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 Response::Status
@@ -76,9 +82,9 @@ void BinningTestProbe::initMessageActionMap() {
    mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
-int BinningTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseObject::ioParamsFillGroup(ioFlag);
-   mProbeTargetLayerLocator->ioParamsFillGroup(ioFlag);
+int BinningTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseObject::ioParamsFillGroup(ioSwitch);
+   mProbeTargetLayerLocator->ioParamsFillGroup(ioSwitch);
    return status;
 }
 
@@ -173,7 +179,9 @@ BinningTestProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessag
 
 Response::Status
 BinningTestProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
+   mParamsIO->setPrintParamsStream(message->mPrintParamsStream);
+   mParamsIO->setPrintLuaStream(message->mPrintLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
 }
 

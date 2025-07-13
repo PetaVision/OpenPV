@@ -15,16 +15,22 @@
 namespace PV {
 class KmeansLayer : public HyPerLayer {
   public:
-   KmeansLayer(const char *name, PVParams *params, Communicator const *comm);
+   KmeansLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~KmeansLayer();
 
   protected:
    KmeansLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status updateState(double time, double dt) override;
    virtual int setActivity() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_TrainingFlag(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_TrainingFlag(ParamsIOSwitch ioSwitch);
    bool trainingFlag;
 
   private:

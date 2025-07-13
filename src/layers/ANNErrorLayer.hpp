@@ -18,13 +18,19 @@ namespace PV {
  */
 class ANNErrorLayer : public HyPerLayer {
   public:
-   ANNErrorLayer(const char *name, PVParams *params, Communicator const *comm);
+   ANNErrorLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ANNErrorLayer();
 
   protected:
    ANNErrorLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

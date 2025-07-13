@@ -15,36 +15,30 @@ namespace PV {
 MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer() {}
 
 MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 MomentumLCAInternalStateBuffer::~MomentumLCAInternalStateBuffer() {}
 
 int MomentumLCAInternalStateBuffer::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerLCAInternalStateBuffer::initialize(name, params, comm);
+   HyPerLCAInternalStateBuffer::initialize(params, defaults, comm);
    return PV_SUCCESS;
 }
 
-int MomentumLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLCAInternalStateBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_LCAMomentumRate(ioFlag);
+int MomentumLCAInternalStateBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerLCAInternalStateBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_LCAMomentumRate(ioSwitch);
    return status;
 }
 
-void MomentumLCAInternalStateBuffer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "LCAMomentumRate",
-         &mLCAMomentumRate,
-         mLCAMomentumRate,
-         true /*warnIfAbsent*/);
+void MomentumLCAInternalStateBuffer::ioParam_LCAMomentumRate(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "LCAMomentumRate", &mLCAMomentumRate);
 }
 
 Response::Status MomentumLCAInternalStateBuffer::communicateInitInfo(

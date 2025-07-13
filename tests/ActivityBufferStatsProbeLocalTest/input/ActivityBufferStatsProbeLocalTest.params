@@ -1,6 +1,6 @@
 debugParsing = false;
 HyPerCol "column" = {
-    dt                                  = 1;
+    // dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
     writeProgressToErr                  = false;

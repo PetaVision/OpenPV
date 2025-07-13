@@ -28,10 +28,13 @@ class HyPerDelivery : public BaseDelivery {
     * receiveGpu here, this class checks that if the value is present it agrees with
     * the correct value for the derived class (based on the value of mCorrectReceiveGpu).
     */
-   void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
+   void ioParam_receiveGpu(ParamsIOSwitch ioSwitch) override;
 
   public:
-   HyPerDelivery(char const *name, PVParams *params, Communicator const *comm);
+   HyPerDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~HyPerDelivery();
 
@@ -42,7 +45,10 @@ class HyPerDelivery : public BaseDelivery {
   protected:
    HyPerDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -26,19 +26,25 @@ class CopyUpdater : public BaseWeightUpdater {
     * CopyUpdater does not read plasticity from params, but copies it from the
     * original connection's updater
     */
-   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_plasticityFlag(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of CopyUpdater parameters
 
   public:
-   CopyUpdater(char const *name, PVParams *params, Communicator const *comm);
+   CopyUpdater(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~CopyUpdater() {}
 
   protected:
    CopyUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

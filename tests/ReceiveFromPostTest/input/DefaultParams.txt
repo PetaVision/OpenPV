@@ -1,0 +1,6 @@
+Defaults "ReceiveFromPostProbe" = {
+    #include "StatsProbe";
+    #remove buffer;
+    #remove immediateMPIAssembly;
+    tolerance = 1.0e-3;
+};

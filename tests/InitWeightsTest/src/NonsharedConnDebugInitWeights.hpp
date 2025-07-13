@@ -14,15 +14,21 @@ namespace PV {
 
 class NonsharedConnDebugInitWeights : public PV::HyPerConn {
   protected:
-   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightInitType(ParamsIOSwitch ioSwitch);
 
   public:
    NonsharedConnDebugInitWeights();
-   NonsharedConnDebugInitWeights(const char *name, PVParams *params, Communicator const *comm);
+   NonsharedConnDebugInitWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NonsharedConnDebugInitWeights();
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual SharedWeights *createSharedWeights() override;
 
@@ -30,7 +36,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
    // This class computes weights without using InitWeights class,
    // in order to compare to connections that do use the weightInitializer.
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -95,7 +101,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
    dataIndexToUnitCellIndex(int dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
 
   protected:
-   char *mWeightInitTypeString = nullptr;
+   std::string mWeightInitTypeString;
 };
 
 } /* namespace PV */

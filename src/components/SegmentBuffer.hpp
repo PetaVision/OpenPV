@@ -17,10 +17,13 @@ namespace PV {
 
 class SegmentBuffer : public ActivityBuffer {
   protected:
-   void ioParam_segmentMethod(enum ParamsIOFlag ioFlag);
+   void ioParam_segmentMethod(ParamsIOSwitch ioSwitch);
 
   public:
-   SegmentBuffer(const char *name, PVParams *params, Communicator const *comm);
+   SegmentBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~SegmentBuffer();
 
    virtual Response::Status allocateDataStructures() override;
@@ -29,8 +32,11 @@ class SegmentBuffer : public ActivityBuffer {
 
   protected:
    SegmentBuffer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    void setOriginalActivity(ObserverTable const *table);
@@ -68,7 +74,7 @@ class SegmentBuffer : public ActivityBuffer {
   private:
    // Data structures to keep track of segmentation labels and centroid idx
    ActivityBuffer *mOriginalActivity = nullptr;
-   char *segmentMethod               = nullptr;
+   std::string segmentMethod;
 
 }; // class SegmentBuffer
 

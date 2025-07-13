@@ -12,24 +12,24 @@
 
 namespace PV {
 GPUSystemTestProbe::GPUSystemTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 GPUSystemTestProbe::~GPUSystemTestProbe() {}
 
-void GPUSystemTestProbe::createProbeCheckStats(char const *name, PVParams *params) {
-   mCheckStats = std::make_shared<CheckStatsAllZerosCheckSigma>(name, params);
+void GPUSystemTestProbe::createProbeCheckStats(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mCheckStats = std::make_shared<CheckStatsAllZerosCheckSigma>(params, defaults);
 }
 
-void GPUSystemTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
-}
-
-void GPUSystemTestProbe::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   RequireAllZeroActivityProbe::initialize(name, params, comm);
+void GPUSystemTestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   RequireAllZeroActivityProbe::initialize(params, defaults, comm);
 }
 
 } // end namespace PV

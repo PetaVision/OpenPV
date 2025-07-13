@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
    //
    int status = buildandrun(argc, argv);
 #else // MAIN_USES_CUSTOM_GROUPS
+   int status = PV_SUCCESS;
    PV_Init pv_initObj(&argc, &argv, false /*allowUnrecognizedArgumentsFlag*/);
    //
    // If you create a new class that buildandrun needs to know about, you need to register the
@@ -29,8 +30,10 @@ int main(int argc, char *argv[]) {
    // pv_initObj.registerKeyword("CustomClass1", Factory::create<CustomClass1>);
    // pv_initObj.registerKeyword("CustomClass2", Factory::create<CustomClass2>);
    // etc.
-   //
-   int status = buildandrun(&pv_initObj, nullptr, nullptr);
+   // If you want to provide parameters in custom classes with default values, you
+   // need to add the defaults.
+   // pv_initObj.registerDefaults("/path/to/custom/default/params/file");
+   status = buildandrun(&pv_initObj, nullptr, nullptr);
 #endif // MAIN_USES_CUSTOM_GROUPS
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

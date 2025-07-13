@@ -14,13 +14,19 @@ namespace PV {
 
 class PoolingIndexLayer : public HyPerLayer {
   public:
-   PoolingIndexLayer(const char *name, PVParams *params, Communicator const *comm);
+   PoolingIndexLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~PoolingIndexLayer();
 
   protected:
    PoolingIndexLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
 }; // end of class PoolingIndexLayer

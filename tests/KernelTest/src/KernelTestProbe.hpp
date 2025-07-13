@@ -9,19 +9,26 @@
 #define KERNELTESTPROBE_HPP_
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
 class KernelTestProbe : public PV::StatsProbeImmediate {
   public:
-   KernelTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   KernelTestProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    virtual void checkStats() override;
-   virtual void createProbeLocal(char const *name, PVParams *params) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 };
 
 } /* namespace PV */

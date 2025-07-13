@@ -10,38 +10,36 @@
 namespace PV {
 
 InitUniformWeights::InitUniformWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitUniformWeights::InitUniformWeights() {}
 
 InitUniformWeights::~InitUniformWeights() {}
 
-void InitUniformWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InitWeights::initialize(name, params, comm);
+void InitUniformWeights::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InitWeights::initialize(params, defaults, comm);
 }
 
-int InitUniformWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitWeights::ioParamsFillGroup(ioFlag);
-   ioParam_weightInit(ioFlag);
-   ioParam_connectOnlySameFeatures(ioFlag);
+int InitUniformWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_weightInit(ioSwitch);
+   ioParam_connectOnlySameFeatures(ioSwitch);
    return status;
 }
 
-void InitUniformWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
+void InitUniformWeights::ioParam_weightInit(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "weightInit", &mWeightInit);
 }
 
-void InitUniformWeights::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "connectOnlySameFeatures",
-         &mConnectOnlySameFeatures,
-         mConnectOnlySameFeatures);
+void InitUniformWeights::ioParam_connectOnlySameFeatures(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "connectOnlySameFeatures", &mConnectOnlySameFeatures);
 }
 
 void InitUniformWeights::calcWeights(int patchIndex, int arborId) {

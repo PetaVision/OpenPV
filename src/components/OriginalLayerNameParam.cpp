@@ -11,19 +11,19 @@
 namespace PV {
 
 OriginalLayerNameParam::OriginalLayerNameParam(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 OriginalLayerNameParam::~OriginalLayerNameParam() {}
 
 void OriginalLayerNameParam::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   LinkedObjectParam::initialize(name, params, comm, std::string("originalLayerName"));
+   LinkedObjectParam::initialize(params, defaults, comm, std::string("originalLayerName"));
 }
 
 void OriginalLayerNameParam::setObjectType() { mObjectType = "OriginalLayerNameParam"; }

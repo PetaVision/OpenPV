@@ -21,15 +21,21 @@ class InputRegionActivityComponent : public ActivityComponent {
    /**
     * @brief updateGpu: InputRegionActivityComponent always sets this flag to false.
     */
-   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_updateGpu(ParamsIOSwitch ioSwitch) override;
 
   public:
-   InputRegionActivityComponent(const char *name, PVParams *params, Communicator const *comm);
+   InputRegionActivityComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InputRegionActivityComponent();
 
   protected:
    InputRegionActivityComponent();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

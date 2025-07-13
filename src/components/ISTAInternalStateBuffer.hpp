@@ -27,25 +27,31 @@ class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
     * @brief timeConstantTau: the time constant tau,
     * used in solving the differential equation dV/dt = 1/tau * (-V + A + GSyn).
     */
-   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_timeConstantTau(ParamsIOSwitch ioSwitch);
    /**
     * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the
     * AdaptiveTimeScaleProbe that will compute the dt values.
     */
-   virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_adaptiveTimeScaleProbe(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   ISTAInternalStateBuffer(const char *name, PVParams *params, Communicator const *comm);
+   ISTAInternalStateBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ISTAInternalStateBuffer();
 
   protected:
    ISTAInternalStateBuffer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
@@ -68,7 +74,7 @@ class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
   protected:
    double mTimeConstantTau = 1.0; // The time constant tau in the equation dV/dt=1/tau*(-V+A+GSyn).
    float mScaledTimeConstantTau                    = 1.0f; // tau/dt, used in numerical integration.
-   char *mAdaptiveTimeScaleProbeName               = nullptr;
+   std::string mAdaptiveTimeScaleProbeName;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;
    std::vector<double> mDeltaTimes;
    ANNActivityBuffer *mActivity = nullptr;

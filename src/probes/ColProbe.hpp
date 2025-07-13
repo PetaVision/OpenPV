@@ -34,7 +34,10 @@ class ColProbe : public BaseProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   ColProbe(const char *name, PVParams *params, Communicator const *comm);
+   ColProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    /**
     * Destructor for the ColProbe class.
@@ -59,7 +62,10 @@ class ColProbe : public BaseProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    /**
     * Defines actions for the ColProbeWriteParams and ColProbeOutputState messages,
@@ -81,14 +87,14 @@ class ColProbe : public BaseProbe {
     * ioParamsFillGroup method should call its base class's ioParamsFillGroup
     * method.
     */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief targetName: ColProbe sets targetName to the empty string,
     * since the only possible target is the parent HyPerCol. The targenName
     * parameter is neither read nor written by this method.
     */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_targetName(ParamsIOSwitch ioSwitch) override;
 
    Response::Status
    respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));

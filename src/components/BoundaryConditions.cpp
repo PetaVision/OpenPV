@@ -10,36 +10,39 @@
 namespace PV {
 
 BoundaryConditions::BoundaryConditions(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 BoundaryConditions::BoundaryConditions() {}
 
 BoundaryConditions::~BoundaryConditions() {}
 
-void BoundaryConditions::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void BoundaryConditions::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void BoundaryConditions::setObjectType() { mObjectType = "BoundaryConditions"; }
 
-int BoundaryConditions::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_mirrorBCflag(ioFlag);
-   ioParam_valueBC(ioFlag);
+int BoundaryConditions::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_mirrorBCflag(ioSwitch);
+   ioParam_valueBC(ioSwitch);
    return PV_SUCCESS;
 }
 
-void BoundaryConditions::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "mirrorBCflag", &mMirrorBCflag, mMirrorBCflag);
+void BoundaryConditions::ioParam_mirrorBCflag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "mirrorBCflag", &mMirrorBCflag);
 }
 
-void BoundaryConditions::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "mirrorBCflag"));
+void BoundaryConditions::ioParam_valueBC(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("mirrorBCflag"));
    if (!mMirrorBCflag) {
-      parameters()->ioParamValue(ioFlag, getName(), "valueBC", &mValueBC, mValueBC);
+      mParamsIO->ioParam(ioSwitch, "valueBC", &mValueBC);
    }
 }
 

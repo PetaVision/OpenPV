@@ -46,10 +46,12 @@ bool LayerArchive::operator==(LayerArchive const &comparison) const {
                int const x = kxPos(n, nx, ny, nf) + layerLoc.kx0;
                int const y = kyPos(n, nx, ny, nf) + layerLoc.ky0;
                int const f = featureIndex(n, nx, ny, nf);
-               std::stringstream fieldstream("");
-               fieldstream << "values in batch element " << b << " at x=" << x << ",y=" << y
-                           << ",f=" << f;
-               compareFields("Activities", fieldstream.str().c_str(), dat1[nExt1], dat2[nExt2]);
+               std::string fieldstream("values in batch element #1 at x=#2,y=#3,f=#4");
+               fieldstream.replace(fieldstream.find("#1"), 2, std::to_string(b));
+               fieldstream.replace(fieldstream.find("#2"), 2, std::to_string(x));
+               fieldstream.replace(fieldstream.find("#3"), 2, std::to_string(y));
+               fieldstream.replace(fieldstream.find("#4"), 2, std::to_string(f));
+               compareFields("Activities", fieldstream.c_str(), dat1[nExt1], dat2[nExt2]);
                areEqual = false;
             }
          }
@@ -81,11 +83,13 @@ bool ConnArchive::operator==(ConnArchive const &comparison) const {
                   int const x = kxPos(widx, nxp, nyp, nfp);
                   int const y = kyPos(widx, nxp, nyp, nfp);
                   int const f = featureIndex(widx, nxp, nyp, nfp);
-                  std::stringstream fieldstream("");
-                  fieldstream << "values in data patch " << patchIdx << " at x=" << x << ",y=" << y
-                              << ",f=" << f;
+                  std::string fieldstream("values in data patch #1 at x=#2,y=#3,f=#4");
+                  fieldstream.replace(fieldstream.find("#1"), 2, std::to_string(patchIdx));
+                  fieldstream.replace(fieldstream.find("#2"), 2, std::to_string(x));
+                  fieldstream.replace(fieldstream.find("#3"), 2, std::to_string(y));
+                  fieldstream.replace(fieldstream.find("#4"), 2, std::to_string(f));
                   compareFields(
-                        "Weights", fieldstream.str().c_str(), patchdata1[widx], patchdata2[widx]);
+                        "Weights", fieldstream.c_str(), patchdata1[widx], patchdata2[widx]);
                   areEqual = false;
                }
             }

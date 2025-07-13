@@ -28,34 +28,40 @@ class DependentPatchSize : public PatchSize {
     * @brief nxp: DependentPatchSize does not read the nxp parameter,
     * but copies it from the original connection.
     */
-   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_nxp(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief nyp: DependentPatchSize does not read the nyp parameter,
     * but copies it from the original connection.
     */
-   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_nyp(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief nfp: DependentPatchSize does not read the nfp parameter,
     * but copies it from the original connection.
     */
-   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_nfp(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of DependentPatchSize parameters
 
   public:
-   DependentPatchSize(char const *name, PVParams *params, Communicator const *comm);
+   DependentPatchSize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~DependentPatchSize();
 
   protected:
    DependentPatchSize();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

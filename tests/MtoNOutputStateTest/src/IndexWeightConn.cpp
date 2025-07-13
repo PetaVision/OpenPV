@@ -10,24 +10,30 @@
 
 namespace PV {
 
-IndexWeightConn::IndexWeightConn(const char *name, PVParams *params, Communicator const *comm)
+IndexWeightConn::IndexWeightConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : HyPerConn() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 IndexWeightConn::~IndexWeightConn() {}
 
-void IndexWeightConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerConn::initialize(name, params, comm);
+void IndexWeightConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerConn::initialize(params, defaults, comm);
 }
 
 InitWeights *IndexWeightConn::createWeightInitializer() {
-   parameters()->handleUnnecessaryStringParameter(getName(), "weightInitType", nullptr);
+   mParamsIO->handleUnnecessaryParameter("weightInitType", std::string(""));
    return nullptr;
 }
 
 BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
-   return new IndexWeightUpdater(getName(), parameters(), mCommunicator);
+   return new IndexWeightUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status

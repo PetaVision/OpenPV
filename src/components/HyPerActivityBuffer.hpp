@@ -19,14 +19,20 @@ namespace PV {
 class HyPerActivityBuffer : public VInputActivityBuffer {
 
   public:
-   HyPerActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   HyPerActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~HyPerActivityBuffer();
 
   protected:
    HyPerActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

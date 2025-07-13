@@ -3,23 +3,26 @@
 
 namespace PV {
 
-LogTimeScaleProbe::LogTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+LogTimeScaleProbe::LogTimeScaleProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-int LogTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioFlag);
-   ioParam_logThresh(ioFlag);
-   ioParam_logSlope(ioFlag);
+int LogTimeScaleProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioSwitch);
+   ioParam_logThresh(ioSwitch);
+   ioParam_logSlope(ioSwitch);
    return status;
 }
 
-void LogTimeScaleProbe::ioParam_logThresh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "logThresh", &mLogThresh, mLogThresh);
+void LogTimeScaleProbe::ioParam_logThresh(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "logThresh", &mLogThresh);
 }
 
-void LogTimeScaleProbe::ioParam_logSlope(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "logSlope", &mLogSlope, mLogSlope);
+void LogTimeScaleProbe::ioParam_logSlope(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "logSlope", &mLogSlope);
 }
 
 void LogTimeScaleProbe::allocateTimeScaleController() {

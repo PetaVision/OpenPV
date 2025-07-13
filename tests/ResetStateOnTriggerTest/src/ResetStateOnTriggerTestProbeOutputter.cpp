@@ -8,22 +8,22 @@
 #include <vector>
 
 ResetStateOnTriggerTestProbeOutputter::ResetStateOnTriggerTestProbeOutputter(
-      char const *objName,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void ResetStateOnTriggerTestProbeOutputter::initialize(
-      char const *objName,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   BaseProbeOutputter::initialize(objName, params, comm);
+   BaseProbeOutputter::initialize(params, defaults, comm);
 }
 
 void ResetStateOnTriggerTestProbeOutputter::printGlobalStatsBuffer(
       PV::ProbeData<int> const &globalDiscrepancies) {
-   pvAssert(getProbeOutputFilename() != nullptr and getProbeOutputFilename()[0] != '\0');
+   pvAssert(!getProbeOutputFilename().empty());
 #ifdef PV_USE_MPI
    if (getCommunicator()->commRank() != 0) {
       return;

@@ -11,10 +11,10 @@
 namespace PV {
 
 PostsynapticPerspectiveStochasticDelivery::PostsynapticPerspectiveStochasticDelivery(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 PostsynapticPerspectiveStochasticDelivery::PostsynapticPerspectiveStochasticDelivery() {}
@@ -24,11 +24,11 @@ PostsynapticPerspectiveStochasticDelivery::~PostsynapticPerspectiveStochasticDel
 }
 
 void PostsynapticPerspectiveStochasticDelivery::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    mReceiveGpu = false; // If it's true, we should be using a different class.
-   HyPerDelivery::initialize(name, params, comm);
+   HyPerDelivery::initialize(params, defaults, comm);
 }
 
 void PostsynapticPerspectiveStochasticDelivery::setObjectType() {

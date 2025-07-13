@@ -66,7 +66,9 @@ int main(int argc, char *argv[]) {
    initObj.registerKeyword("CPTestInputLayer", Factory::create<CPTestInputLayer>);
    initObj.registerKeyword("VaryingHyPerConn", Factory::create<VaryingHyPerConn>);
 
+   std::string customDefaultsPath("input/DefaultParams.txt");
    initObj.setParams(paramFile1);
+   initObj.registerDefaults(customDefaultsPath);
 
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {
@@ -79,6 +81,7 @@ int main(int argc, char *argv[]) {
    }
 
    initObj.setParams(paramFile2);
+   initObj.registerDefaults(customDefaultsPath);
    initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj, nullptr, customexit);
@@ -104,7 +107,9 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    if (rank == rootproc) {
       int index = hc->getFinalStep();
       std::string cpdir1("checkpoints1");
-      std::string cpdir2(hc->parameters()->stringValue("column", "checkpointWriteDir"));
+      PVParams *params = hc->getPV_InitObj()->getParams();
+      auto paramsIO = params->makeParamsIO("column");
+      std::string cpdir2 = paramsIO->readValue<std::string>("checkpointWriteDir");
       std::string checkpointName = std::string("Checkpoint") + std::to_string(index);
       std::string checkpointDir1 = cpdir1 + "/" + checkpointName;
       std::string checkpointDir2 = cpdir2 + "/" + checkpointName;

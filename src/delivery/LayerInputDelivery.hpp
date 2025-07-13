@@ -41,18 +41,21 @@ class LayerInputDelivery : public BaseObject {
     * @details Channels can be -1 for no update, or >= 0 for channel number. <br />
     * 0 is excitatory, 1 is inhibitory
     */
-   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCode(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to
     * true, the connection uses the GPU to update the postsynaptic layer's GSyn.
     * If compiled without GPU acceleration, it is an error to set this flag to true.
     */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_receiveGpu(ParamsIOSwitch ioSwitch);
    /** @} */ // end of LayerInputDelivery parameters
 
   public:
-   LayerInputDelivery(char const *name, PVParams *params, Communicator const *comm);
+   LayerInputDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~LayerInputDelivery() {}
 
@@ -72,11 +75,14 @@ class LayerInputDelivery : public BaseObject {
   protected:
    LayerInputDelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    ChannelType mChannelCode = CHANNEL_EXC;

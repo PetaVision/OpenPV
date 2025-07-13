@@ -14,22 +14,28 @@ namespace PV {
 
 class InitCocircWeights : public InitGauss2DWeights {
   protected:
-   virtual void ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_sigmaKurve(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_cocircSelf(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sigmaCocirc(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_sigmaKurve(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_cocircSelf(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_deltaRadiusCurvature(ParamsIOSwitch ioSwitch);
 
   public:
-   InitCocircWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitCocircWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitCocircWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
    InitCocircWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    float calcKurvePostAndSigmaKurvePost(int kfPost);

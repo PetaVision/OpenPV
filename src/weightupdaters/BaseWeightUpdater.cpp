@@ -9,24 +9,29 @@
 
 namespace PV {
 
-BaseWeightUpdater::BaseWeightUpdater(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+BaseWeightUpdater::BaseWeightUpdater(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void BaseWeightUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void BaseWeightUpdater::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void BaseWeightUpdater::setObjectType() { mObjectType = "Updater for "; }
 
-int BaseWeightUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_plasticityFlag(ioFlag);
+int BaseWeightUpdater::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_plasticityFlag(ioSwitch);
    return PV_SUCCESS;
 }
 
-void BaseWeightUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "plasticityFlag", &mPlasticityFlag, mPlasticityFlag /*default value*/);
+void BaseWeightUpdater::ioParam_plasticityFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "plasticityFlag", &mPlasticityFlag);
 }
 
 } // namespace PV

@@ -13,47 +13,30 @@ namespace PV {
 NormalizeContrastZeroMean::NormalizeContrastZeroMean() { initialize_base(); }
 
 NormalizeContrastZeroMean::NormalizeContrastZeroMean(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 int NormalizeContrastZeroMean::initialize_base() { return PV_SUCCESS; }
 
 void NormalizeContrastZeroMean::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   NormalizeBase::initialize(name, params, comm);
+   NormalizeBase::initialize(params, defaults, comm);
 }
 
-int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
-   ioParam_minSumTolerated(ioFlag);
+int NormalizeContrastZeroMean::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = NormalizeBase::ioParamsFillGroup(ioSwitch);
+   ioParam_minSumTolerated(ioSwitch);
    return status;
 }
 
-void NormalizeContrastZeroMean::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "minSumTolerated", &minSumTolerated, 0.0f, true /*warnIfAbsent*/);
-}
-
-void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      if (parameters()->present(getName(), "normalizeFromPostPerspective")) {
-         if (mCommunicator->globalCommRank() == 0) {
-            WarnLog().printf(
-                  "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use "
-                  "normalizeFromPostPerspective parameter.\n",
-                  parameters()->groupKeywordFromName(getName()),
-                  getName());
-         }
-         parameters()->value(
-               getName(), "normalizeFromPostPerspective"); // marks param as having been read
-      }
-   }
+void NormalizeContrastZeroMean::ioParam_minSumTolerated(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "minSumTolerated", &minSumTolerated);
 }
 
 int NormalizeContrastZeroMean::normalizeWeights() {

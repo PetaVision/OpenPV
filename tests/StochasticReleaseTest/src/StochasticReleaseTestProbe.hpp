@@ -11,7 +11,7 @@
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/StatsProbeImmediate.hpp"
 
@@ -22,7 +22,10 @@ namespace PV {
 
 class StochasticReleaseTestProbe : public PV::StatsProbeImmediate {
   public:
-   StochasticReleaseTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   StochasticReleaseTestProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~StochasticReleaseTestProbe();
 
    virtual Response::Status
@@ -31,10 +34,17 @@ class StochasticReleaseTestProbe : public PV::StatsProbeImmediate {
   protected:
    StochasticReleaseTestProbe();
    virtual void checkStats() override;
-   virtual void createProbeLocal(char const *name, PVParams *params) override;
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
    virtual void
-   createProbeOutputter(char const *name, PVParams *params, Communicator const *comm) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   createProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    int computePValues();
 
    // Member variables

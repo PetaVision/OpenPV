@@ -15,21 +15,27 @@
 
 namespace PV {
 
-IndexLayer::IndexLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+IndexLayer::IndexLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 IndexLayer::~IndexLayer() {}
 
-void IndexLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void IndexLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *IndexLayer::createActivityComponent() {
    // IndexInternalState isn't a CloneV-type InternalState, but it doesn't use GSyn,
    // so the CloneActivityComponent class template does what we need.
    return new CloneActivityComponent<IndexInternalState, HyPerActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

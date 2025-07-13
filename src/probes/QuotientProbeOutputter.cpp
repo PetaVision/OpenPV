@@ -3,17 +3,17 @@
 namespace PV {
 
 QuotientProbeOutputter::QuotientProbeOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void QuotientProbeOutputter::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseProbeOutputter::initialize(objName, params, comm);
+   BaseProbeOutputter::initialize(params, defaults, comm);
 }
 
 void QuotientProbeOutputter::print(
@@ -27,7 +27,7 @@ void QuotientProbeOutputter::print(
 
 void QuotientProbeOutputter::printBuffer(ProbeDataBuffer<double> const &storedValues) {
    if (getTextOutputFlag()) {
-      if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
+      if (!getProbeOutputFilename().empty()) {
          printToFiles(storedValues);
       }
       else {
@@ -45,7 +45,7 @@ void QuotientProbeOutputter::printHeader() {
 }
 
 void QuotientProbeOutputter::printToFiles(ProbeDataBuffer<double> const &storedValues) {
-   pvAssert(getProbeOutputFilename() != nullptr and getProbeOutputFilename()[0] != '\0');
+   pvAssert(!getProbeOutputFilename().empty());
 #ifdef PV_USE_MPI
    if (getCommunicator()->commRank() != 0) {
       return;
@@ -105,7 +105,7 @@ void QuotientProbeOutputter::printToFiles(ProbeDataBuffer<double> const &storedV
 }
 
 void QuotientProbeOutputter::printToLog(ProbeDataBuffer<double> const &storedValues) {
-   pvAssert(getProbeOutputFilename() == nullptr or getProbeOutputFilename()[0] == '\0');
+   pvAssert(getProbeOutputFilename().empty());
    int rank = getCommunicator()->commRank();
    if (rank == 0) {
       int globalBatchStart = calcGlobalBatchOffset();

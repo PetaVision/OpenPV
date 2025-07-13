@@ -14,14 +14,20 @@ namespace PV {
 
 class FeedbackConn : public TransposeConn {
   public:
-   FeedbackConn(char const *name, PVParams *params, Communicator const *comm);
+   FeedbackConn(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~FeedbackConn();
 
   protected:
    FeedbackConn();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ConnectionData *createConnectionData() override;
 }; // class FeedbackConn

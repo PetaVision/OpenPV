@@ -29,16 +29,19 @@ class PtwiseQuotientGSynAccumulator : public GSynAccumulator {
     * @brief channelIndices: PtwiseQuotientGSynAccumulator does not use channelIndices.
     * channel coefficients will be specified.
     */
-   virtual void ioParam_channelIndices(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_channelIndices(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief channelIndices: PtwiseQuotientGSynAccumulator does not use channelCoefficients.
     */
-   virtual void ioParam_channelCoefficients(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_channelCoefficients(ParamsIOSwitch ioSwitch) override;
 
    /** @} */
   public:
-   PtwiseQuotientGSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
+   PtwiseQuotientGSynAccumulator(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~PtwiseQuotientGSynAccumulator();
 
@@ -47,7 +50,10 @@ class PtwiseQuotientGSynAccumulator : public GSynAccumulator {
   protected:
    PtwiseQuotientGSynAccumulator() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

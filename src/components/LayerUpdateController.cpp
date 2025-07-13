@@ -13,25 +13,21 @@
 namespace PV {
 
 LayerUpdateController::LayerUpdateController(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 LayerUpdateController::LayerUpdateController() {}
 
-LayerUpdateController::~LayerUpdateController() {
-   free(mTriggerLayerName);
-   free(mTriggerBehavior);
-   free(mTriggerResetLayerName);
-}
+LayerUpdateController::~LayerUpdateController() {}
 
 void LayerUpdateController::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void LayerUpdateController::initMessageActionMap() {
@@ -59,72 +55,65 @@ void LayerUpdateController::initMessageActionMap() {
 
 void LayerUpdateController::setObjectType() { mObjectType = "LayerUpdateController"; }
 
-int LayerUpdateController::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_triggerLayerName(ioFlag);
-   ioParam_triggerOffset(ioFlag);
-   ioParam_triggerBehavior(ioFlag);
-   ioParam_triggerResetLayerName(ioFlag);
+int LayerUpdateController::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_triggerLayerName(ioSwitch);
+   ioParam_triggerOffset(ioSwitch);
+   ioParam_triggerBehavior(ioSwitch);
+   ioParam_triggerResetLayerName(ioSwitch);
    return PV_SUCCESS;
 }
 
-void LayerUpdateController::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "triggerLayerName", &mTriggerLayerName, NULL, false /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
+void LayerUpdateController::ioParam_triggerLayerName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "triggerLayerName", &mTriggerLayerName, false /*warnIfAbsentFlag*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
       FatalIf(
-            mTriggerLayerName and !strcmp(getName(), mTriggerLayerName),
+            mTriggerLayerName == getName(),
             "%s triggerLayerName cannot be the same as the name of the layer itself.\n",
             getDescription_c());
    }
-   mTriggerFlag = mTriggerLayerName != nullptr and mTriggerLayerName[0] != '\0';
+   mTriggerFlag = !mTriggerLayerName.empty();
 }
 
-void LayerUpdateController::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
+void LayerUpdateController::ioParam_triggerOffset(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
    if (mTriggerFlag) {
-      parameters()->ioParamValue(ioFlag, getName(), "triggerOffset", &mTriggerOffset, mTriggerOffset);
+      mParamsIO->ioParam(ioSwitch, "triggerOffset", &mTriggerOffset);
    }
 }
 
-void LayerUpdateController::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
+void LayerUpdateController::ioParam_triggerBehavior(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
    if (mTriggerFlag) {
-      parameters()->ioParamString(
-            ioFlag,
-            getName(),
-            "triggerBehavior",
-            &mTriggerBehavior,
-            "updateOnlyOnTrigger",
-            true /*warnIfAbsent*/);
-      if (mTriggerBehavior == NULL or mTriggerBehavior[0] == '\0') {
-         free(mTriggerBehavior);
-         mTriggerBehavior = strdup("updateOnlyOnTrigger");
+      mParamsIO->ioParam(ioSwitch, "triggerBehavior", &mTriggerBehavior);
+      if (mTriggerBehavior.empty()) {
+         std::string const *behavior =
+               mParamsIO->getDefaults()->peek<std::string>("triggerBehavior");
+         if (behavior != nullptr) { mTriggerBehavior = *behavior; }
       }
-      if (!strcmp(mTriggerBehavior, "updateOnlyOnTrigger")) {
+      if (mTriggerBehavior == "updateOnlyOnTrigger") {
          mTriggerBehaviorType = UPDATEONLYONTRIGGER;
       }
-      else if (!strcmp(mTriggerBehavior, "resetStateOnTrigger")) {
+      else if (mTriggerBehavior == "resetStateOnTrigger") {
          mTriggerBehaviorType = RESETSTATEONTRIGGER;
       }
-      else if (!strcmp(mTriggerBehavior, "ignore")) {
+      else if (mTriggerBehavior == "ignore") {
          mTriggerBehaviorType = NO_TRIGGER;
       }
       else {
          Fatal().printf(
                "%s triggerBehavior=\"%s\" is unrecognized.\n",
                getDescription_c(),
-               mTriggerBehavior);
+               mTriggerBehavior.c_str());
       }
    }
 }
 
-void LayerUpdateController::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
+void LayerUpdateController::ioParam_triggerResetLayerName(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
    if (mTriggerFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerBehavior"));
+      pvAssert(!mParamsIO->presentAndNotBeenRead("triggerBehavior"));
       if (mTriggerBehaviorType == RESETSTATEONTRIGGER) {
-         parameters()->ioParamStringRequired(
-               ioFlag, getName(), "triggerResetLayerName", &mTriggerResetLayerName);
+         mParamsIO->ioParam(ioSwitch, "triggerResetLayerName", &mTriggerResetLayerName);
       }
    }
 }
@@ -174,13 +163,13 @@ void LayerUpdateController::setTriggerUpdateController(ObserverTable const *tabl
          mTriggerUpdateController == nullptr,
          "%s triggerLayerName \"%s\" does not have a LayerUpdateController component.\n",
          getDescription_c(),
-         mTriggerLayerName);
+         mTriggerLayerName.c_str());
 }
 
 void LayerUpdateController::setTriggerResetComponent(ObserverTable const *table) {
-   char const *resetLayerName = nullptr; // Will point to name of actual resetLayer, whether
+   std::string resetLayerName; // Will point to name of actual resetLayer, whether
    // triggerResetLayerName is blank (in which case resetLayerName==triggerLayerName) or not
-   if (mTriggerResetLayerName == nullptr or mTriggerResetLayerName[0] == '\0') {
+   if (mTriggerResetLayerName.empty()) {
       resetLayerName = mTriggerLayerName;
    }
    else {
@@ -192,14 +181,14 @@ void LayerUpdateController::setTriggerResetComponent(ObserverTable const *table)
          resetLayer == nullptr,
          "%s triggerResetLayerName points to \"%s\", which is not a layer in the column.\n",
          getDescription_c(),
-         resetLayerName);
+         resetLayerName.c_str());
 
    mTriggerResetComponent = table->findObject<ActivityComponent>(resetLayerName);
    FatalIf(
          mTriggerResetComponent == nullptr,
          "%s triggerResetLayerName points to \"%s\", which has no ActivityComponent.\n",
          getDescription_c(),
-         resetLayerName);
+         resetLayerName.c_str());
 }
 
 Response::Status LayerUpdateController::registerData(

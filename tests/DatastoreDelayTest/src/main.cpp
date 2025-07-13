@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
    if (initObj.getParams() == nullptr) {
       initObj.setParams("input/DatastoreDelayTest.params");
    }
+   initObj.registerDefaults("input/DefaultParams.txt");
    status = buildandrun(&initObj);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

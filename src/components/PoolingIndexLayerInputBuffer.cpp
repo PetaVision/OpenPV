@@ -10,19 +10,19 @@
 namespace PV {
 
 PoolingIndexLayerInputBuffer::PoolingIndexLayerInputBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 PoolingIndexLayerInputBuffer::~PoolingIndexLayerInputBuffer() {}
 
 void PoolingIndexLayerInputBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   LayerInputBuffer::initialize(name, params, comm);
+   LayerInputBuffer::initialize(params, defaults, comm);
 }
 
 void PoolingIndexLayerInputBuffer::setObjectType() { mObjectType = "PoolingIndexLayerInputBuffer"; }
@@ -33,7 +33,8 @@ MPI_Op PoolingIndexLayerInputBuffer::setReductionOp() {
          "PoolingIndexLayer \"%s\" cannot be a post-synaptic layer of any connection "
          "(only the postIndexLayer of a PoolingConn). Error in connection \"%s\".\n",
          getName(), mDeliverySources[0]->getName());
-   return mMPIReductionOp = MPI_MAX;
+   mMPIReductionOp = MPI_MAX;
+   return mMPIReductionOp;
 }
 
 void PoolingIndexLayerInputBuffer::resetGSynBuffers(double simulationTime, double deltaTime) {

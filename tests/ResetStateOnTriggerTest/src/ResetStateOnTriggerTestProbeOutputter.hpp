@@ -2,7 +2,7 @@
 #define RESETSTATEONTRIGGERTESTPROBEOUTPUTTER_HPP_
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "probes/BaseProbeOutputter.hpp"
 #include "probes/ProbeData.hpp"
@@ -12,8 +12,8 @@
 class ResetStateOnTriggerTestProbeOutputter : public PV::BaseProbeOutputter {
   public:
    ResetStateOnTriggerTestProbeOutputter(
-         char const *objName,
-         PV::PVParams *params,
+         std::shared_ptr<PV::ParamGroup> params,
+         std::shared_ptr<PV::ParamGroup> defaults,
          PV::Communicator const *comm);
    virtual ~ResetStateOnTriggerTestProbeOutputter() {}
 
@@ -34,7 +34,10 @@ class ResetStateOnTriggerTestProbeOutputter : public PV::BaseProbeOutputter {
 
   protected:
    ResetStateOnTriggerTestProbeOutputter() {}
-   void initialize(char const *objName, PV::PVParams *params, PV::Communicator const *comm);
+   void initialize(
+         std::shared_ptr<PV::ParamGroup> params,
+         std::shared_ptr<PV::ParamGroup> defaults,
+         PV::Communicator const *comm);
 
    void printDiscrepancies(
          std::shared_ptr<PV::PrintStream> printStreamPtr,

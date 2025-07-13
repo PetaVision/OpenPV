@@ -26,7 +26,7 @@ class ArborList : public BaseObject {
    /**
     * @brief numAxonalArbors: Specifies the number of arbors to use in the connection
     */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numAxonalArbors(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief delay: Specifies delay(s) which the post layer will receive data
@@ -36,12 +36,15 @@ class ArborList : public BaseObject {
     * the delays sequentially.
     * If the delay parameter is omitted, all delays will be zero.
     */
-   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_delay(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of ArborList parameters
 
   public:
-   ArborList(char const *name, PVParams *params, Communicator const *comm);
+   ArborList(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ArborList();
 
    /**
@@ -54,11 +57,14 @@ class ArborList : public BaseObject {
   protected:
    ArborList();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -76,8 +82,8 @@ class ArborList : public BaseObject {
   protected:
    int mNumAxonalArbors = 1;
    std::vector<int> mDelay; // The delays expressed in # of timesteps (delays ~= fDelayArray / t)
-   double *mDelaysParams = nullptr; // The raw delays in params, in the same units that dt is in.
-   int mNumDelays        = 0; // The size of the mDelayParams array
+   std::vector<double> mDelaysParams; // The raw delays in params, in the same units that dt is in.
+   int mNumDelays = 0; // The size of the mDelayParams array
 
 }; // class ArborList
 

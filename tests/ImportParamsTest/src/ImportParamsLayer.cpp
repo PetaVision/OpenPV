@@ -2,28 +2,35 @@
 
 namespace PV {
 
-ImportParamsLayer::ImportParamsLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ImportParamsLayer::ImportParamsLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void ImportParamsLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   ANNLayer::initialize(name, params, comm);
+void ImportParamsLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ANNLayer::initialize(params, defaults, comm);
 
-   if (strcmp(name, "orig") == 0) {
+   std::string const &name = params->getName();
+   if (name == "orig") {
       // Test grabbed value
-      FatalIf(!(params->value(name, "nxScale") == 1), "Test failed.\n");
+      double const *nxScale =  params->read<double>("nxScale");
+      FatalIf(*nxScale != 1.0, "Test failed.\n");
       // Test grabbed filename
-      FatalIf(
-            !(strcmp(params->stringValue(name, "Vfilename"), "input/a0.pvp") == 0),
-            "Test failed.\n");
+      std::string const *filenameFromParams = params->read<std::string>("Vfilename");
+      FatalIf(*filenameFromParams != "input/a0.pvp", "Test failed.\n");
    }
    else {
       // Test overwritten value
-      FatalIf(!(params->value(name, "nxScale") == 2), "Test failed.\n");
+      double const *nxScale =  params->read<double>("nxScale");
+      FatalIf(*nxScale != 2.0, "Test failed.\n");
       // Test overwritten filename
-      FatalIf(
-            !(strcmp(params->stringValue(name, "Vfilename"), "input/a1.pvp") == 0),
-            "Test failed.\n");
+      std::string const *filenameFromParams = params->read<std::string>("Vfilename");
+      FatalIf(*filenameFromParams != "input/a1.pvp", "Test failed.\n");
    }
 }
 

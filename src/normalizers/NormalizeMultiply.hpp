@@ -25,17 +25,17 @@ class NormalizeMultiply : public NormalizeBase {
    /**
     * Sets the size in the x-direction of the rectangle zeroed out by applyRMin
     */
-   virtual void ioParam_rMinX(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMinX(ParamsIOSwitch ioSwitch);
 
    /**
     * Sets the size in the y-direction of the rectangle zeroed out by applyRMin
     */
-   virtual void ioParam_rMinY(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMinY(ParamsIOSwitch ioSwitch);
 
    /**
     * If set to true, negative weights are replaced by zero
     */
-   virtual void ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nonnegativeConstraintFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * If positive, all weights whose absolute value is less than
@@ -43,7 +43,7 @@ class NormalizeMultiply : public NormalizeBase {
     * are set to zero.  The maximum weight is calculated after applying
     * the behavior defined by rMinX, rMinY and nonnegativeConstraintFlag.
     */
-   virtual void ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalize_cutoff(ParamsIOSwitch ioSwitch);
 
    /**
     * If set to true, the weights are group based on the index of the post-synaptic neuron.
@@ -52,7 +52,7 @@ class NormalizeMultiply : public NormalizeBase {
     * Currently only meaningfull if sharedWeights is true and normalizeMethod is
     * normalizeSum or normalizeL2.
     */
-   virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeFromPostPerspective(ParamsIOSwitch ioSwitch);
    // If false, group all weights with a common presynaptic
    // neuron for normalizing.  If true, group all weights with a
    // common postsynaptic neuron
@@ -62,7 +62,10 @@ class NormalizeMultiply : public NormalizeBase {
    /** @} */ // end of NormalizeMultiply parameters
 
   public:
-   NormalizeMultiply(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeMultiply(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NormalizeMultiply();
 
    float getRMinX() { return mRMinX; }
@@ -74,9 +77,12 @@ class NormalizeMultiply : public NormalizeBase {
 
   protected:
    NormalizeMultiply();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    int applyThreshold(
          float *dataPatchStart,

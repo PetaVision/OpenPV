@@ -1,0 +1,7 @@
+Defaults "TriggerTestLayer" = {
+    #include "HyPerLayer";
+};
+
+Defaults "TriggerTestConn" = {
+    #include "HyPerConn";
+};

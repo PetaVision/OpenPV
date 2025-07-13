@@ -34,7 +34,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
     * and the vertices are computed internally from VThresh, AMin, AMax, AShift, and VWidth.
     * If the parameter is present, layerListsVerticesInParams() returns true.
     */
-   virtual void ioParam_verticesV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_verticesV(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief verticesA: An array of activities of points where the transfer function jumps or
@@ -43,7 +43,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
     * Only read if verticesV is present; otherwise it is computed internally from VThresh, AMin,
     * AMax, AShift, and VWidth.
     */
-   virtual void ioParam_verticesA(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_verticesA(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief slopeNegInf: The slope of the transfer function when x is less than the first element
@@ -52,7 +52,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
     * Only read if verticesV is present; otherwise it is computed internally from VThresh, AMin,
     * AMax, AShift, and VWidth.
     */
-   virtual void ioParam_slopeNegInf(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slopeNegInf(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief slopePosInf: The slope of the transfer function when x is greater than the last element
@@ -61,7 +61,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
     * Only read if verticesV is present; otherwise it is computed internally from VThresh, AMin,
     * AMax, AShift, and VWidth.
     */
-   virtual void ioParam_slopePosInf(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slopePosInf(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief VThresh: Only read if verticesV is absent.
@@ -69,28 +69,28 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
     * output activity will be AMin.  Above, it will obey the transfer function
     * as specified by AMax, VWidth, and AShift.  Default is -infinity.
     */
-   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VThresh(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief AMin: Only read if verticesV is absent.
     * When membrane potential V is below the threshold VThresh, activity
     * takes the value AMin.  Default is the value of VThresh.
     */
-   virtual void ioParam_AMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AMin(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief AMax: Only read if verticesV is absent.
     * Activity that would otherwise be greater than AMax is truncated to AMax.
     * Default is +infinity.
     */
-   virtual void ioParam_AMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AMax(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief AShift: Only read if verticesV is absent.
     * When membrane potential V is above the threshold VThresh, activity is V-AShift
     * (but see VWidth for making a gradual transition at VThresh).  Default is zero.
     */
-   virtual void ioParam_AShift(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AShift(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief VWidth: Only read if verticesV is absent.
@@ -99,11 +99,14 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
     * between A=AMin when V=VThresh and A=VThresh+VWidth-AShift when V=VThresh+VWidth.
     * Default is zero.
     */
-   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VWidth(ParamsIOSwitch ioSwitch);
 
    /** @} */
   public:
-   ANNActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   ANNActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ANNActivityBuffer();
 
@@ -118,11 +121,14 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
   protected:
    ANNActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status allocateDataStructures() override;
 
@@ -223,9 +229,9 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
   protected:
    bool mVerticesListInParams = false;
    int mNumVertices           = 0;
-   float *mVerticesV          = nullptr;
-   float *mVerticesA          = nullptr;
-   float *mSlopes             = nullptr;
+   std::vector<float>mVerticesV;
+   std::vector<float>mVerticesA;
+   std::vector<float>mSlopes_;
    // slopes[0]=slopeNegInf; slopes[numVertices]=slopePosInf;
    // For k=1,...,numVertices-1, slopes[k]=slope from vertex k-1 to vertex k
    float mSlopeNegInf = 1.0f;

@@ -3,8 +3,8 @@
 
 namespace PV {
 
-L0NormProbeLocal::L0NormProbeLocal(char const *objName, PVParams *params) {
-   initialize(objName, params);
+L0NormProbeLocal::L0NormProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
 std::shared_ptr<L0CostFunctionSum const> L0NormProbeLocal::createCostFunctionSum() {
@@ -13,17 +13,17 @@ std::shared_ptr<L0CostFunctionSum const> L0NormProbeLocal::createCostFunctionSum
    return norm;
 }
 
-void L0NormProbeLocal::initialize(char const *objName, PVParams *params) {
-   BaseL0NormProbeLocal::initialize(objName, params);
+void L0NormProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   BaseL0NormProbeLocal::initialize(params, defaults);
 }
 
-void L0NormProbeLocal::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamValue(ioFlag, getName_c(), "nnzThreshold", &mNnzThreshold, mNnzThreshold);
+void L0NormProbeLocal::ioParam_nnzThreshold(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nnzThreshold", &mNnzThreshold);
 }
 
-void L0NormProbeLocal::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   BaseL0NormProbeLocal::ioParamsFillGroup(ioFlag);
-   ioParam_nnzThreshold(ioFlag);
+void L0NormProbeLocal::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   BaseL0NormProbeLocal::ioParamsFillGroup(ioSwitch);
+   ioParam_nnzThreshold(ioSwitch);
 }
 
 } // namespace PV

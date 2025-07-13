@@ -3,18 +3,18 @@
 namespace PV {
 
 L0NormLCAProbeLocal::L0NormLCAProbeLocal(
-      char const *objName,
-      PVParams *params) {
-   initialize(objName, params);
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-void L0NormLCAProbeLocal::initialize(char const *objName, PVParams *params) {
-   L0NormProbeLocal::initialize(objName, params);
+void L0NormLCAProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   L0NormProbeLocal::initialize(params, defaults);
 }
 
-void L0NormLCAProbeLocal::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      warnUnnecessaryParameter("VThresh");
+void L0NormLCAProbeLocal::ioParam_nnzThreshold(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      warnUnnecessaryParameter("nnzThreshold");
    }
 }
 
@@ -23,8 +23,8 @@ void L0NormLCAProbeLocal::setNnzThreshold(double nnzThreshold) {
 }
 
 void L0NormLCAProbeLocal::warnUnnecessaryParameter(char const *paramName) {
-   if (getParams()->present(getName_c(), paramName)) {
-      char const *className = getParams()->groupKeywordFromName(getName_c());
+   if (mParamsIO->isPresent(paramName)) {
+      char const *className = mParamsIO->getKeyword().c_str();
       WarnLog().printf(
             "Parameter %s is present in the params file for %s \"%s\", but %s does not use it. "
             "Instead, %s is taken from the target layer.\n",
@@ -34,7 +34,7 @@ void L0NormLCAProbeLocal::warnUnnecessaryParameter(char const *paramName) {
             className,
             paramName);
       // mark param as read so that presentAndNotBeenRead() doesn't trip up
-      getParams()->value(getName_c(), paramName);
+      double paramValue = mParamsIO->readValue<double>(paramName, false /*warnIfAbsentFlag*/);
    }
 }
 

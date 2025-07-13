@@ -23,16 +23,22 @@ class ZeroV : public ConstantV {
    /**
     * @brief valueV: ZeroV does not read valueV but sets it to zero.
     */
-   virtual void ioParam_valueV(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_valueV(ParamsIOSwitch ioSwitch) override;
    /** @} */
 
   public:
-   ZeroV(const char *name, PVParams *params, Communicator const *comm);
+   ZeroV(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ZeroV();
 
   protected:
    ZeroV();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    int initialize_base();

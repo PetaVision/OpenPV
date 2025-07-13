@@ -36,28 +36,31 @@ class LayerGeometry : public BaseObject {
     * has the data for the entire layer, and MPI reductions are performed to keep the layers in
     * sync.
     */
-   virtual void ioParam_broadcastFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_broadcastFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nxScale: Defines the relationship between the x column size and the layer size.
     * @details Must be 2^n or 1/2^n
     */
-   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxScale(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nyScale: Defines the relationship between the y column size and the layer size.
     * @details Must be 2^n or 1/2^n
     */
-   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyScale(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nf: Defines the number of features the layer has
     */
-   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nf(ParamsIOSwitch ioSwitch);
    /** @} */ // end of LayerGeometry parameters
 
   public:
-   LayerGeometry(char const *name, PVParams *params, Communicator const *comm);
+   LayerGeometry(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~LayerGeometry();
 
    /**
@@ -127,11 +130,14 @@ class LayerGeometry : public BaseObject {
   protected:
    LayerGeometry();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

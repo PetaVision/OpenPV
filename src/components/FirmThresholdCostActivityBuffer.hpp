@@ -27,7 +27,7 @@ class FirmThresholdCostActivityBuffer : public HyPerActivityBuffer {
     * @brief VThresh:
     * The threshold value to use in calculating the cost function. This parameter is required.
     */
-   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VThresh(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief VWidth:
@@ -35,11 +35,14 @@ class FirmThresholdCostActivityBuffer : public HyPerActivityBuffer {
     * linearly between A=AMin when V=VThresh and A=VThresh+VWidth-AShift when V=VThresh+VWidth.
     * Default is zero.
     */
-   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VWidth(ParamsIOSwitch ioSwitch);
 
    /** @} */
   public:
-   FirmThresholdCostActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   FirmThresholdCostActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~FirmThresholdCostActivityBuffer();
 
@@ -49,11 +52,14 @@ class FirmThresholdCostActivityBuffer : public HyPerActivityBuffer {
   protected:
    FirmThresholdCostActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 

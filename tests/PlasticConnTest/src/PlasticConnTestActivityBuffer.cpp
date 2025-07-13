@@ -10,19 +10,19 @@
 namespace PV {
 
 PlasticConnTestActivityBuffer::PlasticConnTestActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 PlasticConnTestActivityBuffer::~PlasticConnTestActivityBuffer() {}
 
 void PlasticConnTestActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 void PlasticConnTestActivityBuffer::setObjectType() {

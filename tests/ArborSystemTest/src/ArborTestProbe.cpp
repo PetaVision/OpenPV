@@ -17,9 +17,12 @@
 
 namespace PV {
 
-ArborTestProbe::ArborTestProbe(const char *name, PVParams *params, Communicator const *comm)
+ArborTestProbe::ArborTestProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ArborTestProbe::~ArborTestProbe() {}
@@ -96,12 +99,16 @@ void ArborTestProbe::checkStats() {
    FatalIf(status != PV_SUCCESS, "Test failed.\n");
 }
 
-void ArborTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void ArborTestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
-void ArborTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+void ArborTestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 } /* namespace PV */

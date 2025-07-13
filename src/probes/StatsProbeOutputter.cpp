@@ -12,22 +12,22 @@
 namespace PV {
 
 StatsProbeOutputter::StatsProbeOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void StatsProbeOutputter::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseProbeOutputter::initialize(objName, params, comm);
+   BaseProbeOutputter::initialize(params, defaults, comm);
 }
 
 void StatsProbeOutputter::printGlobalStatsBuffer(ProbeDataBuffer<LayerStats> const &storedValues) {
    if (getTextOutputFlag()) {
-      if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
+      if (!getProbeOutputFilename().empty()) {
          printToFiles(storedValues);
       }
       else {
@@ -67,7 +67,7 @@ void StatsProbeOutputter::printLayerStats(
 }
 
 void StatsProbeOutputter::printToFiles(ProbeDataBuffer<LayerStats> const &storedValues) {
-   pvAssert(getProbeOutputFilename() != nullptr and getProbeOutputFilename()[0] != '\0');
+   pvAssert(!getProbeOutputFilename().empty());
 #ifdef PV_USE_MPI
    if (getCommunicator()->commRank() != 0) {
       return;
@@ -131,7 +131,7 @@ void StatsProbeOutputter::printToFiles(ProbeDataBuffer<LayerStats> const &stored
 }
 
 void StatsProbeOutputter::printToLog(ProbeDataBuffer<LayerStats> const &storedValues) {
-   pvAssert(getProbeOutputFilename() == nullptr or getProbeOutputFilename()[0] == '\0');
+   pvAssert(getProbeOutputFilename().empty());
    int rank = getCommunicator()->commRank();
    if (rank == 0) {
       int globalBatchStart = calcGlobalBatchOffset();

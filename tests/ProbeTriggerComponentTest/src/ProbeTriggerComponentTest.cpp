@@ -46,10 +46,12 @@ ProbeTriggerComponent initTriggerObject(
    paramsString.append("};\n");
 
    MPI_Comm mpiComm = hypercol.getCommunicator()->globalCommunicator();
-   PV::PVParams params(paramsString.data(), paramsString.size(), 1UL, mpiComm);
+   PV::PVParams params(paramsString.data(), paramsString.size(), mpiComm);
+   auto paramGroup   = params.group(probeName);
+   auto defaultGroup = params.defaultGroup(paramGroup->getKeyword());
 
-   ProbeTriggerComponent triggerObject(probeName.c_str(), &params);
-   triggerObject.ioParamsFillGroup(PV::PARAMS_IO_READ);
+   ProbeTriggerComponent triggerObject(paramGroup, defaultGroup);
+   triggerObject.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
 
    PV::ObserverTable objectTable = hypercol.getAllObjectsFlat();
    auto communicateMessage       = std::make_shared<PV::CommunicateInitInfoMessage>(

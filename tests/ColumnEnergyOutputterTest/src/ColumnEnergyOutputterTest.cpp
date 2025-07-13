@@ -5,7 +5,7 @@
 #include <include/pv_common.h>
 #include <io/FileManager.hpp>
 #include <io/FileStreamBuilder.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/ColumnEnergyOutputter.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/ProbeDataBuffer.hpp>
@@ -33,7 +33,6 @@ void deleteOldFiles(HyPerCol *hypercol);
 void generateData(ProbeDataBuffer<double> &data, Communicator *comm);
 double generateNorm(int timeIndex, int batchWidth, int batchIndex);
 PVParams generateProbeParams(std::string const &probeName, Communicator *comm);
-ColumnEnergyOutputter initColumnEnergyOutputter(PV_Init &pv_initObj);
 void printGlobalStats(PV_Init &pv_init);
 int run(PV_Init &pv_init);
 
@@ -192,30 +191,26 @@ PVParams generateProbeParams(std::string const &probeName, Communicator *comm) {
    paramsString.append("   probeOutputFile = \"ColumnEnergyOutputter.txt\";\n");
    paramsString.append("   message         = \"ColumnEnergyOutputter\";\n");
    paramsString.append("};\n");
-   PVParams probeParams(paramsString.c_str(), paramsString.size(), 1UL, comm->globalCommunicator());
+   PVParams probeParams(paramsString.c_str(), paramsString.size(), comm->globalCommunicator());
    return probeParams;
-}
-
-ColumnEnergyOutputter initColumnEnergyOutputter(PV_Init &pv_initObj) {
-   Communicator *comm = pv_initObj.getCommunicator();
-   std::string probeName("probe");
-   PVParams probeParams = generateProbeParams(probeName, comm);
-   ColumnEnergyOutputter columnEnergyOutputter(probeName.c_str(), &probeParams, comm);
-   columnEnergyOutputter.ioParamsFillGroup(PARAMS_IO_READ);
-
-   // create the output files.
-   Checkpointer checkpointer("column", comm, pv_initObj.getArguments());
-   columnEnergyOutputter.initOutputStreams(&checkpointer, gLocalBatchWidth);
-   // At this point, the output files should exist and be empty.
-
-   return columnEnergyOutputter;
 }
 
 void printGlobalStats(PV_Init &pv_init) {
    ProbeDataBuffer<double> normsBuffer;
    generateData(normsBuffer, pv_init.getCommunicator());
 
-   auto columnEnergyOutputter = initColumnEnergyOutputter(pv_init);
+   Communicator *comm = pv_init.getCommunicator();
+   std::string probeName("probe");
+   PVParams probeParams = generateProbeParams(probeName, comm);
+   auto paramsIO = probeParams.makeParamsIO(probeName);
+   ColumnEnergyOutputter columnEnergyOutputter(
+         paramsIO->getParams(), paramsIO->getDefaults(), comm);
+   columnEnergyOutputter.ioParamsFillGroup(ParamsIOSwitch::Read);
+
+   // create the output files.
+   Checkpointer checkpointer("column", comm, pv_init.getArguments());
+   columnEnergyOutputter.initOutputStreams(&checkpointer, gLocalBatchWidth);
+   // At this point, the output files should exist and be empty.
    columnEnergyOutputter.printColumnEnergiesBuffer(normsBuffer);
 }
 

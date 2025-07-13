@@ -7,11 +7,10 @@
 // with the outputPath specified either in the group or in a batchsweep.
 // The test does not build a HyPerCol.
 
-HyPerCol "column" = {
-    outputPath = "output";
-};
+debugParsing = true;
 
-Checkpointer "checkpointer" = {
+HyPerCol "checkpointer" = {
+    outputPath = "output";
     checkpointWrite = true;
     checkpointWriteDir = "checkpoints";
     checkpointWriteTriggerMode = "step";

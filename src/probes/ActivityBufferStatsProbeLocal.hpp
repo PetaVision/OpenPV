@@ -1,19 +1,19 @@
 #ifndef ACTIVITYBUFFERSTATSPROBELOCAL_HPP_
 #define ACTIVITYBUFFERSTATSPROBELOCAL_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/StatsProbeLocal.hpp"
 
 namespace PV {
 
 class ActivityBufferStatsProbeLocal : public StatsProbeLocal {
   public:
-   ActivityBufferStatsProbeLocal(char const *objName, PVParams *params);
+   ActivityBufferStatsProbeLocal(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~ActivityBufferStatsProbeLocal() {}
 
   protected:
    ActivityBufferStatsProbeLocal() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
 }; // class ActivityBufferStatsProbeLocal
 

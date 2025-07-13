@@ -10,20 +10,26 @@
 
 namespace PV {
 
-LIF::LIF(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+LIF::LIF(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 LIF::LIF() {}
 
 LIF::~LIF() {}
 
-void LIF::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void LIF::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *LIF::createActivityComponent() {
-   return new LIFActivityComponent(getName(), parameters(), mCommunicator);
+   return new LIFActivityComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

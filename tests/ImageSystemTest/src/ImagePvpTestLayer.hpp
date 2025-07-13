@@ -10,13 +10,19 @@
 namespace PV {
 class ImagePvpTestLayer : public PvpLayer {
   public:
-   ImagePvpTestLayer(char const *name, PVParams *params, Communicator const *comm);
+   ImagePvpTestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ImagePvpTestLayer();
 
   protected:
    ImagePvpTestLayer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

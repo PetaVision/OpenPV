@@ -1,0 +1,6 @@
+Defaults "LIFTestProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+    endingTime = 2000.0;
+    tolerance  = 3.0;
+};

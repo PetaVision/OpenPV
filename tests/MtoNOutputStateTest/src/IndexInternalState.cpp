@@ -11,22 +11,25 @@
 namespace PV {
 
 IndexInternalState::IndexInternalState(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 IndexInternalState::IndexInternalState() {}
 
 IndexInternalState::~IndexInternalState() {}
 
-void IndexInternalState::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InternalStateBuffer::initialize(name, params, comm);
+void IndexInternalState::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InternalStateBuffer::initialize(params, defaults, comm);
 }
 
-void IndexInternalState::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryStringParameter(getName(), "InitVType", nullptr);
+void IndexInternalState::ioParam_InitVType(ParamsIOSwitch ioSwitch) {
+   mParamsIO->handleUnnecessaryParameter("InitVType", std::string(""));
 }
 
 PV::Response::Status

@@ -13,7 +13,6 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "components/AdaptiveTimeScaleController.hpp"
-#include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/AdaptiveTimeScaleProbeOutputter.hpp"
 #include "probes/ProbeData.hpp"
@@ -37,37 +36,40 @@ class AdaptiveTimeScaleProbe : public ProbeInterface {
     * The target probe's values are used as the input to compute the adaptive
     * timesteps.
     */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetName(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief baseMax: Specifies the initial maximum timescale allowed.
     * The maximum timescale is allowed to increase at a rate specified
     * by the growthFactor parameter.
     */
-   virtual void ioParam_baseMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_baseMax(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief baseMin: Specifies the minimum timescale allowed.
     */
-   virtual void ioParam_baseMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_baseMin(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief tauFactor: If Specifies the coefficient on the effective decay rate
     * used to compute
     * the timescale.
     */
-   virtual void ioParam_tauFactor(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauFactor(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief dtChangeMin: Specifies the percentage by which the maximum timescale
     * increases
     * when the timescale reaches the maximum.
     */
-   virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_growthFactor(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   AdaptiveTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm);
+   AdaptiveTimeScaleProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~AdaptiveTimeScaleProbe();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -75,12 +77,20 @@ class AdaptiveTimeScaleProbe : public ProbeInterface {
 
   protected:
    AdaptiveTimeScaleProbe();
-   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeTrigger(char const *name, PVParams *params);
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createComponents(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeOutputter(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeTrigger(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void initMessageActionMap() override;
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual Response::Status prepareCheckpointWrite(double simTime) override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
@@ -89,6 +99,7 @@ class AdaptiveTimeScaleProbe : public ProbeInterface {
    Response::Status respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
    virtual void calcValues(double timestamp) override;
    virtual void allocateTimeScaleController();
+   virtual void setPrintStreams(FileStream *printParamsStream, FileStream *printLuaStream) override;
 
   protected:
    // Probe components, set by createComponents(), called by initialize()
@@ -97,7 +108,7 @@ class AdaptiveTimeScaleProbe : public ProbeInterface {
 
    ProbeDataBuffer<TimeScaleData> mStoredValues;
 
-   char *mTargetName              = nullptr;
+   std::string mTargetName;
    double mBaseMax                = 1.0;
    double mBaseMin                = 1.0;
    double tauFactor               = 1.0;

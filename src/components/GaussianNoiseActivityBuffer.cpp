@@ -5,17 +5,20 @@
 namespace PV {
 
 GaussianNoiseActivityBuffer::GaussianNoiseActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 GaussianNoiseActivityBuffer::~GaussianNoiseActivityBuffer() {
 }
 
-void GaussianNoiseActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HyPerActivityBuffer::initialize(name, params, comm);
+void GaussianNoiseActivityBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerActivityBuffer::initialize(params, defaults, comm);
 }
 
 void GaussianNoiseActivityBuffer::setObjectType() { mObjectType = "GaussianNoiseActivityBuffer"; }
@@ -28,19 +31,19 @@ GaussianNoiseActivityBuffer::initializeState(std::shared_ptr<InitializeStateMess
     return status;
 }
 
-int GaussianNoiseActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_mu(ioFlag);
-   ioParam_sigma(ioFlag);
+int GaussianNoiseActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_mu(ioSwitch);
+   ioParam_sigma(ioSwitch);
    return status;
 }
 
-void GaussianNoiseActivityBuffer::ioParam_mu(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "mu", &mMu, mMu);
+void GaussianNoiseActivityBuffer::ioParam_mu(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "mu", &mMu);
 }
 
-void GaussianNoiseActivityBuffer::ioParam_sigma(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "sigma", &mSigma, mSigma);
+void GaussianNoiseActivityBuffer::ioParam_sigma(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "sigma", &mSigma);
 }
 
 void GaussianNoiseActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

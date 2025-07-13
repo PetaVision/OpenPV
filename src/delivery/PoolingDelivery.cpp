@@ -17,39 +17,44 @@
 
 namespace PV {
 
-PoolingDelivery::PoolingDelivery(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+PoolingDelivery::PoolingDelivery(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 PoolingDelivery::PoolingDelivery() {}
 
 PoolingDelivery::~PoolingDelivery() {}
 
-void PoolingDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseDelivery::initialize(name, params, comm);
+void PoolingDelivery::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseDelivery::initialize(params, defaults, comm);
 }
 
 void PoolingDelivery::setObjectType() { mObjectType = "PoolingDelivery"; }
 
-int PoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseDelivery::ioParamsFillGroup(ioFlag);
-   ioParam_pvpatchAccumulateType(ioFlag);
-   ioParam_updateGSynFromPostPerspective(ioFlag);
-   ioParam_needPostIndexLayer(ioFlag);
-   ioParam_postIndexLayerName(ioFlag);
+int PoolingDelivery::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseDelivery::ioParamsFillGroup(ioSwitch);
+   ioParam_pvpatchAccumulateType(ioSwitch);
+   ioParam_updateGSynFromPostPerspective(ioSwitch);
+   ioParam_needPostIndexLayer(ioSwitch);
+   ioParam_postIndexLayerName(ioSwitch);
    return status;
 }
 
-void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(
-         ioFlag, getName(), "pvpatchAccumulateType", &mPvpatchAccumulateTypeString);
-   if (ioFlag == PARAMS_IO_READ) {
+void PoolingDelivery::ioParam_pvpatchAccumulateType(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "pvpatchAccumulateType", &mPvpatchAccumulateTypeString);
+   if (ioSwitch == ParamsIOSwitch::Read) {
       mAccumulateType = parseAccumulateTypeString(mPvpatchAccumulateTypeString);
       FatalIf(
             mAccumulateType == UNDEFINED,
             "pvpatchAccumulateType \"%s\" is unrecognized.\n"
             "  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".\n",
-            mPvpatchAccumulateTypeString);
+            mPvpatchAccumulateTypeString.c_str());
       if (mAccumulateType == MAXPOOLING) {
          mMPIReductionOp = MPI_MAX;
       }
@@ -57,10 +62,7 @@ void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 }
 
 PoolingDelivery::AccumulateType
-PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
-   if (poolingTypeString == nullptr) {
-      return UNDEFINED;
-   }
+PoolingDelivery::parseAccumulateTypeString(std::string const &poolingTypeString) {
    PoolingDelivery::AccumulateType accType;
    std::string str(poolingTypeString);
    // Convert string to lowercase so that capitalization doesn't matter.
@@ -73,13 +75,13 @@ PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
       str.erase(3, 1);
    }
 
-   if (strcmp(str.c_str(), "maxpooling") == 0) {
+   if (str == "maxpooling") {
       accType = MAXPOOLING;
    }
-   else if (strcmp(str.c_str(), "sumpooling") == 0) {
+   else if (str == "sumpooling") {
       accType = SUMPOOLING;
    }
-   else if (strcmp(str.c_str(), "avgpooling") == 0) {
+   else if (str == "avgpooling") {
       accType = AVGPOOLING;
    }
    else {
@@ -88,32 +90,26 @@ PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
    return accType;
 }
 
-void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   auto *params = parameters();
-   pvAssert(!params->presentAndNotBeenRead(getName(), "receiveGpu"));
+void PoolingDelivery::ioParam_updateGSynFromPostPerspective(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("receiveGpu"));
    if (!mReceiveGpu) {
-      params->ioParamValue(
-            ioFlag,
-            getName(),
-            "updateGSynFromPostPerspective",
-            &mUpdateGSynFromPostPerspective,
-            mUpdateGSynFromPostPerspective);
+      mParamsIO->ioParam(
+            ioSwitch, "updateGSynFromPostPerspective", &mUpdateGSynFromPostPerspective);
    }
    else {
       mUpdateGSynFromPostPerspective = true;
-      params->handleUnnecessaryParameter(getName(), "updateGSynFromPostPerspective", true);
+      mParamsIO->handleUnnecessaryParameter("updateGSynFromPostPerspective", true);
    }
 }
 
-void PoolingDelivery::ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "needPostIndexLayer", &mNeedPostIndexLayer, mNeedPostIndexLayer);
+void PoolingDelivery::ioParam_needPostIndexLayer(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "needPostIndexLayer", &mNeedPostIndexLayer);
 }
 
-void PoolingDelivery::ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "needPostIndexLayer"));
+void PoolingDelivery::ioParam_postIndexLayerName(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("needPostIndexLayer"));
    if (mNeedPostIndexLayer) {
-      parameters()->ioParamStringRequired(ioFlag, getName(), "postIndexLayerName", &mPostIndexLayerName);
+      mParamsIO->ioParam(ioSwitch, "postIndexLayerName", &mPostIndexLayerName);
    }
 }
 
@@ -143,7 +139,6 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    }
 
    if (mNeedPostIndexLayer) {
-      pvAssert(mPostIndexLayerName);
       mPostIndexLayer = objectTable->findObject<PoolingIndexLayer>(mPostIndexLayerName);
       FatalIf(
             mPostIndexLayer == nullptr,

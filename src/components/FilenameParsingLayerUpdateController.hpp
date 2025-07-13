@@ -19,8 +19,8 @@ namespace PV {
 class FilenameParsingLayerUpdateController : public LayerUpdateController {
   public:
    FilenameParsingLayerUpdateController(
-         char const *name,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          Communicator const *comm);
    virtual ~FilenameParsingLayerUpdateController();
 
@@ -29,7 +29,10 @@ class FilenameParsingLayerUpdateController : public LayerUpdateController {
   protected:
    FilenameParsingLayerUpdateController();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -3,22 +3,22 @@
 namespace PV {
 
 ColumnEnergyOutputter::ColumnEnergyOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void ColumnEnergyOutputter::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseProbeOutputter::initialize(objName, params, comm);
+   BaseProbeOutputter::initialize(params, defaults, comm);
 }
 
 void ColumnEnergyOutputter::printColumnEnergiesBuffer(ProbeDataBuffer<double> const &storedValues) {
    if (getTextOutputFlag()) {
-      if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
+      if (!getProbeOutputFilename().empty()) {
          printToFiles(storedValues);
       }
       else {
@@ -49,7 +49,7 @@ void ColumnEnergyOutputter::printHeader() {
 }
 
 void ColumnEnergyOutputter::printToFiles(ProbeDataBuffer<double> const &storedValues) {
-   pvAssert(getProbeOutputFilename() != nullptr and getProbeOutputFilename()[0] != '\0');
+   pvAssert(!getProbeOutputFilename().empty());
 #ifdef PV_USE_MPI
    if (getCommunicator()->commRank() != 0) {
       return;
@@ -109,7 +109,7 @@ void ColumnEnergyOutputter::printToFiles(ProbeDataBuffer<double> const &storedVa
 }
 
 void ColumnEnergyOutputter::printToLog(ProbeDataBuffer<double> const &storedValues) {
-   pvAssert(getProbeOutputFilename() == nullptr or getProbeOutputFilename()[0] == '\0');
+   pvAssert(getProbeOutputFilename().empty());
    int rank = getCommunicator()->commRank();
    if (rank == 0) {
       int globalBatchStart = calcGlobalBatchOffset();

@@ -19,15 +19,21 @@ namespace PV {
  *
  */
 class IndexInternalState : public InternalStateBuffer {
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_InitVType(ParamsIOSwitch ioSwitch) override;
 
   public:
-   IndexInternalState(char const *name, PVParams *params, Communicator const *comm);
+   IndexInternalState(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    ~IndexInternalState();
 
   protected:
    IndexInternalState();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual void updateBufferCPU(double simTime, double deltaTime) override;

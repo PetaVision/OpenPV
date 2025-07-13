@@ -75,7 +75,7 @@ PvpLayer "actual" = {
     padValue = 0;
 };
 
-ComparisonLayer "compare" = {
+HyPerLayer "compare" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -87,11 +87,6 @@ ComparisonLayer "compare" = {
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0.0;
-    VWidth = 0.0;
     // 
     phase = 2; 
     triggerLayerName = NULL;
@@ -111,4 +106,16 @@ IdentConn "actualToCompare" = {
     channelCode = 1;
     delay = 0;
     writeStep = -1;
+};
+
+RequireAllZeroActivityProbe "compare_probe" = {
+    targetLayer = "compare";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    triggerLayerName = NULL;
+    energyProbe = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = true;
+    immediateExitOnFailure = false;
 };

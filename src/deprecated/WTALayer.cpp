@@ -12,9 +12,12 @@
 #include <string>
 
 namespace PV {
-WTALayer::WTALayer(const char *name, PVParams *params, Communicator const *comm) {
+WTALayer::WTALayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 WTALayer::~WTALayer() {}
@@ -27,9 +30,12 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void WTALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+void WTALayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
-   HyPerLayer::initialize(name, params, comm);
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 LayerInputBuffer *WTALayer::createLayerInput() { return nullptr; }
@@ -82,16 +88,16 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
 
 void WTALayer::initializeActivity() {}
 
-int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_originalLayerName(ioFlag);
-   ioParam_binMaxMin(ioFlag);
+int WTALayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerLayer::ioParamsFillGroup(ioSwitch);
+   ioParam_originalLayerName(ioSwitch);
+   ioParam_binMaxMin(ioSwitch);
    return status;
 }
-void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
+void WTALayer::ioParam_originalLayerName(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
    assert(originalLayerName);
-   if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
+   if (ioSwitch == ParamsIOSwitch::Read && originalLayerName[0] == '\0') {
       if (mCommunicator->commRank() == 0) {
          ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
       }
@@ -100,10 +106,10 @@ void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
+void WTALayer::ioParam_binMaxMin(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
    parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
-   if (ioFlag == PARAMS_IO_READ && binMax <= binMin) {
+   if (ioSwitch == ParamsIOSwitch::Read && binMax <= binMin) {
       if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",

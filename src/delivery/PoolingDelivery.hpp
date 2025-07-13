@@ -40,7 +40,7 @@ class PoolingDelivery : public BaseDelivery {
     *
     * This parameter is required.
     */
-   virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_pvpatchAccumulateType(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief updateGSynFromPostPerspective: Specifies if the connection should push from pre or pull
@@ -56,24 +56,27 @@ class PoolingDelivery : public BaseDelivery {
     * If the receiveGpu flag is set, the updateGSynFromPostPerspective is ignored, and the
     * cuDNN pooling routines are used.
     */
-   virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateGSynFromPostPerspective(ParamsIOSwitch ioSwitch);
 
    // This doxygen comment may not be as edifying as it appears.
    /**
     * needPostIndexLayer: Set to true if a PostIndexLayer is needed; false otherwise.
     */
-   void ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag);
+   void ioParam_needPostIndexLayer(ParamsIOSwitch ioSwitch);
 
    /**
     * If needPostIndexLayer is set, this parameter specifies the name of the PostIndexLayer.
     */
-   void ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag);
+   void ioParam_postIndexLayerName(ParamsIOSwitch ioSwitch);
    /** @} */ // End of list of PoolingDelivery parameters.
 
   public:
    enum AccumulateType { UNDEFINED, MAXPOOLING, SUMPOOLING, AVGPOOLING };
 
-   PoolingDelivery(char const *name, PVParams *params, Communicator const *comm);
+   PoolingDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~PoolingDelivery();
 
@@ -95,16 +98,19 @@ class PoolingDelivery : public BaseDelivery {
     * If the string does not match any of the accumulation type,
     * the method returns UNDEFINED.
     */
-   static AccumulateType parseAccumulateTypeString(char const *typestring);
+   static AccumulateType parseAccumulateTypeString(std::string const &poolingTypestring);
 
   protected:
    PoolingDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -136,15 +142,15 @@ class PoolingDelivery : public BaseDelivery {
 
    // Data members
   protected:
-   AccumulateType mAccumulateType      = UNDEFINED;
-   char *mPvpatchAccumulateTypeString  = nullptr;
+   AccumulateType mAccumulateType = UNDEFINED;
+   std::string mPvpatchAccumulateTypeString;
    bool mUpdateGSynFromPostPerspective = false;
 
    PatchSize *mPatchSize            = nullptr;
    ImpliedWeightsPair *mWeightsPair = nullptr;
 
-   bool mNeedPostIndexLayer                       = false;
-   char *mPostIndexLayerName                      = nullptr;
+   bool mNeedPostIndexLayer = false;
+   std::string mPostIndexLayerName;
    PoolingIndexLayer *mPostIndexLayer             = nullptr;
    PoolingIndexLayerInputBuffer *mPostIndexBuffer = nullptr;
 

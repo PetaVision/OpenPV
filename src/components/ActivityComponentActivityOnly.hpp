@@ -19,14 +19,20 @@ namespace PV {
 template <typename A>
 class ActivityComponentActivityOnly : public ActivityComponent {
   public:
-   ActivityComponentActivityOnly(char const *name, PVParams *params, Communicator const *comm);
+   ActivityComponentActivityOnly(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ActivityComponentActivityOnly();
 
   protected:
    ActivityComponentActivityOnly() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -30,21 +30,27 @@ class LeakyIntegratorBuffer : public HyPerInternalStateBuffer {
     * @brief: integrationTime:
     * The time constant for the decay ("leakiness") of the membrane potential
     */
-   virtual void ioParam_integrationTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_integrationTime(ParamsIOSwitch ioSwitch);
 
   public:
-   LeakyIntegratorBuffer(char const *name, PVParams *params, Communicator const *comm);
+   LeakyIntegratorBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~LeakyIntegratorBuffer();
 
   protected:
    LeakyIntegratorBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 

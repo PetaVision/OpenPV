@@ -2,7 +2,8 @@
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
+#include "io/fileio.hpp"
+#include "params/PVParams.hpp"
 #include "utils/PVLog.hpp"
 #include <memory>
 #include <vector>
@@ -14,26 +15,21 @@ int main(int argc, char *argv[]) {
    MPI_Init(&argc, &argv);
    PV::Communicator const *comm = new PV::Communicator(arguments.get());
 
-   PV::Checkpointer *checkpointer = new PV::Checkpointer(
-         std::string("checkpointer"), comm, arguments);
-
    PV::PVParams *params =
-         new PV::PVParams("input/CheckpointerClassTest.params", 1, comm->globalCommunicator());
+         new PV::PVParams("input/CheckpointerClassTest.params", comm->globalCommunicator());
 
-   char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
-   FatalIf(
-         checkpointWriteDir == nullptr,
-         "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
-   std::string checkpointWriteDirectory(checkpointWriteDir);
+   PV::ParamsIO paramsIO(params->group("checkpointer"), params->defaultGroup("HyPerCol"));
+   delete params;
+
+   std::string checkpointWriteDir = paramsIO.readValue<std::string>("checkpointWriteDir");
 
    auto mpiBlock = comm->getIOMPIBlock();
-   ensureDirExists(mpiBlock, checkpointWriteDirectory.c_str()); // Must be called by all processes,
-   // because it broadcasts the result of
-   // the stat() call.
+   ensureDirExists(mpiBlock, checkpointWriteDir.c_str()); // Must be called by all processes,
+   // because it broadcasts the result of the stat() call.
    if (mpiBlock->getRank() == 0) {
       std::string rmcommand("rm -rf ");
-      rmcommand.append(checkpointWriteDirectory).append("/*");
-      InfoLog() << "Cleaning directory \"" << checkpointWriteDirectory << "\" with \"" << rmcommand
+      rmcommand.append(checkpointWriteDir).append("/*");
+      InfoLog() << "Cleaning directory \"" << checkpointWriteDir<< "\" with \"" << rmcommand
                 << "\".\n";
       int rmstatus = system(rmcommand.c_str());
       FatalIf(
@@ -42,8 +38,10 @@ int main(int argc, char *argv[]) {
             rmcommand.c_str(),
             WEXITSTATUS(rmstatus));
    }
-   checkpointer->ioParams(PV::PARAMS_IO_READ, params);
-   delete params;
+
+   PV::Checkpointer *checkpointer = new PV::Checkpointer(
+         std::string("checkpointer"), comm, arguments);
+   checkpointer->ioParams(PV::ParamsIOSwitch::Read, paramsIO);
 
    std::vector<double> fpCorrect{1.0, -1.0, 2.0, -2.0, 3.0, -3.0};
    int integerCorrect = 7;
@@ -87,10 +85,11 @@ int main(int argc, char *argv[]) {
    checkpointer = nullptr;
 
    // Create a new checkpointer for reading from the checkpoint.
-   std::string checkpointReadDir(checkpointWriteDirectory);
+   std::string checkpointReadDir(checkpointWriteDir);
    checkpointReadDir.append("/Checkpoint04");
    arguments->setStringArgument("CheckpointReadDirectory", checkpointReadDir);
    checkpointer = new PV::Checkpointer(std::string("checkpointer"), comm, arguments);
+   checkpointer->ioParams(PV::ParamsIOSwitch::Read, paramsIO);
    checkpointer->registerCheckpointEntry(
          floatingpointCheckpointEntry, false /*treat as non-constant*/);
    checkpointer->registerCheckpointEntry(integerCheckpointEntry, false /*treat as non-constant*/);

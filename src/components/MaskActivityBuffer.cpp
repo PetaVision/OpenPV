@@ -12,41 +12,37 @@
 namespace PV {
 
 MaskActivityBuffer::MaskActivityBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 MaskActivityBuffer::MaskActivityBuffer() {}
 
-MaskActivityBuffer::~MaskActivityBuffer() {
-   free(mMaskLayerName);
-   free(mFeatures);
-   free(mMaskMethod);
-}
+MaskActivityBuffer::~MaskActivityBuffer() {}
 
-int MaskActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ANNActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_maskMethod(ioFlag);
-   ioParam_maskLayerName(ioFlag);
-   ioParam_featureIdxs(ioFlag);
+int MaskActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ANNActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_maskMethod(ioSwitch);
+   ioParam_maskLayerName(ioSwitch);
+   ioParam_featureIdxs(ioSwitch);
    return status;
 }
 
-void MaskActivityBuffer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "maskMethod", &mMaskMethod);
+void MaskActivityBuffer::ioParam_maskMethod(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "maskMethod", &mMaskMethod);
    // Check valid methods
-   if (strcmp(mMaskMethod, "layer") == 0) {
+   if (mMaskMethod == "layer") {
       mMaskMethodCode = LAYER;
    }
-   else if (strcmp(mMaskMethod, "invertLayer") == 0) {
+   else if (mMaskMethod == "invertLayer") {
       mMaskMethodCode = INVERT_LAYER;
    }
-   else if (strcmp(mMaskMethod, "maskFeatures") == 0) {
+   else if (mMaskMethod == "maskFeatures") {
       mMaskMethodCode = FEATURES;
    }
-   else if (strcmp(mMaskMethod, "noMaskFeatures") == 0) {
+   else if (mMaskMethod == "noMaskFeatures") {
       mMaskMethodCode = INVERT_FEATURES;
    }
    if (mCommunicator->commRank() == 0) {
@@ -55,30 +51,31 @@ void MaskActivityBuffer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
             "%s: \"%s\" is not a valid maskMethod. Options are \"layer\", \"invertLayer\", "
             "\"maskFeatures\", or \"noMaskFeatures\".\n",
             getDescription_c(),
-            mMaskMethod);
+            mMaskMethod.c_str());
    }
 }
 
-void MaskActivityBuffer::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "maskMethod"));
+void MaskActivityBuffer::ioParam_maskLayerName(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("maskMethod"));
    if (mMaskMethodCode == LAYER or mMaskMethodCode == INVERT_LAYER) {
-      parameters()->ioParamStringRequired(ioFlag, getName(), "maskLayerName", &mMaskLayerName);
+      mParamsIO->ioParam(ioSwitch, "maskLayerName", &mMaskLayerName);
    }
 }
 
-void MaskActivityBuffer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "maskMethod"));
+void MaskActivityBuffer::ioParam_featureIdxs(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("maskMethod"));
    if (mMaskMethodCode == FEATURES or mMaskMethodCode == INVERT_FEATURES) {
-      parameters()->ioParamArray(ioFlag, getName(), "featureIdxs", &mFeatures, &mNumSpecifiedFeatures);
-      if (mNumSpecifiedFeatures == 0) {
+      mParamsIO->ioParam(ioSwitch, "featureIdxs", &mFeatures);
+      if (mFeatures.empty()) {
          if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: MaskLayer must specify at least one feature for maskMethod \"%s\".\n",
                   getDescription_c(),
-                  mMaskMethod);
+                  mMaskMethod.c_str());
          }
-         exit(EXIT_FAILURE);
+         std::exit(EXIT_FAILURE);
       }
+      mNumSpecifiedFeatures = static_cast<int>(mFeatures.size());
    }
 }
 
@@ -89,17 +86,16 @@ MaskActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return status;
    }
    if (mMaskMethodCode == LAYER or mMaskMethodCode == INVERT_LAYER) {
-      mMaskBuffer = message->mObjectTable->findObject<ActivityBuffer>(std::string(mMaskLayerName));
+      mMaskBuffer = message->mObjectTable->findObject<ActivityBuffer>(mMaskLayerName);
       FatalIf(
             mMaskBuffer == nullptr,
             "%s: No object with maskLayerName \"%s\" has an ActivityBuffer.\n",
             getDescription_c(),
-            mMaskLayerName);
+            mMaskLayerName.c_str());
    }
    else {
       pvAssert(mMaskMethodCode == FEATURES or mMaskMethodCode == INVERT_FEATURES);
       // Check for in bounds featureIdxs
-      assert(mFeatures);
       const PVLayerLoc *loc = getLayerLoc();
       for (int f = 0; f < mNumSpecifiedFeatures; f++) {
          if (mFeatures[f] < 0 || mFeatures[f] >= loc->nf) {
@@ -128,7 +124,7 @@ Response::Status MaskActivityBuffer::allocateDataStructures() {
             errorMessage.printf(
                   "%s: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
                   getDescription_c(),
-                  mMaskLayerName);
+                  mMaskLayerName.c_str());
             errorMessage.printf(
                   "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                   maskLoc->nxGlobal,
@@ -149,7 +145,7 @@ Response::Status MaskActivityBuffer::allocateDataStructures() {
                   "%s: maskLayerName \"%s\" must either have the same number of features as this "
                   "layer, or one feature.\n",
                   getDescription_c(),
-                  mMaskLayerName);
+                  mMaskLayerName.c_str());
             errorMessage.printf(
                   "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                   maskLoc->nxGlobal,

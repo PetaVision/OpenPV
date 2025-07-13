@@ -18,13 +18,19 @@ namespace PV {
  */
 class DependentFirmThresholdCostLayer : public FirmThresholdCostLayer {
   public:
-   DependentFirmThresholdCostLayer(const char *name, PVParams *params, Communicator const *comm);
+   DependentFirmThresholdCostLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~DependentFirmThresholdCostLayer();
 
   protected:
    DependentFirmThresholdCostLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void fillComponentTable() override;
    virtual ActivityComponent *createActivityComponent() override;

@@ -26,28 +26,34 @@ class FeedbackConnectionData : public ConnectionData {
     * preLayerName parameter, but takes the pre and post from the
     * original connection and swaps them.
     */
-   virtual void ioParam_preLayerName(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_preLayerName(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief preLayerName: FeedbackConnectionData does not read the
     * preLayerName parameter, but takes the pre and post from the
     * original connection and swaps them.
     */
-   virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_postLayerName(ParamsIOSwitch ioSwitch) override;
    /** @} */ // end of FeedbackConnectionData parameters
 
   public:
-   FeedbackConnectionData(char const *name, PVParams *params, Communicator const *comm);
+   FeedbackConnectionData(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~FeedbackConnectionData();
 
   protected:
    FeedbackConnectionData();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

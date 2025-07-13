@@ -10,10 +10,10 @@
 namespace PV {
 
 InitUniformRandomWeights::InitUniformRandomWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitUniformRandomWeights::InitUniformRandomWeights() {}
@@ -21,35 +21,35 @@ InitUniformRandomWeights::InitUniformRandomWeights() {}
 InitUniformRandomWeights::~InitUniformRandomWeights() {}
 
 void InitUniformRandomWeights::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   InitRandomWeights::initialize(name, params, comm);
+   InitRandomWeights::initialize(params, defaults, comm);
 }
 
-int InitUniformRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitRandomWeights::ioParamsFillGroup(ioFlag);
-   ioParam_wMinInit(ioFlag);
-   ioParam_wMaxInit(ioFlag);
-   ioParam_sparseFraction(ioFlag);
-   ioParam_minNNZ(ioFlag);
+int InitUniformRandomWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitRandomWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_wMinInit(ioSwitch);
+   ioParam_wMaxInit(ioSwitch);
+   ioParam_sparseFraction(ioSwitch);
+   ioParam_minNNZ(ioSwitch);
    return status;
 }
 
-void InitUniformRandomWeights::ioParam_wMinInit(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "wMinInit", &mWMin, mWMin);
+void InitUniformRandomWeights::ioParam_wMinInit(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "wMinInit", &mWMin);
 }
 
-void InitUniformRandomWeights::ioParam_wMaxInit(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "wMaxInit", &mWMax, mWMax);
+void InitUniformRandomWeights::ioParam_wMaxInit(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "wMaxInit", &mWMax);
 }
 
-void InitUniformRandomWeights::ioParam_sparseFraction(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "sparseFraction", &mSparseFraction, mSparseFraction);
+void InitUniformRandomWeights::ioParam_sparseFraction(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "sparseFraction", &mSparseFraction);
 }
 
-void InitUniformRandomWeights::ioParam_minNNZ(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "minNNZ", &mMinNNZ, mMinNNZ);
+void InitUniformRandomWeights::ioParam_minNNZ(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "minNNZ", &mMinNNZ);
 }
 
 /**

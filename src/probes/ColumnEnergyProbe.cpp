@@ -7,8 +7,11 @@
 
 namespace PV {
 
-ColumnEnergyProbe::ColumnEnergyProbe(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ColumnEnergyProbe::ColumnEnergyProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 Response::Status ColumnEnergyProbe::allocateDataStructures() {
@@ -73,31 +76,35 @@ void ColumnEnergyProbe::calcValues(double timestamp) {
 }
 
 void ColumnEnergyProbe::createComponents(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createProbeOutputter(name, params, comm);
-   createProbeTrigger(name, params);
+   createProbeOutputter(params, defaults, comm);
+   createProbeTrigger(params, defaults);
 }
 
 void ColumnEnergyProbe::createProbeOutputter(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<ColumnEnergyOutputter>(name, params, comm);
+   mProbeOutputter = std::make_shared<ColumnEnergyOutputter>(params, defaults, comm);
 }
 
-void ColumnEnergyProbe::createProbeTrigger(char const *name, PVParams *params) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(name, params);
+void ColumnEnergyProbe::createProbeTrigger(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
 }
 
-void ColumnEnergyProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   createComponents(name, params, comm);
+void ColumnEnergyProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   createComponents(params, defaults, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   ProbeInterface::initialize(name, params, comm);
+   ProbeInterface::initialize(params, defaults, comm);
 }
 
 void ColumnEnergyProbe::initMessageActionMap() {
@@ -111,10 +118,10 @@ void ColumnEnergyProbe::initMessageActionMap() {
    mMessageActionMap.emplace("ColProbeOutputState", action);
 }
 
-int ColumnEnergyProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ProbeInterface::ioParamsFillGroup(ioFlag);
-   mProbeOutputter->ioParamsFillGroup(ioFlag);
-   mProbeTrigger->ioParamsFillGroup(ioFlag);
+int ColumnEnergyProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ProbeInterface::ioParamsFillGroup(ioSwitch);
+   mProbeOutputter->ioParamsFillGroup(ioSwitch);
+   mProbeTrigger->ioParamsFillGroup(ioSwitch);
    return status;
 }
 
@@ -184,6 +191,13 @@ ColumnEnergyProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
 Response::Status ColumnEnergyProbe::respondColProbeOutputState(
       std::shared_ptr<ColProbeOutputStateMessage const>(message)) {
    return outputState(message->mTime, message->mDeltaTime);
+}
+
+void ColumnEnergyProbe::setPrintStreams(
+      FileStream *printParamsStream, FileStream *printLuaStream) {
+   ProbeInterface::setPrintStreams(printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeOutputter, printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeTrigger, printParamsStream, printLuaStream);
 }
 
 } // namespace PV

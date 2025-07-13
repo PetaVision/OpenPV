@@ -7,16 +7,19 @@ namespace PV {
 
 class MaskTestLayer : public PV::ANNLayer {
   public:
-   MaskTestLayer(const char *name, PVParams *params, Communicator const *comm);
+   MaskTestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    ~MaskTestLayer();
 
   protected:
    virtual Response::Status checkUpdateState(double timef, double dt) override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_maskMethod(ParamsIOSwitch ioSwitch);
 
   private:
-   char *maskMethod = nullptr;
+   std::string mMaskMethod;
 };
 
 } /* namespace PV */

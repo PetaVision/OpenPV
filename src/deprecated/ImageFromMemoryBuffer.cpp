@@ -16,8 +16,8 @@ namespace PV {
 
 // ImageFromMemoryBuffer was deprecated on Aug 15, 2018 and marked obsolete on Nov 7, 2018.
 ImageFromMemoryBuffer::ImageFromMemoryBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    Fatal() << "Unable to create layer \"" << name << "\": ImageFromMemoryBuffer is obsolete.\n";
 }

@@ -34,11 +34,14 @@ class ActivityComponent : public ComponentBasedObject {
     * this layer's updateState method should use the GPU.
     * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
     */
-   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateGpu(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   ActivityComponent(char const *name, PVParams *params, Communicator const *comm);
+   ActivityComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ActivityComponent();
 
@@ -63,7 +66,10 @@ class ActivityComponent : public ComponentBasedObject {
   protected:
    ActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -71,7 +77,7 @@ class ActivityComponent : public ComponentBasedObject {
 
    virtual ActivityBuffer *createActivity();
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

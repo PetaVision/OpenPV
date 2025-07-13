@@ -10,40 +10,35 @@
 namespace PV {
 
 AdaptiveTimeScaleProbeOutputter::AdaptiveTimeScaleProbeOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void AdaptiveTimeScaleProbeOutputter::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseProbeOutputter::initialize(objName, params, comm);
+   BaseProbeOutputter::initialize(params, defaults, comm);
 }
 
-void AdaptiveTimeScaleProbeOutputter::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!getParams()->presentAndNotBeenRead(getName_c(), "textOutputFlag"));
+void AdaptiveTimeScaleProbeOutputter::ioParam_writeTimeScaleFieldnames(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("textOutputFlag"));
    if (getTextOutputFlag()) {
-      getParams()->ioParamValue(
-            ioFlag,
-            getName_c(),
-            "writeTimeScaleFieldnames",
-            &mWriteTimeScaleFieldnames,
-            mWriteTimeScaleFieldnames);
+      mParamsIO->ioParam(ioSwitch, "writeTimeScaleFieldnames", &mWriteTimeScaleFieldnames);
    }
 }
 
-void AdaptiveTimeScaleProbeOutputter::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   BaseProbeOutputter::ioParamsFillGroup(ioFlag);
-   ioParam_writeTimeScaleFieldnames(ioFlag);
+void AdaptiveTimeScaleProbeOutputter::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   BaseProbeOutputter::ioParamsFillGroup(ioSwitch);
+   ioParam_writeTimeScaleFieldnames(ioSwitch);
 }
 
 void AdaptiveTimeScaleProbeOutputter::printTimeScaleBuffer(
       ProbeDataBuffer<TimeScaleData> const &storedValues) {
    if (getTextOutputFlag()) {
-      if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
+      if (!getProbeOutputFilename().empty()) {
          printToFiles(storedValues);
       }
       else {
@@ -77,7 +72,7 @@ void AdaptiveTimeScaleProbeOutputter::printTimeScaleData(
 }
 
 void AdaptiveTimeScaleProbeOutputter::printToFiles(ProbeDataBuffer<TimeScaleData> const &storedValues) {
-   pvAssert(getProbeOutputFilename() != nullptr and getProbeOutputFilename()[0] != '\0');
+   pvAssert(!getProbeOutputFilename().empty());
 #ifdef PV_USE_MPI
    if (getCommunicator()->commRank() != 0) {
       return;
@@ -137,7 +132,7 @@ void AdaptiveTimeScaleProbeOutputter::printToFiles(ProbeDataBuffer<TimeScaleData
 }
 
 void AdaptiveTimeScaleProbeOutputter::printToLog(ProbeDataBuffer<TimeScaleData> const &storedValues) {
-   pvAssert(getProbeOutputFilename() == nullptr or getProbeOutputFilename()[0] == '\0');
+   pvAssert(getProbeOutputFilename().empty());
    int rank = getCommunicator()->commRank();
    if (rank == 0) {
       int globalBatchStart = calcGlobalBatchOffset();

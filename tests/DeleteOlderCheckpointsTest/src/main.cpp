@@ -2,7 +2,9 @@
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
+#include "io/fileio.hpp"
+#include "params/ParamsIO.hpp"
+#include "params/PVParams.hpp"
 #include "utils/PVLog.hpp"
 #include <cerrno>
 #include <cstring>
@@ -22,12 +24,13 @@ int main(int argc, char *argv[]) {
 
    // Params file
    PV::PVParams *params =
-         new PV::PVParams("input/DeleteOldCheckpointsTest.params", 1, comm->globalCommunicator());
+         new PV::PVParams("input/DeleteOldCheckpointsTest.params", comm->globalCommunicator());
 
    // Create checkpointing directory and delete any existing files inside it.
-   char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
+   auto paramsIO = params->makeParamsIO("checkpointer");
+   std::string checkpointWriteDir = paramsIO->readValue<std::string>("checkpointWriteDir");
    FatalIf(
-         checkpointWriteDir == nullptr or checkpointWriteDir[0] == '\0',
+         checkpointWriteDir.empty(),
          "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
    pvAssert(!checkpointWriteDirectory.empty());
@@ -44,14 +47,15 @@ int main(int argc, char *argv[]) {
             rmcommand.c_str(),
             WEXITSTATUS(rmstatus));
    }
+   bool deleteOlderCheckpoints = paramsIO->readValue<bool>("deleteOlderCheckpoints");
    FatalIf(
-         params->value("checkpointer", "deleteOlderCheckpoints") == 0.0,
-         "Params file must set deleteOlderCheckpoints to true.\n");
-   std::size_t const numKept = (std::size_t)params->valueInt("checkpointer", "numCheckpointsKept");
+         !deleteOlderCheckpoints,
+         "This test must set deleteOlderCheckpoints to true.\n");
+   std::size_t numKept = paramsIO->readValue<std::size_t>("numCheckpointsKept");
 
    // Initialize Checkpointer object
    PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm, arguments);
-   checkpointer->ioParams(PV::PARAMS_IO_READ, params);
+   checkpointer->ioParams(PV::ParamsIOSwitch::Read, *paramsIO);
    delete params;
 
    int status = PV_SUCCESS;

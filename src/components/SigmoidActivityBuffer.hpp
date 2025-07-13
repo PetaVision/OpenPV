@@ -27,12 +27,12 @@ class SigmoidActivityBuffer : public VInputActivityBuffer {
    /**
     * @brief Vrest:
     */
-   virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vrest(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief VthRest:
     */
-   virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VthRest(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief InverseFlag: If true, the activity decreases from 1 to 0
@@ -40,7 +40,7 @@ class SigmoidActivityBuffer : public VInputActivityBuffer {
     * If InverseFlag is false, the activity increases from 0 to 1.
     * Default is false.
     */
-   virtual void ioParam_InverseFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InverseFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief SigmoidFlag: If this flag is false, the activity is
@@ -48,26 +48,32 @@ class SigmoidActivityBuffer : public VInputActivityBuffer {
     * activity is a true sigmoid function.
     * Default is true.
     */
-   virtual void ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_SigmoidFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief SigmoidAlpha:
     */
-   virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_SigmoidAlpha(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   SigmoidActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   SigmoidActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~SigmoidActivityBuffer();
 
   protected:
    SigmoidActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

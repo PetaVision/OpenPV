@@ -10,25 +10,31 @@
 
 namespace PV {
 
-SharedWeightsTrue::SharedWeightsTrue(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+SharedWeightsTrue::SharedWeightsTrue(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 SharedWeightsTrue::~SharedWeightsTrue() {}
 
-void SharedWeightsTrue::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   SharedWeights::initialize(name, params, comm);
+void SharedWeightsTrue::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   SharedWeights::initialize(params, defaults, comm);
 }
 
 void SharedWeightsTrue::setObjectType() { mObjectType = "SharedWeightsTrue"; }
 
-int SharedWeightsTrue::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return SharedWeights::ioParamsFillGroup(ioFlag);
+int SharedWeightsTrue::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return SharedWeights::ioParamsFillGroup(ioSwitch);
 }
-void SharedWeightsTrue::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void SharedWeightsTrue::ioParam_sharedWeights(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       mSharedWeightsFlag = true;
-      parameters()->handleUnnecessaryParameter(getName(), "sharedWeights", mSharedWeightsFlag);
+      mParamsIO->handleUnnecessaryParameter("sharedWeights", mSharedWeightsFlag);
    }
 }
 

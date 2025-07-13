@@ -7,14 +7,14 @@
 using namespace PV;
 
 FixedImageSequence::FixedImageSequence(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *FixedImageSequence::createActivityComponent() {
-   return new ActivityComponentActivityOnly<ActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new ActivityComponentActivityOnly<ActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status

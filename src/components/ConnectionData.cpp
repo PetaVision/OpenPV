@@ -12,56 +12,49 @@
 
 namespace PV {
 
-ConnectionData::ConnectionData(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ConnectionData::ConnectionData(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ConnectionData::ConnectionData() {}
 
-ConnectionData::~ConnectionData() {
-   free(mPreLayerName);
-   free(mPostLayerName);
-}
+ConnectionData::~ConnectionData() {}
 
-void ConnectionData::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void ConnectionData::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void ConnectionData::setObjectType() { mObjectType = "ConnectionData"; }
 
-int ConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_preLayerName(ioFlag);
-   ioParam_postLayerName(ioFlag);
+int ConnectionData::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_preLayerName(ioSwitch);
+   ioParam_postLayerName(ioSwitch);
    return PV_SUCCESS;
 }
 
-void ConnectionData::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
-   this->parameters()->ioParamString(
-         ioFlag, this->getName(), "preLayerName", &mPreLayerName, NULL, false /*warnIfAbsent*/);
+void ConnectionData::ioParam_preLayerName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "preLayerName", &mPreLayerName, false /*warnIfAbsentFlag*/);
 }
 
-void ConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
-   this->parameters()->ioParamString(
-         ioFlag, this->getName(), "postLayerName", &mPostLayerName, NULL, false /*warnIfAbsent*/);
+void ConnectionData::ioParam_postLayerName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "postLayerName", &mPostLayerName, false /*warnIfAbsentFlag*/);
 }
 
 Response::Status
 ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (getPreLayerName() == nullptr and getPostLayerName() == nullptr) {
-      std::string preLayerNameString, postLayerNameString;
+   if (getPreLayerName().empty() and getPostLayerName().empty()) {
       inferPreAndPostFromConnName(
-            getName(), mCommunicator->globalCommRank(), preLayerNameString, postLayerNameString);
-      mPreLayerName  = strdup(preLayerNameString.c_str());
-      mPostLayerName = strdup(postLayerNameString.c_str());
+            getName(), mCommunicator->globalCommRank(), mPreLayerName, mPostLayerName);
    }
-   MPI_Barrier(this->mCommunicator->globalCommunicator());
-   if (getPreLayerName() == nullptr or getPostLayerName() == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: Unable to determine pre- and post-layer names. Exiting.\n", getDescription_c());
-      }
-      exit(EXIT_FAILURE);
-   }
+   FatalIf(
+         getPreLayerName().empty() or getPostLayerName().empty(),
+         "%s: Unable to determine pre- and post-layer names. Exiting.\n", getDescription_c());
 
    auto objectTable = message->mObjectTable;
 
@@ -72,7 +65,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
          ErrorLog().printf(
                "%s: preLayerName \"%s\" does not correspond to a layer in the column.\n",
                getDescription_c(),
-               getPreLayerName());
+               getPreLayerName().c_str());
       }
       failed = true;
    }
@@ -89,7 +82,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
    MPI_Barrier(mCommunicator->globalCommunicator());
    if (failed) {
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
    if (!mPre->getInitInfoCommunicatedFlag() or !mPost->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -99,7 +92,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    pvAssert(preGeom);
    mPreIsBroadcast = preGeom->getBroadcastFlag();
 
-   auto *postGeom = objectTable->findObject<LayerGeometry>(getPreLayerName());
+   auto *postGeom = objectTable->findObject<LayerGeometry>(getPostLayerName());
    pvAssert(postGeom);
    mPostIsBroadcast = postGeom->getBroadcastFlag();
 

@@ -12,16 +12,23 @@
 
 namespace PV {
 
-TransposeConn::TransposeConn(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+TransposeConn::TransposeConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 TransposeConn::TransposeConn() {}
 
 TransposeConn::~TransposeConn() {}
 
-void TransposeConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HyPerConn::initialize(name, params, comm);
+void TransposeConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerConn::initialize(params, defaults, comm);
+   mWriteInitializeFromCheckpointFlag = false;
 }
 
 void TransposeConn::fillComponentTable() {
@@ -33,19 +40,19 @@ void TransposeConn::fillComponentTable() {
 }
 
 ArborList *TransposeConn::createArborList() {
-   return new DependentArborList(getName(), parameters(), mCommunicator);
+   return new DependentArborList(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 PatchSize *TransposeConn::createPatchSize() {
-   return new TransposePatchSize(getName(), parameters(), mCommunicator);
+   return new TransposePatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 SharedWeights *TransposeConn::createSharedWeights() {
-   return new DependentSharedWeights(getName(), parameters(), mCommunicator);
+   return new DependentSharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 WeightsPairInterface *TransposeConn::createWeightsPair() {
-   return new TransposeWeightsPair(getName(), parameters(), mCommunicator);
+   return new TransposeWeightsPair(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 InitWeights *TransposeConn::createWeightInitializer() { return nullptr; }
@@ -55,7 +62,7 @@ NormalizeBase *TransposeConn::createWeightNormalizer() { return nullptr; }
 BaseWeightUpdater *TransposeConn::createWeightUpdater() { return nullptr; }
 
 OriginalConnNameParam *TransposeConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(getName(), parameters(), mCommunicator);
+   return new OriginalConnNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status

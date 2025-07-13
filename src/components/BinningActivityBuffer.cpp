@@ -11,43 +11,43 @@
 namespace PV {
 
 BinningActivityBuffer::BinningActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 BinningActivityBuffer::~BinningActivityBuffer() {}
 
 void BinningActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 void BinningActivityBuffer::setObjectType() { mObjectType = "BinningActivityBuffer"; }
 
-int BinningActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_binMin(ioFlag);
-   ioParam_binMax(ioFlag);
-   ioParam_delay(ioFlag);
-   ioParam_binSigma(ioFlag);
-   ioParam_zeroNeg(ioFlag);
-   ioParam_zeroDCR(ioFlag);
-   ioParam_normalDist(ioFlag);
+int BinningActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_binMin(ioSwitch);
+   ioParam_binMax(ioSwitch);
+   ioParam_delay(ioSwitch);
+   ioParam_binSigma(ioSwitch);
+   ioParam_zeroNeg(ioSwitch);
+   ioParam_zeroDCR(ioSwitch);
+   ioParam_normalDist(ioSwitch);
    return status;
 }
 
-void BinningActivityBuffer::ioParam_binMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "binMin", &mBinMin, mBinMin);
+void BinningActivityBuffer::ioParam_binMin(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "binMin", &mBinMin);
 }
 
-void BinningActivityBuffer::ioParam_binMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "binMin"));
-   parameters()->ioParamValue(ioFlag, getName(), "binMax", &mBinMax, mBinMax);
-   if (ioFlag == PARAMS_IO_READ && mBinMax <= mBinMin) {
+void BinningActivityBuffer::ioParam_binMax(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("binMin"));
+   mParamsIO->ioParam(ioSwitch, "binMax", &mBinMax);
+   if (ioSwitch == ParamsIOSwitch::Read && mBinMax <= mBinMin) {
       if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",
@@ -60,24 +60,24 @@ void BinningActivityBuffer::ioParam_binMax(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void BinningActivityBuffer::ioParam_binSigma(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "binSigma", &mBinSigma, mBinSigma);
+void BinningActivityBuffer::ioParam_binSigma(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "binSigma", &mBinSigma);
 }
 
-void BinningActivityBuffer::ioParam_delay(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "delay", &mDelay, mDelay);
+void BinningActivityBuffer::ioParam_delay(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "delay", &mDelay);
 }
 
-void BinningActivityBuffer::ioParam_zeroNeg(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "zeroNeg", &mZeroNeg, mZeroNeg);
+void BinningActivityBuffer::ioParam_zeroNeg(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "zeroNeg", &mZeroNeg);
 }
 
-void BinningActivityBuffer::ioParam_zeroDCR(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "zeroDCR", &mZeroDCR, mZeroDCR);
+void BinningActivityBuffer::ioParam_zeroDCR(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "zeroDCR", &mZeroDCR);
 }
 
-void BinningActivityBuffer::ioParam_normalDist(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "normalDist", &mNormalDist, mNormalDist);
+void BinningActivityBuffer::ioParam_normalDist(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalDist", &mNormalDist);
 }
 
 // TODO read params for gaussian over features
@@ -97,14 +97,14 @@ Response::Status BinningActivityBuffer::communicateInitInfo(
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+   std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
    mOriginalLayerData = objectTable->findObject<BasePublisherComponent>(originalLayerName);
    FatalIf(
          mOriginalLayerData == nullptr,
          "%s original layer \"%s\" does not have a BasePublisherComponent.\n",
          getDescription_c(),
-         originalLayerName);
+         originalLayerName.c_str());
    checkDimensions();
 
    mOriginalLayerData->increaseDelayLevels(mDelay);

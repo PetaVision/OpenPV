@@ -4,19 +4,25 @@
 
 namespace PV {
 
-ImagePvpTestLayer::ImagePvpTestLayer(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ImagePvpTestLayer::ImagePvpTestLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ImagePvpTestLayer::~ImagePvpTestLayer() {}
 
-void ImagePvpTestLayer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InputLayer::initialize(name, params, comm);
+void ImagePvpTestLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InputLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *ImagePvpTestLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<ImagePvpTestBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

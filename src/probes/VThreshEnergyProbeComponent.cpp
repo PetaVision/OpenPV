@@ -5,12 +5,12 @@
 #include <cstdlib>
 
 namespace PV {
-VThreshEnergyProbeComponent::VThreshEnergyProbeComponent(char const *objName, PVParams *params) {
-   initialize(objName, params);
+VThreshEnergyProbeComponent::VThreshEnergyProbeComponent(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-void VThreshEnergyProbeComponent::initialize(char const *objName, PVParams *params) {
-   EnergyProbeComponent::initialize(objName, params);
+void VThreshEnergyProbeComponent::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   EnergyProbeComponent::initialize(params, defaults);
 }
 
 Response::Status VThreshEnergyProbeComponent::communicateInitInfo(
@@ -40,9 +40,9 @@ void VThreshEnergyProbeComponent::initializeState(HyPerLayer *targetLayer) {
    setCoefficient(activityBuffer->getVThresh());
 }
 
-void VThreshEnergyProbeComponent::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
-   assert(!getParams()->presentAndNotBeenRead(getName_c(), "energyProbe"));
-   // Should call getParams()->handleUnnecessaryParameters() here, if energyProbe is defined.
+void VThreshEnergyProbeComponent::ioParam_coefficient(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("energyProbe"));
+   // Should call mParamsIO->handleUnnecessaryParameters() here, if energyProbe is defined.
 }
 
 } // namespace PV

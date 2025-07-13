@@ -10,24 +10,24 @@
 namespace PV {
 
 NormProbeOutputter::NormProbeOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void NormProbeOutputter::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseProbeOutputter::initialize(objName, params, comm);
+   BaseProbeOutputter::initialize(params, defaults, comm);
 }
 
 void NormProbeOutputter::printGlobalNormsBuffer(
       ProbeDataBuffer<double> const &storedValues,
       int numNeurons) {
    if (getTextOutputFlag()) {
-      if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
+      if (!getProbeOutputFilename().empty()) {
          printToFiles(storedValues, numNeurons);
       }
       else {
@@ -47,7 +47,7 @@ void NormProbeOutputter::printNorm(
 }
 
 void NormProbeOutputter::printToFiles(ProbeDataBuffer<double> const &storedValues, int numNeurons) {
-   pvAssert(getProbeOutputFilename() != nullptr and getProbeOutputFilename()[0] != '\0');
+   pvAssert(!getProbeOutputFilename().empty());
 #ifdef PV_USE_MPI
    if (getCommunicator()->commRank() != 0) {
       return;
@@ -107,7 +107,7 @@ void NormProbeOutputter::printToFiles(ProbeDataBuffer<double> const &storedValue
 }
 
 void NormProbeOutputter::printToLog(ProbeDataBuffer<double> const &storedValues, int numNeurons) {
-   pvAssert(getProbeOutputFilename() == nullptr or getProbeOutputFilename()[0] == '\0');
+   pvAssert(getProbeOutputFilename().empty());
    int rank = getCommunicator()->commRank();
    if (rank == 0) {
       int globalBatchStart = calcGlobalBatchOffset();

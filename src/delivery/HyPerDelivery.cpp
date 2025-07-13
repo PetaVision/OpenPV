@@ -9,28 +9,34 @@
 
 namespace PV {
 
-HyPerDelivery::HyPerDelivery(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+HyPerDelivery::HyPerDelivery(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 HyPerDelivery::HyPerDelivery() {}
 
 HyPerDelivery::~HyPerDelivery() {}
 
-void HyPerDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseDelivery::initialize(name, params, comm);
+void HyPerDelivery::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseDelivery::initialize(params, defaults, comm);
 }
 
 void HyPerDelivery::setObjectType() { mObjectType = "HyPerDelivery"; }
 
-void HyPerDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+void HyPerDelivery::ioParam_receiveGpu(ParamsIOSwitch ioSwitch) {
    // Don't call handleUnnecessaryParameter here because that will generate a warning.
    // HyPerDeliver-derived classes don't need this parameter, but in the usual situation,
    // the parameter is read by HyPerDeliverCreator, which does need the parameter.
    // Hence a warning generated here would be misleading.
-   if (ioFlag == PARAMS_IO_READ) {
-      bool receiveGpu = parameters()->value(
-            getName(), "receiveGpu", mCorrectReceiveGpu, false /*don't warn if absent*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      bool receiveGpu;
+      mParamsIO->ioParam(ioSwitch, "receiveGpu", &receiveGpu, false /*warnIfAbsentFlag*/);
       FatalIf(
             receiveGpu != mCorrectReceiveGpu,
             "%s has receiveGpu set to %s in params, but requires %s to be %s.\n",

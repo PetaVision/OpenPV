@@ -11,7 +11,7 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "components/BasePublisherComponent.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/StatsProbeImmediate.hpp"
 #include <memory>
@@ -20,14 +20,21 @@ namespace PV {
 
 class DatastoreDelayTestProbe : public StatsProbeImmediate {
   public:
-   DatastoreDelayTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   DatastoreDelayTestProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~DatastoreDelayTestProbe();
 
   protected:
    virtual void checkStats() override;
-   virtual void createProbeLocal(char const *name, PVParams *params) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 

@@ -14,14 +14,20 @@ namespace PV {
 
 class IncrementingWeightUpdater : public HebbianUpdater {
   public:
-   IncrementingWeightUpdater(char const *name, PVParams *params, Communicator const *comm);
+   IncrementingWeightUpdater(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~IncrementingWeightUpdater() {}
 
   protected:
    IncrementingWeightUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual int updateWeights(int arborId) override;
 };

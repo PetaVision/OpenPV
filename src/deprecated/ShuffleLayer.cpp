@@ -21,9 +21,12 @@ using namespace std;
 namespace PV {
 ShuffleLayer::ShuffleLayer() { initialize_base(); }
 
-ShuffleLayer::ShuffleLayer(const char *name, PVParams *params, Communicator const *comm) {
+ShuffleLayer::ShuffleLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ShuffleLayer::~ShuffleLayer() {
@@ -61,9 +64,12 @@ int ShuffleLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void ShuffleLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+void ShuffleLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    WarnLog() << "ShuffleLayer has been deprecated.\n";
-   int status_init = HyPerLayer::initialize(name, params, comm);
+   int status_init = HyPerLayer::initialize(params, defaults, comm);
    // don't need conductance channels
    return status_init;
 }
@@ -106,16 +112,16 @@ ShuffleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    return CloneVLayer::communicateInitInfo(message);
 }
 
-int ShuffleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = CloneVLayer::ioParamsFillGroup(ioFlag);
-   ioParam_shuffleMethod(ioFlag);
-   ioParam_readFreqFromFile(ioFlag);
-   ioParam_freqFilename(ioFlag);
-   ioParam_freqCollectTime(ioFlag);
+int ShuffleLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = CloneVLayer::ioParamsFillGroup(ioSwitch);
+   ioParam_shuffleMethod(ioSwitch);
+   ioParam_readFreqFromFile(ioSwitch);
+   ioParam_freqFilename(ioSwitch);
+   ioParam_freqCollectTime(ioSwitch);
    return status;
 }
 
-void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag) {
+void ShuffleLayer::ioParam_shuffleMethod(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamString(
          ioFlag, name, "shuffleMethod", &shuffleMethod, "random", false /*warnIfAbsent*/);
    // ioFlag==PARAMS_IO_READ &&
@@ -128,7 +134,7 @@ void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void ShuffleLayer::ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag) {
+void ShuffleLayer::ioParam_readFreqFromFile(ParamsIOSwitch ioSwitch) {
    assert(!parameters()->presentAndNotBeenRead(name, "shuffleMethod"));
    if (strcmp(shuffleMethod, "rejection") == 0) {
       parameters()->ioParamValue(
@@ -136,14 +142,14 @@ void ShuffleLayer::ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void ShuffleLayer::ioParam_freqFilename(enum ParamsIOFlag ioFlag) {
+void ShuffleLayer::ioParam_freqFilename(ParamsIOSwitch ioSwitch) {
    assert(!parameters()->presentAndNotBeenRead(name, "readFreqFromFile"));
    if (readFreqFromFile) {
       parameters()->ioParamString(ioFlag, name, "freqFilename", &freqFilename, freqFilename);
    }
 }
 
-void ShuffleLayer::ioParam_freqCollectTime(enum ParamsIOFlag ioFlag) {
+void ShuffleLayer::ioParam_freqCollectTime(ParamsIOSwitch ioSwitch) {
    assert(!parameters()->presentAndNotBeenRead(name, "readFreqFromFile"));
    if (!readFreqFromFile) {
       parameters()->ioParamValue(

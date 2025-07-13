@@ -18,7 +18,8 @@
 #include "columns/PV_Init.hpp"
 #include "columns/ParamsInterface.hpp"
 #include "io/FileStream.hpp"
-#include "io/PVParams.hpp"
+#include "params/ParamsIO.hpp"
+#include "params/PVParams.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
@@ -50,72 +51,72 @@ class HyPerCol : public Subject, public ParamsInterface {
    /**
     * @brief mStopTime: The set stopping time for the run
     */
-   virtual void ioParam_stopTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_stopTime(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief dt: The default delta time to use.
     * @details This dt is used for advancing the run time.
     */
-   virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dt(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief mProgressInterval: Specifies how often a progress report prints out
     * @details Units of dt
     */
-   virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_progressInterval(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief writeProgressToErr: Whether to print timestep progress to the error
     * stream instead of
     * the output stream
     */
-   virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeProgressToErr(ParamsIOSwitch ioSwitch);
 
    /**
-    * @brief mPrintParamsFilename: Specifies the output mParams filename.
+    * @brief printParamsFilename: Specifies the output mParams filename.
     * @details Defaults to pv.params. Relative paths are relative to
     * the OutputPath.
     */
-   virtual void ioParam_printParamsFilename(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_printParamsFilename(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief randomSeed: The seed for the random number generator for
     * reproducability
     */
-   virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_randomSeed(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nx: Specifies the size of the column
     */
-   virtual void ioParam_nx(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nx(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief ny: Specifies the size of the column
     */
-   virtual void ioParam_ny(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ny(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief ny: Specifies the batch size of the column
     */
-   virtual void ioParam_nBatch(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nBatch(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief errorOnUnusedParam: If true, it is a fatal error if the params file contains
     * timestep for nans in activity. Default is false, in which case a warning is issued.
     */
-   virtual void ioParam_errorOnUnusedParam(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_errorOnUnusedParam(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief errorOnNotANumber: Specifies if the run should check on each
     * timestep for not-a-number values in activity.
     */
-   virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_errorOnNotANumber(ParamsIOSwitch ioSwitch);
 
    /**
-    * @brief mOutputPath: Specifies the absolute or relative output path of the
+    * @brief outputPath: Specifies the absolute or relative output path of the
     * run
     */
-   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputPath(ParamsIOSwitch ioSwitch);
 
   public:
    HyPerCol(PV_Init *initObj);
@@ -150,7 +151,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    void nonblockingLayerUpdate(
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
-   void processParams(char const *path);
+   void processParams(std::string const &path);
 
    /**
     * This function tells each added object to perform the tasks necessary
@@ -169,9 +170,9 @@ class HyPerCol : public Subject, public ParamsInterface {
 
    bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
-   char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
-   const char *getOutputPath() { return mOutputPath; }
-   const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
+   char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir().c_str(); }
+   char const *getOutputPath() { return mOutputPath.c_str(); }
+   std::string const &getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
    double simulationTime() const { return mSimTime; }
    double getStopTime() const { return mStopTime; }
@@ -209,7 +210,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    int getAutoGPUDevice();
    int initialize(PV_Init *initObj);
    virtual void initMessageActionMap() override;
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void fillComponentTable() override;
    void addComponent(BaseObject *component);
    inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
@@ -247,9 +248,11 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool mParamsProcessedFlag = false; // Set to true when processParams() is called.
    bool mWriteProgressToErr  = false; // Whether to write progress step to standard error
    // (True) or standard output (False) (default is output)
-   char *mPrintParamsFilename = nullptr; // filename for outputting the mParams, including
-   // defaults and excluding unread mParams
-   char *mOutputPath = nullptr;
+
+   // filename for outputting the mParams, including defaults and excluding unread mParams
+   std::string mPrintParamsFilename;
+
+   std::string mOutputPath;
    double mSimTime;
    double mStopTime         = 0.0; // time to stop time
    double mDeltaTime        = mDefaultDeltaTime; // time step interval
@@ -277,7 +280,6 @@ class HyPerCol : public Subject, public ParamsInterface {
    PVCuda::CudaDevice *mCudaDevice = nullptr; // object for running kernels on OpenCL device
 #endif
 
-   static std::string const mDefaultOutputPath;
    static double const mDefaultDeltaTime;
 }; // class HyPerCol
 

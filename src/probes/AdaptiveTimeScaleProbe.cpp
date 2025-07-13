@@ -19,42 +19,49 @@
 namespace PV {
 
 AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe() {}
 
 AdaptiveTimeScaleProbe::~AdaptiveTimeScaleProbe() {
-    free(mTargetName);
     delete mAdaptiveTimeScaleController;
 }
 
-void AdaptiveTimeScaleProbe::createComponents(char const *name, PVParams *params, Communicator const *comm) {
+void AdaptiveTimeScaleProbe::createComponents(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createProbeOutputter(name, params, comm);
-   createProbeTrigger(name, params);
+   createProbeOutputter(params, defaults, comm);
+   createProbeTrigger(params, defaults);
 }
 
 void AdaptiveTimeScaleProbe::createProbeOutputter(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<AdaptiveTimeScaleProbeOutputter>(name, params, comm);
+   mProbeOutputter = std::make_shared<AdaptiveTimeScaleProbeOutputter>(params, defaults, comm);
 }
 
-void AdaptiveTimeScaleProbe::createProbeTrigger(char const *name, PVParams *params) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(name, params);
+void AdaptiveTimeScaleProbe::createProbeTrigger(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
 }
 
-void AdaptiveTimeScaleProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   createComponents(name, params, comm);
+void AdaptiveTimeScaleProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   createComponents(params, defaults, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   ProbeInterface::initialize(name, params, comm);
+   ProbeInterface::initialize(params, defaults, comm);
 }
 
 void AdaptiveTimeScaleProbe::initMessageActionMap() {
@@ -68,36 +75,36 @@ void AdaptiveTimeScaleProbe::initMessageActionMap() {
    mMessageActionMap.emplace("AdaptTimestep", action);
 }
 
-int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ProbeInterface::ioParamsFillGroup(ioFlag);
-   ioParam_targetName(ioFlag);
-   mProbeOutputter->ioParamsFillGroup(ioFlag);
-   mProbeTrigger->ioParamsFillGroup(ioFlag);
-   ioParam_baseMax(ioFlag);
-   ioParam_baseMin(ioFlag);
-   ioParam_tauFactor(ioFlag);
-   ioParam_growthFactor(ioFlag);
+int AdaptiveTimeScaleProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ProbeInterface::ioParamsFillGroup(ioSwitch);
+   ioParam_targetName(ioSwitch);
+   mProbeOutputter->ioParamsFillGroup(ioSwitch);
+   mProbeTrigger->ioParamsFillGroup(ioSwitch);
+   ioParam_baseMax(ioSwitch);
+   ioParam_baseMin(ioSwitch);
+   ioParam_tauFactor(ioSwitch);
+   ioParam_growthFactor(ioSwitch);
    return status;
 }
 
-void AdaptiveTimeScaleProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "targetName", &mTargetName);
+void AdaptiveTimeScaleProbe::ioParam_targetName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "targetName", &mTargetName);
 }
 
-void AdaptiveTimeScaleProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "baseMax", &mBaseMax, mBaseMax);
+void AdaptiveTimeScaleProbe::ioParam_baseMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "baseMax", &mBaseMax);
 }
 
-void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "baseMin", &mBaseMin, mBaseMin);
+void AdaptiveTimeScaleProbe::ioParam_baseMin(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "baseMin", &mBaseMin);
 }
 
-void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tauFactor", &tauFactor, tauFactor);
+void AdaptiveTimeScaleProbe::ioParam_tauFactor(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tauFactor", &tauFactor);
 }
 
-void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "growthFactor", &mGrowthFactor, mGrowthFactor);
+void AdaptiveTimeScaleProbe::ioParam_growthFactor(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "growthFactor", &mGrowthFactor);
 }
 
 Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
@@ -112,7 +119,7 @@ Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
          mTargetProbe == nullptr,
          "%s: targetName \"%s\" is not a suitable probe type.\n",
          getDescription_c(),
-         mTargetName);
+         mTargetName.c_str());
 
    // Set up triggering
    status = status + mProbeTrigger->communicateInitInfo(message);
@@ -211,6 +218,13 @@ Response::Status AdaptiveTimeScaleProbe::prepareCheckpointWrite(double simTime) 
    mProbeOutputter->printTimeScaleBuffer(mStoredValues);
    mStoredValues.clear();
    return Response::SUCCESS;
+}
+
+void AdaptiveTimeScaleProbe::setPrintStreams(
+      FileStream *printParamsStream, FileStream *printLuaStream) {
+   ProbeInterface::setPrintStreams(printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeOutputter, printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeTrigger, printParamsStream, printLuaStream);
 }
 
 } // namespace PV

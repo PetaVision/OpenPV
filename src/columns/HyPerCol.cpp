@@ -73,9 +73,6 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    delete mBuildTimer;
    delete mBuildAndRunTimer;
-   // TODO: Change these old C strings into std::string
-   free(mPrintParamsFilename);
-   free(mOutputPath);
 }
 
 int HyPerCol::initialize(PV_Init *initObj) {
@@ -90,7 +87,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(EXIT_FAILURE);
    }
 
-   mOutputPath = strdup(mPVInitObj->getStringArgument("OutputPath").c_str());
+   mOutputPath = mPVInitObj->getStringArgument("OutputPath");
 
    std::string paramsFile = mPVInitObj->getStringArgument("ParamsFile");
    if (mParams->getNumGroups() == 0) {
@@ -102,8 +99,10 @@ int HyPerCol::initialize(PV_Init *initObj) {
                  << "\" does not define a HyPerCol.\n";
       return PV_FAILURE;
    }
+   
    char const *group0Name = mParams->groupNameFromIndex(0);
-   ParamsInterface::initialize(group0Name, mParams);
+   auto paramsIO = mParams->makeParamsIO(group0Name);
+   ParamsInterface::initialize(paramsIO->getParams(), paramsIO->getDefaults());
 
    char const *programName = mPVInitObj->getProgramName();
 
@@ -119,22 +118,6 @@ int HyPerCol::initialize(PV_Init *initObj) {
       }
    }
 
-#ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot
-   // processes don't kill
-   // the root process before the root process reaches the syntax error
-   int parsedStatus;
-   int rootproc = 0;
-   if (globalRank() == rootproc) {
-      parsedStatus = this->mParams->getParseStatus();
-   }
-   MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, getCommunicator()->globalCommunicator());
-#else
-   int parsedStatus = this->mParams->getParseStatus();
-#endif
-   if (parsedStatus != 0) {
-      exit(parsedStatus);
-   }
-
    mBuildAndRunTimer = new Timer(getName(), "column", "buildrun");
    mBuildTimer       = new Timer(getName(), "column", "build   ");
    mRunTimer         = new Timer(getName(), "column", "run     ");
@@ -143,7 +126,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mCheckpointer = new Checkpointer(
          std::string(group0Name), mCommunicator, mPVInitObj->getArguments(), columnTimers);
    mCheckpointer->addObserver(this->getName(), this);
-   mCheckpointer->ioParams(PARAMS_IO_READ, parameters());
+   mCheckpointer->ioParams(ParamsIOSwitch::Read, *paramsIO);
 
    mSimTime     = 0.0;
    mCurrentStep = 0L;
@@ -189,9 +172,11 @@ void HyPerCol::fillComponentTable() {
          }
       }
       else {
+         char const *groupName = mParams->groupNameFromIndex(k);
+         std::shared_ptr<ParamsIO> paramsIO = mParams->makeParamsIO(groupName);
          BaseObject *addedObject = nullptr;
          try {
-            addedObject = Factory::instance()->createByKeyword(kw, name, mParams, mCommunicator);
+            addedObject = Factory::instance()->createByKeyword(kw, paramsIO, mCommunicator);
          } catch (std::exception const &e) {
             Fatal() << e.what() << std::endl;
          }
@@ -214,67 +199,65 @@ void HyPerCol::initMessageActionMap() {
    mMessageActionMap.emplace("WriteParamsFile", action);
 }
 
-int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_dt(ioFlag);
-   ioParam_stopTime(ioFlag);
-   ioParam_progressInterval(ioFlag);
-   ioParam_writeProgressToErr(ioFlag);
-   ioParam_printParamsFilename(ioFlag);
-   ioParam_randomSeed(ioFlag);
-   ioParam_nx(ioFlag);
-   ioParam_ny(ioFlag);
-   ioParam_nBatch(ioFlag);
-   ioParam_errorOnUnusedParam(ioFlag);
-   ioParam_errorOnNotANumber(ioFlag);
-   ioParam_outputPath(ioFlag);
-   if (ioFlag == PARAMS_IO_WRITE) {
+int HyPerCol::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_dt(ioSwitch);
+   ioParam_stopTime(ioSwitch);
+   ioParam_progressInterval(ioSwitch);
+   ioParam_writeProgressToErr(ioSwitch);
+   ioParam_printParamsFilename(ioSwitch);
+   ioParam_randomSeed(ioSwitch);
+   ioParam_nx(ioSwitch);
+   ioParam_ny(ioSwitch);
+   ioParam_nBatch(ioSwitch);
+   ioParam_errorOnUnusedParam(ioSwitch);
+   ioParam_errorOnNotANumber(ioSwitch);
+   ioParam_outputPath(ioSwitch);
+   if (ioSwitch == ParamsIOSwitch::Write) {
       pvAssert(mCheckpointer);
-      mCheckpointer->ioParams(ioFlag, parameters());
+      mCheckpointer->ioParams(ioSwitch, *mParamsIO);
    }
 
    return PV_SUCCESS;
 }
 
-void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "dt", &mDeltaTime, mDeltaTime);
+void HyPerCol::ioParam_dt(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("dt"), &mDeltaTime);
 }
 
-void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "stopTime", &mStopTime, mStopTime);
+void HyPerCol::ioParam_stopTime(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("stopTime"), &mStopTime);
 }
 
-void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "progressInterval", &mProgressInterval, mProgressInterval);
+void HyPerCol::ioParam_progressInterval(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("progressInterval"), &mProgressInterval);
 }
 
-void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
+void HyPerCol::ioParam_writeProgressToErr(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("writeProgressToErr"), &mWriteProgressToErr);
 }
 
-void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "printParamsFilename", &mPrintParamsFilename, "pv.params");
-   if (mPrintParamsFilename == nullptr || mPrintParamsFilename[0] == '\0') {
+void HyPerCol::ioParam_printParamsFilename(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "printParamsFilename", &mPrintParamsFilename);
+   if (mPrintParamsFilename.empty()) {
       if (mCommunicator->getIOMPIBlock()->getRank() == 0) {
          ErrorLog().printf("printParamsFilename cannot be null or the empty string.\n");
       }
       MPI_Barrier(mCommunicator->ioCommunicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 }
 
-void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
-   switch (ioFlag) {
-      // randomSeed can be set on the command line, from the params file, or from
-      // the system clock
-      case PARAMS_IO_READ:
-         // set random seed if it wasn't set in the command line
+void HyPerCol::ioParam_randomSeed(ParamsIOSwitch ioSwitch) {
+   switch (ioSwitch) {
+      // Get RandomSeed by checking, in order, the config arguments, from the
+      // params file, or from the system clock
+      case ParamsIOSwitch::Read:
+         // check config arguments
          mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
          if (!mRandomSeed) {
-            if (mParams->present(getName(), "randomSeed")) {
-               mRandomSeed = (unsigned long)mParams->value(getName(), "randomSeed");
+            bool randomSeedIsPresent = mParamsIO->isPresent("randomSeed");
+            if (randomSeedIsPresent) {
+               mParamsIO->ioParam(ioSwitch, "randomSeed", &mRandomSeed);
             }
             else {
                mRandomSeed = seedRandomFromWallClock();
@@ -287,22 +270,24 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
                   mRandomSeed);
          }
          break;
-      case PARAMS_IO_WRITE: parameters()->writeParam("randomSeed", mRandomSeed); break;
-      default: assert(0); break;
+      case ParamsIOSwitch::Write:
+         mParamsIO->ioParam(ioSwitch, "randomSeed", &mRandomSeed);
+         break;
+      default: std::abort(); break;
    }
 }
 
-void HyPerCol::ioParam_nx(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "nx", &mNumXGlobal);
+void HyPerCol::ioParam_nx(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("nx"), &mNumXGlobal);
 }
 
-void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "ny", &mNumYGlobal);
+void HyPerCol::ioParam_ny(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("ny"), &mNumYGlobal);
 }
 
-void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
-   // Make sure numCommBatches is a divisor of nBatch specified in the params // file
+void HyPerCol::ioParam_nBatch(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("nbatch"), &mNumBatchGlobal);
+   // Make sure numCommBatches is a divisor of the params file's nbatch
    FatalIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
          "The total number of batches (%d) must be a multiple of the batch "
@@ -311,32 +296,30 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
          mCommunicator->numCommBatches());
 }
 
-void HyPerCol::ioParam_errorOnUnusedParam(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "errorOnUnusedParam", &mErrorOnUnusedParam, mErrorOnUnusedParam);
+void HyPerCol::ioParam_errorOnUnusedParam(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("errorOnUnusedParam"), &mErrorOnUnusedParam);
 }
 
-void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
+void HyPerCol::ioParam_errorOnNotANumber(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("errorOnNotANumber"), &mErrorOnNotANumber);
 }
 
-void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
+void HyPerCol::ioParam_outputPath(ParamsIOSwitch ioSwitch) {
    // If mOutputPath is set in the configuration, it overrides params file.
-   switch (ioFlag) {
-      case PARAMS_IO_READ:
-         pvAssert(mOutputPath); // should have been set to non-null in initialize()
+   switch (ioSwitch) {
+      case ParamsIOSwitch::Read:
          // If non-empty, keep what was set in configuration; otherwise read from params
-         if (mOutputPath[0] == '\0') {
-            free(mOutputPath);
-            mOutputPath = nullptr;
-            parameters()->ioParamString(
-                  ioFlag, getName(), "outputPath", &mOutputPath, mDefaultOutputPath.c_str(), true);
+         if (mOutputPath.empty()) {
+            mParamsIO->ioParam(ioSwitch, "outputPath", &mOutputPath);
+            FatalIf(
+                  mOutputPath.empty(),
+                  "HyPerCol param outputPath must be set either in config arguments or "
+                  "in params.\n");
          }
-         getCommunicator()->getOutputFileManager()->changeBaseDirectory(std::string(mOutputPath));
+         getCommunicator()->getOutputFileManager()->changeBaseDirectory(mOutputPath);
          break;
-      case PARAMS_IO_WRITE:
-         parameters()->ioParamStringRequired(ioFlag, getName(), "outputPath", &mOutputPath);
+      case ParamsIOSwitch::Write:
+         mParamsIO->ioParam(ioSwitch, "outputPath", &mOutputPath);
          break;
       default: break;
    }
@@ -595,7 +578,7 @@ ObserverTable HyPerCol::getAllObjectsFlat() {
    return objectTable;
 }
 
-void HyPerCol::processParams(char const *path) {
+void HyPerCol::processParams(std::string const &path) {
    if (mParamsProcessedFlag) {
       return;
    }
@@ -606,14 +589,14 @@ void HyPerCol::processParams(char const *path) {
       notifyLoop(std::make_shared<CommunicateInitInfoMessage>(
             &objectTable, mDeltaTime, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
    }
-   int unreadParamStatus = parameters()->lookForUnread(mErrorOnUnusedParam);
+   int unreadParamStatus = mParams->lookForUnread(mErrorOnUnusedParam);
    FatalIf(
          mErrorOnUnusedParam and unreadParamStatus != PV_SUCCESS,
          "Params file \"%s\" contains unused parameters, and errorOnUnusedParam was set.\n",
          mPVInitObj->getStringArgument("ParamsFile").c_str());
 
    // Print a cleaned up version of params to the file given by printParamsFilename
-   if (path != nullptr && path[0] != '\0') {
+   if (!path.empty()) {
       std::string printParamsPath;
       if (path[0] != '/') {
          // If using relative path, create a path for each MPIBlock.
@@ -863,8 +846,6 @@ Response::Status HyPerCol::writeParamsFile(std::shared_ptr<WriteParamsFileMessag
 void HyPerCol::outputParams(char const *path) {
    assert(path != nullptr && path[0] != '\0');
    int rank = mCheckpointer->getMPIBlock()->getRank();
-   pvAssert(parameters()->getPrintParamsStream() == nullptr);
-   pvAssert(parameters()->getPrintLuaStream() == nullptr);
    std::string containingdir = dirName(std::string(path));
    ensureDirExists(mCheckpointer->getMPIBlock(), containingdir.c_str());
    FileStream *printParamsStream = nullptr;
@@ -875,8 +856,6 @@ void HyPerCol::outputParams(char const *path) {
       std::string luaPath(path);
       luaPath.append(".lua");
       printLuaStream = new FileStream(luaPath.c_str(), std::ios_base::out, getVerifyWrites());
-      parameters()->setPrintParamsStream(printParamsStream);
-      parameters()->setPrintLuaStream(printLuaStream);
 
       // Params file output
       outputParamsHeadComments(printParamsStream, "//");
@@ -903,14 +882,16 @@ void HyPerCol::outputParams(char const *path) {
    }
 
    // Writes the parent HyPerCol params group
-   writeParams();
+   mParamsIO->setPrintParamsStream(printParamsStream);
+   mParamsIO->setPrintLuaStream(printLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
 
-   // Splitting this up into five messages for backwards compatibility in preserving the order.
+   // Splitting this up into three messages for backwards compatibility in preserving the order.
    // If order preservation is not needed here, it would be better to replace with a single
-   // message that all five types respond to.
-   notifyLoop(std::make_shared<LayerWriteParamsMessage>());
-   notifyLoop(std::make_shared<ConnectionWriteParamsMessage>());
-   notifyLoop(std::make_shared<ProbeWriteParamsMessage>());
+   // message that all three types respond to.
+   notifyLoop(std::make_shared<LayerWriteParamsMessage>(printParamsStream, printLuaStream));
+   notifyLoop(std::make_shared<ConnectionWriteParamsMessage>(printParamsStream, printLuaStream));
+   notifyLoop(std::make_shared<ProbeWriteParamsMessage>(printParamsStream, printLuaStream));
 
    if (rank == 0) {
       printLuaStream->printf("} --End of pvParameters\n");
@@ -922,10 +903,8 @@ void HyPerCol::outputParams(char const *path) {
    if (rank == 0) {
       delete printParamsStream;
       printParamsStream = nullptr;
-      parameters()->setPrintParamsStream(printParamsStream);
       delete printLuaStream;
       printLuaStream = nullptr;
-      parameters()->setPrintLuaStream(printLuaStream);
    }
 }
 
@@ -1298,8 +1277,6 @@ unsigned int HyPerCol::seedRandomFromWallClock() {
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->globalCommunicator());
    return t;
 }
-
-std::string const HyPerCol::mDefaultOutputPath = "output";
 
 double const HyPerCol::mDefaultDeltaTime = 1.0;
 

@@ -10,17 +10,16 @@
 
 #include "columns/Communicator.hpp"     // for Communicator
 #include "columns/Messages.hpp"         // for CommunicateInitInfoMessage
-#include "io/PVParams.hpp"              // for ParamsIOFlag, PVParams
 #include "observerpattern/Response.hpp" // for Response::Status
 
 namespace PV {
 
 class RescaleActivityBuffer : public ActivityBuffer {
   protected:
-   void ioParam_targetMax(enum ParamsIOFlag ioFlag);
-   void ioParam_targetMin(enum ParamsIOFlag ioFlag);
-   void ioParam_targetMean(enum ParamsIOFlag ioFlag);
-   void ioParam_targetStd(enum ParamsIOFlag ioFlag);
+   void ioParam_targetMax(ParamsIOSwitch ioSwitch);
+   void ioParam_targetMin(ParamsIOSwitch ioSwitch);
+   void ioParam_targetMean(ParamsIOSwitch ioSwitch);
+   void ioParam_targetStd(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief rescaleMethod: can be one of
@@ -93,8 +92,8 @@ class RescaleActivityBuffer : public ActivityBuffer {
     *    that is, a logistic curve with limits of 1 at neg. infinity and 0 at pos. infinity.
     *
     */
-   void ioParam_rescaleMethod(enum ParamsIOFlag ioFlag);
-   void ioParam_patchSize(enum ParamsIOFlag ioFlag);
+   void ioParam_rescaleMethod(ParamsIOSwitch ioSwitch);
+   void ioParam_patchSize(ParamsIOSwitch ioSwitch);
 
   public:
    enum Method {
@@ -110,7 +109,10 @@ class RescaleActivityBuffer : public ActivityBuffer {
       LOGREG
    };
 
-   RescaleActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
+   RescaleActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~RescaleActivityBuffer();
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
@@ -120,27 +122,30 @@ class RescaleActivityBuffer : public ActivityBuffer {
    float getTargetMean() const { return mTargetMean; }
    float getTargetStd() const { return mTargetStd; }
    float getPatchSize() const { return mPatchSize; }
-   const char *getRescaleMethod() const { return mRescaleMethod; }
+   std::string const &getRescaleMethod() const { return mRescaleMethod; }
 
    ActivityBuffer const *getOriginalBuffer() const { return mOriginalBuffer; }
 
   protected:
    RescaleActivityBuffer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
-   float mTargetMax     = 1.0f;
-   float mTargetMin     = -1.0f;
-   float mTargetMean    = 0.0f;
-   float mTargetStd     = 1.0f;
-   char *mRescaleMethod = nullptr;
-   Method mMethodCode   = UNDEFINED;
-   int mPatchSize       = 1;
+   float mTargetMax  = 1.0f;
+   float mTargetMin  = -1.0f;
+   float mTargetMean = 0.0f;
+   float mTargetStd  = 1.0f;
+   std::string mRescaleMethod;
+   Method mMethodCode = UNDEFINED;
+   int mPatchSize     = 1;
 
    ActivityBuffer *mOriginalBuffer = nullptr;
 }; // class RescaleActivityBuffer

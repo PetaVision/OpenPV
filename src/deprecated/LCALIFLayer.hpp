@@ -19,8 +19,8 @@ namespace PV {
 class LCALIFLayer : public LIFGap {
   public:
    LCALIFLayer(
-         const char *name,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          Communicator const *comm); // The constructor called by other methods
    virtual ~LCALIFLayer();
    virtual Response::Status allocateDataStructures() override;
@@ -36,11 +36,11 @@ class LCALIFLayer : public LIFGap {
   protected:
    LCALIFLayer();
    int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_tauTHR(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_tauTHR(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_targetRate(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_normalizeInput(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_Vscale(ParamsIOSwitch ioSwitch);
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;

@@ -11,19 +11,19 @@
 namespace PV {
 
 FilenameParsingLayerUpdateController::FilenameParsingLayerUpdateController(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 FilenameParsingLayerUpdateController::FilenameParsingLayerUpdateController() {}
 
 void FilenameParsingLayerUpdateController::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   LayerUpdateController::initialize(name, params, comm);
+   LayerUpdateController::initialize(params, defaults, comm);
 }
 
 FilenameParsingLayerUpdateController::~FilenameParsingLayerUpdateController() {}
@@ -48,13 +48,13 @@ Response::Status FilenameParsingLayerUpdateController::communicateInitInfo(
    if (!inputLayerNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   char const *inputLayerName = inputLayerNameParam->getLinkedObjectName();
+   std::string const &inputLayerName = inputLayerNameParam->getLinkedObjectName();
    mInputController           = objectTable->findObject<InputLayerUpdateController>(inputLayerName);
    FatalIf(
          mInputController == nullptr,
          "%s inputLayerName \"%s\" does not have an InputController.\n",
          getDescription_c(),
-         inputLayerName);
+         inputLayerName.c_str());
    return Response::SUCCESS;
 }
 

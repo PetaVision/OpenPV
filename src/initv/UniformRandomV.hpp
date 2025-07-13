@@ -23,30 +23,36 @@ class UniformRandomV : public BaseInitV {
    /**
     * @brief minV: The minimum value of the random distribution
     */
-   virtual void ioParam_minV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minV(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief maxV: The maximum value of the random distribution
     */
-   virtual void ioParam_maxV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maxV(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   UniformRandomV(char const *name, PVParams *params, Communicator const *comm);
+   UniformRandomV(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~UniformRandomV();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    UniformRandomV();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    int initialize_base();
 
    // data members
   private:
-   float minV = (float)0;
-   float maxV = (float)1;
+   float mMinV = (float)0;
+   float mMaxV = (float)1;
 
 }; // end class UniformRandomV
 

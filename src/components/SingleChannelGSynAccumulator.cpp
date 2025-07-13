@@ -10,19 +10,19 @@
 namespace PV {
 
 SingleChannelGSynAccumulator::SingleChannelGSynAccumulator(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 SingleChannelGSynAccumulator::~SingleChannelGSynAccumulator() {}
 
 void SingleChannelGSynAccumulator::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   GSynAccumulator::initialize(name, params, comm);
+   GSynAccumulator::initialize(params, defaults, comm);
 }
 
 void SingleChannelGSynAccumulator::setObjectType() { mObjectType = "SingleChannelGSynAccumulator"; }
@@ -32,14 +32,14 @@ void SingleChannelGSynAccumulator::initializeChannelCoefficients() {
    mChannelCoefficients[0] = 1.0f;
 }
 
-void SingleChannelGSynAccumulator::ioParam_channelIndices(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ and parameters()->arrayPresent(getName(), "channelIndices")) {
+void SingleChannelGSynAccumulator::ioParam_channelIndices(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read and mParamsIO->isPresent("channelIndices")) {
       WarnLog().printf("%s does not use the channelIndices array parameter.\n", getDescription_c());
    }
 }
 
-void SingleChannelGSynAccumulator::ioParam_channelCoefficients(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ and parameters()->arrayPresent(getName(), "channelIndices")) {
+void SingleChannelGSynAccumulator::ioParam_channelCoefficients(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read and mParamsIO->isPresent("channelCoefficients")) {
       WarnLog().printf(
             "%s does not use the channelCoefficients array parameter.\n", getDescription_c());
    }

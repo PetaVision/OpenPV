@@ -5,7 +5,7 @@
 #include "AllConstantValueProbe.hpp"
 #include <columns/Communicator.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/StatsProbeImmediate.hpp>
 #include <probes/StatsProbeTypes.hpp>
@@ -14,10 +14,10 @@
 namespace PV {
 
 AllConstantValueProbe::AllConstantValueProbe(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 AllConstantValueProbe::AllConstantValueProbe() {}
@@ -55,21 +55,20 @@ void AllConstantValueProbe::checkStats() {
 }
 
 void AllConstantValueProbe::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
-int AllConstantValueProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   ioParam_correctValue(ioFlag);
+int AllConstantValueProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   ioParam_correctValue(ioSwitch);
    return status;
 }
 
-void AllConstantValueProbe::ioParam_correctValue(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "correctValue", &mCorrectValue, mCorrectValue /*default*/);
+void AllConstantValueProbe::ioParam_correctValue(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "correctValue", &mCorrectValue);
 }
 
 AllConstantValueProbe::~AllConstantValueProbe() {}

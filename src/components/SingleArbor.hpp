@@ -28,22 +28,28 @@ class SingleArbor : public ArborList {
     * @brief numAxonalArbors: SingleArbors does not use the numAxonalArbors parameter,
     * but sets the number of arbors to one.
     */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_numAxonalArbors(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of SingleArbor parameters
 
   public:
-   SingleArbor(char const *name, PVParams *params, Communicator const *comm);
+   SingleArbor(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~SingleArbor();
 
   protected:
    SingleArbor();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
 }; // class SingleArbor
 

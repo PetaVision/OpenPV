@@ -35,7 +35,7 @@ class FilenameParsingActivityBuffer : public ActivityBuffer {
     * gtClassTrueValue and the remaining neurons are set to the value set by gtClassFalseValue
     */
 
-   virtual void ioParam_classList(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_classList(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief gtClassTrueValue: defines value to be set for the neuron that matches classes.txt
@@ -43,23 +43,26 @@ class FilenameParsingActivityBuffer : public ActivityBuffer {
     * @details Default: 1
     */
 
-   virtual void ioParam_gtClassTrueValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_gtClassTrueValue(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief gtClassFalseValue: defines value to be set for the neurons that do not match the
     * classes.txt classifer
     * @details Default: -1
     */
-   virtual void ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_gtClassFalseValue(ParamsIOSwitch ioSwitch);
 
    /** @} */
 
   public:
-   FilenameParsingActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
+   FilenameParsingActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~FilenameParsingActivityBuffer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    virtual Response::Status
@@ -68,10 +71,10 @@ class FilenameParsingActivityBuffer : public ActivityBuffer {
 
   private:
    std::vector<std::string> mClasses;
-   char *mClassListFileName = nullptr;
-   InputLayer *mInputLayer  = nullptr;
-   float mGtClassTrueValue  = 1.0f;
-   float mGtClassFalseValue = 0.0f;
+   std::string mClassListFileName;
+   InputLayer *mInputLayer        = nullptr;
+   float mGtClassTrueValue        = 1.0f;
+   float mGtClassFalseValue       = 0.0f;
 }; // end class FlenameParsingActivityBuffer
 
 } // end namespace PV

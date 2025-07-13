@@ -33,7 +33,7 @@ class LayerUpdateController : public BaseObject {
     * If set to NULL or the empty string, the layer does not trigger but updates its state on every
     * timestep.
     */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(ParamsIOSwitch ioSwitch);
 
    // TODO: triggerOffset is measured in units of simulation time, not timesteps.  How does
    // adaptTimeStep affect the triggering time?
@@ -42,7 +42,7 @@ class LayerUpdateController : public BaseObject {
     * target trigger
     * @details Defaults to 0
     */
-   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerOffset(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief triggerBehavior: If triggerLayerName is set, this parameter specifies how the trigger
@@ -55,21 +55,24 @@ class LayerUpdateController : public BaseObject {
     * On nontriggering timesteps, updateActivity is called.
     * For backward compatibility, this parameter defaults to updateOnlyOnTrigger.
     */
-   virtual void ioParam_triggerBehavior(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerBehavior(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief triggerResetLayerName: If triggerLayerName is set, this parameter specifies the layer
     * to use for updating
     * the state when the trigger happens.  If set to NULL or the empty string, use triggerLayerName.
     */
-   virtual void ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerResetLayerName(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of LayerUpdateController parameters
 
   public:
    enum TriggerBehaviorType { NO_TRIGGER, UPDATEONLYONTRIGGER, RESETSTATEONTRIGGER };
 
-   LayerUpdateController(char const *name, PVParams *params, Communicator const *comm);
+   LayerUpdateController(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~LayerUpdateController();
 
    /**
@@ -94,12 +97,15 @@ class LayerUpdateController : public BaseObject {
   protected:
    LayerUpdateController();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void initMessageActionMap() override;
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -136,12 +142,12 @@ class LayerUpdateController : public BaseObject {
    virtual void applyTrigger(double simTime, double deltaTime);
 
   protected:
-   bool mTriggerFlag                        = false;
-   char *mTriggerLayerName                  = nullptr;
-   double mTriggerOffset                    = 0.0;
-   char *mTriggerBehavior                   = nullptr;
+   bool mTriggerFlag = false;
+   std::string mTriggerLayerName;
+   double mTriggerOffset = 0.0;
+   std::string mTriggerBehavior;
    TriggerBehaviorType mTriggerBehaviorType = NO_TRIGGER;
-   char *mTriggerResetLayerName             = nullptr;
+   std::string mTriggerResetLayerName;
 
    // Other components within the layer
    PhaseParam *mPhaseParam               = nullptr;

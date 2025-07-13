@@ -23,11 +23,17 @@ namespace PV {
  */
 class WTAConn : public BaseConnection {
   public:
-   WTAConn(const char *name, PVParams *params, Communicator const *comm);
+   WTAConn(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    WTAConn();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void fillComponentTable() override;
 

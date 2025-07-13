@@ -10,8 +10,11 @@
 
 namespace PV {
 
-ActivityComponent::ActivityComponent(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ActivityComponent::ActivityComponent(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ActivityComponent::~ActivityComponent() {
@@ -22,32 +25,32 @@ ActivityComponent::~ActivityComponent() {
 #endif // PV_USE_CUDA
 }
 
-void ActivityComponent::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ComponentBasedObject::initialize(name, params, comm);
+void ActivityComponent::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ComponentBasedObject::initialize(params, defaults, comm);
 }
 
 void ActivityComponent::setObjectType() { mObjectType = "ActivityComponent"; }
 
-int ActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
+int ActivityComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ComponentBasedObject::ioParamsFillGroup(ioSwitch);
 
    // GPU-specific parameter.  If not using GPUs, this flag can be set to false or left out,
    // but it is an error to set updateGpu to true if compiling without GPUs.  We read it here and
    // not in any component because it will typically need to be broadcast to several components
    // (which happens during the communicate stage).
-   ioParam_updateGpu(ioFlag);
+   ioParam_updateGpu(ioSwitch);
 
    return status;
 }
 
-void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
+void ActivityComponent::ioParam_updateGpu(ParamsIOSwitch ioSwitch) {
 #ifdef PV_USE_CUDA
-   parameters()->ioParamValue(
-         ioFlag, getName(), "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
+   mParamsIO->ioParam(ioSwitch, "updateGpu", &mUpdateGpu);
 #else // PV_USE_CUDA
-   mUpdateGpu = false;
-   parameters()->ioParamValue(
-         ioFlag, getName(), "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
+   mParamsIO->ioParam(ioSwitch, "updateGpu", &mUpdateGpu, false /*warnIfAbsentFlag*/);
    if (mCommunicator->globalCommRank() == 0) {
       FatalIf(
             mUpdateGpu,
@@ -66,7 +69,7 @@ void ActivityComponent::fillComponentTable() {
 }
 
 ActivityBuffer *ActivityComponent::createActivity() {
-   return new ActivityBuffer(getName(), parameters(), mCommunicator);
+   return new ActivityBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status

@@ -1,0 +1,8 @@
+Defaults "ParameterSweepTestProbe" = {
+    #include "StatsProbe";
+    #remove buffer;
+    #remove immediateMPIAssembly;
+    expectedSum = 0.0;
+    expectedMin = 0.0;
+    expectedMax = 0.0;
+};

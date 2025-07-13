@@ -10,14 +10,17 @@
 namespace PV {
 
 IndexWeightUpdater::IndexWeightUpdater(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-void IndexWeightUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HebbianUpdater::initialize(name, params, comm);
+void IndexWeightUpdater::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HebbianUpdater::initialize(params, defaults, comm);
 }
 
 Response::Status

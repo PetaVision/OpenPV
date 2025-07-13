@@ -10,10 +10,10 @@
 namespace PV {
 
 InitGaussianRandomWeights::InitGaussianRandomWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitGaussianRandomWeights::InitGaussianRandomWeights() {}
@@ -25,25 +25,25 @@ InitGaussianRandomWeights::~InitGaussianRandomWeights() {
 }
 
 void InitGaussianRandomWeights::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   InitRandomWeights::initialize(name, params, comm);
+   InitRandomWeights::initialize(params, defaults, comm);
 }
 
-int InitGaussianRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitRandomWeights::ioParamsFillGroup(ioFlag);
-   ioParam_wGaussMean(ioFlag);
-   ioParam_wGaussStdev(ioFlag);
+int InitGaussianRandomWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitRandomWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_wGaussMean(ioSwitch);
+   ioParam_wGaussStdev(ioSwitch);
    return status;
 }
 
-void InitGaussianRandomWeights::ioParam_wGaussMean(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "wGaussMean", &mWGaussMean, mWGaussMean);
+void InitGaussianRandomWeights::ioParam_wGaussMean(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "wGaussMean", &mWGaussMean);
 }
 
-void InitGaussianRandomWeights::ioParam_wGaussStdev(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "wGaussStdev", &mWGaussStdev, mWGaussStdev);
+void InitGaussianRandomWeights::ioParam_wGaussStdev(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "wGaussStdev", &mWGaussStdev);
 }
 
 int InitGaussianRandomWeights::initRNGs(bool isKernel) {

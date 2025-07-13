@@ -7,7 +7,10 @@ namespace PV {
 
 class ImageOffsetTestActivityBuffer : public ImageActivityBuffer {
   public:
-   ImageOffsetTestActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
+   ImageOffsetTestActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

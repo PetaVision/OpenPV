@@ -13,24 +13,28 @@
 namespace PV {
 
 RotateActivityBuffer::RotateActivityBuffer(
-      char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 void RotateActivityBuffer::initialize(
-      char const *name, PVParams *params, Communicator const *comm) {
-   HyPerActivityBuffer::initialize(name, params, comm);
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerActivityBuffer::initialize(params, defaults, comm);
 }
 
-int RotateActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
+int RotateActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerActivityBuffer::ioParamsFillGroup(ioSwitch);
    if (status != PV_SUCCESS) {
       return status;
    }
 
-   ioParam_angleMin(ioFlag);
-   ioParam_angleMax(ioFlag);
-   if (ioFlag == PARAMS_IO_READ and mAngleMax < mAngleMin) {
+   ioParam_angleMin(ioSwitch);
+   ioParam_angleMax(ioSwitch);
+   if (ioSwitch == ParamsIOSwitch::Read and mAngleMax < mAngleMin) {
       WarnLog().printf(
             "%s: specified value of max (%f) is less than specified value of min (%f)\n",
             getDescription_c(),
@@ -43,77 +47,73 @@ int RotateActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
             static_cast<double>(mAngleMin));
    }
    pvAssert(mAngleMax >= mAngleMin);
-   ioParam_angleUnits(ioFlag);
-   ioParam_writeAnglesFile(ioFlag);
+   ioParam_angleUnits(ioSwitch);
+   ioParam_writeAnglesFile(ioSwitch);
    return status;
 }
 
-void RotateActivityBuffer::ioParam_angleMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "angleMin", &mAngleMin);
+void RotateActivityBuffer::ioParam_angleMin(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "angleMin", &mAngleMin);
 }
 
-void RotateActivityBuffer::ioParam_angleMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "angleMax", &mAngleMax);
+void RotateActivityBuffer::ioParam_angleMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "angleMax", &mAngleMax);
 }
 
-void RotateActivityBuffer::ioParam_angleUnits(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      char *angleUnitsParam = nullptr;
-      parameters()->ioParamStringRequired(ioFlag, getName(), "angleUnits", &angleUnitsParam);
-      std::string angleUnitsString(angleUnitsParam);
-      free(angleUnitsParam);
-      for (auto &c : angleUnitsString) {
+void RotateActivityBuffer::ioParam_angleUnits(ParamsIOSwitch ioSwitch) {
+   std::string angleUnitsParam;
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->ioParam(ioSwitch, "angleUnits", &angleUnitsParam);
+      for (auto &c : angleUnitsParam) {
          c = tolower(c);
       }
-      if (angleUnitsString == "degree") {
-         angleUnitsString = "degrees";
+      if (angleUnitsParam == "degree") {
+         angleUnitsParam = "degrees";
       }
-      if (angleUnitsString == "radian") {
-         angleUnitsString = "radians";
+      if (angleUnitsParam == "radian") {
+         angleUnitsParam = "radians";
       }
-      if (angleUnitsString == "degrees") {
+      if (angleUnitsParam == "degrees") {
          mAngleConversionFactor = std::atan(1.0f) / 45.0f;
          mAngleUnitType = AngleUnitType::DEGREES;
       }
-      else if (angleUnitsString == "radians") {
+      else if (angleUnitsParam == "radians") {
          mAngleConversionFactor = 1.0f;
          mAngleUnitType = AngleUnitType::RADIANS;
       }
+      else {
+         Fatal().printf(
+               "Layer \"%s\" angleUnits parameter \"%s\" is not recognized. "
+               "Use \"degrees\" or \"radians\".\n",
+               getName(), angleUnitsParam.c_str());
+      }
    }
-   else if (ioFlag == PARAMS_IO_WRITE) {
-      std::string angleUnitsString;
+   else if (ioSwitch == ParamsIOSwitch::Write) {
       switch(mAngleUnitType) {
          case AngleUnitType::UNSET:
             Fatal().printf("%s AngleUnits parameter has not been set.\n", getDescription_c());
             break;
          case AngleUnitType::DEGREES:
-            angleUnitsString = "degrees";
+            angleUnitsParam = "degrees";
             break;
          case AngleUnitType::RADIANS:
-            angleUnitsString = "radians";
+            angleUnitsParam = "radians";
             break;
          default:
-            Fatal().printf("%s has an unrecognized AngleUnits parameter.\n", getDescription_c());
+            Fatal().printf("%s has an unrecognized angleUnits parameter.\n", getDescription_c());
             break;
       }
-      char *angleUnitsParam = strdup(angleUnitsString.c_str());
-      FatalIf(
-            angleUnitsParam == nullptr,
-            "%s unable to write AngleUnitsString parameter\n",
-            getDescription_c());
-      parameters()->ioParamStringRequired(ioFlag, getName(), "angleUnits", &angleUnitsParam);
-      free(angleUnitsParam);
+      mParamsIO->ioParam(ioSwitch, "angleUnits", &angleUnitsParam);
    }
    else {
       Fatal().printf(
-            "%s called ioParam_angleUnits with an unrecognized ioFlag.\n",
+            "%s called ioParam_angleUnits with an unrecognized ioSwitch.\n",
             getDescription_c());
    }
 }
 
-void RotateActivityBuffer::ioParam_writeAnglesFile(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "writeAnglesFile", &mWriteAnglesFile, mWriteAnglesFile);
+void RotateActivityBuffer::ioParam_writeAnglesFile(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("writeAnglesFile"), &mWriteAnglesFile);
 }
 
 void RotateActivityBuffer::setObjectType() { mObjectType = "RotateActivityBuffer"; }
@@ -146,7 +146,7 @@ Response::Status RotateActivityBuffer::registerData(
    }
    auto *checkpointer = message->mDataRegistry;
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      if (mWriteAnglesFile) {
+      if (!mWriteAnglesFile.empty()) {
          auto fileManager = getCommunicator()->getOutputFileManager();
          fileManager->ensureDirectoryExists(".");
          mWriteAnglesStream = FileStreamBuilder(

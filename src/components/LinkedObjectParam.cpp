@@ -10,26 +10,24 @@
 
 namespace PV {
 
-LinkedObjectParam::~LinkedObjectParam() {
-   free(mLinkedObjectName);
-}
+LinkedObjectParam::~LinkedObjectParam() {}
 
 void LinkedObjectParam::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm,
       std::string const &paramName) {
    mParamName = paramName;
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
-int LinkedObjectParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_linkedObjectName(ioFlag);
+int LinkedObjectParam::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_linkedObjectName(ioSwitch);
    return PV_SUCCESS;
 }
 
-void LinkedObjectParam::ioParam_linkedObjectName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), mParamName.c_str(), &mLinkedObjectName);
+void LinkedObjectParam::ioParam_linkedObjectName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, mParamName.c_str(), &mLinkedObjectName);
 }
 
 } // namespace PV

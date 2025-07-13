@@ -2,7 +2,6 @@
 #define VTHRESHENERGYPROBECOMPONENT_HPP_
 
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/EnergyProbeComponent.hpp"
@@ -24,11 +23,11 @@ class VThreshEnergyProbeComponent : public EnergyProbeComponent {
     * parameter. Instead, it reads VThresh from a layer passed into it in initializeState()
     * and sets coefficient to that value.
     */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_coefficient(ParamsIOSwitch ioSwitch) override;
    /** @} */
 
   public:
-   VThreshEnergyProbeComponent(char const *objName, PVParams *params);
+   VThreshEnergyProbeComponent(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~VThreshEnergyProbeComponent() {}
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
@@ -36,7 +35,7 @@ class VThreshEnergyProbeComponent : public EnergyProbeComponent {
 
   protected:
    VThreshEnergyProbeComponent() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 }; // class EnergyProbeComponent
 
 } // namespace PV

@@ -19,14 +19,20 @@ namespace PV {
  */
 class CloneDeliveryCreator : public HyPerDeliveryCreator {
   public:
-   CloneDeliveryCreator(char const *name, PVParams *params, Communicator const *comm);
+   CloneDeliveryCreator(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~CloneDeliveryCreator();
 
   protected:
    CloneDeliveryCreator();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -1,0 +1,7 @@
+Defaults "CheckStatsProbe" = {
+    correctMin  = 0.0;
+    correctMax  = 1.0;
+    correctMean = 0.5;
+    correctStd  = 0.28867513;
+    tolerance   = 1.0e-6;
+};

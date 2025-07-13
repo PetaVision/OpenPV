@@ -16,7 +16,6 @@
 #include "probes/StatsProbe.hpp"
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
 
 #include <memory>
 
@@ -28,15 +27,21 @@ class StatsProbeImmediate : public StatsProbe {
     * @brief immediateMPIAssembly: The StatsProbeImmediate class does not read the
     * ImmediateMPIAssembly param. It always sets the ImmediateMPIAssembly flag to true.
     */
-   virtual void ioParam_immediateMPIAssembly(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_immediateMPIAssembly(ParamsIOSwitch ioSwitch) override;
 
   public:
-   StatsProbeImmediate(const char *name, PVParams *params, Communicator const *comm);
+   StatsProbeImmediate(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~StatsProbeImmediate();
 
   protected:
    StatsProbeImmediate();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 }; // end class StatsProbeImmediate
 
 } /* namespace PV */

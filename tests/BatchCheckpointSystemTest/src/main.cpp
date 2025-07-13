@@ -64,7 +64,9 @@ int main(int argc, char *argv[]) {
    initObj.registerKeyword("CPTestInputLayer", Factory::create<CPTestInputLayer>);
    initObj.registerKeyword("VaryingHyPerConn", Factory::create<VaryingHyPerConn>);
 
+   std::string customDefaultsPath("input/DefaultParams.txt");
    initObj.setParams(paramFile1);
+   initObj.registerDefaults(customDefaultsPath);
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {
       Fatal().printf(
@@ -76,6 +78,8 @@ int main(int argc, char *argv[]) {
    }
 
    initObj.setParams(paramFile2);
+   initObj.registerDefaults(customDefaultsPath);
+   status = rebuildandrun(&initObj);
    initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj, nullptr, customexit);
@@ -99,15 +103,16 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
    if (rank == rootproc) {
-      long index            = hc->getFinalStep();
-      const char *cpdir1    = "checkpoints1";
-      const char *cpdir2    = hc->parameters()->stringValue("column", "checkpointWriteDir");
-      const int max_buf_len = 1024;
-      char shellcommand[max_buf_len];
-      const char *fmtstr = "diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua "
-                           "%s/Checkpoint%ld %s/Checkpoint%ld";
-      snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
-      status = system(shellcommand);
+      long index = hc->getFinalStep();
+      std::string cpdir1("checkpoints1");
+      PVParams *params = hc->getPV_InitObj()->getParams();
+      auto paramsIO = params->makeParamsIO("column");
+      std::string cpdir2 = paramsIO->readValue<std::string>("checkpointWriteDir");
+
+      std::string shellcommand("diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua ");
+      shellcommand.append(cpdir1).append("/Checkpoint").append(std::to_string(index)).append(" ");
+      shellcommand.append(cpdir2).append("/Checkpoint").append(std::to_string(index));
+      status = system(shellcommand.c_str());
       if (status != 0) {
          ErrorLog().printf("system(\"%s\") returned %d\n", shellcommand, WEXITSTATUS(status));
          status = PV_FAILURE;

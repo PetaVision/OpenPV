@@ -17,7 +17,10 @@ namespace PV {
 
 class FilenameParsingLayer : public HyPerLayer {
   public:
-   FilenameParsingLayer(const char *name, PVParams *params, Communicator const *comm);
+   FilenameParsingLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~FilenameParsingLayer();
 
   private:

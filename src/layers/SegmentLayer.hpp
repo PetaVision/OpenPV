@@ -8,12 +8,18 @@ namespace PV {
 
 class SegmentLayer : public HyPerLayer {
   public:
-   SegmentLayer(const char *name, PVParams *params, Communicator const *comm);
+   SegmentLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~SegmentLayer();
 
   protected:
    SegmentLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void fillComponentTable() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual LayerInputBuffer *createLayerInput() override;

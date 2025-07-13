@@ -27,19 +27,19 @@ namespace PV {
 RescaleActivityBuffer::RescaleActivityBuffer() {}
 
 RescaleActivityBuffer::RescaleActivityBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-RescaleActivityBuffer::~RescaleActivityBuffer() { std::free(mRescaleMethod); }
+RescaleActivityBuffer::~RescaleActivityBuffer() {}
 
 void RescaleActivityBuffer::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 // This is almost an exact duplicate of CloneInternalStateBuffer::communicateInitInfo; a separate
@@ -64,13 +64,13 @@ Response::Status RescaleActivityBuffer::communicateInitInfo(
             getDescription_c());
 
       // Retrieve original layer's ActivityBuffer
-      char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+      std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
       mOriginalBuffer               = objectTable->findObject<ActivityBuffer>(originalLayerName);
       FatalIf(
             mOriginalBuffer == nullptr,
             "%s could not find an ActivityBuffer within %s.\n",
             getDescription_c(),
-            originalLayerName);
+            originalLayerName.c_str());
    }
    if (!mOriginalBuffer->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -80,42 +80,42 @@ Response::Status RescaleActivityBuffer::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-int RescaleActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_rescaleMethod(ioFlag);
-   if (std::strcmp(mRescaleMethod, "maxmin") == 0) {
+int RescaleActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_rescaleMethod(ioSwitch);
+   if (mRescaleMethod == "maxmin") {
       mMethodCode = MAXMIN;
-      ioParam_targetMax(ioFlag);
-      ioParam_targetMin(ioFlag);
+      ioParam_targetMax(ioSwitch);
+      ioParam_targetMin(ioSwitch);
    }
-   else if (std::strcmp(mRescaleMethod, "meanstd") == 0) {
+   else if (mRescaleMethod == "meanstd") {
       mMethodCode = MEANSTD;
-      ioParam_targetMean(ioFlag);
-      ioParam_targetStd(ioFlag);
+      ioParam_targetMean(ioSwitch);
+      ioParam_targetStd(ioSwitch);
    }
-   else if (std::strcmp(mRescaleMethod, "pointmeanstd") == 0) {
+   else if (mRescaleMethod == "pointmeanstd") {
       mMethodCode = POINTMEANSTD;
-      ioParam_targetMean(ioFlag);
-      ioParam_targetStd(ioFlag);
+      ioParam_targetMean(ioSwitch);
+      ioParam_targetStd(ioSwitch);
    }
-   else if (std::strcmp(mRescaleMethod, "l2") == 0) {
+   else if (mRescaleMethod == "l2") {
       mMethodCode = L2;
-      ioParam_patchSize(ioFlag);
+      ioParam_patchSize(ioSwitch);
    }
-   else if (std::strcmp(mRescaleMethod, "l2NoMean") == 0) {
+   else if (mRescaleMethod == "l2NoMean") {
       mMethodCode = L2NOMEAN;
-      ioParam_patchSize(ioFlag);
+      ioParam_patchSize(ioSwitch);
    }
-   else if (std::strcmp(mRescaleMethod, "pointResponseNormalization") == 0) {
+   else if (mRescaleMethod == "pointResponseNormalization") {
       mMethodCode = POINTRESPONSENORMALIZATION;
    }
-   else if (std::strcmp(mRescaleMethod, "zerotonegative") == 0) {
+   else if (mRescaleMethod == "zerotonegative") {
       mMethodCode = ZEROTONEGATIVE;
    }
-   else if (std::strcmp(mRescaleMethod, "softmax") == 0) {
+   else if (mRescaleMethod == "softmax") {
       mMethodCode = SOFTMAX;
    }
-   else if (std::strcmp(mRescaleMethod, "logreg") == 0) {
+   else if (mRescaleMethod == "logreg") {
       mMethodCode = LOGREG;
    }
    else {
@@ -128,42 +128,42 @@ int RescaleActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-void RescaleActivityBuffer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "rescaleMethod", &mRescaleMethod);
+void RescaleActivityBuffer::ioParam_rescaleMethod(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "rescaleMethod", &mRescaleMethod);
 }
 
-void RescaleActivityBuffer::ioParam_targetMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
+void RescaleActivityBuffer::ioParam_targetMax(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("rescaleMethod"));
    if (mMethodCode == MAXMIN) {
-      parameters()->ioParamValue(ioFlag, getName(), "targetMax", &mTargetMax, mTargetMax);
+      mParamsIO->ioParam(ioSwitch, "targetMax", &mTargetMax);
    }
 }
 
-void RescaleActivityBuffer::ioParam_targetMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
+void RescaleActivityBuffer::ioParam_targetMin(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("rescaleMethod"));
    if (mMethodCode == MAXMIN) {
-      parameters()->ioParamValue(ioFlag, getName(), "targetMin", &mTargetMin, mTargetMin);
+      mParamsIO->ioParam(ioSwitch, "targetMin", &mTargetMin);
    }
 }
 
-void RescaleActivityBuffer::ioParam_targetMean(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
+void RescaleActivityBuffer::ioParam_targetMean(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("rescaleMethod"));
    if (mMethodCode == MEANSTD or mMethodCode == POINTMEANSTD) {
-      parameters()->ioParamValue(ioFlag, getName(), "targetMean", &mTargetMean, mTargetMean);
+      mParamsIO->ioParam(ioSwitch, "targetMean", &mTargetMean);
    }
 }
 
-void RescaleActivityBuffer::ioParam_targetStd(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
+void RescaleActivityBuffer::ioParam_targetStd(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("rescaleMethod"));
    if (mMethodCode == MEANSTD or mMethodCode == POINTMEANSTD) {
-      parameters()->ioParamValue(ioFlag, getName(), "targetStd", &mTargetStd, mTargetStd);
+      mParamsIO->ioParam(ioSwitch, "targetStd", &mTargetStd);
    }
 }
 
-void RescaleActivityBuffer::ioParam_patchSize(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
+void RescaleActivityBuffer::ioParam_patchSize(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("rescaleMethod"));
    if (mMethodCode == L2 or mMethodCode == L2NOMEAN) {
-      parameters()->ioParamValue(ioFlag, getName(), "patchSize", &mPatchSize, mPatchSize);
+      mParamsIO->ioParam(ioSwitch, "patchSize", &mPatchSize);
    }
 }
 

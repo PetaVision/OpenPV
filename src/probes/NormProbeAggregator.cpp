@@ -6,10 +6,10 @@
 namespace PV {
 
 NormProbeAggregator::NormProbeAggregator(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       std::shared_ptr<MPIBlock const> mpiBlock) {
-   initialize(objName, params, mpiBlock);
+   initialize(params, defaults, mpiBlock);
 }
 
 void NormProbeAggregator::aggregateNormsBatch(
@@ -44,13 +44,13 @@ void NormProbeAggregator::aggregateStoredValues(ProbeDataBuffer<double> const &p
 void NormProbeAggregator::clearStoredValues() { mStoredValues.clear(); }
 
 void NormProbeAggregator::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       std::shared_ptr<MPIBlock const> mpiBlock) {
-   ProbeComponent::initialize(objName, params);
+   ProbeComponent::initialize(params, defaults);
    mMPIBlock = mpiBlock;
 }
 
-void NormProbeAggregator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {}
+void NormProbeAggregator::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {}
 
 } // namespace PV

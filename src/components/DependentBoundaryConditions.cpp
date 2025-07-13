@@ -11,33 +11,33 @@
 namespace PV {
 
 DependentBoundaryConditions::DependentBoundaryConditions(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DependentBoundaryConditions::~DependentBoundaryConditions() {}
 
 void DependentBoundaryConditions::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void DependentBoundaryConditions::setObjectType() { mObjectType = "DependentBoundaryConditions"; }
 
-int DependentBoundaryConditions::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return BoundaryConditions::ioParamsFillGroup(ioFlag);
+int DependentBoundaryConditions::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return BoundaryConditions::ioParamsFillGroup(ioSwitch);
 }
 
-void DependentBoundaryConditions::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryStringParameter(getName(), "mirrorBCflag");
+void DependentBoundaryConditions::ioParam_mirrorBCflag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->handleUnnecessaryParameter("mirrorBCflag");
 }
 
-void DependentBoundaryConditions::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryStringParameter(getName(), "valueBC");
+void DependentBoundaryConditions::ioParam_valueBC(ParamsIOSwitch ioSwitch) {
+   mParamsIO->handleUnnecessaryParameter("valueBC");
 }
 
 Response::Status DependentBoundaryConditions::communicateInitInfo(
@@ -59,14 +59,14 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+   std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
    auto *originalBoundaryConditions =
          objectTable->findObject<BoundaryConditions>(originalLayerName);
    FatalIf(
          originalBoundaryConditions == nullptr,
          "%s original connection \"%s\" does not have a BoundaryConditions component.\n",
          getDescription_c(),
-         originalLayerName);
+         originalLayerName.c_str());
 
    if (!originalBoundaryConditions->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -74,16 +74,16 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
                "%s must wait until original layer \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalLayerName);
+               originalLayerName.c_str());
       }
       return Response::POSTPONE;
    }
 
    mMirrorBCflag = originalBoundaryConditions->getMirrorBCflag();
-   parameters()->handleUnnecessaryParameter(getName(), "mirrorBCflag", mMirrorBCflag);
+   mParamsIO->handleUnnecessaryParameter("mirrorBCflag", mMirrorBCflag);
 
    mValueBC = originalBoundaryConditions->getValueBC();
-   parameters()->handleUnnecessaryParameter(getName(), "valueBC", mValueBC);
+   mParamsIO->handleUnnecessaryParameter("valueBC", mValueBC);
 
    auto status = BoundaryConditions::communicateInitInfo(message);
    if (!Response::completed(status)) {

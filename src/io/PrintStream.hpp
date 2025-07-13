@@ -62,6 +62,7 @@ class PrintStream {
    PrintStream &operator<<(long double x) { (*mOutStream) << x; return *this; }
    PrintStream &operator<<(bool x) { (*mOutStream) << x; return *this; }
    PrintStream &operator<<(void const *x) { (*mOutStream) << x; return *this; }
+   PrintStream &operator<<(std::string const &s) { (*mOutStream) << s; return *this; }
    PrintStream &operator<<(std::streambuf *x) { (*mOutStream) << x; return *this; }
    PrintStream &operator<<(std::ostream &(*f)(std::ostream &)) {
       f(*mOutStream);

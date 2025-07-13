@@ -23,11 +23,11 @@ class InitDiscreteUniformRandomWeights : public InitRandomWeights {
    /**
     * wMin: The minimum value of the possible weight values
     */
-   void ioParam_wMin(enum ParamsIOFlag ioFlag);
+   void ioParam_wMin(ParamsIOSwitch ioSwitch);
    /**
     * wMax: The maximum value of the possible weight values
     */
-   void ioParam_wMax(enum ParamsIOFlag ioFlag);
+   void ioParam_wMax(ParamsIOSwitch ioSwitch);
    /**
     * numValues: The number of possible values the weight can assume.
     *
@@ -36,17 +36,23 @@ class InitDiscreteUniformRandomWeights : public InitRandomWeights {
     *
     * numValues must be an integer greater than 1.
     */
-   void ioParam_wNumValues(enum ParamsIOFlag ioFlag);
+   void ioParam_wNumValues(ParamsIOSwitch ioSwitch);
 
   public:
-   InitDiscreteUniformRandomWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitDiscreteUniformRandomWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitDiscreteUniformRandomWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    InitDiscreteUniformRandomWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void randomWeights(float *patchDataStart, int patchIndex) override;
 
    // Data members

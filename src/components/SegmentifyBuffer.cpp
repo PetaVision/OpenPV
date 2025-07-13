@@ -12,8 +12,11 @@
 
 namespace PV {
 
-SegmentifyBuffer::SegmentifyBuffer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+SegmentifyBuffer::SegmentifyBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 SegmentifyBuffer::SegmentifyBuffer() {
@@ -22,25 +25,28 @@ SegmentifyBuffer::SegmentifyBuffer() {
 
 SegmentifyBuffer::~SegmentifyBuffer() {}
 
-void SegmentifyBuffer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+void SegmentifyBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
-int SegmentifyBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_segmentLayerName(ioFlag);
-   ioParam_inputMethod(ioFlag);
-   ioParam_outputMethod(ioFlag);
+int SegmentifyBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_segmentLayerName(ioSwitch);
+   ioParam_inputMethod(ioSwitch);
+   ioParam_outputMethod(ioSwitch);
    return status;
 }
 
-void SegmentifyBuffer::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "inputMethod", &mInputMethod);
-   if (strcmp(mInputMethod, "average") == 0) {
+void SegmentifyBuffer::ioParam_inputMethod(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "inputMethod", &mInputMethod);
+   if (mInputMethod == "average") {
    }
-   else if (strcmp(mInputMethod, "sum") == 0) {
+   else if (mInputMethod == "sum") {
    }
-   else if (strcmp(mInputMethod, "max") == 0) {
+   else if (mInputMethod == "max") {
    }
    else {
       if (mCommunicator->commRank() == 0) {
@@ -48,15 +54,15 @@ void SegmentifyBuffer::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
                "%s: inputMethod must be \"average\", \"sum\", or \"max\".\n", getDescription_c());
       }
       MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 }
 
-void SegmentifyBuffer::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "outputMethod", &mOutputMethod);
-   if (strcmp(mOutputMethod, "centroid") == 0) {
+void SegmentifyBuffer::ioParam_outputMethod(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "outputMethod", &mOutputMethod);
+   if (mOutputMethod == "centroid") {
    }
-   else if (strcmp(mOutputMethod, "fill") == 0) {
+   else if (mOutputMethod == "fill") {
    }
    else {
       if (mCommunicator->commRank() == 0) {
@@ -64,19 +70,18 @@ void SegmentifyBuffer::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
                "%s: outputMethod must be \"centriod\" or \"fill\".\n", getDescription_c());
       }
       MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 }
 
-void SegmentifyBuffer::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "segmentLayerName", &mSegmentLayerName);
-   assert(mSegmentLayerName);
-   if (ioFlag == PARAMS_IO_READ && mSegmentLayerName[0] == '\0') {
+void SegmentifyBuffer::ioParam_segmentLayerName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "segmentLayerName", &mSegmentLayerName);
+   if (ioSwitch == ParamsIOSwitch::Read && mSegmentLayerName[0] == '\0') {
       if (mCommunicator->commRank() == 0) {
          ErrorLog().printf("%s: segmentLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 }
 
@@ -137,7 +142,7 @@ void SegmentifyBuffer::setSegmentBuffer(ObserverTable const *table) {
          mSegmentBuffer == nullptr,
          "%s could not find a SegmentBuffer within segment layer \"%s\".\n",
          getDescription_c(),
-         mSegmentLayerName);
+         mSegmentLayerName.c_str());
 }
 
 void SegmentifyBuffer::checkDimensions() {
@@ -242,11 +247,11 @@ void SegmentifyBuffer::buildLabelToIdx(int batchIdx) {
       for (int fi = 0; fi < getLayerLoc()->nf; fi++) {
          // Set count to 0
          mLabelCount[fi][l] = 0;
-         if (strcmp(mInputMethod, "max") == 0) {
+         if (mInputMethod == "max") {
             mLabelVals[fi][l] = -INFINITY;
          }
          // If average or sum, initialize to 0
-         else if (strcmp(mInputMethod, "average") == 0 || strcmp(mInputMethod, "sum") == 0) {
+         else if (mInputMethod == "average" or mInputMethod == "sum") {
             mLabelVals[fi][l] = 0;
          }
          else {
@@ -304,12 +309,12 @@ void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
             float srcVal = srcBatchA[extSrcIdx];
             mLabelCount[fi][labelIdx]++;
             // Fill labelVals and labelCount
-            if (strcmp(mInputMethod, "max") == 0) {
+            if (mInputMethod == "max") {
                if (mLabelVals[fi][labelIdx] < srcVal) {
                   mLabelVals[fi][labelIdx] = srcVal;
                }
             }
-            else if (strcmp(mInputMethod, "average") == 0 || strcmp(mInputMethod, "sum") == 0) {
+            else if (mInputMethod == "average" or mInputMethod == "sum") {
                mLabelVals[fi][labelIdx] += srcVal;
             }
          } // End of fi loop
@@ -322,16 +327,16 @@ void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
    for (int fi = 0; fi < srcLoc->nf; fi++) {
       MPI_Allreduce(
             MPI_IN_PLACE, mLabelCount[fi], numLabels, MPI_INT, MPI_SUM, icComm->communicator());
-      if (strcmp(mInputMethod, "max") == 0) {
+      if (mInputMethod == "max") {
          MPI_Allreduce(
                MPI_IN_PLACE, mLabelVals[fi], numLabels, MPI_FLOAT, MPI_MAX, icComm->communicator());
       }
-      else if (strcmp(mInputMethod, "sum") == 0 || strcmp(mInputMethod, "average") == 0) {
+      else if (mInputMethod == "sum" or mInputMethod == "average") {
          MPI_Allreduce(
                MPI_IN_PLACE, mLabelVals[fi], numLabels, MPI_FLOAT, MPI_SUM, icComm->communicator());
       }
       // If average, divide sum by count
-      if (strcmp(mInputMethod, "average") == 0) {
+      if (mInputMethod == "average") {
          for (int l = 0; l < numLabels; l++) {
             mLabelVals[fi][l] = mLabelVals[fi][l] / mLabelCount[fi][l];
          }
@@ -365,7 +370,7 @@ void SegmentifyBuffer::setOutputVals(int batchIdx) {
    float thisToSegScaleY = (float)thisLoc->ny / (float)segLoc->ny;
 
    // If by centroid, get centroid map from SegmentLayer and set each value
-   if (strcmp(mOutputMethod, "centroid") == 0) {
+   if (mOutputMethod == "centroid") {
       std::map<int, int> segMap = mSegmentBuffer->getCenterIdxBuf(batchIdx);
       // Centroids are stored in global restricted space, with respect to the segment layer
       for (auto &seg : segMap) {
@@ -395,7 +400,7 @@ void SegmentifyBuffer::setOutputVals(int batchIdx) {
          }
       }
    }
-   else if (strcmp(mOutputMethod, "fill") == 0) {
+   else if (mOutputMethod == "fill") {
       // Loop through this layer's neurons
       // Looping through restricted
       for (int yi = 0; yi < thisLoc->ny; yi++) {

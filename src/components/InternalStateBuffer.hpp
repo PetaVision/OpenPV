@@ -37,22 +37,28 @@ class InternalStateBuffer : public RestrictedBuffer {
     *
     * Further parameters are needed depending on initialization type.
     */
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(ParamsIOSwitch ioSwitch);
 
    /** @} */
   public:
-   InternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
+   InternalStateBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~InternalStateBuffer();
 
   protected:
    InternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -66,7 +72,7 @@ class InternalStateBuffer : public RestrictedBuffer {
   private:
   protected:
    BaseInitV *mInitVObject = nullptr;
-   char *mInitVTypeString  = nullptr;
+   std::string mInitVTypeString;
 };
 
 } // namespace PV

@@ -12,7 +12,10 @@
 
 namespace PV {
 
-typedef BaseObject *(*ObjectCreateFn)(char const *name, PVParams *params, Communicator const *comm);
+typedef BaseObject *(*ObjectCreateFn)(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm);
 
 /**
  * KeywordHandler is a class that associates a string, the keyword,
@@ -62,7 +65,10 @@ class KeywordHandler {
    /**
     * The method that calls the function pointer with the given arguments
     */
-   BaseObject *create(char const *name, PVParams *params, Communicator const *comm) const;
+   BaseObject *create(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm) const;
 
    /**
     * The destructor for KeywordHandler.
@@ -76,7 +82,10 @@ class KeywordHandler {
     */
    int initialize(
          char const *kw,
-         BaseObject *(*creator)(char const *name, PVParams *params, Communicator const *comm));
+         BaseObject *(*creator)(
+               std::shared_ptr<ParamGroup> params,
+               std::shared_ptr<ParamGroup> defaults,
+               Communicator const *comm));
 
    // Member variables
   private:

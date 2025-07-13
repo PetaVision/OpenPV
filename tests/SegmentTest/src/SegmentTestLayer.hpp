@@ -8,7 +8,10 @@ namespace PV {
 
 class SegmentTestLayer : public PV::SegmentLayer {
   public:
-   SegmentTestLayer(const char *name, PVParams *params, Communicator const *comm);
+   SegmentTestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    Response::Status checkUpdateState(double timef, double dt) override;

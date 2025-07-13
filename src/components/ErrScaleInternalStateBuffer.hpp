@@ -28,21 +28,27 @@ class ErrScaleInternalStateBuffer : public HyPerInternalStateBuffer {
     * @brief: errScale: The input to the error layer is multiplied by errScale before applying the
     * threshold.
     */
-   virtual void ioParam_errScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_errScale(ParamsIOSwitch ioSwitch);
 
   public:
-   ErrScaleInternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
+   ErrScaleInternalStateBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ErrScaleInternalStateBuffer();
 
   protected:
    ErrScaleInternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 

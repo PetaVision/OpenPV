@@ -28,12 +28,15 @@ class PhaseParam : public BaseObject {
     * phase parameter to control which layers must get updated previous to which
     * other layers.
     */
-   virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_phase(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of PhaseParam parameters
 
   public:
-   PhaseParam(char const *name, PVParams *params, Communicator const *comm);
+   PhaseParam(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~PhaseParam();
 
@@ -44,13 +47,16 @@ class PhaseParam : public BaseObject {
   protected:
    PhaseParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
    virtual void initMessageActionMap() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status setMaxPhase(int *maxPhase);
 

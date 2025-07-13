@@ -18,7 +18,10 @@ namespace PV {
  */
 class PvpListActivityBuffer : public InputActivityBuffer {
   public:
-   PvpListActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   PvpListActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~PvpListActivityBuffer();
 
@@ -28,7 +31,10 @@ class PvpListActivityBuffer : public InputActivityBuffer {
   protected:
    PvpListActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -14,16 +14,22 @@
 
 namespace PV {
 
-HyPerConn::HyPerConn(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+HyPerConn::HyPerConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 HyPerConn::HyPerConn() {}
 
 HyPerConn::~HyPerConn() { delete mUpdateTimer; }
 
-void HyPerConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseConnection::initialize(name, params, comm);
+void HyPerConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseConnection::initialize(params, defaults, comm);
 }
 
 void HyPerConn::initMessageActionMap() {
@@ -76,32 +82,26 @@ void HyPerConn::fillComponentTable() {
 }
 
 BaseDelivery *HyPerConn::createDeliveryObject() {
-   auto *deliveryCreator = new HyPerDeliveryCreator(getName(), parameters(), mCommunicator);
+   auto *deliveryCreator = new HyPerDeliveryCreator(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
    addUniqueComponent(deliveryCreator);
    return deliveryCreator->create();
 }
 
-ArborList *HyPerConn::createArborList() { return new ArborList(getName(), parameters(), mCommunicator); }
+ArborList *HyPerConn::createArborList() { return new ArborList(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator); }
 
-PatchSize *HyPerConn::createPatchSize() { return new PatchSize(getName(), parameters(), mCommunicator); }
+PatchSize *HyPerConn::createPatchSize() { return new PatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator); }
 
 SharedWeights *HyPerConn::createSharedWeights() {
-   return new SharedWeights(getName(), parameters(), mCommunicator);
+   return new SharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 WeightsPairInterface *HyPerConn::createWeightsPair() {
-   return new WeightsPair(getName(), parameters(), mCommunicator);
+   return new WeightsPair(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 InitWeights *HyPerConn::createWeightInitializer() {
-   char *weightInitTypeString = nullptr;
-   parameters()->ioParamString(
-         PARAMS_IO_READ,
-         getName(),
-         "weightInitType",
-         &weightInitTypeString,
-         nullptr,
-         true /*warnIfAbsent*/);
+   ParamsIO paramsIO(mParamsIO->getParams(), mParamsIO->getDefaults());
+   std::string weightInitTypeString = mParamsIO->readValue<std::string>("weightInitType");
    // Note: The weightInitType string param gets read both here and by the
    // InitWeights::ioParam_weightInitType() method. It is read here because we need
    // to know the weight init type in order to instantiate the correct class. It is read in
@@ -111,30 +111,25 @@ InitWeights *HyPerConn::createWeightInitializer() {
    // BaseConnection::ioParamsFillGroup() calls the components' ioParams() methods
    // in a loop, without knowing which component is which.
 
-   FatalIf(
-         weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
-         "%s must set weightInitType.\n",
-         getDescription_c());
-   BaseObject *baseObject  = Factory::instance()->createByKeyword(weightInitTypeString, this);
+   FatalIf(weightInitTypeString.empty(), "%s must set weightInitType.\n", getDescription_c());
+   BaseObject *baseObject =
+         Factory::instance()->createByKeyword(weightInitTypeString.c_str(), this);
    auto *weightInitializer = dynamic_cast<InitWeights *>(baseObject);
    FatalIf(
          weightInitializer == nullptr,
          "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
          getDescription_c(),
-         weightInitTypeString);
-
-   free(weightInitTypeString);
+         weightInitTypeString.c_str());
 
    return weightInitializer;
 }
 
 NormalizeBase *HyPerConn::createWeightNormalizer() {
    NormalizeBase *normalizer = nullptr;
-   char *normalizeMethod     = nullptr;
-   parameters()->ioParamString(
-         PARAMS_IO_READ, getName(), "normalizeMethod", &normalizeMethod, nullptr, true /*warnIfAbsent*/);
+   ParamsIO paramsIO(mParamsIO->getParams(), mParamsIO->getDefaults());
+   std::string normalizeMethod = mParamsIO->readValue<std::string>("normalizeMethod");
    // Note: The normalizeMethod string param gets read both here and by the
-   // NormalizeBase::ioParam_weightInitType() method. It is read here because we need
+   // NormalizeBase::normalizeMethod() function. It is read here because we need
    // to know the normalization method in order to instantiate the correct class. It is read in
    // NormalizeBase to store the value, in order to print it into the generated params file.
    // We don't write normalizeMethod in a HyPerConn method because we'd like to keep
@@ -142,21 +137,14 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    // BaseConnection::ioParamsFillGroup() calls the components' ioParams() methods
    // in a loop, without knowing which component is which.
 
-   if (normalizeMethod == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
-         Fatal().printf(
-               "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
-      }
+   if (normalizeMethod == "") {
+      normalizeMethod = "none";
    }
-   if (!strcmp(normalizeMethod, "")) {
-      free(normalizeMethod);
-      normalizeMethod = strdup("none");
-   }
-   if (strcmp(normalizeMethod, "none")) {
-      auto strengthParam = new StrengthParam(getName(), parameters(), mCommunicator);
+   if (normalizeMethod != "none") {
+      auto strengthParam = new StrengthParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
       addUniqueComponent(strengthParam);
    }
-   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, this);
+   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod.c_str(), this);
    normalizer          = dynamic_cast<NormalizeBase *>(baseObj);
    if (normalizer == nullptr) {
       pvAssert(baseObj);
@@ -165,14 +153,13 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
                  << "\" is not a recognized normalization method." << std::endl;
       }
       MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
-   free(normalizeMethod);
    return normalizer;
 }
 
 BaseWeightUpdater *HyPerConn::createWeightUpdater() {
-   return new HebbianUpdater(getName(), parameters(), mCommunicator);
+   return new HebbianUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status

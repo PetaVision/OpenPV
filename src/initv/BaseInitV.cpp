@@ -6,34 +6,40 @@
  */
 
 #include "BaseInitV.hpp"
+#include "params/ParamsIO.hpp"
 
 namespace PV {
 
 BaseInitV::BaseInitV() { initialize_base(); }
 
-BaseInitV::BaseInitV(char const *name, PVParams *params, Communicator const *comm) {
+BaseInitV::BaseInitV(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 BaseInitV::~BaseInitV() {}
 
 int BaseInitV::initialize_base() { return PV_SUCCESS; }
 
-void BaseInitV::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void BaseInitV::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void BaseInitV::setObjectType() {
-   auto *params                = parameters();
-   char const *initVTypeString = params->stringValue(getName(), "InitVType", false);
-   mObjectType                 = initVTypeString ? std::string(initVTypeString) : mDefaultInitV;
+   std::string mObjectType = mParamsIO->readValue<std::string>("InitVType");
+   FatalIf(
+         mObjectType.empty(),
+         "InitVType for parameter group \"%s\" cannot be NULL or empty.\n", getName());
 }
 
-int BaseInitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
+int BaseInitV::ioParamsFillGroup(ParamsIOSwitch ioSwitch) { return PV_SUCCESS; }
 
 void BaseInitV::calcV(float *V, PVLayerLoc const *loc) {}
-
-std::string const BaseInitV::mDefaultInitV = "ConstantV";
 
 } // end namespace PV

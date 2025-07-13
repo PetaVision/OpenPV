@@ -1,0 +1,7 @@
+Defaults "CPTestInputLayer" = {
+    #include "HyPerLayer";
+};
+
+Defaults "VaryingHyPerConn" = {
+    #include "HyPerConn";
+};

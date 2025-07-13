@@ -5,7 +5,6 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ColumnEnergyOutputter.hpp"
 #include "probes/ProbeDataBuffer.hpp"
@@ -18,7 +17,10 @@ namespace PV {
 
 class ColumnEnergyProbe : public ProbeInterface {
   public:
-   ColumnEnergyProbe(char const *name, PVParams *params, Communicator const *comm);
+   ColumnEnergyProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ColumnEnergyProbe() {}
 
    /** @brief Adds a ProbeInterface-derived probe to the energy calculation.
@@ -36,12 +38,22 @@ class ColumnEnergyProbe : public ProbeInterface {
    ColumnEnergyProbe() {}
    virtual Response::Status allocateDataStructures() override;
    virtual void calcValues(double timestamp) override;
-   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeTrigger(char const *name, PVParams *params);
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void createComponents(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeTrigger(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void initMessageActionMap() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status outputState(double simTime, double deltaTime);
 
@@ -53,6 +65,8 @@ class ColumnEnergyProbe : public ProbeInterface {
 
    Response::Status
          respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));
+
+   virtual void setPrintStreams(FileStream *printParamsStream, FileStream *printLuaStream) override;
 
   protected:
    // Probe components, set by createComponents(), called by initialize()

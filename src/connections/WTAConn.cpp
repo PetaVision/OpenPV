@@ -13,12 +13,18 @@ namespace PV {
 
 WTAConn::WTAConn() {}
 
-WTAConn::WTAConn(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+WTAConn::WTAConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void WTAConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseConnection::initialize(name, params, comm);
+void WTAConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseConnection::initialize(params, defaults, comm);
 }
 
 BaseDelivery *WTAConn::createDeliveryObject() {
@@ -37,7 +43,7 @@ void WTAConn::fillComponentTable() {
 }
 
 SingleArbor *WTAConn::createSingleArbor() {
-   return new SingleArbor(getName(), parameters(), mCommunicator);
+   return new SingleArbor(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end of namespace PV block

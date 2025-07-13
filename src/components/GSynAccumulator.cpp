@@ -12,14 +12,20 @@
 
 namespace PV {
 
-GSynAccumulator::GSynAccumulator(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+GSynAccumulator::GSynAccumulator(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 GSynAccumulator::~GSynAccumulator() {}
 
-void GSynAccumulator::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   RestrictedBuffer::initialize(name, params, comm);
+void GSynAccumulator::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   RestrictedBuffer::initialize(params, defaults, comm);
    setBufferLabel("GSyn");
    mCheckpointFlag = false; // Only used internally; not checkpointed
    initializeChannelCoefficients();
@@ -29,24 +35,18 @@ void GSynAccumulator::setObjectType() { mObjectType = "GSynAccumulator"; }
 
 void GSynAccumulator::initializeChannelCoefficients() { mChannelCoefficients = {1.0f, -1.0f}; }
 
-int GSynAccumulator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_channelIndices(ioFlag);
-   ioParam_channelCoefficients(ioFlag);
+int GSynAccumulator::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_channelIndices(ioSwitch);
+   ioParam_channelCoefficients(ioSwitch);
    return PV_SUCCESS;
 }
 
-void GSynAccumulator::ioParam_channelIndices(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamArray(
-         ioFlag, getName(), "channelIndices", &mChannelIndicesParams, &mNumChannelIndices);
+void GSynAccumulator::ioParam_channelIndices(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("channelIndices"), &mChannelIndicesParams);
 }
 
-void GSynAccumulator::ioParam_channelCoefficients(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamArray(
-         ioFlag,
-         getName(),
-         "channelCoefficients",
-         &mChannelCoefficientsParams,
-         &mNumChannelCoefficients);
+void GSynAccumulator::ioParam_channelCoefficients(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, std::string("channelCoefficients"), &mChannelCoefficientsParams);
 }
 
 Response::Status
@@ -61,24 +61,24 @@ GSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          "%s could not find a LayerInputBuffer component.\n",
          getDescription_c());
 
+   std::size_t numChannelIndices = mChannelIndicesParams.size();
    FatalIf(
-         mNumChannelCoefficients != mNumChannelIndices,
-         "%s has different array lengths for ChannelIndices and ChannelCoefficients (%d versus "
-         "%d).\n",
+         mChannelCoefficientsParams.size() != numChannelIndices,
+         "%s has different array lengths for ChannelIndices and ChannelCoefficients "
+         "(%zu versus %zu).\n",
          getDescription_c(),
-         mNumChannelIndices,
-         mNumChannelCoefficients);
-   for (int i = 0; i < mNumChannelIndices; i++) {
-      int channelIndex = mChannelIndicesParams[i];
+         numChannelIndices,
+         mChannelCoefficientsParams.size());
+   for (std::size_t n = 0; n < numChannelIndices; n++) {
+      int channelIndex = mChannelIndicesParams[n];
       if (channelIndex < 0) {
          continue;
       } // Should there be a warning here? A fatal error?
       if (channelIndex >= (int)mChannelCoefficients.size()) {
          mChannelCoefficients.resize(channelIndex + 1, 0.0f);
       }
-      mChannelCoefficients[channelIndex] = mChannelCoefficientsParams[i];
+      mChannelCoefficients[channelIndex] = mChannelCoefficientsParams[n];
    }
-
    return Response::SUCCESS;
 }
 

@@ -2,7 +2,6 @@
 #define TARGETLAYERCOMPONENT_HPP_
 
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeComponent.hpp"
@@ -13,26 +12,28 @@ namespace PV {
 
 class TargetLayerComponent : public ProbeComponent {
   protected:
-   virtual void ioParam_targetLayer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetLayer(ParamsIOSwitch ioSwitch);
 
   public:
-   TargetLayerComponent(char const *objName, PVParams *params);
+   TargetLayerComponent(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~TargetLayerComponent();
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
-   void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void ioParamsFillGroup(ParamsIOSwitch ioSwitch);
 
    HyPerLayer *getTargetLayer() { return mTargetLayer; }
    HyPerLayer const *getTargetLayer() const { return mTargetLayer; }
-   char const *getTargetLayerName() const { return mTargetLayerName; }
+   std::string const &getTargetLayerName() const { return mTargetLayerName; }
 
   protected:
    TargetLayerComponent() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
   private:
-   char *mTargetLayerName   = nullptr;
-   HyPerLayer *mTargetLayer = nullptr;
+   std::string mTargetLayerName;
+   HyPerLayer *mTargetLayer     = nullptr;
 
 }; // class TargetLayerComponent
 

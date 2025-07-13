@@ -4,25 +4,25 @@
 namespace PV {
 
 KneeTimeScaleProbe::KneeTimeScaleProbe(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-int KneeTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioFlag);
-   ioParam_kneeThresh(ioFlag);
-   ioParam_kneeSlope(ioFlag);
+int KneeTimeScaleProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioSwitch);
+   ioParam_kneeThresh(ioSwitch);
+   ioParam_kneeSlope(ioSwitch);
    return status;
 }
 
-void KneeTimeScaleProbe::ioParam_kneeThresh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "kneeThresh", &mKneeThresh, mKneeThresh);
+void KneeTimeScaleProbe::ioParam_kneeThresh(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "kneeThresh", &mKneeThresh);
 }
 
-void KneeTimeScaleProbe::ioParam_kneeSlope(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "kneeSlope", &mKneeSlope, mKneeSlope);
+void KneeTimeScaleProbe::ioParam_kneeSlope(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "kneeSlope", &mKneeSlope);
 }
 
 void KneeTimeScaleProbe::allocateTimeScaleController() {

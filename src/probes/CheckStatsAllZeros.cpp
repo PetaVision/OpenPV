@@ -8,8 +8,8 @@
 
 namespace PV {
 
-CheckStatsAllZeros::CheckStatsAllZeros(char const *objName, PVParams *params)
-      : mName(objName), mParams(params) {}
+CheckStatsAllZeros::CheckStatsAllZeros(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults)
+      : mParams(params), mDefaults(defaults) {}
 
 CheckStatsAllZeros::~CheckStatsAllZeros() {}
 
@@ -60,7 +60,8 @@ std::string CheckStatsAllZeros::errorMessage(
    }
 
    std::stringstream message("");
-   message << "Probe " << mName.c_str() << " has " << baseMessage << " at time " << badTime << "\n";
+   message << "Probe " << mParams->getName() << " has " << baseMessage
+           << " at time " << badTime << "\n";
    for (auto const &b : badCounts) {
       int batchIndex          = b.first;
       LayerStats const &stats = b.second;
@@ -71,28 +72,23 @@ std::string CheckStatsAllZeros::errorMessage(
    return message.str();
 }
 
-void CheckStatsAllZeros::ioParam_exitOnFailure(enum ParamsIOFlag ioFlag) {
-   mParams->ioParamValue(ioFlag, mName.c_str(), "exitOnFailure", &mExitOnFailure, mExitOnFailure);
+void CheckStatsAllZeros::ioParam_exitOnFailure(ParamsIOSwitch ioSwitch, std::shared_ptr<ParamsIO> paramsIO) {
+   paramsIO->ioParam(ioSwitch, "exitOnFailure", &mExitOnFailure);
 }
 
-void CheckStatsAllZeros::ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName.c_str(), "exitOnFailure"));
+void CheckStatsAllZeros::ioParam_immediateExitOnFailure(ParamsIOSwitch ioSwitch, std::shared_ptr<ParamsIO> paramsIO) {
+   pvAssert(!paramsIO->presentAndNotBeenRead("exitOnFailure"));
    if (mExitOnFailure) {
-      mParams->ioParamValue(
-            ioFlag,
-            mName.c_str(),
-            "immediateExitOnFailure",
-            &mImmediateExitOnFailure,
-            mImmediateExitOnFailure);
+      paramsIO->ioParam(ioSwitch, "immediateExitOnFailure", &mImmediateExitOnFailure);
    }
    else {
       mImmediateExitOnFailure = false;
    }
 }
 
-void CheckStatsAllZeros::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_exitOnFailure(ioFlag);
-   ioParam_immediateExitOnFailure(ioFlag);
+void CheckStatsAllZeros::ioParamsFillGroup(ParamsIOSwitch ioSwitch, std::shared_ptr<ParamsIO> paramsIO) {
+   ioParam_exitOnFailure(ioSwitch, paramsIO);
+   ioParam_immediateExitOnFailure(ioSwitch, paramsIO);
 }
 
 void CheckStatsAllZeros::setFirstFailure(

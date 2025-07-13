@@ -9,17 +9,23 @@
 
 namespace PV {
 
-InitSmartWeights::InitSmartWeights(char const *name, PVParams *params, Communicator const *comm)
+InitSmartWeights::InitSmartWeights(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : InitWeights() {
-   InitSmartWeights::initialize(name, params, comm);
+   InitSmartWeights::initialize(params, defaults, comm);
 }
 
 InitSmartWeights::InitSmartWeights() {}
 
 InitSmartWeights::~InitSmartWeights() {}
 
-void InitSmartWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InitWeights::initialize(name, params, comm);
+void InitSmartWeights::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InitWeights::initialize(params, defaults, comm);
 }
 
 void InitSmartWeights::calcWeights(int patchIndex, int arborId) {

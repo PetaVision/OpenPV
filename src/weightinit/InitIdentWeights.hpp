@@ -14,15 +14,21 @@ namespace PV {
 
 class InitIdentWeights : public InitOneToOneWeights {
   protected:
-   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_weightInit(ParamsIOSwitch ioSwitch) override;
 
   public:
-   InitIdentWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitIdentWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitIdentWeights();
 
   protected:
    InitIdentWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 }; // class InitIdentWeights
 
 } /* namespace PV */

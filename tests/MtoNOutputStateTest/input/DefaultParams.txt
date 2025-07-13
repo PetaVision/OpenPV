@@ -1,0 +1,7 @@
+Defaults "IndexLayer" = {
+    #include "BasicLayer";
+};
+
+Defaults "IndexWeightConn" = {
+    #include "HyPerConn";
+};

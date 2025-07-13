@@ -10,21 +10,27 @@
 
 namespace PV {
 
-WTADelivery::WTADelivery(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+WTADelivery::WTADelivery(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void WTADelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseDelivery::initialize(name, params, comm);
+void WTADelivery::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseDelivery::initialize(params, defaults, comm);
 }
 
 void WTADelivery::setObjectType() { mObjectType = "WTADelivery"; }
 
-void WTADelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+void WTADelivery::ioParam_receiveGpu(ParamsIOSwitch ioSwitch) {
    // Never receive from gpu
    mReceiveGpu = false;
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "receiveGpu", false /*correctValue*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("receiveGpu", false /*correctValue*/);
    }
 }
 

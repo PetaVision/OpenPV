@@ -15,13 +15,19 @@ namespace PV {
 
 class CloneVLayer : public HyPerLayer {
   public:
-   CloneVLayer(const char *name, PVParams *params, Communicator const *comm);
+   CloneVLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    HyPerLayer *getOriginalLayer() { return mOriginalLayer; }
    virtual ~CloneVLayer();
 
   protected:
    CloneVLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void fillComponentTable() override;
    virtual LayerGeometry *createLayerGeometry() override;
    virtual LayerInputBuffer *createLayerInput() override;

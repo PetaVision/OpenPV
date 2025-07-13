@@ -30,6 +30,7 @@ void verifyOutputStateSharedWeights(
 
 int main(int argc, char *argv[]) {
    // Initialize
+   int status = PV_SUCCESS;
    PV_Init pv_init(&argc, &argv, false /*no unrecognized arguments*/);
    if (pv_init.getParams() == nullptr) {
       if (pv_init.getWorldRank() == 0) {
@@ -44,6 +45,7 @@ int main(int argc, char *argv[]) {
    }
    pv_init.registerKeyword("IndexLayer", Factory::create<IndexLayer>);
    pv_init.registerKeyword("IndexWeightConn", Factory::create<IndexWeightConn>);
+   pv_init.registerDefaults("input/DefaultParams.txt");
 
    auto communicator = pv_init.getCommunicator();
    auto mpiBlock     = communicator->getIOMPIBlock();
@@ -57,11 +59,8 @@ int main(int argc, char *argv[]) {
              pv_init.getArguments()->getStringArgument(std::string("ParamsFile")).c_str());
        char const *hypercolName = pv_init.getParams()->groupNameFromIndex(0);
        pvAssert(hypercolName != nullptr);
-       char *paramsOutputPath = nullptr;
-       pv_init.getParams()->ioParamString(
-              PARAMS_IO_READ, hypercolName, "outputPath", &paramsOutputPath, "output", true);
-       outputPath = paramsOutputPath;
-       free(paramsOutputPath);
+       auto paramsIO = pv_init.getParams()->makeParamsIO(hypercolName);
+       outputPath = paramsIO->readValue<std::string>("outputPath");
 
        communicator->getOutputFileManager()->changeBaseDirectory(outputPath);
    }
@@ -87,7 +86,7 @@ int main(int argc, char *argv[]) {
 
    HyPerCol *hc          = new HyPerCol(&pv_init);
    int processBatchWidth = hc->getNBatchGlobal() / mpiBlock->getGlobalBatchDimension();
-   int status            = hc->run();
+   status            = hc->run();
 
    if (rankInBlock == 0) {
       verifyOutputStateFiles(outputDirectory, mpiBlock, processBatchWidth);

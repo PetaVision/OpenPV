@@ -20,14 +20,20 @@ namespace PV {
  */
 class HyPerInternalStateBuffer : public InternalStateBuffer {
   public:
-   HyPerInternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
+   HyPerInternalStateBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~HyPerInternalStateBuffer();
 
   protected:
    HyPerInternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

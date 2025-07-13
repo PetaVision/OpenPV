@@ -1,0 +1,5 @@
+Defaults "KernelTestProbe" = {
+    #include "StatsProbe";
+    #remove buffer;
+    #remove immediateMPIAssembly;
+};

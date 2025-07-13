@@ -21,22 +21,25 @@ namespace PV {
 PtwiseProductLayer::PtwiseProductLayer() {}
 
 PtwiseProductLayer::PtwiseProductLayer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 } // end PtwiseProductLayer::PtwiseProductLayer(const char *, HyPerCol *)
 
 PtwiseProductLayer::~PtwiseProductLayer() {}
 
-void PtwiseProductLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void PtwiseProductLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *PtwiseProductLayer::createActivityComponent() {
    return new HyPerActivityComponent<PtwiseProductGSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
+                                     ANNActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status PtwiseProductLayer::allocateDataStructures() {

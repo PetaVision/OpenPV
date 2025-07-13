@@ -12,10 +12,10 @@
 namespace PV {
 
 WeightsPairInterface::WeightsPairInterface(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 WeightsPairInterface::~WeightsPairInterface() {
@@ -24,10 +24,10 @@ WeightsPairInterface::~WeightsPairInterface() {
 }
 
 void WeightsPairInterface::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void WeightsPairInterface::setObjectType() { mObjectType = "WeightsPairInterface"; }

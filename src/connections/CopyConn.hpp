@@ -16,14 +16,20 @@ namespace PV {
 
 class CopyConn : public HyPerConn {
   public:
-   CopyConn(char const *name, PVParams *params, Communicator const *comm);
+   CopyConn(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~CopyConn();
 
   protected:
    CopyConn();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void fillComponentTable() override;
 

@@ -10,23 +10,29 @@
 namespace PV {
 ZeroV::ZeroV() { initialize_base(); }
 
-ZeroV::ZeroV(char const *name, PVParams *params, Communicator const *comm) {
+ZeroV::ZeroV(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ZeroV::~ZeroV() {}
 
 int ZeroV::initialize_base() { return PV_SUCCESS; }
 
-void ZeroV::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ConstantV::initialize(name, params, comm);
+void ZeroV::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ConstantV::initialize(params, defaults, comm);
 }
 
-void ZeroV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
+void ZeroV::ioParam_valueV(ParamsIOSwitch ioSwitch) {
    mValueV = 0.0f;
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "valueV", 0.0f /*correctValue*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("valueV", 0.0f /*correctValue*/);
    }
 }
 

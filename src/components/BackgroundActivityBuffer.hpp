@@ -31,21 +31,27 @@ class BackgroundActivityBuffer : public ActivityBuffer {
    /**
     * repFeatureNum
     */
-   void ioParam_repFeatureNum(enum ParamsIOFlag ioFlag);
+   void ioParam_repFeatureNum(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   BackgroundActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   BackgroundActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~BackgroundActivityBuffer();
 
   protected:
    BackgroundActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

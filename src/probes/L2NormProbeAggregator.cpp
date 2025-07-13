@@ -7,10 +7,10 @@
 namespace PV {
 
 L2NormProbeAggregator::L2NormProbeAggregator(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       std::shared_ptr<MPIBlock const> mpiBlock) {
-   initialize(objName, params, mpiBlock);
+   initialize(params, defaults, mpiBlock);
 }
 
 void L2NormProbeAggregator::aggregateNormsBatch(
@@ -30,19 +30,18 @@ void L2NormProbeAggregator::aggregateNormsBatch(
 }
 
 void L2NormProbeAggregator::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       std::shared_ptr<MPIBlock const> mpiBlock) {
-   NormProbeAggregator::initialize(objName, params, mpiBlock);
+   NormProbeAggregator::initialize(params, defaults, mpiBlock);
 }
 
-void L2NormProbeAggregator::ioParam_exponent(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamValue(
-         ioFlag, getName_c(), "exponent", &mExponent, mExponent, true /*warnIfAbsent*/);
+void L2NormProbeAggregator::ioParam_exponent(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "exponent", &mExponent);
 }
 
-void L2NormProbeAggregator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_exponent(ioFlag);
+void L2NormProbeAggregator::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_exponent(ioSwitch);
 }
 
 } // namespace PV

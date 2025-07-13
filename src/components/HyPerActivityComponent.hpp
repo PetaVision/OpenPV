@@ -22,14 +22,20 @@ namespace PV {
 template <typename G, typename V, typename A>
 class HyPerActivityComponent : public ActivityComponent {
   public:
-   HyPerActivityComponent(char const *name, PVParams *params, Communicator const *comm);
+   HyPerActivityComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~HyPerActivityComponent();
 
   protected:
    HyPerActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

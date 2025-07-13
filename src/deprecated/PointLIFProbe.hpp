@@ -14,7 +14,10 @@ namespace PV {
 
 class PointLIFProbe : public PointProbe {
   public:
-   PointLIFProbe(const char *name, PVParams *params, Communicator const *comm);
+   PointLIFProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    float const *getPointG_E() const { return mPointG_E; }
    float const *getPointG_I() const { return mPointG_I; }
@@ -23,9 +26,12 @@ class PointLIFProbe : public PointProbe {
 
   protected:
    PointLIFProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_writeStep(ParamsIOSwitch ioSwitch);
 
    /**
     * Overrides initNumValues to set numValues to 6 (G_E, G_I, G_IB, V, Vth, a)

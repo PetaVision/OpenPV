@@ -5,7 +5,6 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeDataBuffer.hpp"
 #include "probes/ProbeInterface.hpp"
@@ -18,16 +17,14 @@ namespace PV {
 
 class QuotientProbe : public ProbeInterface {
   protected:
-   virtual void ioParam_denominator(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_numerator(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief valueDescription is an obsolete parameter. Use the message parameter instead.
-    */
-   virtual void ioParam_valueDescription(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_denominator(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_numerator(ParamsIOSwitch ioSwitch);
 
   public:
-   QuotientProbe(char const *name, PVParams *params, Communicator const *comm);
+   QuotientProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~QuotientProbe() {}
 
   protected:
@@ -38,12 +35,22 @@ class QuotientProbe : public ProbeInterface {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeTrigger(char const *name, PVParams *params);
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void createComponents(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeTrigger(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void initMessageActionMap() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status outputState(double simTime, double deltaTime);
 
@@ -63,9 +70,9 @@ class QuotientProbe : public ProbeInterface {
 
   private:
    ProbeInterface *mDenominator = nullptr;
-   char *mDenominatorName       = nullptr;
-   ProbeInterface *mNumerator   = nullptr;
-   char *mNumeratorName         = nullptr;
+   std::string mDenominatorName;
+   ProbeInterface *mNumerator = nullptr;
+   std::string mNumeratorName;
    ProbeDataBuffer<double> mStoredValues;
 };
 

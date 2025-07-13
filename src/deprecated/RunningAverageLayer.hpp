@@ -17,7 +17,10 @@ namespace PV {
 
 class RunningAverageLayer : public CloneVLayer {
   public:
-   RunningAverageLayer(const char *name, PVParams *params, Communicator const *comm);
+   RunningAverageLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~RunningAverageLayer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -27,9 +30,12 @@ class RunningAverageLayer : public CloneVLayer {
 
   protected:
    RunningAverageLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   void ioParam_numImagesToAverage(ParamsIOSwitch ioSwitch);
 
   private:
    int initialize_base();

@@ -14,31 +14,32 @@ namespace PV {
 InputRegionActivityComponent::InputRegionActivityComponent() {}
 
 InputRegionActivityComponent::InputRegionActivityComponent(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InputRegionActivityComponent::~InputRegionActivityComponent() {}
 
 void InputRegionActivityComponent::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityComponent::initialize(name, params, comm);
+   ActivityComponent::initialize(params, defaults, comm);
 }
 
 void InputRegionActivityComponent::setObjectType() { mObjectType = "InputRegionActivityComponent"; }
 
 ActivityBuffer *InputRegionActivityComponent::createActivity() {
-   return new InputRegionActivityBuffer(getName(), parameters(), mCommunicator);
+   return new InputRegionActivityBuffer(
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
-void InputRegionActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void InputRegionActivityComponent::ioParam_updateGpu(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       mUpdateGpu = false;
-      parameters()->handleUnnecessaryParameter(getName(), "updateGpu", mUpdateGpu);
+      mParamsIO->handleUnnecessaryParameter("updateGpu", mUpdateGpu);
    }
 }
 

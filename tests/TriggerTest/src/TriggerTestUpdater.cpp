@@ -10,10 +10,10 @@
 namespace PV {
 
 TriggerTestUpdater::TriggerTestUpdater(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HebbianUpdater::initialize(name, params, comm);
+   HebbianUpdater::initialize(params, defaults, comm);
 }
 
 void TriggerTestUpdater::updateState(double time, double dt) {

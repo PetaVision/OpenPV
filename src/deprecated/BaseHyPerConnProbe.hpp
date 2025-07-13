@@ -15,7 +15,10 @@ namespace PV {
 
 class BaseHyPerConnProbe : public BaseConnectionProbe {
   public:
-   BaseHyPerConnProbe(const char *name, PVParams *params, Communicator const *comm);
+   BaseHyPerConnProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~BaseHyPerConnProbe();
 
    virtual Response::Status
@@ -26,8 +29,11 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
 
   protected:
    BaseHyPerConnProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void ioParam_statsFlag(ParamsIOSwitch ioSwitch) override;
    virtual bool needRecalc(double timevalue) override;
 
    /**

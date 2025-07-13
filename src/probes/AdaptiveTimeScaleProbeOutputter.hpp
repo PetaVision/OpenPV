@@ -3,7 +3,6 @@
 
 #include "columns/Communicator.hpp"
 #include "components/AdaptiveTimeScaleController.hpp" // TimeScaleData
-#include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "probes/BaseProbeOutputter.hpp"
 #include "probes/ProbeDataBuffer.hpp"
@@ -25,20 +24,26 @@ class AdaptiveTimeScaleProbeOutputter : public BaseProbeOutputter {
     * written to the HyPerCol_timescales file. If false, file is written as
     * comma a separated list. Default is true.
     */
-   virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeTimeScaleFieldnames(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   AdaptiveTimeScaleProbeOutputter(char const *objName, PVParams *params, Communicator const *comm);
+   AdaptiveTimeScaleProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~AdaptiveTimeScaleProbeOutputter() {}
 
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch);
 
    void printTimeScaleBuffer(ProbeDataBuffer<TimeScaleData> const &storedValues);
 
   protected:
    AdaptiveTimeScaleProbeOutputter() {}
-   void initialize(char const *objName, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    void printTimeScaleData(
          std::shared_ptr<PrintStream> printStreamPtr,

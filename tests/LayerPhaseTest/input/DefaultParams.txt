@@ -1,0 +1,6 @@
+Defaults "LayerPhaseTestProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+    equilibriumValue = 0.0;
+    equilibriumTime  = 0.0;
+};

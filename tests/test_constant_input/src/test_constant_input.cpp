@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
 
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
    initObj->registerKeyword("TestImage", Factory::create<TestImage>);
+   initObj->registerDefaults("input/DefaultParams.txt");
 
    // create the managing hypercolumn
    //

@@ -14,19 +14,25 @@
 
 namespace PV {
 
-MaskLayer::MaskLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+MaskLayer::MaskLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 MaskLayer::~MaskLayer() {}
 
-void MaskLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void MaskLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *MaskLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, MaskActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

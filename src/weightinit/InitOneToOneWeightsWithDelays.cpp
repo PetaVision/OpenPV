@@ -10,10 +10,10 @@
 namespace PV {
 
 InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays() {}
@@ -21,10 +21,10 @@ InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays() {}
 InitOneToOneWeightsWithDelays::~InitOneToOneWeightsWithDelays() {}
 
 void InitOneToOneWeightsWithDelays::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   InitWeights::initialize(name, params, comm);
+   InitWeights::initialize(params, defaults, comm);
 }
 
 void InitOneToOneWeightsWithDelays::calcWeights(int patchIndex, int arborId) {

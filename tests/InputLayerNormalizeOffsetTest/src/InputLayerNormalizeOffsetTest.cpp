@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
             std::string(inputPublisher->getName()),
             &validRegionBuffer,
             std::string(validRegionPublisher->getName()),
-            hc->parameters());
+            pv_init->getParams());
    }
 
    delete hc;
@@ -200,9 +200,14 @@ void verifyActivity(
 
    int status = PV_SUCCESS;
 
+   auto paramsIO = params->makeParamsIO(inputName);
+   FatalIf(
+         paramsIO == nullptr,
+         "Unable to find a group named \"%s\" in params file.\n",
+         inputName.c_str());
+
    // Verify that where ValidRegion is zero, Input is the pad value.
-   float padValue = (float)params->value(
-         inputName.c_str(), "padValue", 0.0f /*default*/, false /*no warning if absent*/);
+   float padValue = paramsIO->readValue<float>("padValue", false /*warnIfAbsentFlag*/);
    for (int k = 0; k < totalElements; k++) {
       if (validRegionBuffer->at(k) == 0.0f and inputBuffer->at(k) != padValue) {
          status = PV_FAILURE;
@@ -218,14 +223,14 @@ void verifyActivity(
    FatalIf(status != PV_SUCCESS, "Test failed.\n");
 
    // Verify that where ValidRegion is one, Input has been normalized.
-   bool normalizeLuminance = params->value(
-                                   inputName.c_str(),
-                                   "normalizeLuminanceFlag",
-                                   false /*default*/,
-                                   false /*no warning if absent*/)
-                             != 0;
+   bool normalizeLuminanceFlag;
+   paramsIO->ioParam(
+         PV::ParamsIOSwitch::Read,
+         "normalizeLuminanceFlag",
+         &normalizeLuminanceFlag,
+         false /*warnIfAbsentFlag*/);
    FatalIf(
-         !normalizeLuminance,
+         !normalizeLuminanceFlag,
          "%s has normalizeLuminanceFlag set to false. This test requires it to be true.\n",
          inputName.c_str());
    double mean = 0.0;
@@ -245,12 +250,12 @@ void verifyActivity(
          inputName.c_str(),
          mean);
 
-   bool normalizeStdDev = params->value(
-                                inputName.c_str(),
-                                "normalizeStdDev",
-                                false /*default*/,
-                                false /*no warning if absent*/)
-                          != 0;
+   bool normalizeStdDev;
+   paramsIO->ioParam(
+         PV::ParamsIOSwitch::Read,
+         "normalizeStdDev",
+         &normalizeStdDev,
+         false /*warnIfAbsentFlag*/);
    FatalIf(
          !normalizeStdDev,
          "%s has normalizeStdDev set to false. This test requires it to be true.\n",

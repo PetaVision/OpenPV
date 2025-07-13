@@ -5,6 +5,7 @@
 #define PV_VERSION_MINOR @PV_VERSION_MINOR@
 
 #define PV_DIR "@PV_DIR@"
+#define PV_SHARE_DIR "@PV_SHARE_DIR@"
 #cmakedefine PV_USE_MPI
 #cmakedefine PV_USE_OPENMP_THREADS
 #cmakedefine PV_USE_CUDA

@@ -30,7 +30,7 @@ PvpLayer "Input" = {
     writeStep = -1.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    sparseLayer = 0;
+    sparseLayer = false;
     displayPeriod = 0;
     inputPath = "input/Input.pvp";
 
@@ -44,14 +44,20 @@ HyPerLayer "MaxPool" = {
     writeStep = -1.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    sparseLayer = 0;
+    sparseLayer = false;
 
     phase = 1; 
     triggerLayerName = NULL;
 };
 
 ConstantLayer "Correct" = {
-    #include "MaxPool";
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = false;
     InitVType = "InitVFromFile";
     Vfilename = "input/maxpool3x3correct.pvp";
 };
@@ -63,7 +69,7 @@ HyPerLayer "Comparison" = {
     writeStep = -1.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    sparseLayer = 0;
+    sparseLayer = false;
     InitVType = "ZeroV";
 
     phase = 2; 

@@ -11,30 +11,35 @@
 
 namespace PV {
 
-ArborList::ArborList(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ArborList::ArborList(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ArborList::ArborList() {}
 
-ArborList::~ArborList() { free(mDelaysParams); }
+ArborList::~ArborList() {}
 
-void ArborList::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void ArborList::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void ArborList::setObjectType() { mObjectType = "ArborList"; }
 
-int ArborList::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_numAxonalArbors(ioFlag);
-   ioParam_delay(ioFlag);
+int ArborList::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_numAxonalArbors(ioSwitch);
+   ioParam_delay(ioSwitch);
    return PV_SUCCESS;
 }
 
-void ArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, this->getName(), "numAxonalArbors", &mNumAxonalArbors, mNumAxonalArbors);
-   if (ioFlag == PARAMS_IO_READ) {
+void ArborList::ioParam_numAxonalArbors(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "numAxonalArbors", &mNumAxonalArbors);
+   if (ioSwitch == ParamsIOSwitch::Read) {
       if (getNumAxonalArbors() <= 0 && mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
                "Connection %s: Variable numAxonalArbors is set to 0. "
@@ -44,22 +49,18 @@ void ArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
+void ArborList::ioParam_delay(ParamsIOSwitch ioSwitch) {
    // Grab delays in ms and load into mDelaysParams.
    // initializeDelays() will convert the delays to timesteps store into delays.
-   parameters()->ioParamArray(ioFlag, getName(), "delay", &mDelaysParams, &mNumDelays);
-   if (ioFlag == PARAMS_IO_READ && mNumDelays == 0) {
-      assert(mDelaysParams == nullptr);
-      mDelaysParams = (double *)pvMallocError(
-            sizeof(double),
-            "%s: unable to set default delay: %s\n",
-            this->getDescription_c(),
-            strerror(errno));
-      *mDelaysParams = 0.0f; // Default delay
-      mNumDelays     = 1;
-      if (mCommunicator->globalCommRank() == 0) {
-         InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
+   mParamsIO->ioParam(ioSwitch, "delay", &mDelaysParams);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      if (mDelaysParams.empty()) {
+         mDelaysParams = {0.0}; // Default delay
+         if (mCommunicator->globalCommRank() == 0) {
+            InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
+         }
       }
+      mNumDelays = static_cast<int>(mDelaysParams.size());
    }
 }
 
@@ -100,7 +101,7 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 }
 
 void ArborList::initializeDelays(double deltaTime) {
-   assert(!parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
+   assert(!mParamsIO->presentAndNotBeenRead("numAxonalArbors"));
    mDelay.resize(getNumAxonalArbors());
 
    FatalIf(

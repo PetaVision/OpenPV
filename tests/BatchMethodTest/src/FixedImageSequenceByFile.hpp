@@ -5,12 +5,18 @@
 
 class FixedImageSequenceByFile : public FixedImageSequence {
   public:
-   FixedImageSequenceByFile(char const *name, PV::PVParams *params, PV::Communicator const *comm);
+   FixedImageSequenceByFile(
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
+      PV::Communicator const *comm);
    virtual ~FixedImageSequenceByFile() {}
 
   protected:
    FixedImageSequenceByFile() {}
-   void initialize(char const *name, PV::PVParams *params, PV::Communicator const *comm);
+   void initialize(
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
+      PV::Communicator const *comm);
    virtual void defineImageSequence() override;
 }; // end class FixedImageSequenceByFile
 

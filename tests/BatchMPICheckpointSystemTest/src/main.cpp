@@ -67,7 +67,9 @@ int main(int argc, char *argv[]) {
 
    initObj.setMPIConfiguration(
          0 /*numRows unspecified*/, 0 /*numColumns unspecified*/, 2 /*batchWidth*/);
+   std::string customDefaultsPath("input/DefaultParams.txt");
    initObj.setParams(paramFile1);
+   initObj.registerDefaults("input/DefaultParams.txt");
 
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {
@@ -80,6 +82,7 @@ int main(int argc, char *argv[]) {
    }
 
    initObj.setParams(paramFile2);
+   initObj.registerDefaults("input/DefaultParams.txt");
    initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj, nullptr, customexit);

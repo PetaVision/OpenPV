@@ -3,7 +3,6 @@
 
 #include "columns/Random.hpp"
 #include "components/HyPerActivityBuffer.hpp"
-#include "io/PVParams.hpp"
 #include "structures/Buffer.hpp"
 #include <memory>
 
@@ -31,7 +30,7 @@ class ScaleYActivityBuffer : public HyPerActivityBuffer {
     * Each display period, the scale factor is chosen randomly from
     * the interval [scaleFactorMin, scaleFactorMax].
     */
-   virtual void ioParam_scaleFactorMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_scaleFactorMin(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief scaleFactorMax: The maximum possible value for the scale factor
@@ -40,7 +39,7 @@ class ScaleYActivityBuffer : public HyPerActivityBuffer {
     * If the max and min are equal, the only possible choice is the common value.
     * If the max is less then the min, a warning is issued and the values are flipped.
     */
-   virtual void ioParam_scaleFactorMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_scaleFactorMax(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief writeScaleFactorsFile: The path to the file where scale factors are recorded.
@@ -54,12 +53,15 @@ class ScaleYActivityBuffer : public HyPerActivityBuffer {
     *
     * The default is NULL (do not write to file).
     */
-   virtual void ioParam_writeScaleFactorsFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeScaleFactorsFile(ParamsIOSwitch ioSwitch);
 
    /** @} */
 
   public:
-   ScaleYActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   ScaleYActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
@@ -70,8 +72,11 @@ class ScaleYActivityBuffer : public HyPerActivityBuffer {
    virtual Response::Status allocateDataStructures() override;
    void applyTransformCPU(
          Buffer<float> const &inputBuffer, Buffer<float> &outputBuffer, float scaleFactor);
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    void copyRandStateToCheckpointData();
    void copyCheckpointDataToRandState();
@@ -90,7 +95,7 @@ class ScaleYActivityBuffer : public HyPerActivityBuffer {
    float mScaleFactorMax;
    std::vector<unsigned int> mRandStateCheckpointData;
    std::shared_ptr<Random> mRandState = nullptr;
-   char *mWriteScaleFactorsFile       = nullptr;
+   std::string mWriteScaleFactorsFile;
 
    // FileStream to output file used when mWriteAnglesFile is set
    std::shared_ptr<FileStream> mWriteScaleFactorsStream;

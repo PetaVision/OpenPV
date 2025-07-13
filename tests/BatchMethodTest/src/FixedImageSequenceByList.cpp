@@ -1,17 +1,17 @@
 #include "FixedImageSequenceByList.hpp"
 
 FixedImageSequenceByList::FixedImageSequenceByList(
-      char const *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void FixedImageSequenceByList::initialize(
-      char const *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   FixedImageSequence::initialize(name, params, comm);
+   FixedImageSequence::initialize(params, defaults, comm);
 }
 
 void FixedImageSequenceByList::defineImageSequence() {

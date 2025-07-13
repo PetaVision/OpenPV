@@ -34,7 +34,7 @@ class TransposePoolingDelivery : public BaseDelivery {
     * TransposePoolingDeliver does not read the receiveGpu flag, but uses the same
     * value as the original connection.
     */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_receiveGpu(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief updateGSynFromPostPerspective: Specifies if the connection should push from pre or pull
@@ -50,10 +50,13 @@ class TransposePoolingDelivery : public BaseDelivery {
     * If the receiveGpu flag is set, the updateGSynFromPostPerspective is ignored, and the
     * cuDNN pooling routines are used.
     */
-   virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateGSynFromPostPerspective(ParamsIOSwitch ioSwitch);
 
   public:
-   TransposePoolingDelivery(char const *name, PVParams *params, Communicator const *comm);
+   TransposePoolingDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~TransposePoolingDelivery();
 
@@ -66,11 +69,14 @@ class TransposePoolingDelivery : public BaseDelivery {
   protected:
    TransposePoolingDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

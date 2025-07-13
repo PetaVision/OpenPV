@@ -10,28 +10,34 @@
 
 namespace PV {
 
-SingleArbor::SingleArbor(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+SingleArbor::SingleArbor(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 SingleArbor::SingleArbor() {}
 
 SingleArbor::~SingleArbor() {}
 
-void SingleArbor::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ArborList::initialize(name, params, comm);
+void SingleArbor::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ArborList::initialize(params, defaults, comm);
 }
 
 void SingleArbor::setObjectType() { mObjectType = "SingleArbor"; }
 
-int SingleArbor::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return ArborList::ioParamsFillGroup(ioFlag);
+int SingleArbor::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return ArborList::ioParamsFillGroup(ioSwitch);
 }
 
-void SingleArbor::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void SingleArbor::ioParam_numAxonalArbors(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       mNumAxonalArbors = 1;
-      parameters()->handleUnnecessaryParameter(getName(), "numAxonalArbors", mNumAxonalArbors);
+      mParamsIO->handleUnnecessaryParameter("numAxonalArbors", mNumAxonalArbors);
    }
 }
 

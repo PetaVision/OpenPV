@@ -28,13 +28,16 @@ class RescaleDelivery : public IdentDelivery {
     * scale: presynaptic activity is multiplied by this scale factor before being added to the
     * postsynaptic input.
     */
-   void ioParam_scale(enum ParamsIOFlag ioFlag);
+   void ioParam_scale(ParamsIOSwitch ioSwitch);
 
    /** @} */
    // End of parameters needed from the RescaleConn class.
 
   public:
-   RescaleDelivery(char const *name, PVParams *params, Communicator const *comm);
+   RescaleDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~RescaleDelivery() {}
 
@@ -45,11 +48,14 @@ class RescaleDelivery : public IdentDelivery {
   protected:
    RescaleDelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   private:
    float mScale;

@@ -12,7 +12,6 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "include/pv_common.h"
-#include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "structures/Weights.hpp"
 
@@ -37,7 +36,7 @@ class InitWeights : public BaseObject {
     * WeightInitType and using the Factory::createByKeyword template to
     * instantiate the function.
     */
-   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightInitType(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief initWeightsFile: A path to a weight pvp file to use for
@@ -48,7 +47,7 @@ class InitWeights : public BaseObject {
     * calcWeights method is used for the rest. If null or empty, calcWeights()
     * is used to initialize all the weights.
     */
-   virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initWeightsFile(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief frameNumber: If initWeightsFile is set, the frameNumber parameter
@@ -57,17 +56,23 @@ class InitWeights : public BaseObject {
     * has five frames, the allowable values of this parameter are 0 through 4,
     * inclusive.
     */
-   virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_frameNumber(ParamsIOSwitch ioSwitch);
 
   public:
-   InitWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    InitWeights();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    void handleObsoleteFlag(std::string const &flagName);
 
    virtual void setObjectType() override;
@@ -111,9 +116,9 @@ class InitWeights : public BaseObject {
   protected:
    Weights *mWeights = nullptr; // initializeWeights sets this to the WeightsPair's PreWeights.
 
-   char *mWeightInitTypeString = nullptr;
+   std::string mWeightInitTypeString;
 
-   char *mFilename  = nullptr;
+   std::string mFilename;
    int mFrameNumber = 0;
    float mDxPost;
    float mDyPost;

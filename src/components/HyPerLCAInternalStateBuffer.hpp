@@ -27,32 +27,38 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
     * @brief timeConstantTau: the time constant tau,
     * used in solving the differential equation dV/dt = 1/tau * (-V + A + GSyn).
     */
-   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_timeConstantTau(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief selfInteract: the self-interaction coefficient s for the LCA dynamics, which models
     * the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
-   virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_selfInteract(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the
     * AdaptiveTimeScaleProbe that will compute the dt values.
     */
-   virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_adaptiveTimeScaleProbe(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   HyPerLCAInternalStateBuffer(const char *name, PVParams *params, Communicator const *comm);
+   HyPerLCAInternalStateBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~HyPerLCAInternalStateBuffer();
 
   protected:
    HyPerLCAInternalStateBuffer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
@@ -76,7 +82,7 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
    double mTimeConstantTau = 1.0; // The time constant tau in the equation dV/dt=1/tau*(-V+A+GSyn).
    double mScaledTimeConstantTau = 1.0; // tau/dt, used in numerical integration.
    bool mSelfInteract = true;
-   char *mAdaptiveTimeScaleProbeName               = nullptr;
+   std::string mAdaptiveTimeScaleProbeName;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;
    std::vector<double> mDeltaTimes;
    ActivityBuffer *mActivity = nullptr;

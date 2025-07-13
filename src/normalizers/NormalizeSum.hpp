@@ -15,17 +15,23 @@ namespace PV {
 class NormalizeSum : public NormalizeMultiply {
    // Member functions
   public:
-   NormalizeSum(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeSum(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NormalizeSum();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual int normalizeWeights() override;
 
   protected:
    NormalizeSum();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minSumTolerated(ParamsIOSwitch ioSwitch);
 
   private:
    int initialize_base();

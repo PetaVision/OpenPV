@@ -4,9 +4,9 @@
 namespace PV {
 
 FirmThresholdCostFnProbeLocal::FirmThresholdCostFnProbeLocal(
-      char const *objName,
-      PVParams *params) {
-   initialize(objName, params);
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
 std::shared_ptr<FirmThresholdCostFunctionSum const>
@@ -16,22 +16,22 @@ FirmThresholdCostFnProbeLocal::createCostFunctionSum() {
    return costFnSum;
 }
 
-void FirmThresholdCostFnProbeLocal::initialize(char const *objName, PVParams *params) {
-   BaseFirmThresholdCostFnProbeLocal::initialize(objName, params);
+void FirmThresholdCostFnProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   BaseFirmThresholdCostFnProbeLocal::initialize(params, defaults);
 }
 
-void FirmThresholdCostFnProbeLocal::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamValue(ioFlag, getName_c(), "VThresh", &mVThresh, mVThresh);
+void FirmThresholdCostFnProbeLocal::ioParam_VThresh(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "VThresh", &mVThresh);
 }
 
-void FirmThresholdCostFnProbeLocal::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamValue(ioFlag, getName_c(), "VWidth", &mVWidth, mVWidth);
+void FirmThresholdCostFnProbeLocal::ioParam_VWidth(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "VWidth", &mVWidth);
 }
 
-void FirmThresholdCostFnProbeLocal::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   BaseFirmThresholdCostFnProbeLocal::ioParamsFillGroup(ioFlag);
-   ioParam_VThresh(ioFlag);
-   ioParam_VWidth(ioFlag);
+void FirmThresholdCostFnProbeLocal::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   BaseFirmThresholdCostFnProbeLocal::ioParamsFillGroup(ioSwitch);
+   ioParam_VThresh(ioSwitch);
+   ioParam_VWidth(ioSwitch);
 }
 
 } // namespace PV

@@ -5,8 +5,11 @@
 
 namespace PV {
 
-Segmentify::Segmentify(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+Segmentify::Segmentify(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 Segmentify::Segmentify() {
@@ -15,8 +18,11 @@ Segmentify::Segmentify() {
 
 Segmentify::~Segmentify() {}
 
-void Segmentify::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void Segmentify::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 void Segmentify::fillComponentTable() {
@@ -28,14 +34,14 @@ void Segmentify::fillComponentTable() {
 }
 
 OriginalLayerNameParam *Segmentify::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 LayerInputBuffer *Segmentify::createLayerInput() { return nullptr; }
 
 ActivityComponent *Segmentify::createActivityComponent() {
    return new ActivityComponentActivityOnly<SegmentifyBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } /* namespace PV */

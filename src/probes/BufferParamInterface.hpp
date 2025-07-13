@@ -1,7 +1,7 @@
 #ifndef BUFFERPARAMINTERFACE_HPP_
 #define BUFFERPARAMINTERFACE_HPP_
 
-#include "io/PVParams.hpp"
+#include "params/ParamsIO.hpp"
 #include "probes/ProbeComponent.hpp"
 #include "probes/StatsProbeTypes.hpp"
 #include <string>
@@ -17,30 +17,29 @@ class BufferParamInterface : public ProbeComponent {
   public:
    virtual ~BufferParamInterface();
 
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) = 0;
+   virtual void ioParam_buffer(ParamsIOSwitch ioSwitch) = 0;
 
    StatsBufferType getBufferType() const { return mBufferType; }
 
   protected:
    BufferParamInterface() {}
 
-   void initialize(char const *name, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
    /**
     * A method for reading BufferString from params or writing BufferString to
-    * a params output file, based on the value of ioFlag.
+    * a params output file, based on the value of ioSwitch.
     * Implementing classes will still need to call setBufferType() in the case
-    * where ioFlag is set to READ.
+    * where ioSwitch is set to Read.
     *
     * It is provided here so that BufferString may remain a private data member,
     * with this method as the interface for interacting with the params.
     */
-   void internal_ioParam_buffer(enum ParamsIOFlag ioFlag);
+   void internal_ioParam_buffer(ParamsIOSwitch ioSwitch);
 
-   StatsBufferType parseBufferType(char const *bufferString);
+   StatsBufferType parseBufferType(std::string const &bufferString);
 
-   char *getBufferString() { return mBufferString; }
-   char const *getBufferString() const { return mBufferString; }
+   std::string const &getBufferString() const { return mBufferString; }
 
    /**
     * Sets the BufferType data member to the indicated type, and sets the
@@ -50,7 +49,7 @@ class BufferParamInterface : public ProbeComponent {
    void setBufferType(StatsBufferType bufferType);
 
   private:
-   char *mBufferString = nullptr;
+   std::string mBufferString;
    StatsBufferType mBufferType;
 };
 

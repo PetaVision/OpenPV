@@ -13,20 +13,26 @@
 
 namespace PV {
 
-ANNSquaredLayer::ANNSquaredLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ANNSquaredLayer::ANNSquaredLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ANNSquaredLayer::~ANNSquaredLayer() {}
 
-void ANNSquaredLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void ANNSquaredLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *ANNSquaredLayer::createActivityComponent() {
    return new HyPerActivityComponent<SquaredGSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
+                                     ANNActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status ANNSquaredLayer::allocateDataStructures() {

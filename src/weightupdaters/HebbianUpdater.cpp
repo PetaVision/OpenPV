@@ -12,8 +12,11 @@
 
 namespace PV {
 
-HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+HebbianUpdater::HebbianUpdater(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 HebbianUpdater::~HebbianUpdater() {
@@ -22,48 +25,49 @@ HebbianUpdater::~HebbianUpdater() {
    }
 }
 
-void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseWeightUpdater::initialize(name, params, comm);
+void HebbianUpdater::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseWeightUpdater::initialize(params, defaults, comm);
 }
 
 void HebbianUpdater::setObjectType() { mObjectType = "HebbianUpdater"; }
 
-int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseWeightUpdater::ioParamsFillGroup(ioFlag);
-   ioParam_triggerLayerName(ioFlag);
-   ioParam_triggerOffset(ioFlag);
-   ioParam_weightUpdatePeriod(ioFlag);
-   ioParam_initialWeightUpdateTime(ioFlag);
-   ioParam_immediateWeightUpdate(ioFlag);
-   ioParam_momentumDecay(ioFlag); // deprecated July 30, 2024
-   ioParam_weightL1Decay(ioFlag);
-   ioParam_weightL2Decay(ioFlag);
-   ioParam_dWMax(ioFlag);
-   ioParam_dWMaxDecayInterval(ioFlag);
-   ioParam_dWMaxDecayFactor(ioFlag);
-   ioParam_normalizeDw(ioFlag);
-   ioParam_useMask(ioFlag);
-   ioParam_combine_dW_with_W_flag(ioFlag);
+int HebbianUpdater::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseWeightUpdater::ioParamsFillGroup(ioSwitch);
+   ioParam_triggerLayerName(ioSwitch);
+   ioParam_triggerOffset(ioSwitch);
+   ioParam_weightUpdatePeriod(ioSwitch);
+   ioParam_initialWeightUpdateTime(ioSwitch);
+   ioParam_immediateWeightUpdate(ioSwitch);
+   ioParam_momentumDecay(ioSwitch); // deprecated July 30, 2024
+   ioParam_weightL1Decay(ioSwitch);
+   ioParam_weightL2Decay(ioSwitch);
+   ioParam_dWMax(ioSwitch);
+   ioParam_dWMaxDecayInterval(ioSwitch);
+   ioParam_dWMaxDecayFactor(ioSwitch);
+   ioParam_normalizeDw(ioSwitch);
+   ioParam_combine_dW_with_W_flag(ioSwitch);
    return status;
 }
 
-void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_triggerLayerName(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamString(
-            ioFlag, getName(), "triggerLayerName", &mTriggerLayerName, nullptr, false /*warnIfAbsent*/);
-      if (ioFlag == PARAMS_IO_READ) {
-         mTriggerFlag = (mTriggerLayerName != nullptr && mTriggerLayerName[0] != '\0');
+      mParamsIO->ioParam(ioSwitch, "triggerLayerName", &mTriggerLayerName, false /*warnIfAbsentFlag*/);
+      if (ioSwitch == ParamsIOSwitch::Read) {
+         mTriggerFlag = !mTriggerLayerName.empty();
       }
    }
 }
 
-void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_triggerOffset(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
+      pvAssert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
       if (mTriggerFlag) {
-         parameters()->ioParamValue(ioFlag, getName(), "triggerOffset", &mTriggerOffset, mTriggerOffset);
+         mParamsIO->ioParam(ioSwitch, "triggerOffset", &mTriggerOffset);
          if (mTriggerOffset < 0) {
             Fatal().printf(
                   "%s error in rank %d process: TriggerOffset (%f) must be positive",
@@ -75,69 +79,55 @@ void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HebbianUpdater::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_weightUpdatePeriod(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
-      if (!mTriggerLayerName) {
-         parameters()->ioParamValueRequired(
-               ioFlag, getName(), "weightUpdatePeriod", &mWeightUpdatePeriod);
+      pvAssert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
+      if (mTriggerLayerName.empty()) {
+         mParamsIO->ioParam(ioSwitch, "weightUpdatePeriod", &mWeightUpdatePeriod);
       }
       else
          FatalIf(
-               parameters()->present(getName(), "weightUpdatePeriod"),
+               mParamsIO->isPresent("weightUpdatePeriod"),
                "%s sets both triggerLayerName and weightUpdatePeriod; "
                "only one of these can be set.\n",
                getDescription_c());
    }
 }
 
-void HebbianUpdater::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_initialWeightUpdateTime(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
-      if (!mTriggerLayerName) {
-         parameters()->ioParamValue(
-               ioFlag,
-               getName(),
-               "initialWeightUpdateTime",
-               &mInitialWeightUpdateTime,
-               mInitialWeightUpdateTime,
-               true /*warnIfAbsent*/);
+      pvAssert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
+      if (mTriggerLayerName.empty()) {
+         mParamsIO->ioParam(ioSwitch, "initialWeightUpdateTime", &mInitialWeightUpdateTime);
       }
    }
-   if (ioFlag == PARAMS_IO_READ) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       mWeightUpdateTime = mInitialWeightUpdateTime;
    }
 }
 
-void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_immediateWeightUpdate(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValue(
-            ioFlag,
-            getName(),
-            "immediateWeightUpdate",
-            &mImmediateWeightUpdate,
-            mImmediateWeightUpdate,
-            true /*warnIfAbsent*/);
+      mParamsIO->ioParam(ioSwitch, "immediateWeightUpdate", &mImmediateWeightUpdate);
    }
 }
 
 // momentumDecay was deprecated on July 30, 2024.
-void HebbianUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_momentumDecay(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "momentumDecay")) {
+      if (ioSwitch == ParamsIOSwitch::Read and mParamsIO->isPresent("momentumDecay")) {
          WarnLog().printf(
                "%s sets momentumDecay parameter, which is deprecated. Use weightL2Decay instead.\n",
                getDescription_c());
-         if (parameters()->present(getName(), "weightL2Decay")) {
+         if (mParamsIO->isPresent("weightL2Decay")) {
             return; // ioParam_weightL2Decay() will handle it
          }
          else {
-            parameters()->ioParamValue(
-                 ioFlag, getName(), "momentumDecay", &mWeightL2Decay, mWeightL2Decay);
+            mParamsIO->ioParam(ioSwitch, "momentumDecay", &mWeightL2Decay);
             if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
                Fatal() << "Connection " << getName()
                        << ": weightL2Decay must be between 0 and 1 inclusive\n";
@@ -148,27 +138,25 @@ void HebbianUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
 }
 
 // Once momentumDecay is marked obsolete, this function can be reduced to
-// pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+// pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
 // if (mPlasticityFlag) {
-//    parameters()->ioParamValue(
-//          ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
+//    mParamsIO->ioParam(ioSwitch, "weightL2Decay", &mWeightL2Decay);
 //    if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
 //       Fatal() << getDescription_c()
 //               << ": weightL2Decay must be between 0 and 1 inclusive\n";
 //    }
 // }
-void HebbianUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_weightL2Decay(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      if (ioFlag == PARAMS_IO_READ) {
-         pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumDecay"));
-         bool usesMomentumDecay = parameters()->present(getName(), "momentumDecay");
-         bool usesWeightL2Decay = parameters()->present(getName(), "weightL2Decay");
+      if (ioSwitch == ParamsIOSwitch::Read) {
+         pvAssert(!mParamsIO->presentAndNotBeenRead("momentumDecay"));
+         bool usesMomentumDecay = mParamsIO->isPresent("momentumDecay");
+         bool usesWeightL2Decay = mParamsIO->isPresent("weightL2Decay");
          if (usesMomentumDecay and !usesWeightL2Decay) {
             return; // ioParam_momentumDecay() read the parameter into mWeightL2Decay already.
          }
-         parameters()->ioParamValue(
-               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
+         mParamsIO->ioParam(ioSwitch, "weightL2Decay", &mWeightL2Decay);
          if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
             Fatal() << getDescription_c()
                     << ": weightL2Decay must be between 0 and 1 inclusive\n";
@@ -179,18 +167,16 @@ void HebbianUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
                getDescription_c(),
                static_cast<double>(mWeightL2Decay));
       }
-      else { // PARAMS_IO_WRITE
-         parameters()->ioParamValue(
-               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
+      else { // ParamsIOSwitch::Write
+         mParamsIO->ioParam(ioSwitch, "weightL2Decay", &mWeightL2Decay);
       }
    }
 }
 
-void HebbianUpdater::ioParam_weightL1Decay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_weightL1Decay(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValue(
-               ioFlag, getName(), "weightL1Decay", &mWeightL1Decay, mWeightL1Decay);
+      mParamsIO->ioParam(ioSwitch, "weightL1Decay", &mWeightL1Decay);
       FatalIf(
             mWeightL1Decay < 0.0f,
             "%s: weightL1Decay cannot be negative (given value was %f)\n",
@@ -199,28 +185,24 @@ void HebbianUpdater::ioParam_weightL1Decay(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HebbianUpdater::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_dWMax(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValueRequired(ioFlag, getName(), "dWMax", &mDWMax);
+      mParamsIO->ioParam(ioSwitch, "dWMax", &mDWMax);
    }
 }
 
-void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_dWMaxDecayInterval(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "dWMax"));
-      parameters()->ioParamValue(
-            ioFlag, getName(), "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
+      mParamsIO->ioParam(ioSwitch, "dWMaxDecayInterval", &mDWMaxDecayInterval, false /*warnIfAbsentFlag*/);
    }
 }
 
-void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_dWMaxDecayFactor(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "dWMax"));
-      parameters()->ioParamValue(
-            ioFlag, getName(), "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
+      mParamsIO->ioParam(ioSwitch, "dWMaxDecayFactor", &mDWMaxDecayFactor, false /*warnIfAbsentFlag*/);
       FatalIf(
             mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
             "%s: dWMaxDecayFactor must be in the interval [0.0, 1.0)\n",
@@ -228,42 +210,17 @@ void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_normalizeDw(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValue(
-            ioFlag, getName(), "normalizeDw", &mNormalizeDw, mNormalizeDw, false /*warnIfAbsent*/);
+      mParamsIO->ioParam(ioSwitch, "normalizeDw", &mNormalizeDw, false /*warnIfAbsentFlag*/);
    }
 }
 
-void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-      if (mPlasticityFlag) {
-         bool useMask = false;
-         parameters()->ioParamValue(
-               ioFlag, getName(), "useMask", &useMask, useMask, false /*warnIfAbsent*/);
-         if (useMask) {
-            if (mCommunicator->globalCommRank() == 0) {
-               ErrorLog().printf("%s has useMask set to true. This parameter is obsolete.\n");
-            }
-            MPI_Barrier(mCommunicator->globalCommunicator());
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
-}
-
-void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void HebbianUpdater::ioParam_combine_dW_with_W_flag(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValue(
-            ioFlag,
-            getName(),
-            "combine_dW_with_W_flag",
-            &mCombine_dWWithWFlag,
-            mCombine_dWWithWFlag,
-            true /*warnIfAbsent*/);
+      mParamsIO->ioParam(ioSwitch, "combine_dW_with_W_flag", &mCombine_dWWithWFlag);
    }
 }
 
@@ -304,7 +261,7 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
             mTriggerControl == nullptr,
             "%s: triggerLayerName \"%s\" does not have a LayerUpdateController.\n",
             getDescription_c(),
-            mTriggerLayerName);
+            mTriggerLayerName.c_str());
    }
 
    return Response::SUCCESS;

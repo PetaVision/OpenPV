@@ -20,14 +20,20 @@ namespace PV {
 class ActivityBuffer : public ComponentBuffer {
 
   public:
-   ActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   ActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ActivityBuffer();
 
   protected:
    ActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 };

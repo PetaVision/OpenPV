@@ -35,9 +35,12 @@ namespace PV {
 
 LabelErrorLayer::LabelErrorLayer() { initialize_base(); }
 
-LabelErrorLayer::LabelErrorLayer(const char *name, PVParams *params, Communicator const *comm) {
+LabelErrorLayer::LabelErrorLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 LabelErrorLayer::~LabelErrorLayer() {}
@@ -48,26 +51,29 @@ int LabelErrorLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void LabelErrorLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+void LabelErrorLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    WarnLog() << "LabelErrorLayer has been deprecated.\n";
-   int status = ANNLayer::initialize(name, params, comm);
+   int status = ANNLayer::initialize(params, defaults, comm);
    mLayerInput->requireChannel(1);
    assert(mLayerInput->getNumChannels() == 2);
    return status;
 }
 
-int LabelErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_errScale(ioFlag);
-   ioParam_isBinary(ioFlag);
+int LabelErrorLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ANNLayer::ioParamsFillGroup(ioSwitch);
+   ioParam_errScale(ioSwitch);
+   ioParam_isBinary(ioSwitch);
    return status;
 }
 
-void LabelErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
+void LabelErrorLayer::ioParam_errScale(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
 }
 
-void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
+void LabelErrorLayer::ioParam_isBinary(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
 }
 

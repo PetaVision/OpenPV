@@ -10,28 +10,31 @@
 namespace PV {
 
 InitOneToOneWeights::InitOneToOneWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitOneToOneWeights::InitOneToOneWeights() {}
 
 InitOneToOneWeights::~InitOneToOneWeights() {}
 
-void InitOneToOneWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InitWeights::initialize(name, params, comm);
+void InitOneToOneWeights::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InitWeights::initialize(params, defaults, comm);
 }
 
-int InitOneToOneWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitWeights::ioParamsFillGroup(ioFlag);
-   ioParam_weightInit(ioFlag);
+int InitOneToOneWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_weightInit(ioSwitch);
    return status;
 }
 
-void InitOneToOneWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
+void InitOneToOneWeights::ioParam_weightInit(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "weightInit", &mWeightInit);
 }
 
 void InitOneToOneWeights::calcWeights(int patchIndex, int arborId) {

@@ -10,19 +10,19 @@
 namespace PV {
 
 CPTestInputInternalStateBuffer::CPTestInputInternalStateBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 CPTestInputInternalStateBuffer::~CPTestInputInternalStateBuffer() {}
 
 void CPTestInputInternalStateBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(name, params, comm);
+   HyPerInternalStateBuffer::initialize(params, defaults, comm);
 }
 
 void CPTestInputInternalStateBuffer::setObjectType() {

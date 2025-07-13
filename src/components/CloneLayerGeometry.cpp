@@ -8,27 +8,33 @@
 namespace PV {
 
 CloneLayerGeometry::CloneLayerGeometry(
-      char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+      
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 CloneLayerGeometry::CloneLayerGeometry() {}
 
 CloneLayerGeometry::~CloneLayerGeometry() {}
 
-void CloneLayerGeometry::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   LayerGeometry::initialize(name, params, comm);
+void CloneLayerGeometry::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   LayerGeometry::initialize(params, defaults, comm);
 }
 
 void CloneLayerGeometry::setObjectType() { mObjectType = "CloneLayerGeometry"; }
 
-void CloneLayerGeometry::ioParam_broadcastFlag(enum ParamsIOFlag ioFlag) {}
+void CloneLayerGeometry::ioParam_broadcastFlag(ParamsIOSwitch ioSwitch) {}
 
-void CloneLayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {}
+void CloneLayerGeometry::ioParam_nxScale(ParamsIOSwitch ioSwitch) {}
 
-void CloneLayerGeometry::ioParam_nyScale(enum ParamsIOFlag ioFlag) {}
+void CloneLayerGeometry::ioParam_nyScale(ParamsIOSwitch ioSwitch) {}
 
-void CloneLayerGeometry::ioParam_nf(enum ParamsIOFlag ioFlag) {}
+void CloneLayerGeometry::ioParam_nf(ParamsIOSwitch ioSwitch) {}
 
 Response::Status CloneLayerGeometry::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -44,13 +50,13 @@ Response::Status CloneLayerGeometry::communicateInitInfo(
    }
 
    // Retrieve original layer's LayerGeometry
-   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+   std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
    auto originalGeometry = objectTable->findObject<LayerGeometry>(originalLayerName);
    FatalIf(
          originalGeometry == nullptr,
          "%s could not find an LayerGeometry component within layer \"%s\".\n",
          getDescription_c(),
-         originalLayerName);
+         originalLayerName.c_str());
    if (!originalGeometry->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }

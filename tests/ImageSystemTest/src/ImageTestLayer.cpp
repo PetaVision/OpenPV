@@ -2,8 +2,11 @@
 
 namespace PV {
 
-ImageTestLayer::ImageTestLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ImageTestLayer::ImageTestLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 Response::Status ImageTestLayer::checkUpdateState(double time, double dt) {

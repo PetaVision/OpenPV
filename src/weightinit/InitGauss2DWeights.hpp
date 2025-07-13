@@ -19,42 +19,48 @@ class InitGauss2DWeights : public InitWeights {
     * @name InitGauss2DWeight Parameters
     * @{
     */
-   virtual void ioParam_aspect(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_sigma(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_aspect(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_sigma(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_rMax(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_rMin(ParamsIOSwitch ioSwitch);
 
    /**
     * numOrientationsPost is the number of orientations on the post synaptic layer.
     * Zero or a negative number indicates that the number of orientations is the
     * same as the number of features in the postsynaptic layer. The default is 0.
     */
-   virtual void ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPost(ParamsIOSwitch ioSwitch);
 
    /**
     * numOrientationsPre is the number of orientations on the pre synaptic layer.
     * Zero or a negative number indicates that the number of orientations is the
     * same as the number of features in the presynaptic layer. The default is 0.
     */
-   virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_thetaMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_numFlanks(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_flankShift(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rotate(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_bowtieFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_bowtieAngle(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPre(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_deltaThetaMax(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_thetaMax(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_numFlanks(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_flankShift(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_rotate(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_bowtieFlag(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_bowtieAngle(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   InitGauss2DWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitGauss2DWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitGauss2DWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    InitGauss2DWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

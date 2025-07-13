@@ -1,0 +1,7 @@
+Defaults "ImportParamsLayer" = {
+    #include "ANNLayer";
+};
+
+Defaults "ImportParamsConn" = {
+    #include "HyPerConn";
+};

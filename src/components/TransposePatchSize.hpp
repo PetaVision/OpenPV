@@ -19,7 +19,10 @@ namespace PV {
  */
 class TransposePatchSize : public DependentPatchSize {
   public:
-   TransposePatchSize(char const *name, PVParams *params, Communicator const *comm);
+   TransposePatchSize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    int getOriginalPatchSizeX() const { return mOriginalPatchSizeX; }
    int getOriginalPatchSizeY() const { return mOriginalPatchSizeY; }
    int getOriginalPatchSizeF() const { return mOriginalPatchSizeF; }
@@ -28,7 +31,10 @@ class TransposePatchSize : public DependentPatchSize {
   protected:
    TransposePatchSize();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

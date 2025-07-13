@@ -3,8 +3,11 @@
 
 namespace PV {
 
-SegmentTestLayer::SegmentTestLayer(const char *name, PVParams *params, Communicator const *comm) {
-   SegmentLayer::initialize(name, params, comm);
+SegmentTestLayer::SegmentTestLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   SegmentLayer::initialize(params, defaults, comm);
 
    FatalIf(
          mActivityComponent == nullptr,

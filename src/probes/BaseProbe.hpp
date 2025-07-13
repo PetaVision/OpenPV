@@ -19,11 +19,11 @@
 #ifdef PV_USE_MPI
 #include "io/MPIRecvStream.hpp"
 #endif // PV_USE_MPI
-#include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "observerpattern/Response.hpp"
 #include "utils/Timer.hpp"
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace PV {
@@ -51,28 +51,28 @@ class BaseProbe : public BaseObject {
     * In LegacyLayerProbe, targetName is used to define the targetLayer, and in
     * BaseConnectionProbe, targetName is used to define the targetConn.
     */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetName(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief message: A string parameter that is typically included in the lines
     * output by the
     * outputState method
     */
-   virtual void ioParam_message(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_message(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief textOutputFlag: A boolean parameter that sets whether to generate an
     * output file.
     * Defaults to true.
     */
-   virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_textOutputFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile
     * specifies the name of the file that the outputState method writes to.
     * If blank, the output is sent to the output stream.
     */
-   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_probeOutputFile(ParamsIOSwitch ioSwitch);
 
    /*
     * @brief statsFlag: Meaningful if textOutputFlag is true.
@@ -80,21 +80,21 @@ class BaseProbe : public BaseObject {
     * batch element. If statsFlag is true, outputState produces one output
     * file overall, which reports the min, max and average.
     */
-   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_statsFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief triggerLayerName: specifies the layer to check for triggering.
     * If triggerLayer is null or empty, the probe does not have a trigger
     * layer and updates every timestep.
     */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief triggerOffset: If triggerLayer is set, triggerOffset specifies the
     * time interval *before* the triggerLayer's nextUpdate time that needUpdate()
     * returns true.
     */
-   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerOffset(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
    virtual ~BaseProbe();
@@ -140,7 +140,7 @@ class BaseProbe : public BaseObject {
     * LegacyLayerProbe uses targetName to specify the layer to attach to;
     * BaseConnectionProbe uses it to specify the connection to attach to.
     */
-   const char *getTargetName() { return targetName; }
+   std::string const &getTargetName() { return targetName; }
 
    /**
     * Returns the time that calcValues was last called.
@@ -181,9 +181,12 @@ class BaseProbe : public BaseObject {
     */
    int calcGlobalBatchOffset();
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual void initMessageActionMap() override;
 
@@ -265,13 +268,13 @@ class BaseProbe : public BaseObject {
    /**
     * Returns a pointer to the message parameter.
     */
-   const char *getMessage() { return msgstring; }
+   std::string const &getMessage() const { return msgstring; }
 
    /**
     * The method called by BaseProbe::initialize() to set the message used by
     * the probe's outputState method.
     */
-   virtual int initMessage(const char *msg);
+   virtual int initMessage(std::string const &msg);
 
    /**
     * Returns a reference to the PrintStream for the given batch element
@@ -299,7 +302,7 @@ class BaseProbe : public BaseObject {
    /**
     * Returns the probeOutputFilename parameter
     */
-   char const *getProbeOutputFilename() { return mProbeOutputFilename; }
+   std::string const &getProbeOutputFilename() { return mProbeOutputFilename; }
 
    /**
     * Returns a reference to the vector containing the probeValues.
@@ -316,7 +319,7 @@ class BaseProbe : public BaseObject {
     * Returns true if a probeOutputFile is being used.
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
-   inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutputFilename[0]; }
+   inline bool isWritingToFile() const { return !mProbeOutputFilename.empty(); }
 
    /**
     * If there is a triggering layer, needUpdate returns true when the triggering
@@ -417,17 +420,17 @@ class BaseProbe : public BaseObject {
    std::vector<MPIRecvStream> mMPIRecvStreams;
 
    bool triggerFlag;
-   char *triggerLayerName;
+   std::string triggerLayerName;
    LayerUpdateController *mTriggerControl = nullptr;
    double triggerOffset;
-   char *targetName;
+   std::string targetName;
    int mLocalBatchWidth = 1; // the value of loc->nbatch
 
   private:
-   char *msgparams; // the message parameter in the params
-   char *msgstring; // the string that gets printed by outputState ("" if message is empty or null;
-                    // message + ":" if nonempty
-   char *mProbeOutputFilename = nullptr;
+   std::string msgparams; // the message parameter in the params
+   std::string msgstring; // the string that gets printed by outputState
+                          // ("" if message is empty or null; message + ":" if nonempty
+   std::string mProbeOutputFilename;
    std::vector<double> mProbeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;

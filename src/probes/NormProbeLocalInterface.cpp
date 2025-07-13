@@ -2,11 +2,11 @@
 
 namespace PV {
 
-NormProbeLocalInterface::NormProbeLocalInterface(char const *objName, PVParams *params) {
-   initialize(objName, params);
+NormProbeLocalInterface::NormProbeLocalInterface(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-NormProbeLocalInterface::~NormProbeLocalInterface() { free(mMaskLayerName); }
+NormProbeLocalInterface::~NormProbeLocalInterface() {}
 
 void NormProbeLocalInterface::checkMaskLayerDimensions() const {
    // checkMaskLayerDimensions() should only be called after TargetLayer has been set,
@@ -21,7 +21,7 @@ void NormProbeLocalInterface::checkMaskLayerDimensions() const {
          "Probe %s: maskLayerName \"%s\" does not have the same x and y dimensions.\n"
          "    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
          getName_c(),
-         mMaskLayerName,
+         mMaskLayerName.c_str(),
          maskLoc->nxGlobal,
          maskLoc->nyGlobal,
          loc->nxGlobal,
@@ -33,7 +33,7 @@ void NormProbeLocalInterface::checkMaskLayerDimensions() const {
          "target layer \"%s\", or one feature.\n",
          "    mask has %d features versus target layer's %d features.\n",
          getName_c(),
-         mMaskLayerName,
+         mMaskLayerName.c_str(),
          mTargetLayer->getName(),
          maskLoc->nf,
          loc->nf);
@@ -44,13 +44,13 @@ void NormProbeLocalInterface::clearStoredValues() { mStoredValues.clear(); }
 Response::Status NormProbeLocalInterface::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    Response::Status status;
-   if (mMaskLayer == nullptr and mMaskLayerName != nullptr and mMaskLayerName[0] != '\0') {
+   if (mMaskLayer == nullptr and !mMaskLayerName.empty()) {
       mMaskLayer = message->mObjectTable->findObject<HyPerLayer>(mMaskLayerName);
       FatalIf(
             mMaskLayer == nullptr,
             "Probe %s maskLayerName \"%s\" is not a layer in the column.\n",
             getName_c(),
-            mMaskLayerName);
+            mMaskLayerName.c_str());
       status = Response::SUCCESS;
    }
    else {
@@ -69,8 +69,8 @@ float const *NormProbeLocalInterface::findDataBuffer(HyPerLayer *layer) const {
    return layerData->getLayerData();
 }
 
-void NormProbeLocalInterface::initialize(char const *objName, PVParams *params) {
-   ProbeComponent::initialize(objName, params);
+void NormProbeLocalInterface::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   ProbeComponent::initialize(params, defaults);
 }
 
 void NormProbeLocalInterface::initializeState(HyPerLayer *targetLayer) {
@@ -82,18 +82,12 @@ void NormProbeLocalInterface::initializeState(HyPerLayer *targetLayer) {
    }
 }
 
-void NormProbeLocalInterface::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamString(
-         ioFlag,
-         getName_c(),
-         "maskLayerName",
-         &mMaskLayerName,
-         nullptr /*default*/,
-         true /*warnIfAbsent*/);
+void NormProbeLocalInterface::ioParam_maskLayerName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "maskLayerName", &mMaskLayerName);
 }
 
-void NormProbeLocalInterface::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_maskLayerName(ioFlag);
+void NormProbeLocalInterface::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_maskLayerName(ioSwitch);
 }
 
 void NormProbeLocalInterface::storeValues(double simTime) {

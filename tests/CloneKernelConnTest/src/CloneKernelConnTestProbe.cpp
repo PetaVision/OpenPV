@@ -16,11 +16,11 @@
 namespace PV {
 
 CloneKernelConnTestProbe::CloneKernelConnTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void CloneKernelConnTestProbe::checkStats() {
@@ -71,10 +71,10 @@ void CloneKernelConnTestProbe::checkStats() {
 }
 
 void CloneKernelConnTestProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 } /* namespace PV */

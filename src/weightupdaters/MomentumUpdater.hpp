@@ -53,7 +53,7 @@ class MomentumUpdater : public HebbianUpdater {
     * @brief momentumMethod: Controls the interpretation of the timeConstantTau and momentumDelay
     * parameters.
     */
-   virtual void ioParam_momentumMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_momentumMethod(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief timeConstantTau: controls the amount of momentum in weight updates.
@@ -75,26 +75,26 @@ class MomentumUpdater : public HebbianUpdater {
     * For momentumMethod = "simple", 0 <= timeConstantTau < 1 is required.
     * For momentumMethod = "viscosity", timeConstantTau >= 0 is required.
     */
-   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_timeConstantTau(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief momentumTau is obsolete. Use timeConstantTau instead.
     * If a momentum connection sets the momentumTau parameter, it is a fatal error
     * and the error message advises to use momentumTau instead.
     */
-   virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_momentumTau(ParamsIOSwitch ioSwitch);
 
    /**
     * initPrev_dWFile: The .pvp file to read initial values of prev_dW used when applying momentum.
     * NULL or the empty string initialzies prev_dW to all zeroes.
     */
-   virtual void ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initPrev_dWFile(ParamsIOSwitch ioSwitch);
 
    /**
     * prev_dWFrameNumber: The frame number (zero-indexed) to use when reading initial prev_dW.
     * default is zero.
     */
-   virtual void ioParam_prev_dWFrameNumber(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_prev_dWFrameNumber(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of MomentumUpdater parameters
 
@@ -103,23 +103,31 @@ class MomentumUpdater : public HebbianUpdater {
    static constexpr float mDefaultTimeConstantTauSimple    = 0.25f;
    static constexpr float mDefaultTimeConstantTauViscosity = 100.0f;
 
-   MomentumUpdater(char const *name, PVParams *params, Communicator const *comm);
+   MomentumUpdater(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~MomentumUpdater() {}
 
-   char const *getMomentumMethod() { return mMomentumMethod; }
+   std::string const &getMomentumMethod() { return mMomentumMethod; }
    float getTimeConstantTau() const { return mTimeConstantTau; }
 
    Weights const *getPrevDeltaWeights() const { return mPrevDeltaWeights; }
 
   protected:
+   enum Method { UNDEFINED_METHOD, VISCOSITY, SIMPLE };
+
    MomentumUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    void checkTimeConstantTau();
 
@@ -150,13 +158,13 @@ class MomentumUpdater : public HebbianUpdater {
 
    virtual void outputMomentum(double timestamp);
 
-  protected:
-   enum Method { UNDEFINED_METHOD, VISCOSITY, SIMPLE };
+   static double selectDefaultTimeConstantTau(Method method);
 
-   char *mMomentumMethod    = nullptr;
+  protected:
+   std::string mMomentumMethod;
    Method mMethod           = UNDEFINED_METHOD;
    float mTimeConstantTau   = mDefaultTimeConstantTauViscosity;
-   char *mInitPrev_dWFile   = nullptr;
+   std::string mInitPrev_dWFile;
    int  mPrev_dWFrameNumber = 0;
 
    Weights *mPrevDeltaWeights       = nullptr;

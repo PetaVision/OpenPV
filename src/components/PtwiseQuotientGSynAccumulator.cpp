@@ -10,33 +10,33 @@
 namespace PV {
 
 PtwiseQuotientGSynAccumulator::PtwiseQuotientGSynAccumulator(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 PtwiseQuotientGSynAccumulator::~PtwiseQuotientGSynAccumulator() {}
 
 void PtwiseQuotientGSynAccumulator::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   GSynAccumulator::initialize(name, params, comm);
+   GSynAccumulator::initialize(params, defaults, comm);
 }
 
 void PtwiseQuotientGSynAccumulator::setObjectType() {
    mObjectType = "PtwiseQuotientGSynAccumulator";
 }
 
-void PtwiseQuotientGSynAccumulator::ioParam_channelIndices(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ and parameters()->arrayPresent(getName(), "channelIndices")) {
+void PtwiseQuotientGSynAccumulator::ioParam_channelIndices(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read and mParamsIO->isPresent("channelIndices")) {
       WarnLog().printf("%s does not use the channelIndices array parameter.\n", getDescription_c());
    }
 }
 
-void PtwiseQuotientGSynAccumulator::ioParam_channelCoefficients(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ and parameters()->arrayPresent(getName(), "channelIndices")) {
+void PtwiseQuotientGSynAccumulator::ioParam_channelCoefficients(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read and mParamsIO->isPresent("channelCoefficients")) {
       WarnLog().printf(
             "%s does not use the channelCoefficients array parameter.\n", getDescription_c());
    }

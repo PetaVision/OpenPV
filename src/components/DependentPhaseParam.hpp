@@ -28,7 +28,7 @@ class DependentPhaseParam : public PhaseParam {
     * @brief phase: Not used by DependentPhaseParam; instead the phase
     * is copied from the layer named by the OriginalLayerNameParam parameter.
     */
-   virtual void ioParam_phase(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_phase(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief
@@ -37,18 +37,24 @@ class DependentPhaseParam : public PhaseParam {
    /** @} */ // end of DependentPhaseParam parameters
 
   public:
-   DependentPhaseParam(char const *name, PVParams *params, Communicator const *comm);
+   DependentPhaseParam(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~DependentPhaseParam();
 
   protected:
    DependentPhaseParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -8,7 +8,9 @@
 #include <components/BasePublisherComponent.hpp>
 #include <structures/PVLayerLoc.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
+#include <params/ParamsIO.hpp>
+#include <params/ParamGroup.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <observerpattern/Observer.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
@@ -263,10 +265,12 @@ int testStoredValues(HyPerLayer *layer, float nnzThreshold, unsigned int seed) {
    paramsString.append("StatsProbe \"probe\" = {\n");
    paramsString.append("   nnzThreshold = ").append(nnzThresholdString).append(";\n");
    paramsString.append("};\n");
-   PV::PVParams probeParams(paramsString.c_str(), paramsString.size(), 1UL, MPI_COMM_WORLD);
+   PV::PVParams probePVParams(paramsString.c_str(), paramsString.size(), MPI_COMM_WORLD);
+   auto probeParams = probePVParams.group("probe");
+   auto probeDefaults = probePVParams.defaultGroup("StatsProbe");
 
-   ActivityBufferStatsProbeLocal activityBufferProbeLocal("probe", &probeParams);
-   activityBufferProbeLocal.ioParamsFillGroup(PV::PARAMS_IO_READ);
+   ActivityBufferStatsProbeLocal activityBufferProbeLocal(probeParams, probeDefaults);
+   activityBufferProbeLocal.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
    activityBufferProbeLocal.initializeState(layer);
    FatalIf(
          activityBufferProbeLocal.getBufferType() != StatsBufferType::A,

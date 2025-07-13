@@ -24,23 +24,29 @@ class TransposeWeightsPair : public WeightsPair {
     * @brief writeStep: TransposeWeightsPair does not checkpoint, so writeCompressedCheckpoints is
     * always set to false.
     */
-   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_writeCompressedCheckpoints(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of TransposeWeightsPair parameters
 
   public:
-   TransposeWeightsPair(char const *name, PVParams *params, Communicator const *comm);
+   TransposeWeightsPair(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~TransposeWeightsPair();
 
   protected:
    TransposeWeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

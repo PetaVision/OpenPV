@@ -1,4 +1,4 @@
-debugParsing = false;
+debugParsing = true;
 HyPerCol "column" = {
     dt                                  = 1;
     stopTime                            = 10;

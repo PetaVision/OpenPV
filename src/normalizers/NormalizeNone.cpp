@@ -9,16 +9,22 @@
 
 namespace PV {
 
-NormalizeNone::NormalizeNone(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+NormalizeNone::NormalizeNone(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 NormalizeNone::NormalizeNone() {}
 
 NormalizeNone::~NormalizeNone() {}
 
-void NormalizeNone::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   NormalizeBase::initialize(name, params, comm);
+void NormalizeNone::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   NormalizeBase::initialize(params, defaults, comm);
 }
 
 Response::Status

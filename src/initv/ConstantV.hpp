@@ -23,18 +23,24 @@ class ConstantV : public BaseInitV {
    /**
     * @brief valueV: The value to initialize the V buffer with
     */
-   virtual void ioParam_valueV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_valueV(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   ConstantV(const char *name, PVParams *params, Communicator const *comm);
+   ConstantV(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ConstantV();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    ConstantV();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    int initialize_base();

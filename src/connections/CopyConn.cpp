@@ -14,16 +14,22 @@
 
 namespace PV {
 
-CopyConn::CopyConn(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+CopyConn::CopyConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 CopyConn::CopyConn() {}
 
 CopyConn::~CopyConn() {}
 
-void CopyConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HyPerConn::initialize(name, params, comm);
+void CopyConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerConn::initialize(params, defaults, comm);
 }
 
 void CopyConn::fillComponentTable() {
@@ -35,29 +41,29 @@ void CopyConn::fillComponentTable() {
 }
 
 ArborList *CopyConn::createArborList() {
-   return new DependentArborList(getName(), parameters(), mCommunicator);
+   return new DependentArborList(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 PatchSize *CopyConn::createPatchSize() {
-   return new DependentPatchSize(getName(), parameters(), mCommunicator);
+   return new DependentPatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 SharedWeights *CopyConn::createSharedWeights() {
-   return new DependentSharedWeights(getName(), parameters(), mCommunicator);
+   return new DependentSharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 WeightsPairInterface *CopyConn::createWeightsPair() {
-   return new CopyWeightsPair(getName(), parameters(), mCommunicator);
+   return new CopyWeightsPair(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 InitWeights *CopyConn::createWeightInitializer() { return nullptr; }
 
 BaseWeightUpdater *CopyConn::createWeightUpdater() {
-   return new CopyUpdater(getName(), parameters(), mCommunicator);
+   return new CopyUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 OriginalConnNameParam *CopyConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(getName(), parameters(), mCommunicator);
+   return new OriginalConnNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status CopyConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {

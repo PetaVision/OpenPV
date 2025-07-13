@@ -13,24 +13,24 @@
 namespace PV {
 
 ShrunkenPatchTestLayer::ShrunkenPatchTestLayer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : HyPerLayer() {
    // ShrunkenPatchTestLayer has no member variables to initialize in initialize_base()
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void ShrunkenPatchTestLayer::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *ShrunkenPatchTestLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<ShrunkenPatchTestActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } /* namespace PV */

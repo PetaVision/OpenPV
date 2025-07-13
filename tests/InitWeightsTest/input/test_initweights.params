@@ -21,8 +21,8 @@ HyPerCol "column" = {
    outputPath = "output/";
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
-   checkpointWrite = false;
-   lastCheckpointDir = "output/Last";
+   checkpointWrite = true;
+   checkpointWriteDir = "output/checkpoints";
    nbatch = 2;
 };
 
@@ -31,12 +31,10 @@ HyPerCol "column" = {
 //
 
 ConstantLayer "Retina" = {
-    restart = 0;
     nxScale = 1; 
     nyScale = 1;
     nf = 1;
     writeStep = -1;
-    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     sparseLayer = false;
     InitVType = "ConstantV";
@@ -45,7 +43,6 @@ ConstantLayer "Retina" = {
 };
 
 //Retina "Retina" = {
-//    restart = 0;
 //    nxScale = 1;
 //    nyScale = 1;
 //    nf = 1;
@@ -69,7 +66,6 @@ ConstantLayer "Retina" = {
 
 
 ANNLayer "L0" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -89,7 +85,6 @@ ANNLayer "L0" = {
 };
 
 ANNLayer "L1" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -109,7 +104,6 @@ ANNLayer "L1" = {
 };
 
 ANNLayer "L2" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 4;
@@ -129,7 +123,6 @@ ANNLayer "L2" = {
 };
 
 // ANNLayer "L3" = {
-//     restart = 0;
 //     nxScale = 1;
 //     nyScale = 1;
 //     nf = 8;
@@ -149,7 +142,6 @@ ANNLayer "L2" = {
 // };
 // 
 // ANNLayer "L4" = {
-//     restart = 0;
 //     nxScale = 1;
 //     nyScale = 1;
 //     nf = 8;
@@ -170,7 +162,6 @@ ANNLayer "L2" = {
 
 //layers connected using shared weights:
 ANNLayer "L5" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -190,7 +181,6 @@ ANNLayer "L5" = {
 };
 
 ANNLayer "L6" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -210,7 +200,6 @@ ANNLayer "L6" = {
 };
 
 ANNLayer "L7" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 4;
@@ -230,7 +219,6 @@ ANNLayer "L7" = {
 };
 
 ANNLayer "L8" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -250,7 +238,6 @@ ANNLayer "L8" = {
 };
 
 ANNLayer "L9" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -301,7 +288,6 @@ HyPerConn "RetinaToL0" = {
    strength = 25;  
    normalizeMethod = "normalizeSum";
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -348,7 +334,6 @@ HyPerConn "RetinaToL1" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -378,7 +363,6 @@ HyPerConn "RetinaToL2" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -420,7 +404,6 @@ HyPerConn "RetinaToL2" = {
 //    strength = 25;  
 //    normalizeMethod = "normalizeSum";
 //    normalizeArborsIndividually = false;
-//    symmetrizeWeights = false;
 //    minSumTolerated = 0.0;
 //    normalizeFromPostPerspective = false;
 // 
@@ -473,7 +456,6 @@ HyPerConn "RetinaToL2" = {
 //    strength = 25;  
 //    normalizeMethod = "normalizeSum";
 //    normalizeArborsIndividually = false;
-//    symmetrizeWeights = false;
 //    minSumTolerated = 0.0;
 //    normalizeFromPostPerspective = false;
 // 
@@ -525,7 +507,6 @@ HyPerConn "RetinaToL5" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -571,7 +552,6 @@ HyPerConn "RetinaToL6" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -642,7 +622,6 @@ HyPerConn "RetinaToL8" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -691,7 +670,6 @@ HyPerConn "RetinaToL9" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -734,7 +712,6 @@ NonsharedConnDebugInitWeights "RetinaToL0Check" = {
    strength = 25;  
    normalizeMethod = "normalizeSum";
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -781,7 +758,6 @@ NonsharedConnDebugInitWeights "RetinaToL1Check" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -811,7 +787,6 @@ NonsharedConnDebugInitWeights "RetinaToL2Check" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -853,7 +828,6 @@ NonsharedConnDebugInitWeights "RetinaToL2Check" = {
 //    strength = 25;  
 //    normalizeMethod = "normalizeSum";
 //    normalizeArborsIndividually = false;
-//    symmetrizeWeights = false;
 //    minSumTolerated = 0.0;
 //    normalizeFromPostPerspective = false;
 // 
@@ -902,7 +876,6 @@ NonsharedConnDebugInitWeights "RetinaToL2Check" = {
 //    strength = 25;  
 //    normalizeMethod = "normalizeSum";
 //    normalizeArborsIndividually = false;
-//    symmetrizeWeights = false;
 //    minSumTolerated = 0.0;
 //    normalizeFromPostPerspective = false;
 // 
@@ -951,7 +924,6 @@ SharedConnDebugInitWeights "RetinaToL5Check" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -996,7 +968,6 @@ SharedConnDebugInitWeights "RetinaToL6Check" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -1059,7 +1030,6 @@ SharedConnDebugInitWeights "RetinaToL8Check" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
@@ -1099,7 +1069,6 @@ SharedConnDebugInitWeights "RetinaToL9Check" = {
    normalizeMethod = "normalizeSum";
    normalize_cutoff = false;
    normalizeArborsIndividually = false;
-   symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 

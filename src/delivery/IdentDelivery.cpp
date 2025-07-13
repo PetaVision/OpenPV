@@ -10,21 +10,27 @@
 
 namespace PV {
 
-IdentDelivery::IdentDelivery(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+IdentDelivery::IdentDelivery(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void IdentDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseDelivery::initialize(name, params, comm);
+void IdentDelivery::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseDelivery::initialize(params, defaults, comm);
 }
 
 void IdentDelivery::setObjectType() { mObjectType = "IdentDelivery"; }
 
-void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+void IdentDelivery::ioParam_receiveGpu(ParamsIOSwitch ioSwitch) {
    // Never receive from gpu
    mReceiveGpu = false;
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "receiveGpu", false /*correctValue*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("receiveGpu", false /*correctValue*/);
    }
 }
 

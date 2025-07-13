@@ -20,7 +20,10 @@ class InitRandomWeights : public InitWeights {
 
   protected:
    InitRandomWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual int initRNGs(bool isKernel) override;
    virtual void calcWeights(int patchIndex, int arborId) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) = 0;

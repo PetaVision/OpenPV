@@ -41,15 +41,17 @@ int main(int argc, char *argv[]) {
 PVLayerLoc createBroadcastLayerLoc(PV_Init &pv_initObj, std::string const &layerName) {
    auto globalMPIBlock = pv_initObj.getCommunicator()->getGlobalMPIBlock();
    auto const &paramsFilename = pv_initObj.getStringArgument("ParamsFile");
-   PVParams params(paramsFilename.c_str(), 10 /*initialSize*/, globalMPIBlock->getComm());
-   int nbatchGlobal = params.valueInt("column", "nbatch");
+   PVParams params(paramsFilename.c_str(), globalMPIBlock->getComm());
+   auto columnParamsIO = params.makeParamsIO("column");
+   int nbatchGlobal    = columnParamsIO->readValue<int>("nbatch");
    int globalMPIBatchDimension = globalMPIBlock->getGlobalBatchDimension();
    FatalIf(
          nbatchGlobal % globalMPIBatchDimension != 0,
          "The HyPerCol nbatch (%d) be a multiple of MPI Batch Dimension (%d).\n",
          nbatchGlobal, globalMPIBatchDimension);
    int nbatchLocal = nbatchGlobal / nbatchLocal;
-   int nf           = params.valueInt(layerName.c_str(), "nf", 1, false);
+   auto layerParamsIO = params.makeParamsIO(layerName);
+   int nf           = layerParamsIO->readValue<int>("nf", false /*warnIfAbsentFlag*/);
 
    PVLayerLoc loc;
    loc.nbatchGlobal = nbatchGlobal;
@@ -73,21 +75,23 @@ PVLayerLoc createBroadcastLayerLoc(PV_Init &pv_initObj, std::string const &layer
 PVLayerLoc createNonbroadcastLayerLoc(PV_Init &pv_initObj, std::string const &layerName) {
    auto globalMPIBlock = pv_initObj.getCommunicator()->getGlobalMPIBlock();
    auto const &paramsFilename = pv_initObj.getStringArgument("ParamsFile");
-   PVParams params(paramsFilename.c_str(), 10 /*initialSize*/, globalMPIBlock->getComm());
-   int nbatchGlobal = params.valueInt("column", "nbatch");
+   PVParams params(paramsFilename.c_str(), globalMPIBlock->getComm());
+   auto columnParamsIO = params.makeParamsIO("column");
+   auto layerParamsIO  = params.makeParamsIO(layerName);
+   int nbatchGlobal = columnParamsIO->readValue<int>("nbatch");
    int globalMPIBatchDimension = globalMPIBlock->getGlobalBatchDimension();
    FatalIf(
          nbatchGlobal % globalMPIBatchDimension != 0,
-         "The HyPerCol nbatch (%d) be a multiple of MPI Batch Dimension (%d).\n",
+         "The HyPerCol nbatch (%d) must be a multiple of MPI Batch Dimension (%d).\n",
          nbatchGlobal, globalMPIBatchDimension);
-   int nbatchLocal = nbatchGlobal / nbatchLocal;
-   double nxFromColumn = params.value("column", "nx");
-   double nxScale   = params.value(layerName.c_str(), "nxScale", 1, false);
-   int nxGlobal     = static_cast<int>(std::nearbyint(nxFromColumn * nxScale));
-   double nyFromColumn = params.value("column", "ny");
-   double nyScale   = params.value(layerName.c_str(), "nyScale", 1, false);
-   int nyGlobal     = static_cast<int>(std::nearbyint(nyFromColumn * nyScale));
-   int nf           = params.valueInt(layerName.c_str(), "nf", 1, false);
+   int nbatchLocal     = nbatchGlobal / globalMPIBatchDimension;
+   double nxFromColumn = columnParamsIO->readValue<double>("nx");
+   double nxScale      = layerParamsIO->readValue<double>("nxScale", false /*warnIfAbsentFlag*/);
+   int nxGlobal        = static_cast<int>(std::nearbyint(nxFromColumn * nxScale));
+   double nyFromColumn = columnParamsIO->readValue<double>("ny");
+   double nyScale      = layerParamsIO->readValue<double>("nyScale", false /*warnIfAbsentFlag*/);
+   int nyGlobal        = static_cast<int>(std::nearbyint(nyFromColumn * nyScale));
+   int nf              = layerParamsIO->readValue<int>("nf", false /*warnIfAbsentFlag*/);
 
    PVLayerLoc loc;
    loc.nbatchGlobal = nbatchGlobal;

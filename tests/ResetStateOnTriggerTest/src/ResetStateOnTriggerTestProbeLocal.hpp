@@ -2,27 +2,23 @@
 #define RESETSTATEONTRIGGERTESTPROBELOCAL_HPP_
 
 #include "structures/PVLayerLoc.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "probes/ProbeComponent.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/ProbeDataBuffer.hpp"
 
-using PV::HyPerLayer;
-using PV::ParamsIOFlag;
-using PV::ProbeComponent;
-using PV::ProbeData;
-using PV::ProbeDataBuffer;
-using PV::PVParams;
+using namespace PV;
 
 class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
   public:
-   ResetStateOnTriggerTestProbeLocal(char const *objName, PVParams *params);
+   ResetStateOnTriggerTestProbeLocal(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~ResetStateOnTriggerTestProbeLocal() {}
 
    void clearStoredValues();
    void initializeState(HyPerLayer *targetLayer);
-   void ioParamsFillGroup(enum ParamsIOFlag ioFlag) {}
+   void ioParamsFillGroup(ParamsIOSwitch ioSwitch) {}
    void storeValues(double simTime);
 
    PVLayerLoc const *getLayerLoc() const { return mTargetLayer->getLayerLoc(); }
@@ -30,7 +26,7 @@ class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
 
   protected:
    ResetStateOnTriggerTestProbeLocal() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
   private:
    static int calcExtendedIndex(int k, PVLayerLoc const *loc);

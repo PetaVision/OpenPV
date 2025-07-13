@@ -29,12 +29,15 @@ class SharedWeights : public BaseObject {
     * @brief sharedWeights: Boolean, defines if the weights use shared weights or not.
     * Defaults to true (shared weights).
     */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of SharedWeights parameters
 
   public:
-   SharedWeights(char const *name, PVParams *params, Communicator const *comm);
+   SharedWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~SharedWeights();
 
@@ -43,11 +46,14 @@ class SharedWeights : public BaseObject {
   protected:
    SharedWeights() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    bool mSharedWeightsFlag = true;

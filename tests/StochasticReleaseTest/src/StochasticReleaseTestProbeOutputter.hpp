@@ -2,7 +2,7 @@
 #define STOCHASTICRELEASETESTPROBEOUTPUTTER_HPP_
 
 #include <columns/Communicator.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/StatsProbeOutputter.hpp>
 
 namespace PV {
@@ -10,8 +10,8 @@ namespace PV {
 class StochasticReleaseTestProbeOutputter : public StatsProbeOutputter {
   public:
    StochasticReleaseTestProbeOutputter(
-         char const *objName,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          Communicator const *comm);
    virtual ~StochasticReleaseTestProbeOutputter();
 
@@ -20,7 +20,10 @@ class StochasticReleaseTestProbeOutputter : public StatsProbeOutputter {
 
   protected:
    StochasticReleaseTestProbeOutputter();
-   void initialize(char const *objName, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 };
 
 } // namespace PV

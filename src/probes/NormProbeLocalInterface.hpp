@@ -4,7 +4,6 @@
 #include "columns/Messages.hpp"
 #include "components/BasePublisherComponent.hpp"
 #include "structures/PVLayerLoc.hpp"
-#include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeComponent.hpp"
@@ -20,10 +19,10 @@ namespace PV {
 
 class NormProbeLocalInterface : public ProbeComponent {
   protected:
-   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maskLayerName(ParamsIOSwitch ioSwitch);
 
   public:
-   NormProbeLocalInterface(char const *objName, PVParams *params);
+   NormProbeLocalInterface(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~NormProbeLocalInterface();
 
    void clearStoredValues();
@@ -31,7 +30,7 @@ class NormProbeLocalInterface : public ProbeComponent {
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
 
    virtual void initializeState(HyPerLayer *targetLayer);
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch);
    void storeValues(double simTime);
 
    PVLayerLoc const *getLayerLoc() const { return mTargetLayer->getLayerLoc(); }
@@ -39,7 +38,7 @@ class NormProbeLocalInterface : public ProbeComponent {
 
   protected:
    NormProbeLocalInterface() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
    float const *getMaskBuffer() const { return mMaskBuffer; }
    HyPerLayer *getMaskLayer() { return mMaskLayer; }
@@ -56,9 +55,9 @@ class NormProbeLocalInterface : public ProbeComponent {
    float const *findDataBuffer(HyPerLayer *layer) const;
 
   private:
-   float const *mMaskBuffer = nullptr;
-   HyPerLayer *mMaskLayer   = nullptr;
-   char *mMaskLayerName     = nullptr;
+   float const *mMaskBuffer   = nullptr;
+   HyPerLayer *mMaskLayer     = nullptr;
+   std::string mMaskLayerName;
    ProbeDataBuffer<double> mStoredValues;
    float const *mTargetBuffer = nullptr;
    HyPerLayer *mTargetLayer   = nullptr;

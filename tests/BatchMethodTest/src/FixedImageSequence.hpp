@@ -2,6 +2,7 @@
 #define FIXEDIMAGESEQUENCE_HPP_
 
 #include <layers/HyPerLayer.hpp>
+#include <params/ParamGroup.hpp>
 
 class FixedImageSequence : public PV::HyPerLayer {
   protected:
@@ -12,7 +13,10 @@ class FixedImageSequence : public PV::HyPerLayer {
     */
 
   public:
-   FixedImageSequence(char const *name, PV::PVParams *params, PV::Communicator const *comm);
+   FixedImageSequence(
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
+      PV::Communicator const *comm);
    virtual ~FixedImageSequence() {}
 
   protected:

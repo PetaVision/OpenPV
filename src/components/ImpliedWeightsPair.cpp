@@ -11,16 +11,19 @@
 namespace PV {
 
 ImpliedWeightsPair::ImpliedWeightsPair(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ImpliedWeightsPair::~ImpliedWeightsPair() {}
 
-void ImpliedWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   WeightsPairInterface::initialize(name, params, comm);
+void ImpliedWeightsPair::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   WeightsPairInterface::initialize(params, defaults, comm);
 }
 
 void ImpliedWeightsPair::setObjectType() { mObjectType = "ImpliedWeightsPair"; }

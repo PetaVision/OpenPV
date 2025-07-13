@@ -50,41 +50,47 @@ struct LIFParams {
  */
 class LIFActivityComponent : public ActivityComponent {
   protected:
-   virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_Vexc(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_Vinh(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_VinhB(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_tau(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_tauVth(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_deltaVth(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_deltaGIB(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_noiseAmpE(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_noiseAmpI(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_noiseAmpIB(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_noiseFreqE(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_noiseFreqI(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vrest(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_Vexc(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_Vinh(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_VinhB(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_tau(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_VthRest(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_tauVth(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_deltaVth(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_deltaGIB(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_noiseAmpE(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_noiseAmpI(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_noiseAmpIB(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_noiseFreqE(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_noiseFreqI(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_noiseFreqIB(ParamsIOSwitch ioSwitch);
 
    /** @brief tauE: the time constant for the excitatory channel. */
-   virtual void ioParam_tauE(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauE(ParamsIOSwitch ioSwitch);
 
    /** @brief tauI: the time constant for the inhibitory channel. */
-   virtual void ioParam_tauI(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauI(ParamsIOSwitch ioSwitch);
 
    /** @brief tauIB: the time constant for the after-hyperpolarization. */
-   virtual void ioParam_tauIB(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_method(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauIB(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_method(ParamsIOSwitch ioSwitch);
 
   public:
-   LIFActivityComponent(char const *name, PVParams *params, Communicator const *comm);
+   LIFActivityComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~LIFActivityComponent();
 
   protected:
    LIFActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -94,7 +100,7 @@ class LIFActivityComponent : public ActivityComponent {
 
    virtual InternalStateBuffer *createInternalState();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    /**
     * Called by ioParam_method. Gives a fatal error if the method string is not one of
@@ -196,8 +202,8 @@ class LIFActivityComponent : public ActivityComponent {
 
   protected:
    LIFParams mLIFParams; // used in update state
-   char *mMethodString = nullptr; // 'arma', 'before', or 'original'
-   char mMethod        = 'a'; // 'a', 'b', or 'o', the first character of methodString
+   std::string mMethodString; // 'arma', 'before', or 'original'
+   char mMethod = 'a'; // 'a', 'b', or 'o', the first character of methodString
 
    RestrictedBuffer *mConductanceE     = nullptr;
    RestrictedBuffer *mConductanceI     = nullptr;

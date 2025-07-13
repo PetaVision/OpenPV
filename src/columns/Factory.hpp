@@ -10,6 +10,7 @@
 
 #include <columns/KeywordHandler.hpp>
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 namespace PV {
@@ -54,7 +55,10 @@ namespace PV {
  *
  * For example:
  * ...
- * BaseObject * createCustomLayerType(char const *name, PVParams *params, Communicator const *comm)
+ * BaseObject * createCustomLayerType(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm)
  * {
  *    return new CustomLayerType(name, params, comm);
  * }
@@ -77,8 +81,11 @@ class Factory {
     * and a pointer to the Communicator object.
     */
    template <typename T>
-   static BaseObject *create(char const *name, PVParams *params, Communicator const *comm) {
-      return new T(name, params, comm);
+   static BaseObject *create(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm) {
+      return new T(params, defaults, comm);
    }
 
    /**
@@ -95,19 +102,26 @@ class Factory {
    int registerKeyword(char const *keyword, ObjectCreateFn creator);
 
    /**
-    * The method to create an object of the type specified by keyword, with the
-    * given name, params, and communicator. The keyword must have already been
-    * registered in the Factory singleton.
+    * The method to create an object of the type specified by keyword, with the name and keyword
+    * given by the ParamGroup objects. The keyword must have already been registered in the
+    * Factory singleton.
     */
    BaseObject *createByKeyword(
          char const *keyword,
-         char const *name,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          Communicator const *comm) const;
 
    /**
+    * An overload of the createByKeyword() method that uses a paramsIO object
+    * to retrieve the ParamGroup objects.
+    */
+   BaseObject *createByKeyword(
+         char const *keyword, std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) const;
+
+   /**
     * An overload of the createByKeyword() method that uses a reference BaseObject
-    * to retrieve the name, params, and communicator.
+    * to retrieve the ParamGroup objects and the communicator.
     */
    BaseObject *createByKeyword(char const *keyword, BaseObject *baseObject) const;
 

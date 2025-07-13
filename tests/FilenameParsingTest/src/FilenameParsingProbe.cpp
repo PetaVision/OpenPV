@@ -14,7 +14,7 @@
 #include <components/InputLayerNameParam.hpp>
 #include <components/PhaseParam.hpp>
 #include <structures/PVLayerLoc.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <layers/FilenameParsingLayer.hpp>
 #include <observerpattern/BaseMessage.hpp>
 #include <observerpattern/Response.hpp>
@@ -26,10 +26,10 @@
 #include <cmath>
 
 FilenameParsingProbe::FilenameParsingProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 FilenameParsingProbe::~FilenameParsingProbe() {}
@@ -52,33 +52,32 @@ Response::Status FilenameParsingProbe::communicateInitInfo(
          getDescription_c());
 
    auto *inputLayerNameParam  = mFilenameParsingLayer->getComponentByType<InputLayerNameParam>();
-   char const *inputLayerName = inputLayerNameParam->getLinkedObjectName();
-   pvAssert(inputLayerName);
+   std::string inputLayerName = inputLayerNameParam->getLinkedObjectName();
    auto *inputBuffer = message->mObjectTable->findObject<InputActivityBuffer>(inputLayerName);
    FatalIf(
          inputBuffer == nullptr,
          "%s: %s inputLayerName \"%s\" does not link to an input layer.\n",
          getDescription_c(),
          mFilenameParsingLayer->getDescription_c(),
-         inputLayerName);
+         inputLayerName.c_str());
    mInputDisplayPeriod = inputBuffer->getDisplayPeriod();
    return Response::SUCCESS;
 }
 
 void FilenameParsingProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(name, params);
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
-int FilenameParsingProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseObject::ioParamsFillGroup(ioFlag);
-   mProbeTargetLayerLocator->ioParamsFillGroup(ioFlag);
+int FilenameParsingProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseObject::ioParamsFillGroup(ioSwitch);
+   mProbeTargetLayerLocator->ioParamsFillGroup(ioSwitch);
    return status;
 }
 
@@ -159,6 +158,8 @@ Response::Status FilenameParsingProbe::respondLayerOutputState(
 
 Response::Status FilenameParsingProbe::respondProbeWriteParams(
       std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
+   mParamsIO->setPrintParamsStream(message->mPrintParamsStream);
+   mParamsIO->setPrintLuaStream(message->mPrintLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
 }

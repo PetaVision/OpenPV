@@ -9,13 +9,16 @@ namespace PV {
 class LogTimeScaleProbe : public AdaptiveTimeScaleProbe {
 
   public:
-   virtual void ioParam_logThresh(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_logSlope(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_logThresh(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_logSlope(ParamsIOSwitch ioSwitch);
 
-   LogTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm);
+   LogTimeScaleProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void allocateTimeScaleController() override;
 
    double mLogThresh = DBL_MAX_EXP;

@@ -10,19 +10,19 @@
 namespace PV {
 
 SquaredGSynAccumulator::SquaredGSynAccumulator(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 SquaredGSynAccumulator::~SquaredGSynAccumulator() {}
 
 void SquaredGSynAccumulator::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   SingleChannelGSynAccumulator::initialize(name, params, comm);
+   SingleChannelGSynAccumulator::initialize(params, defaults, comm);
 }
 
 void SquaredGSynAccumulator::setObjectType() { mObjectType = "SquaredGSynAccumulator"; }

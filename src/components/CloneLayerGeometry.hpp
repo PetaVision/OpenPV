@@ -26,35 +26,41 @@ class CloneLayerGeometry : public LayerGeometry {
     * @brief broadcastFlag: CloneLayerGeometry does not read the broadcastFlag parameter.
     * Instead, it uses the broadcastFlag of the original layer.
     */
-   virtual void ioParam_broadcastFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_broadcastFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nxScale: CloneLayerGeometry does not read the nxScale parameter.
     * Instead, it uses the nxScale of the original layer.
     */
-   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxScale(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nyScale: CloneLayerGeometry does not read the nyScale parameter.
     * Instead, it uses the nyScale of the original layer.
     */
-   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyScale(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nf: CloneLayerGeometry does not read the nf parameter.
     * Instead, it uses the nf of the original layer.
     */
-   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nf(ParamsIOSwitch ioSwitch);
    /** @} */ // end of CloneLayerGeometry parameters
 
   public:
-   CloneLayerGeometry(char const *name, PVParams *params, Communicator const *comm);
+   CloneLayerGeometry(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~CloneLayerGeometry();
 
   protected:
    CloneLayerGeometry();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

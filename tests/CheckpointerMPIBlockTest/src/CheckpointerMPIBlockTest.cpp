@@ -7,6 +7,8 @@
 #include "checkpointing/CheckpointEntryLayerBuffer.hpp"
 #include "columns/ConfigFileArguments.hpp"
 #include "include/pv_common.h"
+#include "params/ParamsIO.hpp"
+#include "params/PVParams.hpp"
 #include "utils/PVLog.hpp"
 #include <vector>
 
@@ -53,11 +55,12 @@ int run(int argc, char *argv[]) {
    int const globalNumColumns    = globalMPIBlock->getNumColumns();
    int const globalMPIBatchWidth = globalMPIBlock->getBatchDimension();
 
+   PV::PVParams params("input/CheckpointerMPIBlockTest.params", pvComm.globalCommunicator());
+   PV::ParamsIO paramsIO(params.group("checkpointer"), params.defaultGroup("HyPerCol"));
+
    auto checkpointer =
          new PV::Checkpointer(std::string("checkpointer"), &pvComm, arguments);
-
-   PV::PVParams params("input/CheckpointerMPIBlockTest.params", 1, pvComm.globalCommunicator());
-   checkpointer->ioParams(PV::PARAMS_IO_READ, &params);
+   checkpointer->ioParams(PV::ParamsIOSwitch::Read, paramsIO);
 
    // Delete any existing checkpoints directory.
    char const *checkpointDirectory = checkpointer->getCheckpointWriteDir();
@@ -173,6 +176,7 @@ int run(int argc, char *argv[]) {
 
    auto checkpointReader =
          new PV::Checkpointer(std::string("checkpointer"), &pvComm, arguments);
+   checkpointReader->ioParams(PV::ParamsIOSwitch::Read, paramsIO);
 
    registerSucceeded = checkpointReader->registerCheckpointEntry(
          checkpointEntry, false /*treat as non-constant*/);

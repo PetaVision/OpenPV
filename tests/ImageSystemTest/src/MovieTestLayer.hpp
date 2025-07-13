@@ -11,7 +11,10 @@ namespace PV {
 
 class MovieTestLayer : public PV::ImageLayer {
   public:
-   MovieTestLayer(const char *name, PVParams *params, Communicator const *comm);
+   MovieTestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~MovieTestLayer();
    virtual ActivityComponent *createActivityComponent() override;
 };

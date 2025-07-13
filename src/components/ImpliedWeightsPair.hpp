@@ -14,14 +14,20 @@ namespace PV {
 
 class ImpliedWeightsPair : public WeightsPairInterface {
   public:
-   ImpliedWeightsPair(char const *name, PVParams *params, Communicator const *comm);
+   ImpliedWeightsPair(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ImpliedWeightsPair();
 
   protected:
    ImpliedWeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

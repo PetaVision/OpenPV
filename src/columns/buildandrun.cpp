@@ -49,7 +49,7 @@ int buildandrun(
       return 0;
    }
    PVParams *params = initObj->getParams();
-   if (params == NULL) {
+   if (params == nullptr) {
       if (initObj->getWorldRank() == 0) {
          char const *progName = initObj->getProgramName();
          if (progName == NULL) {
@@ -58,7 +58,7 @@ int buildandrun(
          ErrorLog().printf("%s was called without having set a params file\n", progName);
       }
       MPI_Barrier(initObj->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 
    int numParamSweepValues = initObj->getParams()->getParameterSweepSize();

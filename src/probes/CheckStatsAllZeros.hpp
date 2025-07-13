@@ -1,7 +1,7 @@
 #ifndef CHECKSTATSALLZEROS_HPP_
 #define CHECKSTATSALLZEROS_HPP_
 
-#include "io/PVParams.hpp"
+#include "params/ParamsIO.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/StatsProbeTypes.hpp"
 
@@ -12,22 +12,22 @@ namespace PV {
 
 class CheckStatsAllZeros {
   protected:
-   void ioParam_exitOnFailure(enum ParamsIOFlag ioFlag);
-   void ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag);
+   void ioParam_exitOnFailure(ParamsIOSwitch ioSwitch, std::shared_ptr<ParamsIO> paramsIO);
+   void ioParam_immediateExitOnFailure(ParamsIOSwitch ioSwitch, std::shared_ptr<ParamsIO> paramsIO);
 
   public:
-   CheckStatsAllZeros(char const *objName, PVParams *params);
+   CheckStatsAllZeros(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~CheckStatsAllZeros();
 
    virtual std::map<int, LayerStats const> checkStats(ProbeData<LayerStats> const &batchProbeData);
    void cleanup();
    bool foundNonzero() const { return !mFirstFailure.empty(); }
-   void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void ioParamsFillGroup(ParamsIOSwitch ioSwitch, std::shared_ptr<ParamsIO> paramsIO);
 
    bool getExitOnFailure() const { return mExitOnFailure; }
    double getFirstFailureTime() const { return mFirstFailureTime; }
    bool getImmediateExitOnFailure() const { return mImmediateExitOnFailure; }
-   std::string const &getName() const { return mName; }
+   // std::string const &getName() const { return mName; }
 
   protected:
    void setFirstFailure(std::map<int, LayerStats const> const &failureMap, double failureTime);
@@ -41,8 +41,9 @@ class CheckStatsAllZeros {
    std::map<int, LayerStats const> mFirstFailure;
    double mFirstFailureTime;
    bool mImmediateExitOnFailure = true;
-   std::string mName;
-   PVParams *mParams;
+   // std::string mName;
+   std::shared_ptr<ParamGroup> mParams;
+   std::shared_ptr<ParamGroup> mDefaults;
 }; // class CheckStatsAllZeros
 
 } // namespace PV

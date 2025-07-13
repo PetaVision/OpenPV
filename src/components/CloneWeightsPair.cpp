@@ -12,8 +12,11 @@
 
 namespace PV {
 
-CloneWeightsPair::CloneWeightsPair(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+CloneWeightsPair::CloneWeightsPair(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 CloneWeightsPair::~CloneWeightsPair() {
@@ -21,29 +24,32 @@ CloneWeightsPair::~CloneWeightsPair() {
    mPostWeights = nullptr;
 }
 
-void CloneWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   WeightsPair::initialize(name, params, comm);
+void CloneWeightsPair::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   WeightsPair::initialize(params, defaults, comm);
 }
 
 void CloneWeightsPair::setObjectType() { mObjectType = "CloneWeightsPair"; }
 
-int CloneWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = WeightsPair::ioParamsFillGroup(ioFlag);
+int CloneWeightsPair::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = WeightsPair::ioParamsFillGroup(ioSwitch);
    return status;
 }
 
-void CloneWeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "writeStep");
+void CloneWeightsPair::ioParam_writeStep(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("writeStep");
       mWriteStep = -1;
    }
    // CloneWeightsPair never writes output: set writeStep to -1.
 }
 
-void CloneWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void CloneWeightsPair::ioParam_writeCompressedCheckpoints(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       mWriteCompressedCheckpoints = false;
-      parameters()->handleUnnecessaryParameter(getName(), "writeCompressedCheckpoints");
+      mParamsIO->handleUnnecessaryParameter("writeCompressedCheckpoints");
    }
    // CloneConn never writes checkpoints: set writeCompressedCheckpoints to false.
 }
@@ -68,7 +74,7 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
          }
          return Response::POSTPONE;
       }
-      char const *linkedObjectName = originalConnNameParam->getLinkedObjectName();
+      std::string const &linkedObjectName = originalConnNameParam->getLinkedObjectName();
 
       mOriginalConnData = objectTable->findObject<ConnectionData>(linkedObjectName);
       FatalIf(

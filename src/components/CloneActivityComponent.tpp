@@ -14,10 +14,10 @@ namespace PV {
 
 template <typename V, typename A>
 CloneActivityComponent<V, A>::CloneActivityComponent(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 template <typename V, typename A>
@@ -25,10 +25,10 @@ CloneActivityComponent<V, A>::~CloneActivityComponent() {}
 
 template <typename V, typename A>
 void CloneActivityComponent<V, A>::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityComponent::initialize(name, params, comm);
+   ActivityComponent::initialize(params, defaults, comm);
 }
 
 template <typename V, typename A>
@@ -47,12 +47,12 @@ void CloneActivityComponent<V, A>::fillComponentTable() {
 
 template <typename V, typename A>
 ActivityBuffer *CloneActivityComponent<V, A>::createActivity() {
-   return new A(getName(), parameters(), mCommunicator);
+   return new A(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 template <typename V, typename A>
 InternalStateBuffer *CloneActivityComponent<V, A>::createInternalState() {
-   return new V(getName(), parameters(), mCommunicator);
+   return new V(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 template <typename V, typename A>

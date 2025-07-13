@@ -11,19 +11,19 @@
 namespace PV {
 
 OriginalConnNameParam::OriginalConnNameParam(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 OriginalConnNameParam::~OriginalConnNameParam() {}
 
 void OriginalConnNameParam::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   LinkedObjectParam::initialize(name, params, comm, std::string("originalConnName"));
+   LinkedObjectParam::initialize(params, defaults, comm, std::string("originalConnName"));
 }
 
 void OriginalConnNameParam::setObjectType() { mObjectType = "OriginalConnNameParam"; }

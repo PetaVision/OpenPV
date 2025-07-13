@@ -10,30 +10,30 @@
 namespace PV {
 
 DropoutActivityBuffer::DropoutActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DropoutActivityBuffer::~DropoutActivityBuffer() { delete mRandState; }
 
 void DropoutActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ANNActivityBuffer::initialize(name, params, comm);
+   ANNActivityBuffer::initialize(params, defaults, comm);
 }
 
 void DropoutActivityBuffer::setObjectType() { mObjectType = "DropoutActivityBuffer"; }
 
-int DropoutActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_probability(ioFlag);
-   return ANNActivityBuffer::ioParamsFillGroup(ioFlag);
+int DropoutActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_probability(ioSwitch);
+   return ANNActivityBuffer::ioParamsFillGroup(ioSwitch);
 }
 
-void DropoutActivityBuffer::ioParam_probability(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "probability", &mProbability, mProbability, true);
+void DropoutActivityBuffer::ioParam_probability(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "probability", &mProbability);
    if (mProbability < 0) {
       WarnLog() << getName() << ": probability was set to < 0%. Changing to 0%.\n";
       mProbability = 99;

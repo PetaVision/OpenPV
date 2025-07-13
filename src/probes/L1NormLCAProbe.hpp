@@ -20,7 +20,10 @@ namespace PV {
  */
 class L1NormLCAProbe : public L1NormProbe {
   public:
-   L1NormLCAProbe(const char *name, PVParams *params, Communicator const *comm);
+   L1NormLCAProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~L1NormLCAProbe() {}
 
   protected:
@@ -28,9 +31,14 @@ class L1NormLCAProbe : public L1NormProbe {
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual void createProbeLocal(char const *name, PVParams *params) override;
-   virtual void createEnergyProbeComponent(char const *name, PVParams *params) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   virtual void createEnergyProbeComponent(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 }; // class L1NormLCAProbe
 
 } /* namespace PV */

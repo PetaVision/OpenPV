@@ -10,69 +10,52 @@
 
 namespace PV {
 
-NormalizeMultiply::NormalizeMultiply(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+NormalizeMultiply::NormalizeMultiply(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 NormalizeMultiply::NormalizeMultiply() {}
 
 NormalizeMultiply::~NormalizeMultiply() {}
 
-void NormalizeMultiply::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   NormalizeBase::initialize(name, params, comm);
+void NormalizeMultiply::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   NormalizeBase::initialize(params, defaults, comm);
 }
 
-int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
-   ioParam_rMinX(ioFlag);
-   ioParam_rMinY(ioFlag);
-   ioParam_nonnegativeConstraintFlag(ioFlag);
-   ioParam_normalize_cutoff(ioFlag);
-   ioParam_normalizeFromPostPerspective(ioFlag);
+int NormalizeMultiply::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = NormalizeBase::ioParamsFillGroup(ioSwitch);
+   ioParam_rMinX(ioSwitch);
+   ioParam_rMinY(ioSwitch);
+   ioParam_nonnegativeConstraintFlag(ioSwitch);
+   ioParam_normalize_cutoff(ioSwitch);
+   ioParam_normalizeFromPostPerspective(ioSwitch);
    return status;
 }
 
-void NormalizeMultiply::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "rMinX", &mRMinX, mRMinX);
+void NormalizeMultiply::ioParam_rMinX(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "rMinX", &mRMinX);
 }
 
-void NormalizeMultiply::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "rMinY", &mRMinY, mRMinY);
+void NormalizeMultiply::ioParam_rMinY(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "rMinY", &mRMinY);
 }
 
-void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "nonnegativeConstraintFlag",
-         &mNonnegativeConstraintFlag,
-         mNonnegativeConstraintFlag);
+void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nonnegativeConstraintFlag", &mNonnegativeConstraintFlag);
 }
 
-void NormalizeMultiply::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "normalize_cutoff", &mNormalizeCutoff, mNormalizeCutoff);
+void NormalizeMultiply::ioParam_normalize_cutoff(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalize_cutoff", &mNormalizeCutoff);
 }
 
-void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && !parameters()->present(getName(), "normalizeFromPostPerspective")
-       && parameters()->present(getName(), "normalize_arbors_individually")) {
-      if (mCommunicator->globalCommRank() == 0) {
-         WarnLog().printf(
-               "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use "
-               "normalizeFromPostPerspective.\n",
-               getName());
-      }
-      mNormalizeFromPostPerspective = parameters()->value(getName(), "normalizeTotalToPost");
-      return;
-   }
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "normalizeFromPostPerspective",
-         &mNormalizeFromPostPerspective,
-         mNormalizeFromPostPerspective /*default value*/,
-         true /*warnIfAbsent*/);
+void NormalizeMultiply::ioParam_normalizeFromPostPerspective(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalizeFromPostPerspective", &mNormalizeFromPostPerspective);
 }
 
 int NormalizeMultiply::normalizeWeights() {

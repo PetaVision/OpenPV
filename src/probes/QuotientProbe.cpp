@@ -7,8 +7,11 @@
 
 namespace PV {
 
-QuotientProbe::QuotientProbe(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+QuotientProbe::QuotientProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 Response::Status QuotientProbe::allocateDataStructures() {
@@ -75,42 +78,49 @@ QuotientProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       ErrorLog().printf(
             "%s: numerator probe \"%s\" either does not exist or is not a suitable probe type.\n",
             getDescription_c(),
-            mNumeratorName);
+            mNumeratorName.c_str());
    }
    if (mDenominator == nullptr) {
       failed = true;
       ErrorLog().printf(
             "%s: denominator probe \"%s\" either does not exist or is not a suitable probe type.\n",
             getDescription_c(),
-            mDenominatorName);
+            mDenominatorName.c_str());
    }
    FatalIf(failed, "%s failed.\n", getDescription_c());
    return Response::SUCCESS;
 }
 
-void QuotientProbe::createComponents(char const *name, PVParams *params, Communicator const *comm) {
+void QuotientProbe::createComponents(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createProbeOutputter(name, params, comm);
-   createProbeTrigger(name, params);
+   createProbeOutputter(params, defaults, comm);
+   createProbeTrigger(params, defaults);
 }
 
 void QuotientProbe::createProbeOutputter(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<QuotientProbeOutputter>(name, params, comm);
+   mProbeOutputter = std::make_shared<QuotientProbeOutputter>(params, defaults, comm);
 }
 
-void QuotientProbe::createProbeTrigger(char const *name, PVParams *params) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(name, params);
+void QuotientProbe::createProbeTrigger(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
 }
 
-void QuotientProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   createComponents(name, params, comm);
+void QuotientProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   createComponents(params, defaults, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   ProbeInterface::initialize(name, params, comm);
+   ProbeInterface::initialize(params, defaults, comm);
 }
 
 void QuotientProbe::initMessageActionMap() {
@@ -124,31 +134,20 @@ void QuotientProbe::initMessageActionMap() {
    mMessageActionMap.emplace("ColProbeOutputState", action);
 }
 
-void QuotientProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "numerator", &mNumeratorName);
+void QuotientProbe::ioParam_denominator(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "numerator", &mNumeratorName);
 }
 
-void QuotientProbe::ioParam_numerator(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "denominator", &mDenominatorName);
+void QuotientProbe::ioParam_numerator(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "denominator", &mDenominatorName);
 }
 
-// QuotientProbe parameter valueDescription was marked obsolete Mar 6, 2023.
-void QuotientProbe::ioParam_valueDescription(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      FatalIf(
-            parameters()->stringPresent(getName(), "valueDescription"),
-            "%s: valueDescription parameter is obsolete. Use the message parameter instead.\n",
-            getDescription_c());
-   }
-}
-
-int QuotientProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ProbeInterface::ioParamsFillGroup(ioFlag);
-   mProbeOutputter->ioParamsFillGroup(ioFlag);
-   mProbeTrigger->ioParamsFillGroup(ioFlag);
-   ioParam_numerator(ioFlag);
-   ioParam_denominator(ioFlag);
-   ioParam_valueDescription(ioFlag);
+int QuotientProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ProbeInterface::ioParamsFillGroup(ioSwitch);
+   mProbeOutputter->ioParamsFillGroup(ioSwitch);
+   mProbeTrigger->ioParamsFillGroup(ioSwitch);
+   ioParam_numerator(ioSwitch);
+   ioParam_denominator(ioSwitch);
    return status;
 }
 

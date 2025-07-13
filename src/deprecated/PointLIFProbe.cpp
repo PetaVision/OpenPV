@@ -21,23 +21,29 @@ PointLIFProbe::PointLIFProbe() : PointProbe() {
    // and call PointLIFProbe::initialize during their initialization.
 }
 
-PointLIFProbe::PointLIFProbe(const char *name, PVParams *params, Communicator const *comm)
+PointLIFProbe::PointLIFProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : PointProbe() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-void PointLIFProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   PointProbe::initialize(name, params, comm);
+void PointLIFProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   PointProbe::initialize(params, defaults, comm);
    writeTime = 0.0;
 }
 
-int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = PointProbe::ioParamsFillGroup(ioFlag);
-   ioParam_writeStep(ioFlag);
+int PointLIFProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = PointProbe::ioParamsFillGroup(ioSwitch);
+   ioParam_writeStep(ioSwitch);
    return status;
 }
 
-void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+void PointLIFProbe::ioParam_writeStep(ParamsIOSwitch ioSwitch) {
    // If writeStep is not set in params, we initialize it to zero here; in the
    // CommunicateInitInfo state, we set it to the parent's DeltaTime.
    // If writing a derived class that overrides ioParam_writeStep, check if the

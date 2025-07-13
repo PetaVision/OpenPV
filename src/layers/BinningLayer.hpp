@@ -28,12 +28,18 @@ namespace PV {
 
 class BinningLayer : public HyPerLayer {
   public:
-   BinningLayer(const char *name, PVParams *params, Communicator const *comm);
+   BinningLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~BinningLayer();
 
   protected:
    BinningLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void fillComponentTable() override;
    virtual LayerInputBuffer *createLayerInput() override;

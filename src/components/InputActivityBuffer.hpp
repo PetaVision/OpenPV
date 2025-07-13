@@ -15,7 +15,6 @@
 #include "components/ActivityBuffer.hpp"
 #include "components/BatchIndexer.hpp"
 #include "io/FileStream.hpp"
-#include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
@@ -40,21 +39,21 @@ class InputActivityBuffer : public ActivityBuffer {
    /**
     * inputPath: Either an individual file to load, or a .txt list of files to load.
     */
-   virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inputPath(ParamsIOSwitch ioSwitch);
 
    /**
     * offsetX: offset in X direction
     * offsetY: offset in Y direction
     * Defines an offset in image space where the column is viewing the image
     */
-   virtual void ioParam_offsets(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_offsets(ParamsIOSwitch ioSwitch);
 
    /**
     * jitterChangeInterval:
     * Defines the period of the random shifts updates
     * A value less than or equal to zero means no jitter.
     */
-   virtual void ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitterChangeInterval(ParamsIOSwitch ioSwitch);
 
    /**
     * jitterChangeIntervalUnit:
@@ -63,26 +62,26 @@ class InputActivityBuffer : public ActivityBuffer {
     * the number of timesteps.
     * Defaults to displayPeriod.
     */
-   virtual void ioParam_jitterChangeIntervalUnit(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitterChangeIntervalUnit(ParamsIOSwitch ioSwitch);
 
    /**
     * maxShiftX: max random shift in X direction
     * maxShiftY: max random shift in Y direction
     * Defines the max random shift in image space
     */
-   virtual void ioParam_maxShifts(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maxShifts(ParamsIOSwitch ioSwitch);
 
    /**
     * xFlipEnabled: When true, 50% chance to mirror input horizontally
     * yFlipEnabled: When true, 50% chance to mirror input vertically
     */
-   virtual void ioParam_flipsEnabled(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_flipsEnabled(ParamsIOSwitch ioSwitch);
 
    /**
     * xFlipToggle: When true, flip every jitter interval instead of randomly
     * yFlipToggle: When true, flip every jitter interval instead of randomly
     */
-   virtual void ioParam_flipsToggle(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_flipsToggle(ParamsIOSwitch ioSwitch);
 
    /**
     * offsetAnchor: Defines where the anchor point is for the offsets.
@@ -91,34 +90,34 @@ class InputActivityBuffer : public ActivityBuffer {
     * y can be 't', 'c', or 'b' for top, center, bottom respectively <br />
     * The order of the letters can also be swapped (e.g. "tl" and "lt" both indicate top left.
     */
-   virtual void ioParam_offsetAnchor(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_offsetAnchor(ParamsIOSwitch ioSwitch);
 
    /**
     * autoResizeFlag: Whether to scale the image to fit layer dimensions
     */
-   virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_autoResizeFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * aspectRatioAdjustment: either "crop" or "pad"
     */
-   virtual void ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_aspectRatioAdjustment(ParamsIOSwitch ioSwitch);
 
    /**
     * interpolationMethod: either "bicubic" or "nearestNeighbor".
     */
-   virtual void ioParam_interpolationMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_interpolationMethod(ParamsIOSwitch ioSwitch);
 
    /**
     * inverseFlag: If set to true, inverts the input: pixels are mapped linearly
     * so that the max pixel value is mapped to the min and vice versa.
     */
-   virtual void ioParam_inverseFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inverseFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * normalizeLuminanceFlag: If set to true, will normalize the image.
     * The normalization method is determined by the normalizeStdDev parameter.
     */
-   virtual void ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeLuminanceFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * normalizeStdDev: This flag is used if normalizeLuminanceFlag is true.
@@ -126,32 +125,32 @@ class InputActivityBuffer : public ActivityBuffer {
     * If normalizeStdDev is set to false, the image will normalize with a min of 0 and a max of 1
     * If all pixels are equal, the image will normalize so that all pixels are zero.
     */
-   virtual void ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeStdDev(ParamsIOSwitch ioSwitch);
 
    /**
     * padValue: If the image is being padded (image smaller than layer), the value to use for
     * padding
     */
-   virtual void ioParam_padValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_padValue(ParamsIOSwitch ioSwitch);
 
    /**
     * displayPeriod: the number of timesteps each input is displayed before switching to the next.
     * If this is <= 0 or inputPath does not end in .txt, assumes the input is a single file and will
     * not change.
     */
-   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(ParamsIOSwitch ioSwitch);
 
    /**
     * start_frame_index: Array specifying the file indices to start at.
     * If displayPeriod <= 0, this determines which index from the file list will be used.
     */
-   virtual void ioParam_start_frame_index(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_start_frame_index(ParamsIOSwitch ioSwitch);
 
    /**
     * skip_frame_index: Array specifying how much to increment the file index by each displayPeriod
     * for each batch
     */
-   virtual void ioParam_skip_frame_index(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_skip_frame_index(ParamsIOSwitch ioSwitch);
 
    /**
     * writeFrameToTimestamp: if true, then every time the frame is updated, it writes the frame
@@ -160,14 +159,14 @@ class InputActivityBuffer : public ActivityBuffer {
     * the outputPath
     * directory, and the filename is the layer name appended with ".txt".
     */
-   virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeFrameToTimestamp(ParamsIOSwitch ioSwitch);
 
    /**
     * resetToStartOnLoop: If false, then when the end of file for the inputPath file is reached,
     * it rewinds to index 0. Otherwise, it rewinds to the index it began at (possibly
     * start_frame_index).
     */
-   virtual void ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_resetToStartOnLoop(ParamsIOSwitch ioSwitch);
 
    /**
     * batchMethod: Specifies how to split the file for batches.
@@ -176,21 +175,24 @@ class InputActivityBuffer : public ActivityBuffer {
     * bySpecified: User specified start_frame_index and skip_frame_index, one for each batch
     * random: Randomizes the order of the given file. Does not duplicate indices until all are used
     */
-   virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_batchMethod(ParamsIOSwitch ioSwitch);
 
    /**
     * Random seed used when batchMethod == random.
     */
-   virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_randomSeed(ParamsIOSwitch ioSwitch);
 
    /**
     * useInputBCFlag: Specifies if the input should be scaled to fill margins
     */
-   virtual void ioParam_useInputBCflag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useInputBCflag(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   InputActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   InputActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~InputActivityBuffer();
 
@@ -209,11 +211,14 @@ class InputActivityBuffer : public ActivityBuffer {
   protected:
    InputActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -279,7 +284,7 @@ class InputActivityBuffer : public ActivityBuffer {
     * @brief Called by ioParam_offsetAnchor() if the offsetAnchor parameter is not an
     * acceptable string.
     */
-   void badOffsetAnchorString(char const *offsetAnchor);
+   void badOffsetAnchorString(std::string const &offsetAnchor);
 
    /**
     * Resizes a buffer from the image size to the global layer size. If autoResizeFlag is true,
@@ -338,7 +343,7 @@ class InputActivityBuffer : public ActivityBuffer {
    // Value of zero means no jitter
    int mJitterChangeInterval = 0;
 
-   char *mJitterChangeIntervalUnit = nullptr;
+   std::string mJitterChangeIntervalUnit;
 
    int mJitterChangeIntervalInTimesteps = 0;
 

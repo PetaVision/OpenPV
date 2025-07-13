@@ -119,9 +119,6 @@ TriggerTestConn "inputToNoTrigger" = {
     preLayerName                     = "input";
     postLayerName                    = "notrigger";
     channelCode = 0;
-// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
-// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
-// and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
     nfp = 1; 
@@ -151,9 +148,6 @@ TriggerTestConn "inputToTrigger0" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger0";
     channelCode = 0;
-// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
-// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
-// and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
     nfp = 1; 
@@ -182,9 +176,6 @@ TriggerTestConn "inputToTrigger1" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger1";
     channelCode = 0;
-// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
-// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
-// and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
     nfp = 1; 
@@ -213,9 +204,6 @@ TriggerTestConn "inputToTrigger2" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger2";
     channelCode = 0;
-// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
-// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
-// and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
     nfp = 1; 
@@ -245,9 +233,6 @@ TriggerTestConn "inputToPeriod0" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger0";
     channelCode = 0;
-// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
-// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
-// and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
     nfp = 1; 
@@ -278,9 +263,6 @@ TriggerTestConn "inputToPeriod1" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger1";
     channelCode = 0;
-// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
-// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
-// and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
     nfp = 1; 
@@ -311,9 +293,6 @@ TriggerTestConn "inputToPeriod2" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger2";
     channelCode = 0;
-// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
-// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
-// and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
     nfp = 1; 

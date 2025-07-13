@@ -18,25 +18,25 @@
 MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe() {}
 
 MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe(
-      const char *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 MomentumConnViscosityCheckpointerTestProbe::~MomentumConnViscosityCheckpointerTestProbe() {}
 
 void MomentumConnViscosityCheckpointerTestProbe::initialize(
-      const char *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   return PV::ColProbe::initialize(name, params, comm);
+   return PV::ColProbe::initialize(params, defaults, comm);
 }
 
 void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
-      enum PV::ParamsIOFlag ioFlag) {
-   ColProbe::ioParam_textOutputFlag(ioFlag);
-   if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
+      PV::ParamsIOSwitch ioSwitch) {
+   ColProbe::ioParam_textOutputFlag(ioSwitch);
+   if (ioSwitch == PV::ParamsIOSwitch::Read && !getTextOutputFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog() << getDescription() << ": MomentumConnViscosityCheckpointerTestProbe requires "
                                            "textOutputFlag to be set to true.\n";
@@ -123,7 +123,7 @@ MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable con
       return PV::Response::POSTPONE;
    }
    FatalIf(
-         std::strcmp(momentumUpdater->getMomentumMethod(), "viscosity"),
+         momentumUpdater->getMomentumMethod() != "viscosity",
          "This test assumes that the connection has momentumMethod=\"viscosity\".\n");
    mInitializeFromCheckpointFlag = mConnection->getInitializeFromCheckpointFlag();
    return PV::Response::SUCCESS;

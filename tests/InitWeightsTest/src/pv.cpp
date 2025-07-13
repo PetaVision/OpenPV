@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.registerKeyword("InitWeightTestProbe", Factory::create<InitWeightTestProbe>);
    pv_initObj.registerKeyword(
          "SharedConnDebugInitWeights", Factory::create<SharedConnDebugInitWeights>);
+   pv_initObj.registerDefaults("input/DefaultParams.txt");
    int status = buildandrun(&pv_initObj);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

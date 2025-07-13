@@ -9,12 +9,18 @@
 
 namespace PV {
 
-BaseDelivery::BaseDelivery(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+BaseDelivery::BaseDelivery(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void BaseDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   LayerInputDelivery::initialize(name, params, comm);
+void BaseDelivery::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   LayerInputDelivery::initialize(params, defaults, comm);
 }
 
 void BaseDelivery::setObjectType() { mObjectType = "BaseDelivery"; }

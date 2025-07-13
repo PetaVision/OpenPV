@@ -5,7 +5,7 @@
 #include <include/pv_common.h>
 #include <io/FileManager.hpp>
 #include <io/FileStreamBuilder.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/ProbeDataBuffer.hpp>
 #include <probes/StatsProbeOutputter.hpp>
@@ -284,7 +284,7 @@ PVParams generateProbeParams(std::string const &probeName, Communicator *comm) {
    paramsString.append("   probeOutputFile = \"StatsProbeOutputter.txt\";\n");
    paramsString.append("   message         = \"StatsProbeOutputter\";\n");
    paramsString.append("};\n");
-   PVParams probeParams(paramsString.c_str(), paramsString.size(), 1UL, comm->globalCommunicator());
+   PVParams probeParams(paramsString.c_str(), paramsString.size(), comm->globalCommunicator());
    return probeParams;
 }
 
@@ -292,8 +292,9 @@ StatsProbeOutputter initStatsProbeOutputter(PV_Init &pv_initObj) {
    Communicator *comm = pv_initObj.getCommunicator();
    std::string probeName("probe");
    PVParams probeParams = generateProbeParams(probeName, comm);
-   StatsProbeOutputter statsProbeOutputter(probeName.c_str(), &probeParams, comm);
-   statsProbeOutputter.ioParamsFillGroup(PARAMS_IO_READ);
+   auto paramsIO = probeParams.makeParamsIO(probeName);
+   StatsProbeOutputter statsProbeOutputter(paramsIO->getParams(), paramsIO->getDefaults(), comm);
+   statsProbeOutputter.ioParamsFillGroup(ParamsIOSwitch::Read);
 
    // create the output files.
    Checkpointer checkpointer("column", comm, pv_initObj.getArguments());

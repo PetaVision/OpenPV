@@ -5,8 +5,9 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/BaseObject.hpp"
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
+#include "io/FileStream.hpp"
 #include "observerpattern/Response.hpp"
+#include "probes/ProbeComponent.hpp"
 #include "probes/ProbeData.hpp"
 #include <memory>
 #include <vector>
@@ -18,7 +19,10 @@ class ProbeInterface : public BaseObject {
    typedef ProbeData<double> LayerProbeData;
    typedef std::vector<double>::size_type batchwidth_type;
 
-   ProbeInterface(const char *name, PVParams *params, Communicator const *comm);
+   ProbeInterface(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ProbeInterface() {}
 
    double getCoefficient() const { return mCoefficient; }
@@ -31,7 +35,10 @@ class ProbeInterface : public BaseObject {
 
    virtual void calcValues(double timestamp) = 0;
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 
@@ -39,6 +46,11 @@ class ProbeInterface : public BaseObject {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
+
+   void setComponentPrintStreams(
+      ProbeComponent &probeComponent, FileStream *printParamsStream, FileStream *printLuaStream);
+
+   virtual void setPrintStreams(FileStream *printParamsStream, FileStream *printLuaStream);
 
    void setValues(ProbeData<double> const &newValues);
    void setValues(double timestamp, std::vector<double> const &newValues);

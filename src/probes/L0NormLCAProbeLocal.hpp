@@ -1,7 +1,6 @@
 #ifndef L0NORMLCAPROBELOCAL_HPP_
 #define L0NORMLCAPROBELOCAL_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/CostFunctionSum.hpp"
 #include "probes/CostFunctions.hpp"
 #include "probes/L0NormProbeLocal.hpp"
@@ -12,17 +11,17 @@ namespace PV {
 
 class L0NormLCAProbeLocal : public L0NormProbeLocal {
   protected:
-   virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_nnzThreshold(ParamsIOSwitch ioSwitch) override;
 
   public:
-   L0NormLCAProbeLocal(char const *objName, PVParams *params);
+   L0NormLCAProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~L0NormLCAProbeLocal() {}
 
    void setNnzThreshold(double nnzThreshold);
 
   protected:
    L0NormLCAProbeLocal() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    void warnUnnecessaryParameter(char const *paramName);
 };
 

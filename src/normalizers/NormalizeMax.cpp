@@ -12,26 +12,31 @@ namespace PV {
 
 NormalizeMax::NormalizeMax() { initialize_base(); }
 
-NormalizeMax::NormalizeMax(const char *name, PVParams *params, Communicator const *comm) {
+NormalizeMax::NormalizeMax(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 int NormalizeMax::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeMax::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   NormalizeMultiply::initialize(name, params, comm);
+void NormalizeMax::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   NormalizeMultiply::initialize(params, defaults, comm);
 }
 
-int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
-   ioParam_minMaxTolerated(ioFlag);
+int NormalizeMax::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = NormalizeMultiply::ioParamsFillGroup(ioSwitch);
+   ioParam_minMaxTolerated(ioSwitch);
    return status;
 }
 
-void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "minMaxTolerated", &minMaxTolerated, 0.0f, true /*warnIfAbsent*/);
+void NormalizeMax::ioParam_minMaxTolerated(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "minMaxTolerated", &minMaxTolerated);
 }
 
 int NormalizeMax::normalizeWeights() {

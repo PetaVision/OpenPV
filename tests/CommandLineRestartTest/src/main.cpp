@@ -33,8 +33,11 @@ int main(int argc, char *argv[]) {
    }
    if (status != PV_SUCCESS) {
       MPI_Barrier(pv_init.getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
+   std::string customDefaultsPath("input/DefaultParams.txt");
+   status = pv_init.registerDefaults(customDefaultsPath);
+   FatalIf(status != PV_SUCCESS, "Error parsing \"%s\"\n", customDefaultsPath.c_str());
 
    HyPerCol *hc;
    FailBeforeExpectedStartTimeLayer *outputLayer;

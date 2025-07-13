@@ -16,9 +16,12 @@
 
 namespace PV {
 
-KernelTestProbe::KernelTestProbe(const char *name, PVParams *params, Communicator const *comm)
+KernelTestProbe::KernelTestProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void KernelTestProbe::checkStats() {
@@ -42,12 +45,16 @@ void KernelTestProbe::checkStats() {
    }
 }
 
-void KernelTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void KernelTestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
-void KernelTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+void KernelTestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 } /* namespace PV */

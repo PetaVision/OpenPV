@@ -11,7 +11,10 @@ namespace PV {
 
 class TriggerTestConn : public PV::HyPerConn {
   public:
-   TriggerTestConn(const char *name, PVParams *params, Communicator const *comm);
+   TriggerTestConn(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    BaseWeightUpdater *createWeightUpdater() override;

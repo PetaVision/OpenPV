@@ -17,14 +17,20 @@ namespace PV {
  */
 class ShrunkenPatchTestActivityBuffer : public ActivityBuffer {
   public:
-   ShrunkenPatchTestActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   ShrunkenPatchTestActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ShrunkenPatchTestActivityBuffer();
 
   protected:
    ShrunkenPatchTestActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -11,7 +11,10 @@ namespace PV {
 
 class ImageTestLayer : public PV::ImageLayer {
   public:
-   ImageTestLayer(const char *name, PVParams *params, Communicator const *comm);
+   ImageTestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status checkUpdateState(double time, double dt) override;
 };
 }

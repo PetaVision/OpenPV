@@ -11,48 +11,48 @@
 namespace PV {
 
 SigmoidActivityBuffer::SigmoidActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 SigmoidActivityBuffer::~SigmoidActivityBuffer() {}
 
 void SigmoidActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   VInputActivityBuffer::initialize(name, params, comm);
+   VInputActivityBuffer::initialize(params, defaults, comm);
 }
 
 void SigmoidActivityBuffer::setObjectType() { mObjectType = "SigmoidActivityBuffer"; }
 
-int SigmoidActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = VInputActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_Vrest(ioFlag);
-   ioParam_VthRest(ioFlag);
-   ioParam_InverseFlag(ioFlag);
-   ioParam_SigmoidFlag(ioFlag);
-   ioParam_SigmoidAlpha(ioFlag);
+int SigmoidActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = VInputActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_Vrest(ioSwitch);
+   ioParam_VthRest(ioSwitch);
+   ioParam_InverseFlag(ioSwitch);
+   ioParam_SigmoidFlag(ioSwitch);
+   ioParam_SigmoidAlpha(ioSwitch);
 
    return status;
 }
 
-void SigmoidActivityBuffer::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "Vrest", &mVrest, mVrest);
+void SigmoidActivityBuffer::ioParam_Vrest(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "Vrest", &mVrest);
 }
-void SigmoidActivityBuffer::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "VthRest", &mVthRest, mVthRest);
+void SigmoidActivityBuffer::ioParam_VthRest(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "VthRest", &mVthRest);
 }
-void SigmoidActivityBuffer::ioParam_InverseFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "InverseFlag", &mInverseFlag, mInverseFlag);
+void SigmoidActivityBuffer::ioParam_InverseFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "InverseFlag", &mInverseFlag);
 }
-void SigmoidActivityBuffer::ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "SigmoidFlag", &mSigmoidFlag, mSigmoidFlag);
+void SigmoidActivityBuffer::ioParam_SigmoidFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "SigmoidFlag", &mSigmoidFlag);
 }
-void SigmoidActivityBuffer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "SigmoidAlpha", &mSigmoidAlpha, mSigmoidAlpha);
+void SigmoidActivityBuffer::ioParam_SigmoidAlpha(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "SigmoidAlpha", &mSigmoidAlpha);
 }
 
 Response::Status SigmoidActivityBuffer::communicateInitInfo(

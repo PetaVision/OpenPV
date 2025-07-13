@@ -23,14 +23,20 @@ namespace PV {
 
 class HyPerConn : public BaseConnection {
   public:
-   HyPerConn(char const *name, PVParams *params, Communicator const *comm);
+   HyPerConn(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~HyPerConn();
 
   protected:
    HyPerConn();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 

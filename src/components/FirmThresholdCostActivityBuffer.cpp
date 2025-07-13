@@ -11,38 +11,38 @@
 namespace PV {
 
 FirmThresholdCostActivityBuffer::FirmThresholdCostActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 FirmThresholdCostActivityBuffer::~FirmThresholdCostActivityBuffer() {}
 
 void FirmThresholdCostActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerActivityBuffer::initialize(name, params, comm);
+   HyPerActivityBuffer::initialize(params, defaults, comm);
 }
 
 void FirmThresholdCostActivityBuffer::setObjectType() {
    mObjectType = "FirmThresholdCostActivityBuffer";
 }
 
-int FirmThresholdCostActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_VThresh(ioFlag);
-   ioParam_VWidth(ioFlag);
+int FirmThresholdCostActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_VThresh(ioSwitch);
+   ioParam_VWidth(ioSwitch);
    return status;
 }
 
-void FirmThresholdCostActivityBuffer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "VThresh", &mVThresh);
+void FirmThresholdCostActivityBuffer::ioParam_VThresh(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "VThresh", &mVThresh);
 }
 
-void FirmThresholdCostActivityBuffer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "VWidth", &mVWidth, mVWidth);
+void FirmThresholdCostActivityBuffer::ioParam_VWidth(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "VWidth", &mVWidth);
 }
 
 void FirmThresholdCostActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

@@ -10,19 +10,19 @@
 namespace PV {
 
 HyPerInternalStateBuffer::HyPerInternalStateBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 HyPerInternalStateBuffer::~HyPerInternalStateBuffer() {}
 
 void HyPerInternalStateBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   InternalStateBuffer::initialize(name, params, comm);
+   InternalStateBuffer::initialize(params, defaults, comm);
 }
 
 void HyPerInternalStateBuffer::setObjectType() { mObjectType = "HyPerInternalStateBuffer"; }

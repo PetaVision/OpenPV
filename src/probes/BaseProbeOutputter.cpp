@@ -12,16 +12,13 @@
 namespace PV {
 
 BaseProbeOutputter::BaseProbeOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
-BaseProbeOutputter::~BaseProbeOutputter() {
-   free(mProbeOutputFilename);
-   free(mMessageParam);
-}
+BaseProbeOutputter::~BaseProbeOutputter() {}
 
 int BaseProbeOutputter::calcGlobalBatchOffset() const {
    return (mIOMPIBlock->getStartBatch() + mIOMPIBlock->getBatchIndex()) * mLocalNBatch;
@@ -36,15 +33,14 @@ void BaseProbeOutputter::flushOutputStreams() {
 
 void BaseProbeOutputter::initMessageString() {
    pvAssert(mMessageString.empty());
-   if (mMessageParam != nullptr and mMessageParam[0] != '\0') {
-      mMessageString = mMessageParam;
-      mMessageString += ":";
+   if (!mMessageParam.empty()) {
+      mMessageString = mMessageParam + ":";
    }
 }
 
 void BaseProbeOutputter::initOutputStreams(Checkpointer *checkpointer, int localNBatch) {
    mLocalNBatch = localNBatch;
-   if (!mTextOutputFlag or !mProbeOutputFilename or !mProbeOutputFilename[0]) {
+   if (!mTextOutputFlag or mProbeOutputFilename.empty()) {
       return;
    }
 
@@ -56,10 +52,9 @@ void BaseProbeOutputter::initOutputStreams(Checkpointer *checkpointer, int local
       // The global batch indices managed by this IOBlock are
       // {globalBatchOffset, globalBatchOffset + 1, ..., globalBatchOffset + LocalNBatch - 1}.
 
-      std::string probeOutputFilename(mProbeOutputFilename);
-      std::string dir  = dirName(probeOutputFilename);
-      std::string base = stripExtension(probeOutputFilename);
-      std::string ext  = extension(probeOutputFilename);
+      std::string dir  = dirName(mProbeOutputFilename);
+      std::string base = stripExtension(mProbeOutputFilename);
+      std::string ext  = extension(mProbeOutputFilename);
       std::string pathRoot;
       if (dir != ".") {
          pathRoot = dir + "/";
@@ -94,47 +89,40 @@ void BaseProbeOutputter::initOutputStreams(Checkpointer *checkpointer, int local
 }
 
 void BaseProbeOutputter::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ProbeComponent::initialize(objName, params);
+   ProbeComponent::initialize(params, defaults);
    mCommunicator = comm;
    mIOMPIBlock   = comm->getIOMPIBlock();
 }
 
-void BaseProbeOutputter::ioParam_message(enum ParamsIOFlag ioFlag) {
-   pvAssert(!getParams()->presentAndNotBeenRead(getName_c(), "textOutputFlag"));
+void BaseProbeOutputter::ioParam_message(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("textOutputFlag"));
    if (mTextOutputFlag) {
-      getParams()->ioParamString(
-            ioFlag, getName_c(), "message", &mMessageParam, mMessageParam, false /*warnIfAbsent*/);
-      if (ioFlag == PARAMS_IO_READ) {
+      mParamsIO->ioParam(ioSwitch, "message", &mMessageParam, false /*warnIfAbsent*/);
+      if (ioSwitch == ParamsIOSwitch::Read) {
          initMessageString();
       }
    }
 }
 
-void BaseProbeOutputter::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
-   pvAssert(!getParams()->presentAndNotBeenRead(getName_c(), "textOutputFlag"));
+void BaseProbeOutputter::ioParam_probeOutputFile(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("textOutputFlag"));
    if (mTextOutputFlag) {
-      getParams()->ioParamString(
-            ioFlag,
-            getName_c(),
-            "probeOutputFile",
-            &mProbeOutputFilename,
-            nullptr,
-            false /*warnIfAbsent*/);
+      bool warnIfAbsentFlag = false;
+      mParamsIO->ioParam(ioSwitch, "probeOutputFile", &mProbeOutputFilename, warnIfAbsentFlag);
    }
 }
 
-void BaseProbeOutputter::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamValue(
-         ioFlag, getName_c(), "textOutputFlag", &mTextOutputFlag, mTextOutputFlag);
+void BaseProbeOutputter::ioParam_textOutputFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "textOutputFlag", &mTextOutputFlag);
 }
 
-void BaseProbeOutputter::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_textOutputFlag(ioFlag);
-   ioParam_probeOutputFile(ioFlag);
-   ioParam_message(ioFlag);
+void BaseProbeOutputter::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_textOutputFlag(ioSwitch);
+   ioParam_probeOutputFile(ioSwitch);
+   ioParam_message(ioSwitch);
 }
 
 void BaseProbeOutputter::printStringToAll(char const *str) {
@@ -148,11 +136,11 @@ std::shared_ptr<PrintStream> BaseProbeOutputter::returnOutputStream(int b) {
       return nullptr;
    }
    if (mOutputStreams.empty()) {
-      pvAssert(!mProbeOutputFilename or mProbeOutputFilename[0] == '\0');
+      pvAssert(mProbeOutputFilename.empty());
       return std::make_shared<PrintStream>(PV::getOutputStream());
    }
    else {
-      pvAssert(mProbeOutputFilename and mProbeOutputFilename[0] != '\0');
+      pvAssert(!mProbeOutputFilename.empty());
       return mOutputStreams.at(b);
    }
 }

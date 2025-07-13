@@ -4,14 +4,14 @@
 namespace PV {
 
 ActivityBufferStatsProbeLocal::ActivityBufferStatsProbeLocal(
-      char const *objName,
-      PVParams *params) {
-   initialize(objName, params);
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-void ActivityBufferStatsProbeLocal::initialize(char const *objName, PVParams *params) {
-   StatsProbeLocal::initialize(objName, params);
-   setBufferParam<BufferParamActivitySpecified>(objName, params);
+void ActivityBufferStatsProbeLocal::initialize(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   StatsProbeLocal::initialize(params, defaults);
+   setBufferParam<BufferParamActivitySpecified>(params, defaults);
 }
 
 } // namespace PV

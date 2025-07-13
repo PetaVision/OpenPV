@@ -16,7 +16,6 @@
 #define REQUIREALLZEROACTIVITYPROBE_HPP_
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/CheckStatsAllZeros.hpp"
 #include "probes/StatsProbeImmediate.hpp"
@@ -27,7 +26,10 @@ namespace PV {
 
 class RequireAllZeroActivityProbe : public StatsProbeImmediate {
   public:
-   RequireAllZeroActivityProbe(const char *name, PVParams *params, Communicator const *comm);
+   RequireAllZeroActivityProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~RequireAllZeroActivityProbe();
 
    bool foundNonzero() const { return mCheckStats->foundNonzero(); }
@@ -39,12 +41,20 @@ class RequireAllZeroActivityProbe : public StatsProbeImmediate {
    virtual void checkStats() override;
    virtual Response::Status cleanup() override;
    virtual void
-   createComponents(char const *name, PVParams *params, Communicator const *comm) override;
-   virtual void createProbeCheckStats(char const *name, PVParams *params);
-   virtual void createProbeLocal(char const *name, PVParams *params) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   createComponents(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm) override;
+   virtual void createProbeCheckStats(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    // Probe component, set by createComponents(), called by initialize()

@@ -13,10 +13,10 @@
 namespace PV {
 
 DependentSharedWeights::DependentSharedWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DependentSharedWeights::DependentSharedWeights() {}
@@ -24,21 +24,21 @@ DependentSharedWeights::DependentSharedWeights() {}
 DependentSharedWeights::~DependentSharedWeights() {}
 
 void DependentSharedWeights::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   SharedWeights::initialize(name, params, comm);
+   SharedWeights::initialize(params, defaults, comm);
 }
 
 void DependentSharedWeights::setObjectType() { mObjectType = "DependentSharedWeights"; }
 
-int DependentSharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return SharedWeights::ioParamsFillGroup(ioFlag);
+int DependentSharedWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return SharedWeights::ioParamsFillGroup(ioSwitch);
 }
 
-void DependentSharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "sharedWeights");
+void DependentSharedWeights::ioParam_sharedWeights(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("sharedWeights");
    }
    // During the communication phase, sharedWeights will be copied from originalConn
 }
@@ -62,7 +62,7 @@ Response::Status DependentSharedWeights::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
    auto *originalSharedWeights  = objectTable->findObject<SharedWeights>(originalConnName);
 
    if (!originalSharedWeights->getInitInfoCommunicatedFlag()) {
@@ -71,12 +71,12 @@ Response::Status DependentSharedWeights::communicateInitInfo(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConnName);
+               originalConnName.c_str());
       }
       return Response::POSTPONE;
    }
    mSharedWeightsFlag = originalSharedWeights->getSharedWeightsFlag();
-   parameters()->handleUnnecessaryParameter(getName(), "sharedWeights", mSharedWeightsFlag);
+   mParamsIO->handleUnnecessaryParameter("sharedWeights", mSharedWeightsFlag);
 
    auto status = SharedWeights::communicateInitInfo(message);
    if (!Response::completed(status)) {

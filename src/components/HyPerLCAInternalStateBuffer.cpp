@@ -15,49 +15,43 @@ namespace PV {
 HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer() {}
 
 HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-HyPerLCAInternalStateBuffer::~HyPerLCAInternalStateBuffer() { free(mAdaptiveTimeScaleProbeName); }
+HyPerLCAInternalStateBuffer::~HyPerLCAInternalStateBuffer() {}
 
 void HyPerLCAInternalStateBuffer::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(name, params, comm);
+   HyPerInternalStateBuffer::initialize(params, defaults, comm);
 }
 
-int HyPerLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_timeConstantTau(ioFlag);
-   ioParam_selfInteract(ioFlag);
-   ioParam_adaptiveTimeScaleProbe(ioFlag);
+int HyPerLCAInternalStateBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_timeConstantTau(ioSwitch);
+   ioParam_selfInteract(ioSwitch);
+   ioParam_adaptiveTimeScaleProbe(ioSwitch);
    return status;
 }
 
-void HyPerLCAInternalStateBuffer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "timeConstantTau", &mTimeConstantTau, mTimeConstantTau);
+void HyPerLCAInternalStateBuffer::ioParam_timeConstantTau(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "timeConstantTau", &mTimeConstantTau);
 }
 
-void HyPerLCAInternalStateBuffer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "selfInteract", &mSelfInteract, mSelfInteract);
-   if (ioFlag == PARAMS_IO_READ && mCommunicator->globalCommRank() == 0) {
+void HyPerLCAInternalStateBuffer::ioParam_selfInteract(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "selfInteract", &mSelfInteract);
+   if (ioSwitch == ParamsIOSwitch::Read && mCommunicator->globalCommRank() == 0) {
       InfoLog() << getDescription() << ": selfInteract flag is "
                 << (mSelfInteract ? "true" : "false") << std::endl;
    }
 }
 
-void HyPerLCAInternalStateBuffer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag,
-         getName(),
-         "adaptiveTimeScaleProbe",
-         &mAdaptiveTimeScaleProbeName,
-         nullptr /*default*/,
-         true /*warn if absent*/);
+void HyPerLCAInternalStateBuffer::ioParam_adaptiveTimeScaleProbe(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName);
 }
 
 Response::Status HyPerLCAInternalStateBuffer::communicateInitInfo(
@@ -67,14 +61,14 @@ Response::Status HyPerLCAInternalStateBuffer::communicateInitInfo(
       return status;
    }
    auto *objectTable = message->mObjectTable;
-   if (mAdaptiveTimeScaleProbeName and mAdaptiveTimeScaleProbeName[0]) {
+   if (!mAdaptiveTimeScaleProbeName.empty()) {
       mAdaptiveTimeScaleProbe =
             objectTable->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
       FatalIf(
             mAdaptiveTimeScaleProbe == nullptr,
             "%s adaptiveTimeScaleProbe \"%s\" is not an AdaptiveTimeScaleProbe.\n",
             getDescription_c(),
-            mAdaptiveTimeScaleProbeName);
+            mAdaptiveTimeScaleProbeName.c_str());
    }
    mActivity = objectTable->findObject<ActivityBuffer>(getName());
    FatalIf(mActivity == nullptr, "%s could not find an ActivityBuffer.\n", getDescription_c());

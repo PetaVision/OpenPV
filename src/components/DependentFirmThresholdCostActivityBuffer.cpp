@@ -13,36 +13,35 @@
 namespace PV {
 
 DependentFirmThresholdCostActivityBuffer::DependentFirmThresholdCostActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DependentFirmThresholdCostActivityBuffer::~DependentFirmThresholdCostActivityBuffer() {}
 
 void DependentFirmThresholdCostActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerActivityBuffer::initialize(name, params, comm);
+   HyPerActivityBuffer::initialize(params, defaults, comm);
 }
 
 void DependentFirmThresholdCostActivityBuffer::setObjectType() {
    mObjectType = "DependentFirmThresholdCostActivityBuffer";
 }
 
-void DependentFirmThresholdCostActivityBuffer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "VThresh");
+void DependentFirmThresholdCostActivityBuffer::ioParam_VThresh(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("VThresh");
    }
    // During the communication phase, VThresh will be copied from originalConn
 }
 
-void DependentFirmThresholdCostActivityBuffer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "VWidth", &mVWidth, mVWidth);
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "VWidth");
+void DependentFirmThresholdCostActivityBuffer::ioParam_VWidth(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("VWidth");
    }
    // During the communication phase, VWidth will be copied from originalConn
 }
@@ -67,20 +66,20 @@ Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   char const *linkedObjectName = originalLayerNameParam->getLinkedObjectName();
+   std::string const &linkedObjectName = originalLayerNameParam->getLinkedObjectName();
    auto *originalActivityBuffer = objectTable->findObject<ANNActivityBuffer>(linkedObjectName);
    FatalIf(
          originalActivityBuffer == nullptr,
          "%s original layer \"%s\" does not have an ANNActivityBuffer.\n",
          getDescription_c(),
-         linkedObjectName);
+         linkedObjectName.c_str());
    if (!originalActivityBuffer->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original activity buffer \"%s\" has finished its "
                "communicateInitInfo stage.\n",
                getDescription_c(),
-               linkedObjectName);
+               linkedObjectName.c_str());
       }
       return Response::POSTPONE;
    }
@@ -110,8 +109,8 @@ Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
          getDescription_c(),
          linkedObjectName,
          (double)originalActivityBuffer->getAShift());
-   parameters()->handleUnnecessaryParameter(getName(), "VThresh", mVThresh);
-   parameters()->handleUnnecessaryParameter(getName(), "VWidth", mVWidth);
+   mParamsIO->handleUnnecessaryParameter("VThresh", mVThresh);
+   mParamsIO->handleUnnecessaryParameter("VWidth", mVWidth);
 
    auto status = FirmThresholdCostActivityBuffer::communicateInitInfo(message);
    return status;

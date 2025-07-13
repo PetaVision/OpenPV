@@ -11,16 +11,19 @@
 namespace PV {
 
 ImageActivityBuffer::ImageActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ImageActivityBuffer::~ImageActivityBuffer() {}
 
-void ImageActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InputActivityBuffer::initialize(name, params, comm);
+void ImageActivityBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InputActivityBuffer::initialize(params, defaults, comm);
 }
 
 void ImageActivityBuffer::setObjectType() { mObjectType = "ImageActivityBuffer"; }

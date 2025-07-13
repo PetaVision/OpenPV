@@ -7,10 +7,13 @@ namespace PV {
 
 class ImagePvpOffsetTestActivityBuffer : public PvpActivityBuffer {
   protected:
-   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_displayPeriod(ParamsIOSwitch ioSwitch) override;
 
   public:
-   ImagePvpOffsetTestActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
+   ImagePvpOffsetTestActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

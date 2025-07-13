@@ -27,23 +27,29 @@ class SharedWeightsFalse : public SharedWeights {
     * @brief sharedWeights: SharedWeightsFalse always sets the sharedWeights flag to false.
     * Defaults to false (non-shared weights).
     */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_sharedWeights(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of SharedWeightsFalse parameters
 
   public:
-   SharedWeightsFalse(char const *name, PVParams *params, Communicator const *comm);
+   SharedWeightsFalse(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~SharedWeightsFalse();
 
   protected:
    SharedWeightsFalse() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 };
 
 } // namespace PV

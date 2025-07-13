@@ -7,8 +7,11 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-TriggerTestLayer::TriggerTestLayer(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+TriggerTestLayer::TriggerTestLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 Response::Status TriggerTestLayer::checkUpdateState(double simTime, double deltaTime) {

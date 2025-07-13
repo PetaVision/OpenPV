@@ -26,35 +26,35 @@ void KernelProbe::initialize(const char *probename, PVParams *params, Communicat
    BaseConnectionProbe::initialize(probename, params, comm);
 }
 
-int KernelProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseConnectionProbe::ioParamsFillGroup(ioFlag);
-   ioParam_kernelIndex(ioFlag);
-   ioParam_arborId(ioFlag);
-   ioParam_outputWeights(ioFlag);
-   ioParam_outputPlasticIncr(ioFlag);
-   ioParam_outputPatchIndices(ioFlag);
+int KernelProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseConnectionProbe::ioParamsFillGroup(ioSwitch);
+   ioParam_kernelIndex(ioSwitch);
+   ioParam_arborId(ioSwitch);
+   ioParam_outputWeights(ioSwitch);
+   ioParam_outputPlasticIncr(ioSwitch);
+   ioParam_outputPatchIndices(ioSwitch);
    return status;
 }
 
-void KernelProbe::ioParam_kernelIndex(enum ParamsIOFlag ioFlag) {
+void KernelProbe::ioParam_kernelIndex(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "kernelIndex", &kernelIndex, 0);
 }
 
-void KernelProbe::ioParam_arborId(enum ParamsIOFlag ioFlag) {
+void KernelProbe::ioParam_arborId(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "arborId", &arborID, 0);
 }
 
-void KernelProbe::ioParam_outputWeights(enum ParamsIOFlag ioFlag) {
+void KernelProbe::ioParam_outputWeights(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(
          ioFlag, name, "outputWeights", &outputWeights, true /*default value*/);
 }
 
-void KernelProbe::ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag) {
+void KernelProbe::ioParam_outputPlasticIncr(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(
          ioFlag, name, "outputPlasticIncr", &outputPlasticIncr, false /*default value*/);
 }
 
-void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
+void KernelProbe::ioParam_outputPatchIndices(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(
          ioFlag, name, "outputPatchIndices", &outputPatchIndices, false /*default value*/);
 }

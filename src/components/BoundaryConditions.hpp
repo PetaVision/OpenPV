@@ -26,17 +26,20 @@ class BoundaryConditions : public BaseObject {
    /**
     * @brief mirrorBCflag: If set to true, the margin will mirror the data
     */
-   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_mirrorBCflag(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief valueBC: If mirrorBC is set to true, Uses the specified value for the margin area
     */
-   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_valueBC(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of BoundaryConditions parameters
 
   public:
-   BoundaryConditions(char const *name, PVParams *params, Communicator const *comm);
+   BoundaryConditions(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~BoundaryConditions();
 
    /**
@@ -52,11 +55,14 @@ class BoundaryConditions : public BaseObject {
   protected:
    BoundaryConditions();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

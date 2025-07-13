@@ -10,29 +10,32 @@
 namespace PV {
 
 LayerInputDelivery::LayerInputDelivery(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-void LayerInputDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
+void LayerInputDelivery::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    mMPIReductionOp = MPI_SUM; // This can be changed by derived classes if needed.
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void LayerInputDelivery::setObjectType() { mObjectType = "LayerInputDelivery"; }
 
-int LayerInputDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_channelCode(ioFlag);
-   ioParam_receiveGpu(ioFlag);
+int LayerInputDelivery::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_channelCode(ioSwitch);
+   ioParam_receiveGpu(ioSwitch);
    return PV_SUCCESS;
 }
 
-void LayerInputDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void LayerInputDelivery::ioParam_channelCode(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       int ch = 0;
-      this->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
+      mParamsIO->ioParam(ioSwitch, "channelCode", &ch);
       switch (ch) {
          case CHANNEL_EXC: mChannelCode      = CHANNEL_EXC; break;
          case CHANNEL_INH: mChannelCode      = CHANNEL_INH; break;
@@ -50,32 +53,20 @@ void LayerInputDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
             break;
       }
    }
-   else if (ioFlag == PARAMS_IO_WRITE) {
+   else if (ioSwitch == ParamsIOSwitch::Write) {
       int ch = (int)mChannelCode;
-      parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
+      mParamsIO->ioParam(ioSwitch, "channelCode", &ch);
    }
    else {
-      assert(0); // All possibilities of ioFlag are covered above.
+      assert(0); // All possibilities of ioSwitch are covered above.
    }
 }
 
-void LayerInputDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+void LayerInputDelivery::ioParam_receiveGpu(ParamsIOSwitch ioSwitch) {
 #ifdef PV_USE_CUDA
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "receiveGpu",
-         &mReceiveGpu,
-         mReceiveGpu /*default*/,
-         true /*warn if absent*/);
+   mParamsIO->ioParam(ioSwitch, "receiveGpu", &mReceiveGpu);
 #else
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "receiveGpu",
-         &mReceiveGpu,
-         mReceiveGpu /*default*/,
-         false /*warn if absent*/);
+   mParamsIO->ioParam(ioSwitch, "receiveGpu", &mReceiveGpu, false /*warnIfAbsentFlag*/);
    if (mCommunicator->globalCommRank() == 0) {
       FatalIf(
             mReceiveGpu,

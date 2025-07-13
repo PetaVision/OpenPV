@@ -8,7 +8,6 @@
 #include "columns/BaseObject.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeTriggerComponent.hpp"
@@ -29,15 +28,18 @@ class StatsProbe : public BaseObject {
     * called. If false, store the values until a checkpoint, and perform MPI reduction then.
     * The default is false.
     */
-   virtual void ioParam_immediateMPIAssembly(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_immediateMPIAssembly(ParamsIOSwitch ioSwitch);
 
   public:
-   StatsProbe(char const *name, PVParams *params, Communicator const *comm);
+   StatsProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~StatsProbe();
 
    HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
    HyPerLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
-   char const *getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
+   std::string const &getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
 
   protected:
    StatsProbe();
@@ -47,15 +49,30 @@ class StatsProbe : public BaseObject {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createComponents(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual void createProbeAggregator(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeLocal(char const *name, PVParams *params);
-   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeTrigger(char const *name, PVParams *params);
-   virtual void createTargetLayerComponent(char const *name, PVParams *params);
+   virtual void createProbeAggregator(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual void createProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeTrigger(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual void createTargetLayerComponent(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
@@ -64,7 +81,7 @@ class StatsProbe : public BaseObject {
 
    void initProbeTimers(Checkpointer *checkpointer);
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
@@ -75,6 +92,11 @@ class StatsProbe : public BaseObject {
 
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
+
+   void setComponentPrintStreams(
+      ProbeComponent &probeComponent, FileStream *printParamsStream, FileStream *printLuaStream);
+
+   virtual void setPrintStreams(FileStream *printParamsStream, FileStream *printLuaStream);
 
    bool getImmediateMPIAssembly() const { return mImmediateMPIAssembly; }
    void setImmediateMPIAssembly(bool flag) { mImmediateMPIAssembly = flag; }

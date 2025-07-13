@@ -2,7 +2,6 @@
 #define NORMPROBEOUTPUTTER_HPP_
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "probes/BaseProbeOutputter.hpp"
 #include "probes/ProbeDataBuffer.hpp"
@@ -13,14 +12,20 @@ namespace PV {
 
 class NormProbeOutputter : public BaseProbeOutputter {
   public:
-   NormProbeOutputter(char const *objName, PVParams *params, Communicator const *comm);
+   NormProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NormProbeOutputter() {}
 
    void printGlobalNormsBuffer(ProbeDataBuffer<double> const &storedValues, int numNeurons);
 
   protected:
    NormProbeOutputter() {}
-   void initialize(char const *objName, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    void printNorm(
          std::shared_ptr<PrintStream> printStreamPtr,

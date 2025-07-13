@@ -12,19 +12,25 @@
 
 namespace PV {
 
-MPITestLayer::MPITestLayer(const char *name, PVParams *params, Communicator const *comm)
+MPITestLayer::MPITestLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : HyPerLayer() {
    // MPITestLayer has no member variables to initialize in initialize_base()
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-void MPITestLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void MPITestLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *MPITestLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<MPITestActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } /* namespace PV */

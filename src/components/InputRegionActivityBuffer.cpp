@@ -13,19 +13,19 @@
 namespace PV {
 
 InputRegionActivityBuffer::InputRegionActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InputRegionActivityBuffer::~InputRegionActivityBuffer() {}
 
 void InputRegionActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
    mCheckpointFlag = false; // Turns off checkpointing
 }
 
@@ -49,7 +49,7 @@ Response::Status InputRegionActivityBuffer::communicateInitInfo(
    }
 
    if (mOriginalInput == nullptr) {
-      char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+      std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
       // Synchronize margins between original layer and this layer.
       auto *thisGeometry = objectTable->findObject<LayerGeometry>(getName());
@@ -62,7 +62,7 @@ Response::Status InputRegionActivityBuffer::communicateInitInfo(
             mOriginalInput == nullptr,
             "%s could not find an InputActivityBuffer within %s.\n",
             getDescription_c(),
-            originalLayerName);
+            originalLayerName.c_str());
    }
 
    if (!mOriginalInput->getInitInfoCommunicatedFlag()) {

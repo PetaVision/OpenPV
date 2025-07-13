@@ -11,7 +11,10 @@ namespace PV {
 
 class ImagePvpTestBuffer : public PvpActivityBuffer {
   public:
-   ImagePvpTestBuffer(const char *name, PVParams *params, Communicator const *comm);
+   ImagePvpTestBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    /**

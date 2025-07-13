@@ -26,19 +26,19 @@ namespace PV {
 LIFGapActivityComponent::LIFGapActivityComponent() {}
 
 LIFGapActivityComponent::LIFGapActivityComponent(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 LIFGapActivityComponent::~LIFGapActivityComponent() {}
 
 void LIFGapActivityComponent::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   LIFActivityComponent::initialize(name, params, comm);
+   LIFActivityComponent::initialize(params, defaults, comm);
 }
 
 void LIFGapActivityComponent::fillComponentTable() {

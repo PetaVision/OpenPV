@@ -1,4 +1,4 @@
-Checkpointer "checkpointer" = {
+HyPerCol "checkpointer" = {
     verifyWrites = true;
     outputPath = "output";
     checkpointWrite = true;

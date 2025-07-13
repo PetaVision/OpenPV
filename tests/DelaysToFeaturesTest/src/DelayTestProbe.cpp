@@ -17,9 +17,12 @@
 
 namespace PV {
 
-DelayTestProbe::DelayTestProbe(const char *name, PVParams *params, Communicator const *comm)
+DelayTestProbe::DelayTestProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DelayTestProbe::~DelayTestProbe() {}
@@ -79,8 +82,11 @@ void DelayTestProbe::checkStats() {
    }
 }
 
-void DelayTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+void DelayTestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 } /* namespace PV */

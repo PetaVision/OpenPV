@@ -1,7 +1,7 @@
 #include "CheckStatsProbe.hpp"
 #include <columns/Communicator.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/StatsProbeImmediate.hpp>
@@ -10,31 +10,31 @@
 
 #include <cstdlib>
 
-void CheckStatsProbe::ioParam_correctMin(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctMin", &mCorrectMin, mCorrectMin);
+void CheckStatsProbe::ioParam_correctMin(PV::ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "correctMin", &mCorrectMin);
 }
 
-void CheckStatsProbe::ioParam_correctMax(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctMax", &mCorrectMax, mCorrectMax);
+void CheckStatsProbe::ioParam_correctMax(PV::ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "correctMax", &mCorrectMax);
 }
 
-void CheckStatsProbe::ioParam_correctMean(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctMean", &mCorrectMean, mCorrectMean);
+void CheckStatsProbe::ioParam_correctMean(PV::ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "correctMean", &mCorrectMean);
 }
 
-void CheckStatsProbe::ioParam_correctStd(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctStd", &mCorrectStd, mCorrectStd);
+void CheckStatsProbe::ioParam_correctStd(PV::ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "correctStd", &mCorrectStd);
 }
 
-void CheckStatsProbe::ioParam_tolerance(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &mTolerance, mTolerance);
+void CheckStatsProbe::ioParam_tolerance(PV::ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tolerance", &mTolerance);
 }
 
 CheckStatsProbe::CheckStatsProbe(
-      char const *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 CheckStatsProbe::CheckStatsProbe() {}
@@ -92,18 +92,18 @@ void CheckStatsProbe::checkStats() {
 }
 
 void CheckStatsProbe::initialize(
-      char const *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
-int CheckStatsProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
-   int status = PV::StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   ioParam_correctMin(ioFlag);
-   ioParam_correctMax(ioFlag);
-   ioParam_correctMean(ioFlag);
-   ioParam_correctStd(ioFlag);
-   ioParam_tolerance(ioFlag);
+int CheckStatsProbe::ioParamsFillGroup(PV::ParamsIOSwitch ioSwitch) {
+   int status = PV::StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   ioParam_correctMin(ioSwitch);
+   ioParam_correctMax(ioSwitch);
+   ioParam_correctMean(ioSwitch);
+   ioParam_correctStd(ioSwitch);
+   ioParam_tolerance(ioSwitch);
    return status;
 }

@@ -8,13 +8,16 @@ namespace PV {
 class KneeTimeScaleProbe : public AdaptiveTimeScaleProbe {
 
   public:
-   virtual void ioParam_kneeThresh(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_kneeSlope(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kneeThresh(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_kneeSlope(ParamsIOSwitch ioSwitch);
 
-   KneeTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm);
+   KneeTimeScaleProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void allocateTimeScaleController() override;
 
    double mKneeThresh = 1.0;

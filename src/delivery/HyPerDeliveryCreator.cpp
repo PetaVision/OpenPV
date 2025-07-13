@@ -11,41 +11,40 @@
 namespace PV {
 
 HyPerDeliveryCreator::HyPerDeliveryCreator(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 HyPerDeliveryCreator::HyPerDeliveryCreator() {}
 
-HyPerDeliveryCreator::~HyPerDeliveryCreator() { free(mAccumulateTypeString); }
+HyPerDeliveryCreator::~HyPerDeliveryCreator() {}
 
 void HyPerDeliveryCreator::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void HyPerDeliveryCreator::setObjectType() { mObjectType = "HyPerDeliveryCreator"; }
 
-int HyPerDeliveryCreator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseObject::ioParamsFillGroup(ioFlag);
-   ioParam_receiveGpu(ioFlag);
-   ioParam_pvpatchAccumulateType(ioFlag);
-   ioParam_updateGSynFromPostPerspective(ioFlag);
+int HyPerDeliveryCreator::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseObject::ioParamsFillGroup(ioSwitch);
+   ioParam_receiveGpu(ioSwitch);
+   ioParam_pvpatchAccumulateType(ioSwitch);
+   ioParam_updateGSynFromPostPerspective(ioSwitch);
    return status;
 }
 
-void HyPerDeliveryCreator::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+void HyPerDeliveryCreator::ioParam_receiveGpu(ParamsIOSwitch ioSwitch) {
 #ifdef PV_USE_CUDA
    bool warnIfAbsent = true;
 #else
    bool warnIfAbsent = false;
 #endif // PV_USE_CUDA
-   parameters()->ioParamValue(
-         ioFlag, getName(), "receiveGpu", &mReceiveGpu, mReceiveGpu /*default*/, warnIfAbsent);
+   mParamsIO->ioParam(ioSwitch, "receiveGpu", &mReceiveGpu, warnIfAbsent);
 #ifndef PV_USE_CUDA
    if (mCommunicator->globalCommRank() == 0) {
       FatalIf(
@@ -57,20 +56,23 @@ void HyPerDeliveryCreator::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_CUDA
 }
 
-void HyPerDeliveryCreator::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "pvpatchAccumulateType", &mAccumulateTypeString, "convolve");
-   if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(mAccumulateTypeString and mAccumulateTypeString[0]);
+void HyPerDeliveryCreator::ioParam_pvpatchAccumulateType(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "pvpatchAccumulateType", &mAccumulateTypeString);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      FatalIf(
+            mAccumulateTypeString.empty(),
+            "%s \"%s\" string parameter pvpatchAccumulateType cannot be empty or null.\n",
+            mParamsIO->getKeyword().c_str(),
+            getName());
       // Convert string to lowercase so that capitalization doesn't matter.
-      for (char *c = mAccumulateTypeString; *c != '\0'; c++) {
-         *c = (char)tolower((int)*c);
+      for (char &c : mAccumulateTypeString) {
+         c = (char)tolower(static_cast<int>(c));
       }
 
-      if (strcmp(mAccumulateTypeString, "convolve") == 0) {
+      if (mAccumulateTypeString == "convolve") {
          mAccumulateType = CONVOLVE;
       }
-      else if (strcmp(mAccumulateTypeString, "stochastic") == 0) {
+      else if (mAccumulateTypeString == "stochastic") {
          mAccumulateType = STOCHASTIC;
       }
       else {
@@ -82,9 +84,9 @@ void HyPerDeliveryCreator::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFla
             ErrorLog().printf("  Allowed values are \"convolve\" or \"stochastic\".\n");
          }
          MPI_Barrier(mCommunicator->globalCommunicator());
-         exit(EXIT_FAILURE);
+         std::exit(EXIT_FAILURE);
       }
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "receiveGpu"));
+      pvAssert(!mParamsIO->presentAndNotBeenRead("receiveGpu"));
       FatalIf(
             mReceiveGpu and mAccumulateType == STOCHASTIC,
             "%s sets receiveGpu to true and pvpatchAccumulateType to stochastic, "
@@ -93,13 +95,8 @@ void HyPerDeliveryCreator::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFla
    }
 }
 
-void HyPerDeliveryCreator::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "updateGSynFromPostPerspective",
-         &mUpdateGSynFromPostPerspective,
-         mUpdateGSynFromPostPerspective);
+void HyPerDeliveryCreator::ioParam_updateGSynFromPostPerspective(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "updateGSynFromPostPerspective", &mUpdateGSynFromPostPerspective);
 }
 
 HyPerDelivery *HyPerDeliveryCreator::create() {

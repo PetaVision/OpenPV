@@ -10,157 +10,159 @@
 #undef PV_RUN_ON_GPU
 #include "ANNActivityBuffer.kpp"
 
+#include <cassert>
+
 namespace PV {
 
-ANNActivityBuffer::ANNActivityBuffer(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ANNActivityBuffer::ANNActivityBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-ANNActivityBuffer::~ANNActivityBuffer() {
-   free(mVerticesV);
-   free(mVerticesA);
-   free(mSlopes);
-}
+ANNActivityBuffer::~ANNActivityBuffer() {}
 
-void ANNActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HyPerActivityBuffer::initialize(name, params, comm);
+void ANNActivityBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerActivityBuffer::initialize(params, defaults, comm);
 }
 
 void ANNActivityBuffer::setObjectType() { mObjectType = "ANNActivityBuffer"; }
 
-int ANNActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
+int ANNActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerActivityBuffer::ioParamsFillGroup(ioSwitch);
 
-   if (parameters()->arrayPresent(getName(), "verticesV")) {
+   if (mParamsIO->isPresent("verticesV")) {
       mVerticesListInParams = true;
-      ioParam_verticesV(ioFlag);
-      ioParam_verticesA(ioFlag);
-      ioParam_slopeNegInf(ioFlag);
-      ioParam_slopePosInf(ioFlag);
+      ioParam_verticesV(ioSwitch);
+      ioParam_verticesA(ioSwitch);
+      ioParam_slopeNegInf(ioSwitch);
+      ioParam_slopePosInf(ioSwitch);
    }
    else {
       mVerticesListInParams = false;
-      ioParam_VThresh(ioFlag);
-      ioParam_AMin(ioFlag);
-      ioParam_AMax(ioFlag);
-      ioParam_AShift(ioFlag);
-      ioParam_VWidth(ioFlag);
+      ioParam_VThresh(ioSwitch);
+      ioParam_AMin(ioSwitch);
+      ioParam_AMax(ioSwitch);
+      ioParam_AShift(ioSwitch);
+      ioParam_VWidth(ioSwitch);
    }
 
    return status;
 }
 
-void ANNActivityBuffer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_verticesV(ParamsIOSwitch ioSwitch) {
    pvAssert(mVerticesListInParams);
-   int numVerticesTmp = mNumVertices;
-   this->parameters()->ioParamArray(
-         ioFlag, this->getName(), "verticesV", &mVerticesV, &numVerticesTmp);
-   if (ioFlag == PARAMS_IO_READ) {
-      if (numVerticesTmp == 0) {
+   mParamsIO->ioParam(ioSwitch, "verticesV", &mVerticesV);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      if (mVerticesV.empty()) {
          if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf("%s: verticesV cannot be empty\n", getDescription_c());
          }
          MPI_Barrier(this->mCommunicator->communicator());
-         exit(EXIT_FAILURE);
+         std::exit(EXIT_FAILURE);
       }
-      if (mNumVertices != 0 && numVerticesTmp != mNumVertices) {
+      if (!mVerticesA.empty() and !mVerticesV.size() != mVerticesA.size()) {
          if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf(
-                  "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
+                  "%s: verticesV (%zu elements) and verticesA (%zu elements) must have the same "
                   "lengths.\n",
                   getDescription_c(),
-                  numVerticesTmp,
-                  mNumVertices);
+                  mVerticesV.size(),
+                  mVerticesA.size());
          }
          MPI_Barrier(this->mCommunicator->communicator());
-         exit(EXIT_FAILURE);
+         std::exit(EXIT_FAILURE);
       }
-      assert(mNumVertices == 0 || mNumVertices == numVerticesTmp);
-      mNumVertices = numVerticesTmp;
+      assert(mNumVertices == 0 or mNumVertices == static_cast<int>(mVerticesV.size()));
+      mNumVertices = static_cast<int>(mVerticesV.size());
    }
 }
 
-void ANNActivityBuffer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_verticesA(ParamsIOSwitch ioSwitch) {
    pvAssert(mVerticesListInParams);
    int numVerticesA = mNumVertices;
-   this->parameters()->ioParamArray(
-         ioFlag, this->getName(), "verticesA", &mVerticesA, &numVerticesA);
-   if (ioFlag == PARAMS_IO_READ) {
-      if (numVerticesA == 0) {
+   mParamsIO->ioParam(ioSwitch, "verticesA", &mVerticesA);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      if (mVerticesA.empty()) {
          if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf("%s: verticesA cannot be empty\n", getDescription_c());
          }
          MPI_Barrier(this->mCommunicator->communicator());
-         exit(EXIT_FAILURE);
+         std::exit(EXIT_FAILURE);
       }
-      if (mNumVertices != 0 && numVerticesA != mNumVertices) {
+      if (!mVerticesV.empty() and mVerticesA.size() != mVerticesV.size()) {
          if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf(
-                  "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
+                  "%s: verticesV (%zu elements) and verticesA (%zu elements) must have the same "
                   "lengths.\n",
                   getDescription_c(),
-                  mNumVertices,
-                  numVerticesA);
+                  mVerticesV.size(),
+                  mVerticesA.size());
          }
          MPI_Barrier(this->mCommunicator->communicator());
-         exit(EXIT_FAILURE);
+         std::exit(EXIT_FAILURE);
       }
       assert(mNumVertices == 0 || mNumVertices == numVerticesA);
       mNumVertices = numVerticesA;
    }
 }
 
-void ANNActivityBuffer::ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_slopeNegInf(ParamsIOSwitch ioSwitch) {
    pvAssert(mVerticesListInParams);
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "slopeNegInf",
-         &mSlopeNegInf,
-         mSlopeNegInf /*default*/,
-         true /*warnIfAbsent*/);
+   mParamsIO->ioParam(ioSwitch, "slopeNegInf", &mSlopeNegInf);
 }
 
-void ANNActivityBuffer::ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_slopePosInf(ParamsIOSwitch ioSwitch) {
    pvAssert(mVerticesListInParams);
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "slopePosInf",
-         &mSlopePosInf,
-         mSlopePosInf /*default*/,
-         true /*warnIfAbsent*/);
+   mParamsIO->ioParam(ioSwitch, "slopePosInf", &mSlopePosInf);
 }
 
-void ANNActivityBuffer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_VThresh(ParamsIOSwitch ioSwitch) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, getName(), "VThresh", &mVThresh, mVThresh);
+   mParamsIO->ioParam(ioSwitch, "VThresh", &mVThresh);
 }
 
-void ANNActivityBuffer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_AMin(ParamsIOSwitch ioSwitch) {
    pvAssert(!mVerticesListInParams);
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "VThresh"));
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "AMin",
-         &mAMin,
-         mVThresh); // defaults to the value of VThresh, which was read earlier.
+   pvAssert(!mParamsIO->presentAndNotBeenRead("VThresh"));
+   switch (ioSwitch) {
+      case ParamsIOSwitch::Read:
+         if (mParamsIO->isPresent("AMin")) {
+            mParamsIO->ioParam(ioSwitch, "AMin", &mAMin);
+         }
+         else {
+            mAMin = mVThresh;
+            WarnLog().printf(
+                  "Using inferred value %f for parameter %s in group \"%s\"\n",
+                  (double)mAMin, "AMin", getName());
+         }
+         break;
+      case ParamsIOSwitch::Write:
+         mParamsIO->ioParam(ioSwitch, "AMin", &mAMin);
+         break;
+      default:
+         Fatal().printf("Unrecognized ParamsIOSwitch %d\n", ioSwitch);
+         break;
+   }
 }
 
-void ANNActivityBuffer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_AMax(ParamsIOSwitch ioSwitch) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, getName(), "AMax", &mAMax, mAMax);
+   mParamsIO->ioParam(ioSwitch, "AMax", &mAMax);
 }
 
-void ANNActivityBuffer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_AShift(ParamsIOSwitch ioSwitch) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, getName(), "AShift", &mAShift, mAShift);
+   mParamsIO->ioParam(ioSwitch, "AShift", &mAShift);
 }
 
-void ANNActivityBuffer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
+void ANNActivityBuffer::ioParam_VWidth(ParamsIOSwitch ioSwitch) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, getName(), "VWidth", &mVWidth, mVWidth);
+   mParamsIO->ioParam(ioSwitch, "VWidth", &mVWidth);
 }
 
 Response::Status ANNActivityBuffer::allocateDataStructures() {
@@ -179,7 +181,7 @@ Response::Status ANNActivityBuffer::allocateDataStructures() {
 
 void ANNActivityBuffer::allocateVerticesAndSlopes() {
    if (!mVerticesListInParams) {
-      pvAssert(mVerticesA == nullptr and mVerticesV == nullptr);
+      pvAssert(mVerticesA.empty() and mVerticesV.empty());
       setVertices();
    }
    checkVertices();
@@ -190,10 +192,11 @@ void ANNActivityBuffer::allocateVerticesAndSlopes() {
 void ANNActivityBuffer::allocateUpdateKernel() {
    PVCuda::CudaDevice *device = mCudaDevice;
 
-   size_t size    = (std::size_t)mNumVertices * sizeof(*mVerticesV);
+   size_t size    = mVerticesV.size() * sizeof(mVerticesV[0]);
    mCudaVerticesV = device->createBuffer(size, &getDescription());
    mCudaVerticesA = device->createBuffer(size, &getDescription());
-   mCudaSlopes    = device->createBuffer(size + sizeof(*mSlopes), &getDescription());
+   // One more slope than number of vertices, since there are slopes at +inf and -inf
+   mCudaSlopes    = device->createBuffer(size + sizeof(mSlopes_[0]), &getDescription());
 }
 
 Response::Status ANNActivityBuffer::copyInitialStateToGPU() {
@@ -205,9 +208,9 @@ Response::Status ANNActivityBuffer::copyInitialStateToGPU() {
       return status;
    }
 
-   mCudaVerticesV->copyToDevice(mVerticesV);
-   mCudaVerticesA->copyToDevice(mVerticesA);
-   mCudaSlopes->copyToDevice(mSlopes);
+   mCudaVerticesV->copyToDevice(mVerticesV.data());
+   mCudaVerticesA->copyToDevice(mVerticesA.data());
+   mCudaSlopes->copyToDevice(mSlopes_.data());
 
    return Response::SUCCESS;
 }
@@ -268,40 +271,38 @@ void ANNActivityBuffer::setVertices() {
    // Initialize slopes to NaN so that we can tell whether they've been initialized.
    mSlopeNegInf = std::numeric_limits<double>::quiet_NaN();
    mSlopePosInf = std::numeric_limits<double>::quiet_NaN();
-   std::vector<float> vectorV;
-   std::vector<float> vectorA;
 
    mSlopePosInf = 1.0f;
    if (mVThresh <= -(float)0.999 * FLT_MAX) {
       mNumVertices = 1;
-      vectorV.push_back((float)0);
-      vectorA.push_back(-mAShift);
+      mVerticesV.push_back((float)0);
+      mVerticesA.push_back(-mAShift);
       mSlopeNegInf = 1.0f;
    }
    else {
-      assert(mVWidth >= (float)0);
-      if (mVWidth == (float)0
+      assert(mVWidth >= 0.0f);
+      if (mVWidth == 0.0f
           && (float)mVThresh - mAShift
                    == mAMin) { // Should there be a tolerance instead of strict ==?
          mNumVertices = 1;
-         vectorV.push_back(mVThresh);
-         vectorA.push_back(mAMin);
+         mVerticesV.push_back(mVThresh);
+         mVerticesA.push_back(mAMin);
       }
       else {
          mNumVertices = 2;
-         vectorV.push_back(mVThresh);
-         vectorV.push_back(mVThresh + mVWidth);
-         vectorA.push_back(mAMin);
-         vectorA.push_back(mVThresh + mVWidth - mAShift);
+         mVerticesV.push_back(mVThresh);
+         mVerticesV.push_back(mVThresh + mVWidth);
+         mVerticesA.push_back(mAMin);
+         mVerticesA.push_back(mVThresh + mVWidth - mAShift);
       }
       mSlopeNegInf = 0.0f;
    }
    if (mAMax < (float)0.999 * FLT_MAX) {
       assert(mSlopePosInf == 1.0f);
-      if (vectorA[mNumVertices - 1] < mAMax) {
-         float interval = mAMax - vectorA[mNumVertices - 1];
-         vectorV.push_back(vectorV[mNumVertices - 1] + (float)interval);
-         vectorA.push_back(mAMax);
+      if (mVerticesA[mNumVertices - 1] < mAMax) {
+         float interval = mAMax - mVerticesA[mNumVertices - 1];
+         mVerticesV.push_back(mVerticesV[mNumVertices - 1] + (float)interval);
+         mVerticesA.push_back(mAMax);
          mNumVertices++;
       }
       else {
@@ -309,19 +310,19 @@ void ANNActivityBuffer::setVertices() {
          bool found = false;
          int v;
          for (v = mNumVertices - 1; v >= 0; v--) {
-            if (vectorA[v] < mAMax) {
+            if (mVerticesA[v] < mAMax) {
                found = true;
                break;
             }
          }
          if (found) {
-            assert(v + 1 < mNumVertices && vectorA[v] < mAMax && vectorA[v + 1] >= mAMax);
-            float interval = mAMax - vectorA[v];
+            assert(v + 1 < mNumVertices && mVerticesA[v] < mAMax && mVerticesA[v + 1] >= mAMax);
+            float interval = mAMax - mVerticesA[v];
             mNumVertices   = v + 1;
-            vectorA.resize(mNumVertices);
-            vectorV.resize(mNumVertices);
-            vectorV.push_back(vectorV[v] + (float)interval);
-            vectorA.push_back(mAMax);
+            mVerticesA.resize(mNumVertices);
+            mVerticesV.resize(mNumVertices);
+            mVerticesV.push_back(mVerticesV[v] + (float)interval);
+            mVerticesA.push_back(mAMax);
             // In principle, there could be a case where a vertex n has A[n]>AMax but A[n-1] and
             // A[n+1] are both < AMax.
             // But with the current ANNLayer parameters, that won't happen.
@@ -332,21 +333,21 @@ void ANNActivityBuffer::setVertices() {
             // and then stays constant.
             // If slopeNegInf is negative or zero,
             mNumVertices = 1;
-            vectorA.resize(mNumVertices);
-            vectorV.resize(mNumVertices);
+            mVerticesA.resize(mNumVertices);
+            mVerticesV.resize(mNumVertices);
             if (mSlopeNegInf > 0) {
-               float intervalA = vectorA[0] - mAMax;
+               float intervalA = mVerticesA[0] - mAMax;
                float intervalV = (float)(intervalA / mSlopeNegInf);
-               vectorV[0]      = vectorV[0] - intervalV;
-               vectorA[0]      = mAMax;
+               mVerticesV[0]  = mVerticesV[0] - intervalV;
+               mVerticesA[0]      = mAMax;
             }
             else {
                // Everything everywhere is above AMax, so make the transfer function a constant
                // A=AMax.
-               vectorA.resize(1);
-               vectorV.resize(1);
-               vectorV[0]   = (float)0;
-               vectorA[0]   = mAMax;
+               mVerticesA.resize(1);
+               mVerticesV.resize(1);
+               mVerticesV[0] = 0.0f;
+               mVerticesA[0]   = mAMax;
                mNumVertices = 1;
                mSlopeNegInf = 0;
             }
@@ -357,43 +358,32 @@ void ANNActivityBuffer::setVertices() {
    // Check for NaN
    assert(mSlopeNegInf == mSlopeNegInf && mSlopePosInf == mSlopePosInf && mNumVertices > 0);
    std::size_t numVertices = (std::size_t)mNumVertices;
-   assert(vectorA.size() == numVertices && vectorV.size() == numVertices);
-   mVerticesV = (float *)malloc(numVertices * sizeof(*mVerticesV));
-   mVerticesA = (float *)malloc(numVertices * sizeof(*mVerticesA));
-   if (mVerticesV == NULL || mVerticesA == NULL) {
-      ErrorLog().printf(
-            "%s: unable to allocate memory for vertices:%s\n", getDescription_c(), strerror(errno));
-      exit(EXIT_FAILURE);
-   }
-   memcpy(mVerticesV, &vectorV[0], numVertices * sizeof(*mVerticesV));
-   memcpy(mVerticesA, &vectorA[0], numVertices * sizeof(*mVerticesA));
+   assert(mVerticesA.size() == numVertices && mVerticesV.size() == numVertices);
+   mVerticesV = mVerticesV;
+   mVerticesA = mVerticesA;
 }
 
 void ANNActivityBuffer::setSlopes() {
    pvAssert(mNumVertices > 0);
-   pvAssert(mVerticesA != nullptr);
-   pvAssert(mVerticesV != nullptr);
-   mSlopes = (float *)pvMallocError(
-         (size_t)(mNumVertices + 1) * sizeof(*mSlopes),
-         "%s: unable to allocate memory for transfer function slopes: %s\n",
-         getDescription_c(),
-         strerror(errno));
-   mSlopes[0] = mSlopeNegInf;
+   pvAssert(!mVerticesA.empty());
+   pvAssert(mVerticesV.size() == mVerticesA.size());
+   mSlopes_.resize(mNumVertices + 1);
+   mSlopes_[0] = mSlopeNegInf;
    for (int k = 1; k < mNumVertices; k++) {
       float V1 = mVerticesV[k - 1];
       float V2 = mVerticesV[k];
       if (V1 != V2) {
-         mSlopes[k] = (mVerticesA[k] - mVerticesA[k - 1]) / (V2 - V1);
+         mSlopes_[k] = (mVerticesA[k] - mVerticesA[k - 1]) / (V2 - V1);
       }
       else {
-         mSlopes[k] = mVerticesA[k] > mVerticesA[k - 1]
+         mSlopes_[k] = mVerticesA[k] > mVerticesA[k - 1]
                             ? std::numeric_limits<float>::infinity()
                             : mVerticesA[k] < mVerticesA[k - 1]
                                     ? -std::numeric_limits<float>::infinity()
                                     : std::numeric_limits<float>::quiet_NaN();
       }
    }
-   mSlopes[mNumVertices] = mSlopePosInf;
+   mSlopes_[mNumVertices] = mSlopePosInf;
 }
 
 void ANNActivityBuffer::checkVertices() const {
@@ -448,9 +438,9 @@ void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             loc->halo.dn,
             loc->halo.up,
             mNumVertices,
-            mVerticesV,
-            mVerticesA,
-            mSlopes,
+            mVerticesV.data(),
+            mVerticesA.data(),
+            mSlopes_.data(),
             V,
             A);
    }

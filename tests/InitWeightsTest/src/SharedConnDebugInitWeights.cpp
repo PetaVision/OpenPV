@@ -15,37 +15,36 @@ namespace PV {
 SharedConnDebugInitWeights::SharedConnDebugInitWeights() {}
 
 SharedConnDebugInitWeights::SharedConnDebugInitWeights(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : HyPerConn() {
-   SharedConnDebugInitWeights::initialize(name, params, comm);
+   SharedConnDebugInitWeights::initialize(params, defaults, comm);
 }
 
 SharedConnDebugInitWeights::~SharedConnDebugInitWeights() {}
 
 void SharedConnDebugInitWeights::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerConn::initialize(name, params, comm);
+   HyPerConn::initialize(params, defaults, comm);
 }
 
 SharedWeights *SharedConnDebugInitWeights::createSharedWeights() {
-   return new SharedWeightsTrue(getName(), parameters(), mCommunicator);
+   return new SharedWeightsTrue(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
-int SharedConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerConn::ioParamsFillGroup(ioFlag);
-   ioParam_weightInitType(ioFlag);
+int SharedConnDebugInitWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerConn::ioParamsFillGroup(ioSwitch);
+   ioParam_weightInitType(ioSwitch);
    return status;
 }
 
-void SharedConnDebugInitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "weightInitType", &mWeightInitTypeString, NULL, true /*warnIfAbsent*/);
+void SharedConnDebugInitWeights::ioParam_weightInitType(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "weightInitType", &mWeightInitTypeString);
    FatalIf(
-         mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
+         mWeightInitTypeString.empty(),
          "%s must set weightInitType.\n",
          getDescription_c());
 }
@@ -62,22 +61,22 @@ SharedConnDebugInitWeights::initializeState(std::shared_ptr<InitializeStateMessa
    Weights *preWeights = weightsPair->getPreWeights();
    FatalIf(preWeights == nullptr, "%s has no presynaptic weights.\n", getDescription_c());
    FatalIf(
-         mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
+         mWeightInitTypeString.empty(),
          "NonsharedConnDebugInitWeights did not set weightInitTypeString.\n");
    int numKernelPatches = preWeights->getNumDataPatches();
    int numArbors        = preWeights->getNumArbors();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       float *arborStart = preWeights->getData(arbor);
-      if (!strcmp(mWeightInitTypeString, "CoCircWeight")) {
+      if (mWeightInitTypeString == "CoCircWeight") {
          initializeCocircWeights(arborStart, numKernelPatches);
       }
-      else if (!strcmp(mWeightInitTypeString, "SmartWeight")) {
+      else if (mWeightInitTypeString == "SmartWeight") {
          initializeSmartWeights(arborStart, numKernelPatches);
       }
-      else if (!strcmp(mWeightInitTypeString, "GaborWeight")) {
+      else if (mWeightInitTypeString == "GaborWeight") {
          initializeGaborWeights(arborStart, numKernelPatches);
       }
-      else if (!strcmp(mWeightInitTypeString, "Gauss2DWeight")) {
+      else if (mWeightInitTypeString == "Gauss2DWeight") {
          initializeGaussian2DWeights(arborStart, numKernelPatches);
       }
    }
@@ -116,60 +115,38 @@ void SharedConnDebugInitWeights::smartWeights(float *dataStart, int k) {
 }
 
 void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int numPatches) {
-   PVParams *params = parameters();
-   float aspect     = 1.0f; // circular (not line oriented)
-   float sigma      = 0.8f;
-   float rMax       = 1.4f;
-   float strength   = 1.0f;
-
-   aspect   = params->value(getName(), "aspect", aspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   strength = params->value(getName(), "strength", strength);
+   float aspect   = mParamsIO->readValue<float>("aspect"); // circular (not line oriented)
+   float sigma    = mParamsIO->readValue<float>("sigma");
+   float rMax     = mParamsIO->readValue<float>("rMax");
+   float strength = mParamsIO->readValue<float>("strength");
 
    float r2Max = rMax * rMax;
 
-   int numFlanks = 1;
-   float shift   = 0.0f;
-   float rotate  = 0.0f; // rotate so that axis isn't aligned
-
-   numFlanks = (int)params->value(getName(), "numFlanks", numFlanks);
-   shift     = params->value(getName(), "flankShift", shift);
-   rotate    = params->value(getName(), "rotate", rotate);
+   int numFlanks    = mParamsIO->readValue<int>("numFlanks");
+   float flankShift = mParamsIO->readValue<float>("flankShift");
+   float rotate     = mParamsIO->readValue<float>("rotate");
 
    auto *preLayer  = getComponentByType<ConnectionData>()->getPre();
    auto *postLayer = getComponentByType<ConnectionData>()->getPost();
    int noPre       = preLayer->getLayerLoc()->nf;
-   noPre           = (int)params->value(getName(), "noPre", noPre);
-   FatalIf(!(noPre > 0), "Test failed.\n");
-   FatalIf(!(noPre <= preLayer->getLayerLoc()->nf), "Test failed.\n");
-
    int noPost = postLayer->getLayerLoc()->nf;
-   noPost     = (int)params->value(getName(), "noPost", noPost);
-   FatalIf(!(noPost > 0), "Test failed.\n");
-   FatalIf(!(noPost <= postLayer->getLayerLoc()->nf), "Test failed.\n");
 
-   float sigma_cocirc = PI / 2.0f;
-   sigma_cocirc       = params->value(getName(), "sigmaCocirc", sigma_cocirc);
+   float sigma_cocirc = mParamsIO->readValue<float>("sigmaCocirc");
 
-   float sigma_kurve = 1.0f; // fraction of delta_radius_curvature
-   sigma_kurve       = params->value(getName(), "sigmaKurve", sigma_kurve);
+   // fraction of delta_radius_curvature
+   float sigma_kurve = mParamsIO->readValue<float>("sigmaKurve");
 
    // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
-   float sigma_chord = 0.5f;
-   sigma_chord       = params->value(getName(), "sigmaChord", sigma_chord);
+   float sigma_chord = mParamsIO->readValue<float>("sigmaChord");
 
-   float delta_theta_max = PI / 2.0f;
-   delta_theta_max       = params->value(getName(), "deltaThetaMax", delta_theta_max);
+   float delta_theta_max = mParamsIO->readValue<float>("deltaThetaMax");
 
-   float cocirc_self = (preLayer != postLayer);
-   cocirc_self       = params->value(getName(), "cocircSelf", cocirc_self);
+   float cocirc_self = mParamsIO->readValue<float>("cocircSelf");
 
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-   float delta_radius_curvature = 1.0f; // 1 = minimum radius of curvature
-   delta_radius_curvature =
-         params->value(getName(), "deltaRadiusCurvature", delta_radius_curvature);
+   float delta_radius_curvature = mParamsIO->readValue<float>("deltaRadiusCurvature");
+   // 1 = minimum radius of curvature
 
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
@@ -187,7 +164,7 @@ void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int n
             cocirc_self,
             delta_radius_curvature,
             numFlanks,
-            shift,
+            flankShift,
             aspect,
             rotate,
             sigma,
@@ -564,39 +541,32 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
 }
 
 void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, int numPatches) {
-   PVParams *params = parameters();
-
    // default values (chosen for center on cell of one pixel)
    auto *patchSize     = getComponentByType<PatchSize>();
    int noPost          = patchSize->getPatchSizeF();
-   float aspect        = 1.0f; // circular (not line oriented)
-   float sigma         = 0.8f;
-   float rMax          = 1.4f;
-   float rMin          = 0.0f;
-   float strength      = 1.0f;
    float deltaThetaMax = 2.0f * PI; // max difference in orientation between pre and post
    float thetaMax      = 1.0f; // max orientation in units of PI
    int numFlanks       = 1;
-   float shift         = 0.0f;
+   float flankShift    = 0.0f;
    float rotate        = 0.0f; // rotate so that axis isn't aligned
-   float bowtieFlag    = 0.0f; // flag for setting bowtie angle
+   bool bowtieFlag     = false; // flag for setting bowtie angle
    float bowtieAngle   = PI * 2.0f; // bowtie angle
 
-   aspect   = params->value(getName(), "aspect", aspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   rMin     = params->value(getName(), "rMin", rMin);
-   strength = params->value(getName(), "strength", strength);
+   float aspect = mParamsIO->readValue<float>("aspect");
+   float sigma = mParamsIO->readValue<float>("sigma");
+   float rMax = mParamsIO->readValue<float>("rMax");
+   float rMin = mParamsIO->readValue<float>("rMin");
+   float strength = mParamsIO->readValue<float>("strength");
    if (patchSize->getPatchSizeF() > 1) {
-      noPost = (int)params->value(getName(), "numOrientationsPost", patchSize->getPatchSizeF());
-      deltaThetaMax = params->value(getName(), "deltaThetaMax", deltaThetaMax);
-      thetaMax      = params->value(getName(), "thetaMax", thetaMax);
-      numFlanks     = (int)params->value(getName(), "numFlanks", (float)numFlanks);
-      shift         = params->value(getName(), "flankShift", shift);
-      rotate        = params->value(getName(), "rotate", rotate);
-      bowtieFlag    = params->value(getName(), "bowtieFlag", bowtieFlag);
-      if (bowtieFlag == 1.0f) {
-         bowtieAngle = params->value(getName(), "bowtieAngle", bowtieAngle);
+      noPost = mParamsIO->readValue<int>("numOrientationsPost");
+      deltaThetaMax = mParamsIO->readValue<float>("deltaThetaMax");
+      thetaMax = mParamsIO->readValue<float>("thetaMax");
+      numFlanks = mParamsIO->readValue<int>("numFlanks");
+      flankShift = mParamsIO->readValue<float>("flankShift");
+      rotate = mParamsIO->readValue<float>("rotate");
+      bowtieFlag = mParamsIO->readValue<bool>("bowtieFlag");
+      if (bowtieFlag) {
+         bowtieAngle = mParamsIO->readValue<float>("bowtieAngle");
       }
    }
 
@@ -612,7 +582,7 @@ void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, i
             patchIndex,
             noPost,
             numFlanks,
-            shift,
+            flankShift,
             rotate,
             aspect,
             sigma,
@@ -814,21 +784,12 @@ void SharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int nu
    const int xScale = postGeom->getXScale() - preGeom->getXScale();
    const int yScale = postGeom->getYScale() - preGeom->getYScale();
 
-   PVParams *params = parameters();
-
-   float aspect   = 4.0f;
-   float sigma    = 2.0f;
-   float rMax     = 8.0f;
-   float lambda   = sigma / 0.8f; // gabor wavelength
-   float strength = 1.0f;
-   float phi      = 0;
-
-   aspect   = params->value(getName(), "aspect", aspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   lambda   = params->value(getName(), "lambda", lambda);
-   strength = params->value(getName(), "strength", strength);
-   phi      = params->value(getName(), "phi", phi);
+   float aspect = mParamsIO->readValue<float>("aspect");
+   float sigma = mParamsIO->readValue<float>("sigma");
+   float rMax = mParamsIO->readValue<float>("rMax");
+   float lambda = mParamsIO->readValue<float>("lambda");
+   float strength = mParamsIO->readValue<float>("strength");
+   float phi = mParamsIO->readValue<float>("phi");
 
    float r2Max = rMax * rMax;
 
@@ -860,14 +821,14 @@ void SharedConnDebugInitWeights::gaborWeights(
       float lambda,
       float strength,
       float phi) {
-   PVParams *params = parameters();
-
    float rotate = 1.0f;
    float invert = 0.0f;
-   if (params->present(getName(), "rotate"))
-      rotate = params->value(getName(), "rotate");
-   if (params->present(getName(), "invert"))
-      invert = params->value(getName(), "invert");
+   if (mParamsIO->isPresent("rotate")) {
+      rotate = mParamsIO->readValue<float>("rotate");
+   }
+   if (mParamsIO->isPresent("invert")) {
+      invert = mParamsIO->readValue<float>("invert");
+   }
 
    float *w = dataStart; // wp->data;
 

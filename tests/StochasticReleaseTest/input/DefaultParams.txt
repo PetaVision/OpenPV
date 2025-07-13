@@ -1,0 +1,4 @@
+Defaults "StochasticReleaseTestProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+};

@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
          "%s should be called without the -p argument; the necessary params file is hard-coded.\n",
          argv[0]);
    pv_obj.setParams("input/DryRunFlagTest.params");
+   pv_obj.registerDefaults("input/DefaultParams.txt");
 
    auto *comm = pv_obj.getCommunicator();
 

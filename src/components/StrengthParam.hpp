@@ -29,12 +29,15 @@ class StrengthParam : public BaseObject {
     * @brief strength: specifies the value of the strength parameter. The NormalizeBase and
     * InitGauss2DWeights classes use this component to specify the strength of a connection.
     */
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_strength(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of StrengthParam parameters
 
   public:
-   StrengthParam(char const *name, PVParams *params, Communicator const *comm);
+   StrengthParam(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~StrengthParam();
 
@@ -43,11 +46,14 @@ class StrengthParam : public BaseObject {
   protected:
    StrengthParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    float mStrength = 1.0f;

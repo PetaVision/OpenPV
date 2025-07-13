@@ -18,7 +18,10 @@ namespace PV {
 
 class ShuffleLayer : public CloneVLayer {
   public:
-   ShuffleLayer(const char *name, PVParams *params, Communicator const *comm);
+   ShuffleLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ShuffleLayer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -28,12 +31,15 @@ class ShuffleLayer : public CloneVLayer {
 
   protected:
    ShuffleLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_shuffleMethod(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_freqFilename(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_freqCollectTime(enum ParamsIOFlag ioFlag);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_shuffleMethod(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_readFreqFromFile(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_freqFilename(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_freqCollectTime(ParamsIOSwitch ioSwitch);
 
    void randomShuffle(const float *sourceData, float *activity);
    void rejectionShuffle(const float *sourceData, float *activity, double simTime);

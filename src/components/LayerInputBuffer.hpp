@@ -31,7 +31,10 @@ class LayerInputBuffer : public ComponentBuffer {
 
    /** @} */
   public:
-   LayerInputBuffer(char const *name, PVParams *params, Communicator const *comm);
+   LayerInputBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~LayerInputBuffer();
 
@@ -54,11 +57,14 @@ class LayerInputBuffer : public ComponentBuffer {
   protected:
    LayerInputBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void initMessageActionMap() override;
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

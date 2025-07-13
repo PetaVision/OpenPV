@@ -13,12 +13,19 @@ namespace PV {
 
 IdentConn::IdentConn() {}
 
-IdentConn::IdentConn(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+IdentConn::IdentConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void IdentConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseConnection::initialize(name, params, comm);
+void IdentConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseConnection::initialize(params, defaults, comm);
+   mWriteInitializeFromCheckpointFlag = false;
 }
 
 BaseDelivery *IdentConn::createDeliveryObject() {
@@ -37,7 +44,7 @@ void IdentConn::fillComponentTable() {
 }
 
 SingleArbor *IdentConn::createSingleArbor() {
-   return new SingleArbor(getName(), parameters(), mCommunicator);
+   return new SingleArbor(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end of namespace PV block

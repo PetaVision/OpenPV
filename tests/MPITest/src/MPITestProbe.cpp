@@ -10,7 +10,7 @@
 #include <columns/Communicator.hpp>
 #include <components/LayerGeometry.hpp>
 #include <structures/PVLayerLoc.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/StatsProbeImmediate.hpp>
@@ -21,9 +21,12 @@
 
 namespace PV {
 
-MPITestProbe::MPITestProbe(const char *name, PVParams *params, Communicator const *comm)
+MPITestProbe::MPITestProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void MPITestProbe::checkStats() {
@@ -60,19 +63,23 @@ void MPITestProbe::checkStats() {
    }
 }
 
-void MPITestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void MPITestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
 void MPITestProbe::createProbeOutputter(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<MPITestProbeOutputter>(name, params, comm);
+   mProbeOutputter = std::make_shared<MPITestProbeOutputter>(params, defaults, comm);
 }
 
-void MPITestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+void MPITestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 } // end namespace PV

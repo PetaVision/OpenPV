@@ -8,10 +8,12 @@
 #include "Checkpointer.hpp"
 
 #include "checkpointing/CheckpointingMessages.hpp"
+#include "io/fileio.hpp"
 #include "utils/ExpandLeadingTilde.hpp"
 #include <cerrno>
 #include <climits>
 #include <cmath>
+#include <sstream>
 #include <fts.h>
 #include <signal.h>
 #include <sys/stat.h>
@@ -46,12 +48,6 @@ Checkpointer::Checkpointer(
 }
 
 Checkpointer::~Checkpointer() {
-   free(mCheckpointWriteDir);
-   free(mCheckpointWriteTriggerModeString);
-   free(mCheckpointWriteWallclockUnit);
-   free(mLastCheckpointDir);
-   free(mInitializeFromCheckpointDir);
-
    // Don't delete the objects in the ObserverComponentTable; Checkpointer doesn't own them.
    mTable->clear();
    delete mCheckpointTimer;
@@ -72,14 +68,14 @@ void Checkpointer::initBlockDirectoryName() {
    }
 }
 
-void Checkpointer::ioParams(enum ParamsIOFlag ioFlag, PVParams *params) {
-   ioParamsFillGroup(ioFlag, params);
+void Checkpointer::ioParams(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   ioParamsFillGroup(ioSwitch, paramsIO);
 
    // If WarmStart is set and CheckpointWrite is false, CheckpointReadDirectory
    // is LastCheckpointDir. If WarmStart is set and CheckpointWrite is true, we
    // CheckpointReadDirectory is the last checkpoint in CheckpointWriteDir.
    // Hence we cannot set CheckpointReadDirectory until we've read the params.
-   if (mWarmStart and ioFlag == PARAMS_IO_READ) {
+   if (mWarmStart and ioSwitch == ParamsIOSwitch::Read) {
       // Arguments class should prevent -r and -c from both being set.
       pvAssert(mCheckpointReadDirectory.empty());
       // Set mCheckpointReadDirectory to the last checkpoint in the CheckpointWrite directory.
@@ -87,57 +83,53 @@ void Checkpointer::ioParams(enum ParamsIOFlag ioFlag, PVParams *params) {
    }
 }
 
-void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params) {
-   ioParam_verifyWrites(ioFlag, params);
-   ioParam_checkpointWrite(ioFlag, params);
-   ioParam_checkpointWriteDir(ioFlag, params);
-   ioParam_checkpointWriteTriggerMode(ioFlag, params);
-   ioParam_checkpointWriteStepInterval(ioFlag, params);
-   ioParam_checkpointWriteTimeInterval(ioFlag, params);
-   ioParam_checkpointWriteClockInterval(ioFlag, params);
-   ioParam_checkpointWriteClockUnit(ioFlag, params);
-   ioParam_checkpointIndexWidth(ioFlag, params);
-   ioParam_suppressNonplasticCheckpoints(ioFlag, params);
-   ioParam_deleteOlderCheckpoints(ioFlag, params);
-   ioParam_numCheckpointsKept(ioFlag, params);
-   ioParam_lastCheckpointDir(ioFlag, params);
-   ioParam_initializeFromCheckpointDir(ioFlag, params);
+void Checkpointer::ioParamsFillGroup(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   ioParam_verifyWrites(ioSwitch, paramsIO);
+   ioParam_checkpointWrite(ioSwitch, paramsIO);
+   ioParam_checkpointWriteDir(ioSwitch, paramsIO);
+   ioParam_suppressNonplasticCheckpoints(ioSwitch, paramsIO);
+   ioParam_checkpointWriteTriggerMode(ioSwitch, paramsIO);
+   ioParam_checkpointWriteStepInterval(ioSwitch, paramsIO);
+   ioParam_checkpointWriteTimeInterval(ioSwitch, paramsIO);
+   ioParam_checkpointWriteClockInterval(ioSwitch, paramsIO);
+   ioParam_checkpointWriteClockUnit(ioSwitch, paramsIO);
+   ioParam_checkpointIndexWidth(ioSwitch, paramsIO);
+   ioParam_deleteOlderCheckpoints(ioSwitch, paramsIO);
+   ioParam_numCheckpointsKept(ioSwitch, paramsIO);
+   ioParam_lastCheckpointDir(ioSwitch, paramsIO);
+   ioParam_initializeFromCheckpointDir(ioSwitch, paramsIO);
 }
 
-void Checkpointer::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params) {
-   params->ioParamValue(ioFlag, mName.c_str(), "verifyWrites", &mVerifyWrites, mVerifyWrites);
+void Checkpointer::ioParam_verifyWrites(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   paramsIO.ioParam(ioSwitch, std::string("verifyWrites"), &mVerifyWritesFlag);
 }
 
-void Checkpointer::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params) {
-   params->ioParamValue(
-         ioFlag, mName.c_str(), "checkpointWrite", &mCheckpointWriteFlag, mCheckpointWriteFlag);
+void Checkpointer::ioParam_checkpointWrite(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   paramsIO.ioParam(ioSwitch, std::string("checkpointWrite"), &mCheckpointWriteFlag);
 }
 
-void Checkpointer::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params) {
-   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_checkpointWriteDir(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      params->ioParamStringRequired(
-            ioFlag, mName.c_str(), "checkpointWriteDir", &mCheckpointWriteDir);
-      if (ioFlag == PARAMS_IO_READ) {
-         ensureDirExists(mMPIBlock, mCheckpointWriteDir);
+      paramsIO.ioParam(ioSwitch, std::string("checkpointWriteDir"), &mCheckpointWriteDir);
+      if (ioSwitch == ParamsIOSwitch::Read) {
+         ensureDirExists(mMPIBlock, mCheckpointWriteDir.c_str());
       }
    }
 }
 
-void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params) {
-   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_checkpointWriteTriggerMode(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      params->ioParamString(
-            ioFlag,
-            mName.c_str(),
-            "checkpointWriteTriggerMode",
-            &mCheckpointWriteTriggerModeString,
-            "step");
-      if (ioFlag == PARAMS_IO_READ) {
-         pvAssert(mCheckpointWriteTriggerModeString);
-         if (!strcmp(mCheckpointWriteTriggerModeString, "step")
-             || !strcmp(mCheckpointWriteTriggerModeString, "Step")
-             || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
+      pvAssert(!paramsIO.presentAndNotBeenRead("suppressNonplasticCheckpoints"));
+      // Below, we call registerCheckpointData(), which uses suppressNonplasticCheckpoints.
+      // Perhaps the registerCheckpoinData calls could be moved to a later stage.
+      paramsIO.ioParam(ioSwitch, "checkpointWriteTriggerMode", &mCheckpointWriteTriggerModeString);
+      if (ioSwitch == ParamsIOSwitch::Read) {
+         for (char &c : mCheckpointWriteTriggerModeString) {
+            c = ::tolower(c);
+         }
+         if (mCheckpointWriteTriggerModeString == "step") {
             mCheckpointWriteTriggerMode = STEP;
             registerCheckpointData(
                   mName,
@@ -147,10 +139,7 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
                   true /*broadcast*/,
                   false /*not constant entire run*/);
          }
-         else if (
-               !strcmp(mCheckpointWriteTriggerModeString, "time")
-               || !strcmp(mCheckpointWriteTriggerModeString, "Time")
-               || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
+         else if (mCheckpointWriteTriggerModeString == "time") {
             mCheckpointWriteTriggerMode = SIMTIME;
             registerCheckpointData(
                   mName,
@@ -160,10 +149,7 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
                   true /*broadcast*/,
                   false /*not constant entire run*/);
          }
-         else if (
-               !strcmp(mCheckpointWriteTriggerModeString, "clock")
-               || !strcmp(mCheckpointWriteTriggerModeString, "Clock")
-               || !strcmp(mCheckpointWriteTriggerModeString, "CLOCK")) {
+         else if (mCheckpointWriteTriggerModeString == "clock") {
             mCheckpointWriteTriggerMode = WALLCLOCK;
          }
          else {
@@ -172,168 +158,126 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
                           << mCheckpointWriteTriggerModeString << "\" is not recognized.\n";
             }
             MPI_Barrier(mMPIBlock->getComm());
-            exit(EXIT_FAILURE);
+            std::exit(EXIT_FAILURE);
          }
       }
    }
 }
 
-void Checkpointer::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params) {
-   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_checkpointWriteStepInterval(
+      ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWriteTriggerMode"));
       if (mCheckpointWriteTriggerMode == STEP) {
-         params->ioParamValue(
-               ioFlag,
-               mName.c_str(),
-               "checkpointWriteStepInterval",
-               &mCheckpointWriteStepInterval,
-               mCheckpointWriteStepInterval);
+         paramsIO.ioParam(ioSwitch, "checkpointWriteStepInterval", &mCheckpointWriteStepInterval);
       }
    }
 }
 
-void Checkpointer::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params) {
-   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_checkpointWriteTimeInterval(
+      ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWriteTriggerMode"));
       if (mCheckpointWriteTriggerMode == SIMTIME) {
-         params->ioParamValue(
-               ioFlag,
-               mName.c_str(),
-               "checkpointWriteTimeInterval",
-               &mCheckpointWriteSimtimeInterval,
-               mCheckpointWriteSimtimeInterval);
+         paramsIO.ioParam(
+               ioSwitch, "checkpointWriteTimeInterval", &mCheckpointWriteSimtimeInterval);
       }
    }
 }
 
 void Checkpointer::ioParam_checkpointWriteClockInterval(
-      enum ParamsIOFlag ioFlag,
-      PVParams *params) {
-   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+      ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   assert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWriteTriggerMode"));
       if (mCheckpointWriteTriggerMode == WALLCLOCK) {
-         params->ioParamValueRequired(
-               ioFlag,
-               mName.c_str(),
-               "checkpointWriteClockInterval",
-               &mCheckpointWriteWallclockInterval);
+         paramsIO.ioParam(ioSwitch, "checkpointWriteClockInterval", &mCheckpointWriteClockInterval);
       }
    }
 }
 
-void Checkpointer::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params) {
-   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_checkpointWriteClockUnit(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWriteTriggerMode"));
       if (mCheckpointWriteTriggerMode == WALLCLOCK) {
-         assert(!params->presentAndNotBeenRead(
-               mName.c_str(), "checkpointWriteTriggerClockInterval"));
-         params->ioParamString(
-               ioFlag,
-               mName.c_str(),
-               "checkpointWriteClockUnit",
-               &mCheckpointWriteWallclockUnit,
-               "seconds");
-         if (ioFlag == PARAMS_IO_READ) {
-            pvAssert(mCheckpointWriteWallclockUnit);
-            for (size_t n = 0; n < strlen(mCheckpointWriteWallclockUnit); n++) {
-               mCheckpointWriteWallclockUnit[n] = tolower(mCheckpointWriteWallclockUnit[n]);
+         assert(!paramsIO.presentAndNotBeenRead("checkpointWriteTriggerClockInterval"));
+         paramsIO.ioParam(ioSwitch, "checkpointWriteClockUnit", &mCheckpointWriteClockUnit);
+         if (ioSwitch == ParamsIOSwitch::Read) {
+            for (char &c : mCheckpointWriteClockUnit) {
+               c = ::tolower(c);
             }
-            if (!strcmp(mCheckpointWriteWallclockUnit, "second")
-                || !strcmp(mCheckpointWriteWallclockUnit, "seconds")
-                || !strcmp(mCheckpointWriteWallclockUnit, "sec")
-                || !strcmp(mCheckpointWriteWallclockUnit, "s")) {
-               free(mCheckpointWriteWallclockUnit);
-               mCheckpointWriteWallclockUnit            = strdup("seconds");
-               mCheckpointWriteWallclockIntervalSeconds = mCheckpointWriteWallclockInterval;
+            if (mCheckpointWriteClockUnit == "second" or
+                mCheckpointWriteClockUnit == "seconds" or
+                mCheckpointWriteClockUnit == "sec" or
+                mCheckpointWriteClockUnit == "s") {
+               mCheckpointWriteClockUnit                = "seconds";
+               mCheckpointWriteClockIntervalSeconds = mCheckpointWriteClockInterval;
             }
             else if (
-                  !strcmp(mCheckpointWriteWallclockUnit, "minute")
-                  || !strcmp(mCheckpointWriteWallclockUnit, "minutes")
-                  || !strcmp(mCheckpointWriteWallclockUnit, "min")
-                  || !strcmp(mCheckpointWriteWallclockUnit, "m")) {
-               free(mCheckpointWriteWallclockUnit);
-               mCheckpointWriteWallclockUnit = strdup("minutes");
-               mCheckpointWriteWallclockIntervalSeconds =
-                     mCheckpointWriteWallclockInterval * (time_t)60;
+                  mCheckpointWriteClockUnit == "minute" or
+                  mCheckpointWriteClockUnit == "minutes" or
+                  mCheckpointWriteClockUnit == "min" or
+                  mCheckpointWriteClockUnit == "m") {
+               mCheckpointWriteClockUnit = "minutes";
+               mCheckpointWriteClockIntervalSeconds =
+                     mCheckpointWriteClockInterval * (time_t)60;
             }
             else if (
-                  !strcmp(mCheckpointWriteWallclockUnit, "hour")
-                  || !strcmp(mCheckpointWriteWallclockUnit, "hours")
-                  || !strcmp(mCheckpointWriteWallclockUnit, "hr")
-                  || !strcmp(mCheckpointWriteWallclockUnit, "h")) {
-               free(mCheckpointWriteWallclockUnit);
-               mCheckpointWriteWallclockUnit = strdup("hours");
-               mCheckpointWriteWallclockIntervalSeconds =
-                     mCheckpointWriteWallclockInterval * (time_t)3600;
+                  mCheckpointWriteClockUnit == "hour" or
+                  mCheckpointWriteClockUnit == "hours" or
+                  mCheckpointWriteClockUnit == "hr" or
+                  mCheckpointWriteClockUnit == "h") {
+               mCheckpointWriteClockUnit = "hours";
+               mCheckpointWriteClockIntervalSeconds =
+                     mCheckpointWriteClockInterval * (time_t)3600;
             }
             else if (
-                  !strcmp(mCheckpointWriteWallclockUnit, "day")
-                  || !strcmp(mCheckpointWriteWallclockUnit, "days")) {
-               free(mCheckpointWriteWallclockUnit);
-               mCheckpointWriteWallclockUnit = strdup("days");
-               mCheckpointWriteWallclockIntervalSeconds =
-                     mCheckpointWriteWallclockInterval * (time_t)86400;
+                  mCheckpointWriteClockUnit == "day" or
+                  mCheckpointWriteClockUnit == "days") {
+               mCheckpointWriteClockUnit = "days";
+               mCheckpointWriteClockIntervalSeconds =
+                     mCheckpointWriteClockInterval * (time_t)86400;
             }
             else {
                if (mMPIBlock->getRank() == 0) {
                   ErrorLog().printf(
-                        "checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", "
+                        "checkpointWriteClockUnit \"%s\" is unrecognized. Use \"seconds\", "
                         "\"minutes\", \"hours\", or \"days\".\n",
-                        mCheckpointWriteWallclockUnit);
+                        mCheckpointWriteClockUnit.c_str());
                }
                MPI_Barrier(mMPIBlock->getComm());
-               exit(EXIT_FAILURE);
+               std::exit(EXIT_FAILURE);
             }
-            FatalIf(
-                  mCheckpointWriteWallclockUnit == nullptr,
-                  "Error in global rank %d process converting checkpointWriteClockUnit: %s\n",
-                  mMPIBlock->getRank(),
-                  strerror(errno));
          }
       }
    }
 }
 
-void Checkpointer::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params) {
-   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_deleteOlderCheckpoints(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   assert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      params->ioParamValue(
-            ioFlag,
-            mName.c_str(),
-            "deleteOlderCheckpoints",
-            &mDeleteOlderCheckpoints,
-            false /*default value*/);
+      paramsIO.ioParam(ioSwitch, "deleteOlderCheckpoints", &mDeleteOlderCheckpoints);
    }
 }
 
-void Checkpointer::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params) {
-   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_numCheckpointsKept(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   pvAssert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "deleteOlderCheckpoints"));
+      pvAssert(!paramsIO.presentAndNotBeenRead("deleteOlderCheckpoints"));
       if (mDeleteOlderCheckpoints) {
-         params->ioParamValue(ioFlag, mName.c_str(), "numCheckpointsKept", &mNumCheckpointsKept, 1);
-         if (ioFlag == PARAMS_IO_READ && mNumCheckpointsKept <= 0) {
-            if (mMPIBlock->getRank() == 0) {
-               ErrorLog() << "HyPerCol \"" << mName
-                          << "\": numCheckpointsKept must be positive (value was "
-                          << mNumCheckpointsKept << ")\n";
-            }
-            MPI_Barrier(mMPIBlock->getComm());
-            exit(EXIT_FAILURE);
-         }
-         if (ioFlag == PARAMS_IO_READ) {
-            if (mNumCheckpointsKept < 0) {
+         paramsIO.ioParam(ioSwitch, "numCheckpointsKept", &mNumCheckpointsKept);
+         if (ioSwitch == ParamsIOSwitch::Read) {
+            if (mNumCheckpointsKept <= 0) {
                if (mMPIBlock->getRank() == 0) {
                   ErrorLog() << "HyPerCol \"" << mName
                              << "\": numCheckpointsKept must be positive (value was "
                              << mNumCheckpointsKept << ")\n";
                }
                MPI_Barrier(mMPIBlock->getComm());
-               exit(EXIT_FAILURE);
+               std::exit(EXIT_FAILURE);
             }
             if (mOldCheckpointDirectories.size() != 0) {
                WarnLog() << "ioParamsFillGroup called after list of old checkpoint directories was "
@@ -346,58 +290,37 @@ void Checkpointer::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams
    }
 }
 
-void Checkpointer::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params) {
-   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_checkpointIndexWidth(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   assert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      params->ioParamValue(
-            ioFlag,
-            mName.c_str(),
-            "checkpointIndexWidth",
-            &mCheckpointIndexWidth,
-            mCheckpointIndexWidth);
+      paramsIO.ioParam(ioSwitch, "checkpointIndexWidth", &mCheckpointIndexWidth);
    }
 }
 
 void Checkpointer::ioParam_suppressNonplasticCheckpoints(
-      enum ParamsIOFlag ioFlag,
-      PVParams *params) {
-   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      params->ioParamValue(
-            ioFlag,
-            mName.c_str(),
-            "suppressNonplasticCheckpoints",
-            &mSuppressNonplasticCheckpoints,
-            mSuppressNonplasticCheckpoints);
-   }
+      ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   paramsIO.ioParam(ioSwitch, "suppressNonplasticCheckpoints", &mSuppressNonplasticCheckpoints);
 }
 
-void Checkpointer::ioParam_lastCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params) {
-   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+void Checkpointer::ioParam_lastCheckpointDir(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   assert(!paramsIO.presentAndNotBeenRead("checkpointWrite"));
    if (!mCheckpointWriteFlag) {
-      params->ioParamStringRequired(
-            ioFlag, mName.c_str(), "lastCheckpointDir", &mLastCheckpointDir);
+      paramsIO.ioParam(ioSwitch, "lastCheckpointDir", &mLastCheckpointDir);
    }
 }
 
-void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params) {
-   params->ioParamString(
-         ioFlag,
-         mName.c_str(),
-         "initializeFromCheckpointDir",
-         &mInitializeFromCheckpointDir,
-         "",
-         true);
-   if (ioFlag == PARAMS_IO_READ and mInitializeFromCheckpointDir != nullptr
-       and mInitializeFromCheckpointDir[0] != '\0') {
-      verifyCheckpointDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
+void Checkpointer::ioParam_initializeFromCheckpointDir(ParamsIOSwitch ioSwitch, ParamsIO &paramsIO) {
+   paramsIO.ioParam(ioSwitch, "initializeFromCheckpointDir", &mInitializeFromCheckpointDir);
+   if (ioSwitch == ParamsIOSwitch::Read and !mInitializeFromCheckpointDir.empty()) {
+      verifyCheckpointDirectory(
+            mInitializeFromCheckpointDir.c_str(), "InitializeFromCheckpointDir.\n");
       mInitializeFromCheckpointFileManager =
             std::make_shared<FileManager>(getMPIBlock(), mInitializeFromCheckpointDir);
    }
 }
 
 void Checkpointer::provideFinalStep(long int finalStep) {
-   if (mCheckpointIndexWidth < 0) {
+   if (mCheckpointWriteFlag and mCheckpointIndexWidth < 0) {
       mWidthOfFinalStepNumber = (int)std::floor(std::log10((float)finalStep)) + 1;
    }
 }
@@ -454,8 +377,8 @@ void Checkpointer::findWarmStartDirectory() {
    if (mMPIBlock->getRank() == 0) {
       if (mCheckpointWriteFlag) {
          // Look for largest indexed Checkpointnnnnnn directory in checkpointWriteDir
-         pvAssert(mCheckpointWriteDir);
-         std::string cpDirString = mCheckpointWriteDir;
+         pvAssert(!mCheckpointWriteDir.empty());
+         std::string cpDirString(mCheckpointWriteDir);
          if (cpDirString.c_str()[cpDirString.length() - 1] != '/') {
             cpDirString += "/";
          }
@@ -463,7 +386,7 @@ void Checkpointer::findWarmStartDirectory() {
          int statstatus = PV_stat(cpDirString.c_str(), &statbuf);
          if (statstatus == 0) {
             if (statbuf.st_mode & S_IFDIR) {
-               char *dirs[]              = {mCheckpointWriteDir, nullptr};
+               char *dirs[]              = {&cpDirString.at(0), nullptr};
                FTS *fts                  = fts_open(dirs, FTS_LOGICAL, nullptr);
                FTSENT *ftsent            = fts_read(fts);
                bool found                = false;
@@ -488,19 +411,19 @@ void Checkpointer::findWarmStartDirectory() {
                      "restarting but checkpointWriteFlag is set and "
                      "checkpointWriteDir directory \"%s\" does not have any "
                      "checkpoints\n",
-                     mCheckpointWriteDir);
+                     mCheckpointWriteDir.c_str());
                mCheckpointReadDirectory = latestCheckpoint;
             }
             else {
                Fatal().printf(
                      "restart flag was set but checkpointWriteDir \"%s\" is not a directory.\n",
-                     mCheckpointWriteDir);
+                     mCheckpointWriteDir.c_str());
             }
          }
          else if (errno == ENOENT) {
             Fatal().printf(
                   "restart flag was set but checkpointWriteDir directory \"%s\" does not exist.\n",
-                  mCheckpointWriteDir);
+                  mCheckpointWriteDir.c_str());
          }
          else {
             Fatal().printf(
@@ -509,20 +432,18 @@ void Checkpointer::findWarmStartDirectory() {
          }
       }
       else {
-         pvAssert(mLastCheckpointDir);
          FatalIf(
-               mLastCheckpointDir[0] == '\0',
+               mLastCheckpointDir.empty(),
                "Restart flag set, but unable to determine restart directory.\n");
          FatalIf(
-               !isCompleteCheckpoint(std::string(mLastCheckpointDir)),
+               !isCompleteCheckpoint(mLastCheckpointDir),
                "Restart flag set but \"%s\" does not appear to be a complete checkpoint\n",
-               mLastCheckpointDir);
-         mCheckpointReadDirectory = strdup(mLastCheckpointDir);
+               mLastCheckpointDir.c_str());
+         mCheckpointReadDirectory = mLastCheckpointDir;
       }
       FatalIf(
             mCheckpointReadDirectory.size() >= PV_PATH_MAX,
-            "Restart flag set, but inferred checkpoint read directory is too long (%zu "
-            "bytes).\n",
+            "Restart flag set, but inferred checkpoint read directory is too long (%zu bytes).\n",
             mCheckpointReadDirectory.size());
       memcpy(
             warmStartDirectoryBuffer,
@@ -572,7 +493,7 @@ bool Checkpointer::isCompleteCheckpoint(std::string const &candidateCheckpoint) 
 }
 
 void Checkpointer::readStateFromCheckpoint() {
-   if (getInitializeFromCheckpointDir() and getInitializeFromCheckpointDir()[0]) {
+   if (!getInitializeFromCheckpointDir().empty()) {
       notify(
             std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(this),
             mMPIBlock->getRank() == 0 /*printFlag*/);
@@ -744,7 +665,7 @@ bool Checkpointer::scheduledWallclock() {
       throw;
    }
    double elapsed = std::difftime(currentTime, mLastCheckpointWallclock);
-   if (elapsed >= mCheckpointWriteWallclockInterval) {
+   if (elapsed >= mCheckpointWriteClockInterval) {
       isScheduled              = true;
       mLastCheckpointWallclock = currentTime;
    }
@@ -834,7 +755,7 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
          std::make_shared<PrepareCheckpointWriteMessage const>(mTimeInfo.mSimTime),
          mMPIBlock->getRank() == 0 /*printFlag*/);
    for (auto &c : mCheckpointRegistry) {
-      c->write(fileManager, mTimeInfo.mSimTime, mVerifyWrites);
+      c->write(fileManager, mTimeInfo.mSimTime, mVerifyWritesFlag);
    }
    mCheckpointTimer->stop();
    mCheckpointTimer->start();
@@ -842,7 +763,7 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
 
    // mTimeInfoCheckpointEntry should be the last thing that gets written to the checkpoint,
    // since its presence is used by isCompleteCheckpoint to confirm that a checkpoint is complete.
-   mTimeInfoCheckpointEntry->write(fileManager, mTimeInfo.mSimTime, mVerifyWrites);
+   mTimeInfoCheckpointEntry->write(fileManager, mTimeInfo.mSimTime, mVerifyWritesFlag);
    mCheckpointTimer->stop();
    if (mMPIBlock->getRank() == 0) {
       InfoLog().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
@@ -855,8 +776,8 @@ void Checkpointer::finalCheckpoint(double simTime) {
    if (mCheckpointWriteFlag) {
       checkpointNow();
    }
-   else if (mLastCheckpointDir != nullptr && mLastCheckpointDir[0] != '\0') {
-      checkpointToDirectory(std::string(mLastCheckpointDir));
+   else if (!mLastCheckpointDir.empty()) {
+      checkpointToDirectory(mLastCheckpointDir);
    }
 }
 
@@ -930,7 +851,7 @@ void Checkpointer::verifyCheckpointDirectory(
 void Checkpointer::writeTimers(std::shared_ptr<FileManager const> fileManager) {
    if (fileManager->isRoot()) {
       std::string timersfilename("timers.txt");
-      auto timerstream = fileManager->open(timersfilename, std::ios_base::out, mVerifyWrites);
+      auto timerstream = fileManager->open(timersfilename, std::ios_base::out, mVerifyWritesFlag);
       writeTimers(timerstream);
    }
 }

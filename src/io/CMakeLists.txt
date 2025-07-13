@@ -14,7 +14,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LayerIO.cpp
    ${SUBDIR}/LocalPatchWeightsFile.cpp
    ${SUBDIR}/LocalPatchWeightsIO.cpp
-   ${SUBDIR}/PVParams.cpp
    ${SUBDIR}/PVPFrameIndexer.cpp
    ${SUBDIR}/randomstateio.cpp
    ${SUBDIR}/SharedWeightsFile.cpp
@@ -42,7 +41,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LocalPatchWeightsFile.hpp
    ${SUBDIR}/LocalPatchWeightsIO.hpp
    ${SUBDIR}/PrintStream.hpp
-   ${SUBDIR}/PVParams.hpp
    ${SUBDIR}/PVPFrameIndexer.hpp
    ${SUBDIR}/randomstateio.hpp
    ${SUBDIR}/SharedWeightsFile.hpp

@@ -278,9 +278,8 @@ int testioparams(PV_Init *initObj, int rank) {
    if (status != PV_SUCCESS) {
       Fatal().printf("testioparams: run to generate pv.params file failed.\n");
    }
-   const char *paramsfile       = hc->getPrintParamsFilename();
-   std::string paramsfileString = paramsfile;
-   if (paramsfile[0] != '/') {
+   std::string paramsfileString = hc->getPrintParamsFilename();
+   if (paramsfileString[0] != '/') {
       const char *outputPath = hc->getOutputPath();
       paramsfileString.insert(0, "/");
       paramsfileString.insert(0, outputPath);

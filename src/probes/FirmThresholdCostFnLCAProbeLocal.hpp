@@ -1,7 +1,6 @@
 #ifndef FIRMTHRESHOLDCOSTFNLCAPROBELOCAL_HPP_
 #define FIRMTHRESHOLDCOSTFNLCAPROBELOCAL_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/CostFunctionSum.hpp"
 #include "probes/CostFunctions.hpp"
 #include "probes/FirmThresholdCostFnProbeLocal.hpp"
@@ -12,18 +11,18 @@ namespace PV {
 
 class FirmThresholdCostFnLCAProbeLocal : public FirmThresholdCostFnProbeLocal {
   protected:
-   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_VThresh(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_VWidth(ParamsIOSwitch ioSwitch) override;
 
   public:
-   FirmThresholdCostFnLCAProbeLocal(char const *objName, PVParams *params);
+   FirmThresholdCostFnLCAProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~FirmThresholdCostFnLCAProbeLocal() {}
 
    void setFirmThresholdParams(double VThresh, double VWidth);
 
   protected:
    FirmThresholdCostFnLCAProbeLocal() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    void warnUnnecessaryParameter(char const *paramName);
 };
 

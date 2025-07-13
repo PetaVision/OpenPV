@@ -12,28 +12,33 @@
 
 namespace PV {
 
-SegmentBuffer::SegmentBuffer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+SegmentBuffer::SegmentBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 SegmentBuffer::SegmentBuffer() {}
 
-void SegmentBuffer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+void SegmentBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
-int SegmentBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_segmentMethod(ioFlag);
+int SegmentBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_segmentMethod(ioSwitch);
    return status;
 }
 
-void SegmentBuffer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "segmentMethod", &segmentMethod);
-   pvAssert(segmentMethod);
+void SegmentBuffer::ioParam_segmentMethod(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "segmentMethod", &segmentMethod);
    // Check valid segment methods
    // none means the gsyn is already a segmentation. Helpful if reading segmentation from pvp
-   if (strcmp(segmentMethod, "none") == 0) {
+   if (segmentMethod == "none") {
    }
    // TODO add in other segmentation methods
    // How do we segment across MPI margins?
@@ -42,10 +47,10 @@ void SegmentBuffer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
          ErrorLog().printf(
                "%s: segmentMethod %s not recognized. Current options are \"none\".\n",
                getDescription_c(),
-               segmentMethod);
+               segmentMethod.c_str());
       }
       MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 }
 
@@ -70,7 +75,7 @@ SegmentBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 
 void SegmentBuffer::setOriginalActivity(ObserverTable const *table) {
    auto *originalLayerNameParam  = table->findObject<OriginalLayerNameParam>(getName());
-   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+   std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
    // Sync margins
    auto *origGeometry = table->findObject<LayerGeometry>(originalLayerName);
@@ -99,7 +104,7 @@ void SegmentBuffer::checkDimensions() {
    }
 
    // If segmentMethod is none, we also need to make sure the srcLayer also has nf == 1
-   if (strcmp(segmentMethod, "none") == 0 && mOriginalActivity->getLayerLoc()->nf != 1) {
+   if (segmentMethod == "none" and mOriginalActivity->getLayerLoc()->nf != 1) {
       if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: Source layer must have 1 feature with segmentation method \"none\".\n",
@@ -203,7 +208,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
    const PVLayerLoc *loc = getLayerLoc();
 
    // Segment input layer based on segmentMethod
-   if (strcmp(segmentMethod, "none") == 0) {
+   if (segmentMethod == "none") {
       int numBatchExtended = getBufferSizeAcrossBatch();
       // Copy activity over
       // Since both buffers should be identical size, we can do a memcpy here

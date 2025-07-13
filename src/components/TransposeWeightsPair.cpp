@@ -13,10 +13,10 @@
 namespace PV {
 
 TransposeWeightsPair::TransposeWeightsPair(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 TransposeWeightsPair::~TransposeWeightsPair() {
@@ -25,23 +25,23 @@ TransposeWeightsPair::~TransposeWeightsPair() {
 }
 
 void TransposeWeightsPair::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   WeightsPair::initialize(name, params, comm);
+   WeightsPair::initialize(params, defaults, comm);
 }
 
 void TransposeWeightsPair::setObjectType() { mObjectType = "TransposeWeightsPair"; }
 
-int TransposeWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = WeightsPair::ioParamsFillGroup(ioFlag);
+int TransposeWeightsPair::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = WeightsPair::ioParamsFillGroup(ioSwitch);
    return status;
 }
 
-void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       mWriteCompressedCheckpoints = false;
-      parameters()->handleUnnecessaryParameter(getName(), "writeCompressedCheckpoints");
+      mParamsIO->handleUnnecessaryParameter("writeCompressedCheckpoints");
    }
    // TransposeWeightsPair never checkpoints, so we always set writeCompressedCheckpoints to false.
 }
@@ -65,7 +65,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       }
       return Response::POSTPONE;
    }
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
 
    if (mOriginalWeightsPair == nullptr) {
       mOriginalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
@@ -73,7 +73,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
             mOriginalWeightsPair == nullptr,
             "%s could not find a WeightsPair in \"%s\".\n",
             getDescription_c(),
-            originalConnName);
+            originalConnName.c_str());
       status = status + Response::SUCCESS;
    }
 
@@ -82,7 +82,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
          originalConnData == nullptr,
          "%s could not find a ConnectionData component in \"%s\".\n",
          getDescription_c(),
-         originalConnName);
+         originalConnName.c_str());
    if (!originalConnData->getInitInfoCommunicatedFlag()) {
       return status + Response::POSTPONE;
    }

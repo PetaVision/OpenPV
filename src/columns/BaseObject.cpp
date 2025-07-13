@@ -21,9 +21,12 @@ BaseObject::BaseObject() {
    // constructor.
 }
 
-void BaseObject::initialize(const char *name, PVParams *params, Communicator const *comm) {
+void BaseObject::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    setCommunicator(comm);
-   ParamsInterface::initialize(name, params);
+   ParamsInterface::initialize(params, defaults);
 }
 
 void BaseObject::setCommunicator(Communicator const *comm) {

@@ -3,7 +3,7 @@
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <observerpattern/ObserverTable.hpp>
 #include <probes/ColumnEnergyProbe.hpp>
 #include <probes/L2NormProbe.hpp>

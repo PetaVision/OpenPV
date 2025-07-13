@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
    if (initObj.getParams() == NULL) {
       initObj.setParams("input/ShrunkenPatchTest.params");
    }
+   initObj.registerDefaults("input/DefaultParams.txt");
    status = rebuildandrun(&initObj) == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

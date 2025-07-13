@@ -24,7 +24,7 @@ class InitVFromFile : public BaseInitV {
     * @brief VFilename: The path to the file with the initial values.
     * Relative paths are relative to the working directory.
     */
-   virtual void ioParam_Vfilename(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vfilename(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief frameNumber: selects which frame of the pvp file to use.
@@ -35,17 +35,23 @@ class InitVFromFile : public BaseInitV {
     * batch element 1 loads frameNumber + 1, etc. If the number of frames in
     * the file is exhausted, the file wraps around to the beginning.
     */
-   virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_frameNumber(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   InitVFromFile(char const *name, PVParams *params, Communicator const *comm);
+   InitVFromFile(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitVFromFile();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    InitVFromFile();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -78,7 +84,7 @@ class InitVFromFile : public BaseInitV {
    int initialize_base();
 
   private:
-   char *mVfilename = nullptr;
+   std::string mVfilename;
    int mFrameNumber = 0;
    bool mBroadcastFlag = false;
 }; // end class InitVFromFile

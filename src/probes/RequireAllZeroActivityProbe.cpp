@@ -8,7 +8,6 @@
 #include "RequireAllZeroActivityProbe.hpp"
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
 #include "probes/ActivityBufferStatsProbeLocal.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/StatsProbeTypes.hpp"
@@ -19,10 +18,10 @@
 namespace PV {
 
 RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 RequireAllZeroActivityProbe::RequireAllZeroActivityProbe() {}
@@ -55,31 +54,33 @@ Response::Status RequireAllZeroActivityProbe::cleanup() {
 }
 
 void RequireAllZeroActivityProbe::createComponents(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::createComponents(name, params, comm);
-   createProbeCheckStats(name, params);
+   StatsProbeImmediate::createComponents(params, defaults, comm);
+   createProbeCheckStats(params, defaults);
 }
 
-void RequireAllZeroActivityProbe::createProbeCheckStats(char const *name, PVParams *params) {
-   mCheckStats = std::make_shared<CheckStatsAllZeros>(name, params);
+void RequireAllZeroActivityProbe::createProbeCheckStats(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mCheckStats = std::make_shared<CheckStatsAllZeros>(params, defaults);
 }
 
-void RequireAllZeroActivityProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void RequireAllZeroActivityProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
 void RequireAllZeroActivityProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
-int RequireAllZeroActivityProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   mCheckStats->ioParamsFillGroup(ioFlag);
+int RequireAllZeroActivityProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   mCheckStats->ioParamsFillGroup(ioSwitch, mParamsIO);
    return status;
 }
 

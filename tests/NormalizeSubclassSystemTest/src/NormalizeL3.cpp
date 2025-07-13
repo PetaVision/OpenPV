@@ -7,30 +7,30 @@
 
 namespace PV {
 
-NormalizeL3::NormalizeL3(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+NormalizeL3::NormalizeL3(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 NormalizeL3::NormalizeL3() {}
 
-void NormalizeL3::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   NormalizeMultiply::initialize(name, params, comm);
+void NormalizeL3::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   NormalizeMultiply::initialize(params, defaults, comm);
 }
 
-int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
-   ioParam_minL3NormTolerated(ioFlag);
+int NormalizeL3::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = NormalizeMultiply::ioParamsFillGroup(ioSwitch);
+   ioParam_minL3NormTolerated(ioSwitch);
    return status;
 }
 
-void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "minL3NormTolerated",
-         &minL3NormTolerated,
-         minL3NormTolerated,
-         true /*warnIfAbsent*/);
+void NormalizeL3::ioParam_minL3NormTolerated(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "minL3NormTolerated", &minL3NormTolerated, true /*warnIfAbsentFlag*/);
 }
 int NormalizeL3::normalizeWeights() {
    int status = PV_SUCCESS;

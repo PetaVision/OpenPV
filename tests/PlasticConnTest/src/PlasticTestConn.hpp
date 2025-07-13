@@ -14,7 +14,10 @@ namespace PV {
 
 class PlasticTestConn : public HyPerConn {
   public:
-   PlasticTestConn(const char *name, PVParams *params, Communicator const *comm);
+   PlasticTestConn(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~PlasticTestConn();
 
   protected:

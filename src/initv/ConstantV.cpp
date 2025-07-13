@@ -12,27 +12,33 @@ namespace PV {
 
 ConstantV::ConstantV() { initialize_base(); }
 
-ConstantV::ConstantV(char const *name, PVParams *params, Communicator const *comm) {
+ConstantV::ConstantV(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ConstantV::~ConstantV() {}
 
 int ConstantV::initialize_base() { return PV_SUCCESS; }
 
-void ConstantV::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseInitV::initialize(name, params, comm);
+void ConstantV::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseInitV::initialize(params, defaults, comm);
 }
 
-int ConstantV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseInitV::ioParamsFillGroup(ioFlag);
-   ioParam_valueV(ioFlag);
+int ConstantV::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseInitV::ioParamsFillGroup(ioSwitch);
+   ioParam_valueV(ioSwitch);
    return status;
 }
 
-void ConstantV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "valueV", &mValueV, (float)V_REST);
+void ConstantV::ioParam_valueV(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "valueV", &mValueV);
 }
 
 void ConstantV::calcV(float *V, PVLayerLoc const *loc) {

@@ -10,18 +10,21 @@
 namespace PV {
 
 TransposePatchSize::TransposePatchSize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 TransposePatchSize::TransposePatchSize() {}
 
 TransposePatchSize::~TransposePatchSize() {}
 
-void TransposePatchSize::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   PatchSize::initialize(name, params, comm);
+void TransposePatchSize::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   PatchSize::initialize(params, defaults, comm);
 }
 
 void TransposePatchSize::setObjectType() { mObjectType = "TransposePatchSize"; }
@@ -33,7 +36,7 @@ void TransposePatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
    PVLayerLoc const *originalPreLoc  = originalConnectionData->getPre()->getLayerLoc();
    PVLayerLoc const *originalPostLoc = originalConnectionData->getPost()->getLayerLoc();
    mPatchSizeX = calcPostPatchSize(mOriginalPatchSizeX, originalPreLoc->nx, originalPostLoc->nx);
-   parameters()->handleUnnecessaryParameter(getName(), "nxp", mNxp);
+   mParamsIO->handleUnnecessaryParameter("nxp", mNxp);
 }
 
 void TransposePatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
@@ -44,13 +47,13 @@ void TransposePatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
    PVLayerLoc const *originalPreLoc  = originalConnectionData->getPre()->getLayerLoc();
    PVLayerLoc const *originalPostLoc = originalConnectionData->getPost()->getLayerLoc();
    mPatchSizeY = calcPostPatchSize(mOriginalPatchSizeY, originalPreLoc->ny, originalPostLoc->ny);
-   parameters()->handleUnnecessaryParameter(getName(), "nyp", mNyp);
+   mParamsIO->handleUnnecessaryParameter("nyp", mNyp);
 }
 
 void TransposePatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
    mOriginalPatchSizeF = mOriginalPatchSize->getPatchSizeF();
    PatchSize::setPatchSizeF(pre, post);
-   parameters()->handleUnnecessaryParameter(getName(), "nfp", mNfp);
+   mParamsIO->handleUnnecessaryParameter("nfp", mNfp);
 }
 
 } // namespace PV

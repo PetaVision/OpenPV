@@ -23,22 +23,28 @@ class GaussianRandomV : public BaseInitV {
    /**
     * @brief meanV: The mean of the random distribution
     */
-   virtual void ioParam_meanV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_meanV(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief sigmaV: The standard deviation of the random distribution
     */
-   virtual void ioParam_sigmaV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sigmaV(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   GaussianRandomV(char const *name, PVParams *params, Communicator const *comm);
+   GaussianRandomV(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~GaussianRandomV();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    GaussianRandomV();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    int initialize_base();

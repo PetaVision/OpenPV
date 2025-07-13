@@ -1,0 +1,3 @@
+Defaults "GPUSystemTestProbe" = {
+    #include "RequireAllZeroActivityProbe";
+};

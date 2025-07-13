@@ -27,54 +27,52 @@
 
 namespace PV {
 
-InitWeights::InitWeights(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+InitWeights::InitWeights(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 InitWeights::InitWeights() {}
 
-InitWeights::~InitWeights() {
-   free(mWeightInitTypeString);
-   free(mFilename);
-}
+InitWeights::~InitWeights() {}
 
-void InitWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void InitWeights::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void InitWeights::setObjectType() {
-   char const *initType =
-         parameters()->stringValue(getName(), "weightInitType", false /*do not warn if absent*/);
-   mObjectType = initType ? initType : "Initializer for";
+   ParamsIO paramsIO(mParamsIO->getParams(), mParamsIO->getDefaults());
+   std::string initType;
+   mParamsIO->ioParam(
+         ParamsIOSwitch::Read, "weightInitType", &initType, false /*warnIfAbsentFlag*/);
+   mObjectType = initType.empty() ? "Initializer for" : initType;
 }
 
-int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_weightInitType(ioFlag);
-   ioParam_initWeightsFile(ioFlag);
-   ioParam_frameNumber(ioFlag);
+int InitWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_weightInitType(ioSwitch);
+   ioParam_initWeightsFile(ioSwitch);
+   ioParam_frameNumber(ioSwitch);
 
    return PV_SUCCESS;
 }
 
-void InitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "weightInitType", &mWeightInitTypeString);
+void InitWeights::ioParam_weightInitType(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "weightInitType", &mWeightInitTypeString);
 }
 
-void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "initWeightsFile", &mFilename, mFilename, false /*warnIfAbsent*/);
+void InitWeights::ioParam_initWeightsFile(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "initWeightsFile", &mFilename, false /*warnIfAbsentFlag*/);
 }
 
-void InitWeights::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "initWeightsFile"));
-   if (mFilename and mFilename[0]) {
-      parameters()->ioParamValue(
-            ioFlag,
-            getName(),
-            "frameNumber",
-            &mFrameNumber,
-            mFrameNumber /*default*/,
-            false /*warn if absent*/);
+void InitWeights::ioParam_frameNumber(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("initWeightsFile"));
+   if (!mFilename.empty()) {
+      mParamsIO->ioParam(ioSwitch, "frameNumber", &mFrameNumber, false /*warnIfAbsentFlag*/);
    }
 }
 
@@ -105,13 +103,13 @@ InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> messa
          mWeights == nullptr,
          "initializeState was called for %s with a null Weights object.\n",
          getDescription_c());
-   if (mFilename && mFilename[0]) {
-      readWeights(mFilename, mFrameNumber);
+   if (!mFilename.empty()) {
+      readWeights(mFilename.c_str(), mFrameNumber);
    }
    else {
       initRNGs(mWeights->getSharedWeightsFlag());
       calcWeights();
-   } // mFilename != null
+   } // !mFilename.empty()
    mWeights->setTimestamp(0.0);
    return Response::SUCCESS;
 }

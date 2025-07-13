@@ -12,14 +12,20 @@
 namespace PV {
 BackgroundLayer::BackgroundLayer() {}
 
-BackgroundLayer::BackgroundLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+BackgroundLayer::BackgroundLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 BackgroundLayer::~BackgroundLayer() {}
 
-void BackgroundLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void BackgroundLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 void BackgroundLayer::fillComponentTable() {
@@ -34,11 +40,11 @@ LayerInputBuffer *BackgroundLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *BackgroundLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<BackgroundActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 OriginalLayerNameParam *BackgroundLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

@@ -18,14 +18,20 @@ namespace PV {
  */
 class TestImageActivityComponent : public ActivityComponent {
   public:
-   TestImageActivityComponent(char const *name, PVParams *params, Communicator const *comm);
+   TestImageActivityComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~TestImageActivityComponent();
 
   protected:
    TestImageActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

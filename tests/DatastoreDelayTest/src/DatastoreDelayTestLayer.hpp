@@ -15,11 +15,17 @@ namespace PV {
 class DatastoreDelayTestLayer : public HyPerLayer {
 
   public:
-   DatastoreDelayTestLayer(const char *name, PVParams *params, Communicator const *comm);
+   DatastoreDelayTestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~DatastoreDelayTestLayer();
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual LayerInputBuffer *createLayerInput() override;
 

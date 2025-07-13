@@ -7,18 +7,24 @@
 
 namespace PV {
 
-InputLayer::InputLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+InputLayer::InputLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 InputLayer::~InputLayer() {}
 
-void InputLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void InputLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 LayerUpdateController *InputLayer::createLayerUpdateController() {
-   return new InputLayerUpdateController(getName(), parameters(), mCommunicator);
+   return new InputLayerUpdateController(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 LayerInputBuffer *InputLayer::createLayerInput() { return nullptr; }

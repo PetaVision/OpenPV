@@ -10,31 +10,31 @@
 namespace PV {
 
 TestImageActivityBuffer::TestImageActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 TestImageActivityBuffer::~TestImageActivityBuffer() {}
 
 void TestImageActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 void TestImageActivityBuffer::setObjectType() { mObjectType = "TestImageActivityBuffer"; }
 
-int TestImageActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_constantVal(ioFlag);
+int TestImageActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_constantVal(ioSwitch);
    return status;
 }
 
-void TestImageActivityBuffer::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "constantVal", &mConstantVal, mConstantVal);
+void TestImageActivityBuffer::ioParam_constantVal(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "constantVal", &mConstantVal);
 }
 
 Response::Status

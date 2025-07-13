@@ -28,18 +28,24 @@ class GapActivityBuffer : public HyPerActivityBuffer {
     * ampSpikelet: Whereever the original activity buffer is active, the GapActivityBuffer
     * adds a spikelet of this amplitude. Default = 50.
     */
-   virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ampSpikelet(ParamsIOSwitch ioSwitch);
 
    /** @} */
 
   public:
-   GapActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
+   GapActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~GapActivityBuffer();
 
   protected:
    GapActivityBuffer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

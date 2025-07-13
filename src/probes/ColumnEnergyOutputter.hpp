@@ -8,7 +8,7 @@ namespace PV {
 
 class ColumnEnergyOutputter : public BaseProbeOutputter {
   public:
-   ColumnEnergyOutputter(char const *objName, PVParams *params, Communicator const *comm);
+   ColumnEnergyOutputter(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, Communicator const *comm);
    virtual ~ColumnEnergyOutputter() {}
 
    void printColumnEnergiesBuffer(ProbeDataBuffer<double> const &storedValues);
@@ -17,7 +17,7 @@ class ColumnEnergyOutputter : public BaseProbeOutputter {
 
   protected:
    ColumnEnergyOutputter() {}
-   void initialize(char const *objName, PVParams *params, Communicator const *comm);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, Communicator const *comm);
 
    void printEnergy(
          std::shared_ptr<PrintStream> printStreamPtr,

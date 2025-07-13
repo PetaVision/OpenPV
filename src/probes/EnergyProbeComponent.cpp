@@ -4,19 +4,21 @@
 #include <cstdlib>
 
 namespace PV {
-EnergyProbeComponent::EnergyProbeComponent(char const *objName, PVParams *params) {
-   initialize(objName, params);
+EnergyProbeComponent::EnergyProbeComponent(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-EnergyProbeComponent::~EnergyProbeComponent() { free(mEnergyProbeName); }
+EnergyProbeComponent::~EnergyProbeComponent() {}
 
-void EnergyProbeComponent::initialize(char const *objName, PVParams *params) {
-   ProbeComponent::initialize(objName, params);
+void EnergyProbeComponent::initialize(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   ProbeComponent::initialize(params, defaults);
 }
 
 Response::Status EnergyProbeComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (mEnergyProbeName == nullptr or mEnergyProbe != nullptr) {
+   if (mEnergyProbeName.empty() or mEnergyProbe != nullptr) {
       return Response::NO_ACTION;
    }
 
@@ -26,26 +28,24 @@ Response::Status EnergyProbeComponent::communicateInitInfo(
          mEnergyProbe == nullptr,
          "Probe %s energyProbe \"%s\" does not exist or is not a ColumnEnergyProbe.\n",
          getName_c(),
-         mEnergyProbeName);
+         mEnergyProbeName.c_str());
    return Response::SUCCESS;
 }
 
-void EnergyProbeComponent::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
-   assert(!getParams()->presentAndNotBeenRead(getName_c(), "energyProbe"));
-   if (mEnergyProbeName and mEnergyProbeName[0]) {
-      getParams()->ioParamValue(
-            ioFlag, getName_c(), "coefficient", &mCoefficient, mCoefficient, true /*warnIfAbsent*/);
+void EnergyProbeComponent::ioParam_coefficient(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("energyProbe"));
+   if (!mEnergyProbeName.empty()) {
+      mParamsIO->ioParam(ioSwitch, "coefficient", &mCoefficient);
    }
 }
 
-void EnergyProbeComponent::ioParam_energyProbe(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamString(
-         ioFlag, getName_c(), "energyProbe", &mEnergyProbeName, NULL, false /*warnIfAbsent*/);
+void EnergyProbeComponent::ioParam_energyProbe(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "energyProbe", &mEnergyProbeName, false /*warnIfAbsentFlag*/);
 }
 
-void EnergyProbeComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_energyProbe(ioFlag);
-   ioParam_coefficient(ioFlag);
+void EnergyProbeComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_energyProbe(ioSwitch);
+   ioParam_coefficient(ioSwitch);
 }
 
 } // namespace PV

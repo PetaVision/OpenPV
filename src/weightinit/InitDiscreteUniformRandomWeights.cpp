@@ -10,10 +10,10 @@
 namespace PV {
 
 InitDiscreteUniformRandomWeights::InitDiscreteUniformRandomWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitDiscreteUniformRandomWeights::InitDiscreteUniformRandomWeights() {}
@@ -21,17 +21,17 @@ InitDiscreteUniformRandomWeights::InitDiscreteUniformRandomWeights() {}
 InitDiscreteUniformRandomWeights::~InitDiscreteUniformRandomWeights() {}
 
 void InitDiscreteUniformRandomWeights::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   InitRandomWeights::initialize(name, params, comm);
+   InitRandomWeights::initialize(params, defaults, comm);
 }
 
-int InitDiscreteUniformRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitRandomWeights::ioParamsFillGroup(ioFlag);
-   ioParam_wMin(ioFlag);
-   ioParam_wMax(ioFlag);
-   ioParam_wNumValues(ioFlag);
+int InitDiscreteUniformRandomWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitRandomWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_wMin(ioSwitch);
+   ioParam_wMax(ioSwitch);
+   ioParam_wNumValues(ioSwitch);
    FatalIf(
          mWMax < mWMin,
          "%s has wMax=%f less than wMin=%f.\n",
@@ -41,16 +41,16 @@ int InitDiscreteUniformRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag
    return status;
 }
 
-void InitDiscreteUniformRandomWeights::ioParam_wMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "wMin", &mWMin);
+void InitDiscreteUniformRandomWeights::ioParam_wMin(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "wMin", &mWMin);
 }
 
-void InitDiscreteUniformRandomWeights::ioParam_wMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "wMax", &mWMax);
+void InitDiscreteUniformRandomWeights::ioParam_wMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "wMax", &mWMax);
 }
 
-void InitDiscreteUniformRandomWeights::ioParam_wNumValues(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "numValues", &mNumValues);
+void InitDiscreteUniformRandomWeights::ioParam_wNumValues(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "numValues", &mNumValues);
    FatalIf(
          mNumValues < 2,
          "%s parameter \"numValues\" is %d, but it must be at least 2.\n",

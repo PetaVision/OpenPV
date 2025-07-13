@@ -16,16 +16,22 @@ namespace PV {
 
 class LabelErrorLayer : public ANNLayer {
   public:
-   LabelErrorLayer(const char *name, PVParams *params, Communicator const *comm);
+   LabelErrorLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~LabelErrorLayer();
 
   protected:
    LabelErrorLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status updateState(double time, double dt) override;
-   void ioParam_errScale(enum ParamsIOFlag ioFlag);
-   void ioParam_isBinary(enum ParamsIOFlag ioFlag);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void ioParam_errScale(ParamsIOSwitch ioSwitch);
+   void ioParam_isBinary(ParamsIOSwitch ioSwitch);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   private:
    int initialize_base();

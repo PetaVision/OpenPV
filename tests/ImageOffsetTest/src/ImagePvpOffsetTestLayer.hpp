@@ -6,13 +6,19 @@
 namespace PV {
 class ImagePvpOffsetTestLayer : public PvpLayer {
   public:
-   ImagePvpOffsetTestLayer(char const *name, PVParams *params, Communicator const *comm);
+   ImagePvpOffsetTestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ImagePvpOffsetTestLayer();
 
   protected:
    ImagePvpOffsetTestLayer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 

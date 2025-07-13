@@ -12,26 +12,31 @@ namespace PV {
 
 NormalizeL2::NormalizeL2() { initialize_base(); }
 
-NormalizeL2::NormalizeL2(const char *name, PVParams *params, Communicator const *comm) {
+NormalizeL2::NormalizeL2(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 int NormalizeL2::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeL2::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   NormalizeMultiply::initialize(name, params, comm);
+void NormalizeL2::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   NormalizeMultiply::initialize(params, defaults, comm);
 }
 
-int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
-   ioParam_minL2NormTolerated(ioFlag);
+int NormalizeL2::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = NormalizeMultiply::ioParamsFillGroup(ioSwitch);
+   ioParam_minL2NormTolerated(ioSwitch);
    return status;
 }
 
-void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "minL2NormTolerated", &minL2NormTolerated, 0.0f, true /*warnIfAbsent*/);
+void NormalizeL2::ioParam_minL2NormTolerated(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "minL2NormTolerated", &minL2NormTolerated);
 }
 
 int NormalizeL2::normalizeWeights() {

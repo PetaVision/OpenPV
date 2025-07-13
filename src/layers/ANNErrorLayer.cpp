@@ -13,20 +13,26 @@
 
 namespace PV {
 
-ANNErrorLayer::ANNErrorLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ANNErrorLayer::ANNErrorLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ANNErrorLayer::~ANNErrorLayer() {}
 
-void ANNErrorLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void ANNErrorLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *ANNErrorLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      ErrScaleInternalStateBuffer,
-                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
+                                     ANNActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

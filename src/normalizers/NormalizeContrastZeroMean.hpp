@@ -15,18 +15,23 @@ namespace PV {
 class NormalizeContrastZeroMean : public NormalizeBase {
    // Member functions
   public:
-   NormalizeContrastZeroMean(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeContrastZeroMean(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NormalizeContrastZeroMean();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual int normalizeWeights() override;
 
   protected:
    NormalizeContrastZeroMean();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minSumTolerated(ParamsIOSwitch ioSwitch);
 
    static void subtractOffsetAndNormalize(
          float *dataStartPatch,

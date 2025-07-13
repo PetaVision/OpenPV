@@ -18,24 +18,24 @@
 MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe() {}
 
 MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe(
-      const char *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 MomentumConnSimpleCheckpointerTestProbe::~MomentumConnSimpleCheckpointerTestProbe() {}
 
 void MomentumConnSimpleCheckpointerTestProbe::initialize(
-      const char *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   return PV::ColProbe::initialize(name, params, comm);
+   return PV::ColProbe::initialize(params, defaults, comm);
 }
 
-void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
-   ColProbe::ioParam_textOutputFlag(ioFlag);
-   if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
+void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(PV::ParamsIOSwitch ioSwitch) {
+   ColProbe::ioParam_textOutputFlag(ioSwitch);
+   if (ioSwitch == PV::ParamsIOSwitch::Read && !getTextOutputFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog() << getDescription() << ": MomentumConnSimpleCheckpointerTestProbe requires "
                                            "textOutputFlag to be set to true.\n";
@@ -122,7 +122,7 @@ MomentumConnSimpleCheckpointerTestProbe::initConnection(PV::ObserverTable const 
       return PV::Response::POSTPONE;
    }
    FatalIf(
-         std::strcmp(momentumUpdater->getMomentumMethod(), "simple"),
+         momentumUpdater->getMomentumMethod() != "simple",
          "This test assumes that the connection has momentumMethod=\"simple\".\n");
    mInitializeFromCheckpointFlag = mConnection->getInitializeFromCheckpointFlag();
    return PV::Response::SUCCESS;

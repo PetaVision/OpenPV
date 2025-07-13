@@ -13,17 +13,23 @@
 
 namespace PV {
 
-CopyUpdater::CopyUpdater(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+CopyUpdater::CopyUpdater(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void CopyUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseWeightUpdater::initialize(name, params, comm);
+void CopyUpdater::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseWeightUpdater::initialize(params, defaults, comm);
 }
 
 void CopyUpdater::setObjectType() { mObjectType = "CopyUpdater"; }
 
-void CopyUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
+void CopyUpdater::ioParam_plasticityFlag(ParamsIOSwitch ioSwitch) {
    // During the CommunicateInitInfo stage, plasticityFlag will be copied from
    // the original connection's updater.
 }
@@ -51,8 +57,7 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return Response::POSTPONE;
    }
 
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
-   pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
 
    auto *originalWeightUpdater = objectTable->findObject<BaseWeightUpdater>(originalConnName);
    if (originalWeightUpdater and !originalWeightUpdater->getInitInfoCommunicatedFlag()) {

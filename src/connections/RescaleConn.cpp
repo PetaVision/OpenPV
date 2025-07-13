@@ -13,12 +13,18 @@ namespace PV {
 
 RescaleConn::RescaleConn() {}
 
-RescaleConn::RescaleConn(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+RescaleConn::RescaleConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void RescaleConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   IdentConn::initialize(name, params, comm);
+void RescaleConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   IdentConn::initialize(params, defaults, comm);
 }
 
 BaseDelivery *RescaleConn::createDeliveryObject() {

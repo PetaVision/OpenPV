@@ -14,7 +14,7 @@
 
 #include "TestNotAlwaysAllZerosProbe.hpp"
 #include <columns/Communicator.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/StatsProbeImmediate.hpp>
@@ -25,10 +25,10 @@
 namespace PV {
 
 TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void TestNotAlwaysAllZerosProbe::checkStats() {
@@ -45,15 +45,16 @@ void TestNotAlwaysAllZerosProbe::checkStats() {
    }
 }
 
-void TestNotAlwaysAllZerosProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void TestNotAlwaysAllZerosProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
 void TestNotAlwaysAllZerosProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 }; // namespace PV

@@ -14,23 +14,25 @@
 
 namespace PV {
 
-ISTALayer::ISTALayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ISTALayer::ISTALayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ISTALayer::~ISTALayer() {}
 
-void ISTALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
-}
-
-LayerInputBuffer *ISTALayer::createLayerInput() {
-   return new LayerInputBuffer(getName(), parameters(), mCommunicator);
+void ISTALayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *ISTALayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator, ISTAInternalStateBuffer, ANNActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

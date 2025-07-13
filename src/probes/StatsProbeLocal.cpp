@@ -11,8 +11,9 @@
 #include "utils/conversions.hpp"
 
 namespace PV {
-StatsProbeLocal::StatsProbeLocal(char const *objName, PVParams *params) {
-   initialize(objName, params);
+StatsProbeLocal::StatsProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
 template <>
@@ -75,27 +76,25 @@ float const *StatsProbeLocal::findDataBufferV() const {
    return layerDataV->getBufferData();
 }
 
-void StatsProbeLocal::initialize(char const *objName, PVParams *params) {
-   ProbeComponent::initialize(objName, params);
-   setBufferParam<BufferParamUserSpecified>(objName, params);
+void StatsProbeLocal::initialize(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   ProbeComponent::initialize(params, defaults);
+   setBufferParam<BufferParamUserSpecified>(params, defaults);
 }
 
 void StatsProbeLocal::initializeState(HyPerLayer *targetLayer) { mTargetLayer = targetLayer; }
 
-void StatsProbeLocal::ioParam_buffer(enum ParamsIOFlag ioFlag) {
-   mBufferParam->ioParam_buffer(ioFlag);
+void StatsProbeLocal::ioParam_buffer(ParamsIOSwitch ioSwitch) {
+   mBufferParam->ioParam_buffer(ioSwitch);
 }
 
-void StatsProbeLocal::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   bool warnIfAbsent         = true;
-   float defaultNnzThreshold = 0.0f;
-   getParams()->ioParamValue(
-         ioFlag, getName_c(), "nnzThreshold", &mNnzThreshold, defaultNnzThreshold, warnIfAbsent);
+void StatsProbeLocal::ioParam_nnzThreshold(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nnzThreshold", &mNnzThreshold, false /*warnIfAbsentFlag*/);
 }
 
-void StatsProbeLocal::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_buffer(ioFlag);
-   ioParam_nnzThreshold(ioFlag);
+void StatsProbeLocal::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_buffer(ioSwitch);
+   ioParam_nnzThreshold(ioSwitch);
 }
 
 void StatsProbeLocal::storeValues(double simTime) {

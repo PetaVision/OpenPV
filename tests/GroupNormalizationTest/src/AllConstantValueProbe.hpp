@@ -8,14 +8,17 @@
 #define ALLCONSTANTVALUEPROBE_HPP_
 
 #include <columns/Communicator.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/StatsProbeImmediate.hpp>
 
 namespace PV {
 
 class AllConstantValueProbe : public StatsProbeImmediate {
   public:
-   AllConstantValueProbe(const char *name, PVParams *params, Communicator const *comm);
+   AllConstantValueProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    ~AllConstantValueProbe();
 
    float getCorrectValue() { return mCorrectValue; }
@@ -23,9 +26,12 @@ class AllConstantValueProbe : public StatsProbeImmediate {
   protected:
    AllConstantValueProbe();
    virtual void checkStats() override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_correctValue(enum ParamsIOFlag ioFlag);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_correctValue(ParamsIOSwitch ioSwitch);
 
   private:
    // Member variables

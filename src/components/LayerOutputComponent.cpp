@@ -10,10 +10,10 @@
 namespace PV {
 
 LayerOutputComponent::LayerOutputComponent(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 LayerOutputComponent::LayerOutputComponent() {}
@@ -24,10 +24,10 @@ LayerOutputComponent::~LayerOutputComponent() {
 }
 
 void LayerOutputComponent::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void LayerOutputComponent::setObjectType() { mObjectType = "LayerOutputComponent"; }
@@ -43,24 +43,24 @@ void LayerOutputComponent::initMessageActionMap() {
    mMessageActionMap.emplace("LayerOutputState", action);
 }
 
-int LayerOutputComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_writeStep(ioFlag);
-   ioParam_initialWriteTime(ioFlag);
+int LayerOutputComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_writeStep(ioSwitch);
+   ioParam_initialWriteTime(ioSwitch);
    return PV_SUCCESS;
 }
 
-void LayerOutputComponent::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   bool warnIfAbsent = false; // If not in params, will be set in CommunicateInitInfo stage
+void LayerOutputComponent::ioParam_writeStep(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "writeStep", &mWriteStep, false /*warnIfAbsentFlag*/);
+   // If not in params, will be set in CommunicateInitInfo stage
    // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
    // method also needs to be overridden.
-   parameters()->ioParamValue(ioFlag, getName(), "writeStep", &mWriteStep, mWriteStep, warnIfAbsent);
 }
 
-void LayerOutputComponent::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "writeStep"));
+void LayerOutputComponent::ioParam_initialWriteTime(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("writeStep"));
    if (mWriteStep >= 0.0) {
-      parameters()->ioParamValue(ioFlag, getName(), "initialWriteTime", &mInitialWriteTime, 0.0);
-      if (ioFlag == PARAMS_IO_READ && mWriteStep > 0.0 && mInitialWriteTime < 0.0) {
+      mParamsIO->ioParam(ioSwitch, "initialWriteTime", &mInitialWriteTime);
+      if (ioSwitch == ParamsIOSwitch::Read && mWriteStep > 0.0 && mInitialWriteTime < 0.0) {
          double storeInitialWriteTime = mInitialWriteTime;
          while (mInitialWriteTime < 0.0) {
             mInitialWriteTime += mWriteStep;
@@ -83,7 +83,7 @@ void LayerOutputComponent::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 
 Response::Status LayerOutputComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (!parameters()->present(getName(), "writeStep")) {
+   if (!mParamsIO->isPresent("writeStep")) {
       setDefaultWriteStep(message);
    }
    auto status = BaseObject::communicateInitInfo(message);
@@ -101,9 +101,11 @@ Response::Status LayerOutputComponent::communicateInitInfo(
 
 void LayerOutputComponent::setDefaultWriteStep(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   pvAssert(mParamsIO->isPresent("writeStep") == false);
    mWriteStep = message->mDeltaTime;
-   // Call ioParamValue to generate the warnIfAbsent warning.
-   parameters()->ioParamValue(PARAMS_IO_READ, getName(), "writeStep", &mWriteStep, mWriteStep, true);
+   WarnLog().printf(
+         "Using dt = %f for parameter \"%s\" in group \"%s\"\n",
+         mWriteStep, "writeStep", getName());
 }
 
 Response::Status LayerOutputComponent::registerData(

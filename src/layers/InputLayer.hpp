@@ -10,13 +10,19 @@ namespace PV {
 
 class InputLayer : public HyPerLayer {
   public:
-   InputLayer(const char *name, PVParams *params, Communicator const *comm);
+   InputLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InputLayer();
 
   protected:
    InputLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual LayerUpdateController *createLayerUpdateController() override;
 

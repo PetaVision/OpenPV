@@ -1,19 +1,18 @@
 #ifndef VMEMBRANEBUFFERSTATSPROBELOCAL_HPP_
 #define VMEMBRANEBUFFERSTATSPROBELOCAL_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/StatsProbeLocal.hpp"
 
 namespace PV {
 
 class VMembraneBufferStatsProbeLocal : public StatsProbeLocal {
   public:
-   VMembraneBufferStatsProbeLocal(char const *objName, PVParams *params);
-   virtual ~VMembraneBufferStatsProbeLocal(){};
+   VMembraneBufferStatsProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual ~VMembraneBufferStatsProbeLocal() {};
 
   protected:
    VMembraneBufferStatsProbeLocal() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
 }; // class VMembraneBufferStatsProbeLocal
 

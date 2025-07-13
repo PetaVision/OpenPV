@@ -14,13 +14,19 @@ namespace PV {
 
 class MaskLayer : public HyPerLayer {
   public:
-   MaskLayer(const char *name, PVParams *params, Communicator const *comm);
+   MaskLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~MaskLayer();
 
   protected:
    MaskLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

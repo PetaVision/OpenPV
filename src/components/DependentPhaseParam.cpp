@@ -11,26 +11,29 @@
 namespace PV {
 
 DependentPhaseParam::DependentPhaseParam(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DependentPhaseParam::~DependentPhaseParam() {}
 
-void DependentPhaseParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void DependentPhaseParam::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void DependentPhaseParam::setObjectType() { mObjectType = "DependentPhaseParam"; }
 
-int DependentPhaseParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return PhaseParam::ioParamsFillGroup(ioFlag);
+int DependentPhaseParam::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return PhaseParam::ioParamsFillGroup(ioSwitch);
 }
 
-void DependentPhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryStringParameter(getName(), "phase");
+void DependentPhaseParam::ioParam_phase(ParamsIOSwitch ioSwitch) {
+   mParamsIO->handleUnnecessaryParameter("phase");
 }
 
 Response::Status DependentPhaseParam::communicateInitInfo(
@@ -49,7 +52,7 @@ Response::Status DependentPhaseParam::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   auto linkedObjectName    = std::string(originalLayerNameParam->getLinkedObjectName());
+   std::string const &linkedObjectName   = originalLayerNameParam->getLinkedObjectName();
    auto *originalPhaseParam = message->mObjectTable->findObject<PhaseParam>(linkedObjectName);
    FatalIf(
          originalPhaseParam == nullptr,
@@ -68,7 +71,7 @@ Response::Status DependentPhaseParam::communicateInitInfo(
       return Response::POSTPONE;
    }
    mPhase = originalPhaseParam->getPhase();
-   parameters()->handleUnnecessaryParameter(getName(), "phase", mPhase);
+   mParamsIO->handleUnnecessaryParameter("phase", mPhase);
 
    auto status = PhaseParam::communicateInitInfo(message);
    if (!Response::completed(status)) {

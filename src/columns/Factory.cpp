@@ -28,28 +28,40 @@ int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
 
 BaseObject *Factory::createByKeyword(
       char const *keyword,
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamsIO> paramsIO,
+      Communicator const *comm) const {
+   if (paramsIO == nullptr) {
+      return nullptr;
+   }
+   return createByKeyword(keyword, paramsIO->getParams(), paramsIO->getDefaults(), comm);
+}
+
+BaseObject *Factory::createByKeyword(
+      char const *keyword,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) const {
    if (keyword == nullptr) {
       return nullptr;
    }
    KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler == nullptr) {
+      std::string const &name = params->getName();
       auto errorString = std::string(keyword).append(" \"").append(name).append("\": ");
       errorString.append("keyword \"").append(keyword).append("\" is unrecognized.");
       throw std::invalid_argument(errorString);
    }
-   return keywordHandler ? keywordHandler->create(name, params, comm) : nullptr;
+   return keywordHandler ? keywordHandler->create(params, defaults, comm) : nullptr;
 }
 
 BaseObject *Factory::createByKeyword(char const *keyword, BaseObject *baseObject) const {
    BaseObject *newobject = nullptr;
    try {
       auto const *name = baseObject->getName();
-      auto *params     = baseObject->parameters();
+      auto params      = baseObject->getParamsIO()->getParams();
+      auto defaults    = baseObject->getParamsIO()->getDefaults();
       auto const *comm = baseObject->getCommunicator();
-      newobject        = createByKeyword(keyword, name, params, comm);
+      newobject        = createByKeyword(keyword, params, defaults, comm);
    } catch (const std::exception &e) {
       Fatal().printf(
             "%s unable to create %s: %s\n", baseObject->getDescription_c(), keyword, e.what());

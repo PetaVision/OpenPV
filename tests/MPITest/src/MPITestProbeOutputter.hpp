@@ -2,7 +2,7 @@
 #define MPITESTPROBEOUTPUTTER_HPP_
 
 #include <columns/Communicator.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/StatsProbeOutputter.hpp>
 #include <probes/StatsProbeTypes.hpp>
@@ -11,7 +11,10 @@ namespace PV {
 
 class MPITestProbeOutputter : public StatsProbeOutputter {
   public:
-   MPITestProbeOutputter(char const *objName, PVParams *params, Communicator const *comm);
+   MPITestProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~MPITestProbeOutputter();
 
    void printGlobalXPosStats(

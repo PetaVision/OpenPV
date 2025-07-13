@@ -12,7 +12,7 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/StatsProbeImmediate.hpp"
 #include <memory>
@@ -22,7 +22,10 @@ namespace PV {
 
 class LIFTestProbe : public StatsProbeImmediate {
   public:
-   LIFTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   LIFTestProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~LIFTestProbe();
 
    virtual Response::Status
@@ -31,10 +34,13 @@ class LIFTestProbe : public StatsProbeImmediate {
   protected:
    LIFTestProbe();
    void checkStats() override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_endingTime(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_tolerance(ParamsIOSwitch ioSwitch);
 
    Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;

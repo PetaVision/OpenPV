@@ -4,11 +4,13 @@
 
 namespace PV {
 
-TargetLayerComponent::TargetLayerComponent(char const *objName, PVParams *params) {
-   initialize(objName, params);
+TargetLayerComponent::TargetLayerComponent(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-TargetLayerComponent::~TargetLayerComponent() { free(mTargetLayerName); }
+TargetLayerComponent::~TargetLayerComponent() {}
 
 Response::Status TargetLayerComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -18,51 +20,40 @@ Response::Status TargetLayerComponent::communicateInitInfo(
             mTargetLayer == nullptr,
             "Probe %s targetLayer \"%s\" is not a layer in the column.\n",
             getName_c(),
-            mTargetLayerName);
+            mTargetLayerName.c_str());
    }
    return Response::SUCCESS;
 }
 
-void TargetLayerComponent::initialize(char const *objName, PVParams *params) {
-   ProbeComponent::initialize(objName, params);
+void TargetLayerComponent::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   ProbeComponent::initialize(params, defaults);
 }
 
-void TargetLayerComponent::ioParam_targetLayer(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamString(
-         ioFlag,
-         getName_c(),
-         "targetLayer",
-         &mTargetLayerName,
-         nullptr /*default*/,
-         false /*warnIfAbsent*/);
+void TargetLayerComponent::ioParam_targetLayer(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "targetLayer", &mTargetLayerName, false /*warnIfAbsentFlag*/);
 
    // If targetLayer is not present, check for targetName. targetName as a parameter for
-   // layer probes was deprecated in favor of targetLayer on Oct 20, 2022.
-   // Once targetName is removed as a synonym, the above code can simply call the
-   // PVParams::ioParamStringRequired() function.
-   if (mTargetLayerName == nullptr or mTargetLayerName[0] == '\0') {
-      getParams()->ioParamString(
-            ioFlag,
-            getName_c(),
-            "targetName",
-            &mTargetLayerName,
-            nullptr /*default*/,
-            false /*warnIfAbsent*/);
-      if (mTargetLayerName != nullptr and mTargetLayerName[0] != '\0') {
-         WarnLog().printf(
-               "Probe %s parameter targetName is deprecated. "
-               "Use targetLayer for layer probes instead.\n",
-               getName_c());
-      }
+   // layer probes was deprecated in favor of targetLayer on Oct 20, 2022, and marked obsolete on
+   // Jul 3, 2025. Once targetName is removed as a synonym, the above code can simply call the
+   // PVParams::ioParam() function.
+   if (mTargetLayerName.empty()) {
+      mParamsIO->ioParam(ioSwitch, "targetName", &mTargetLayerName, false /*warnIfAbsentFlag*/);
+      FatalIf(
+            !mTargetLayerName.empty(),
+            "Probe %s parameter targetName is obsolete. "
+            "Use targetLayer for layer probes instead.\n",
+            getName_c());
    }
    FatalIf(
-         mTargetLayerName == nullptr or mTargetLayerName[0] == '\0',
+         mTargetLayerName.empty(),
          "Probe %s requires the targetLayer string parameter to be set\n",
          getName_c());
 }
 
-void TargetLayerComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_targetLayer(ioFlag);
+void TargetLayerComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_targetLayer(ioSwitch);
 }
 
 } // namespace PV

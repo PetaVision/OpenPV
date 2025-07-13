@@ -1,7 +1,6 @@
 #ifndef L2NORMPROBEAGGREGATOR_HPP_
 #define L2NORMPROBEAGGREGATOR_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/NormProbeAggregator.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/ProbeDataBuffer.hpp"
@@ -12,23 +11,23 @@ namespace PV {
 
 class L2NormProbeAggregator : public NormProbeAggregator {
   protected:
-   virtual void ioParam_exponent(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_exponent(ParamsIOSwitch ioSwitch);
 
   public:
    L2NormProbeAggregator(
-         char const *objName,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          std::shared_ptr<MPIBlock const> mpiBlock);
    virtual ~L2NormProbeAggregator() {}
 
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    L2NormProbeAggregator() {}
    virtual void aggregateNormsBatch(
          ProbeData<double> &aggregatedNormsBatch,
          ProbeData<double> const &partialNormsBatch) override;
-   void initialize(char const *objName, PVParams *params, std::shared_ptr<MPIBlock const> mpiBlock);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, std::shared_ptr<MPIBlock const> mpiBlock);
 
   private:
    double mExponent = 1.0;

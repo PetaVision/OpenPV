@@ -19,36 +19,33 @@
 
 namespace PV {
 FilenameParsingActivityBuffer::FilenameParsingActivityBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-FilenameParsingActivityBuffer::~FilenameParsingActivityBuffer() {
-   free(mClassListFileName);
-}
+FilenameParsingActivityBuffer::~FilenameParsingActivityBuffer() {};
 
-int FilenameParsingActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_classList(ioFlag);
-   ioParam_gtClassTrueValue(ioFlag);
-   ioParam_gtClassFalseValue(ioFlag);
+int FilenameParsingActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_classList(ioSwitch);
+   ioParam_gtClassTrueValue(ioSwitch);
+   ioParam_gtClassFalseValue(ioSwitch);
    return status;
 }
 
-void FilenameParsingActivityBuffer::ioParam_gtClassTrueValue(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "gtClassTrueValue", &mGtClassTrueValue, 1.0f, false);
+void FilenameParsingActivityBuffer::ioParam_gtClassTrueValue(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "gtClassTrueValue", &mGtClassTrueValue, false /*warnIfAbsentFlag*/);
 }
 
-void FilenameParsingActivityBuffer::ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "gtClassFalseValue", &mGtClassFalseValue, -1.0f, false);
+void FilenameParsingActivityBuffer::ioParam_gtClassFalseValue(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "gtClassFalseValue", &mGtClassFalseValue, false /*warnIfAbsentFlag*/);
 }
 
-void FilenameParsingActivityBuffer::ioParam_classList(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "classList", &mClassListFileName, mClassListFileName, false);
-   if (mClassListFileName == nullptr) {
+void FilenameParsingActivityBuffer::ioParam_classList(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "classList", &mClassListFileName, false /*warnIfAbsentFlag*/);
+   if (mClassListFileName.empty()) {
       WarnLog() << getName()
                 << ": No classList specified. Looking for classes.txt in output directory.\n";
    }
@@ -70,13 +67,13 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
       if (!inputLayerNameParam->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
-      char const *linkedObjectName = inputLayerNameParam->getLinkedObjectName();
+      std::string const &linkedObjectName = inputLayerNameParam->getLinkedObjectName();
       mInputLayer                  = objectTable->findObject<InputLayer>(linkedObjectName);
       FatalIf(
             mInputLayer == nullptr,
             "%s inputLayerName \"%s\" points to an object that is not an InputLayer.\n",
             getDescription_c(),
-            inputLayerNameParam->getLinkedObjectName());
+            linkedObjectName.c_str());
    }
    if (!mInputLayer->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -116,8 +113,8 @@ Response::Status FilenameParsingActivityBuffer::registerData(
    std::ifstream inputFile;
    std::string classListPath("");
 
-   if (mClassListFileName != nullptr) {
-      classListPath += std::string(mClassListFileName);
+   if (!mClassListFileName.empty()) {
+      classListPath += mClassListFileName;
    }
    else {
       auto fileManager = getCommunicator()->getOutputFileManager();

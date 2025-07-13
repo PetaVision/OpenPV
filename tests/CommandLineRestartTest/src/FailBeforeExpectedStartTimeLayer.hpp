@@ -14,8 +14,8 @@
 class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
   public:
    FailBeforeExpectedStartTimeLayer(
-         char const *name,
-         PV::PVParams *params,
+         std::shared_ptr<PV::ParamGroup> params,
+         std::shared_ptr<PV::ParamGroup> defaults,
          PV::Communicator const *comm);
    ~FailBeforeExpectedStartTimeLayer() {}
 
@@ -23,7 +23,10 @@ class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
 
   protected:
    FailBeforeExpectedStartTimeLayer();
-   void initialize(char const *name, PV::PVParams *params, PV::Communicator const *comm);
+   void initialize(
+         std::shared_ptr<PV::ParamGroup> params,
+         std::shared_ptr<PV::ParamGroup> defaults,
+         PV::Communicator const *comm);
    virtual PV::Response::Status checkUpdateState(double simTime, double dt) override;
 
   private:

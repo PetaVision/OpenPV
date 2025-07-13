@@ -12,24 +12,30 @@
 namespace PV {
 GapActivityBuffer::GapActivityBuffer() {}
 
-GapActivityBuffer::GapActivityBuffer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+GapActivityBuffer::GapActivityBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 GapActivityBuffer::~GapActivityBuffer() {}
 
-void GapActivityBuffer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerActivityBuffer::initialize(name, params, comm);
+void GapActivityBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerActivityBuffer::initialize(params, defaults, comm);
 }
 
-int GapActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_ampSpikelet(ioFlag);
+int GapActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_ampSpikelet(ioSwitch);
    return status;
 }
 
-void GapActivityBuffer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "ampSpikelet", &mAmpSpikelet, mAmpSpikelet);
+void GapActivityBuffer::ioParam_ampSpikelet(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "ampSpikelet", &mAmpSpikelet);
 }
 
 Response::Status
@@ -47,13 +53,13 @@ GapActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
       }
 
       // Retrieve original layer's ActivityBuffer
-      char const *linkedObjectName = originalLayerNameParam->getLinkedObjectName();
-      mOriginalActivity            = objectTable->findObject<ActivityBuffer>(linkedObjectName);
+      std::string const &linkedObjectName = originalLayerNameParam->getLinkedObjectName();
+      mOriginalActivity = objectTable->findObject<ActivityBuffer>(linkedObjectName);
       FatalIf(
             mOriginalActivity == nullptr,
             "%s could not find an InternalStateBuffer within %s.\n",
             getDescription_c(),
-            linkedObjectName);
+            linkedObjectName.c_str());
    }
 
    if (!mOriginalActivity->getInitInfoCommunicatedFlag()) {

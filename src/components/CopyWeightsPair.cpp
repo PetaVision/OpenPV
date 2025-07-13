@@ -11,20 +11,26 @@
 
 namespace PV {
 
-CopyWeightsPair::CopyWeightsPair(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+CopyWeightsPair::CopyWeightsPair(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 CopyWeightsPair::~CopyWeightsPair() {}
 
-void CopyWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   WeightsPair::initialize(name, params, comm);
+void CopyWeightsPair::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   WeightsPair::initialize(params, defaults, comm);
 }
 
 void CopyWeightsPair::setObjectType() { mObjectType = "CopyWeightsPair"; }
 
-int CopyWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = WeightsPair::ioParamsFillGroup(ioFlag);
+int CopyWeightsPair::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = WeightsPair::ioParamsFillGroup(ioSwitch);
    return status;
 }
 
@@ -49,21 +55,21 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          return Response::POSTPONE;
       }
 
-      char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+      std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
 
       mOriginalConnData = objectTable->findObject<ConnectionData>(originalConnName);
       FatalIf(
             mOriginalConnData == nullptr,
             "%s could not find a ConnectionData component within \"%s\".\n",
             getDescription_c(),
-            originalConnName);
+            originalConnName.c_str());
 
       mOriginalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
       FatalIf(
             mOriginalWeightsPair == nullptr,
             "%s could not find a WeightsPair component within \"%s\".\n",
             getDescription_c(),
-            originalConnName);
+            originalConnName.c_str());
    }
 
    if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {

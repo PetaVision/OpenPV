@@ -25,11 +25,14 @@ class BaseWeightUpdater : public BaseObject {
    /**
     * @brief plasticityFlag: Specifies if the weights will update
     */
-   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_plasticityFlag(ParamsIOSwitch ioSwitch);
    /** @} */ // end of BaseWeightUpdater parameters
 
   public:
-   BaseWeightUpdater(char const *name, PVParams *params, Communicator const *comm);
+   BaseWeightUpdater(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~BaseWeightUpdater() {}
 
@@ -40,11 +43,14 @@ class BaseWeightUpdater : public BaseObject {
   protected:
    BaseWeightUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    bool mPlasticityFlag = true;

@@ -13,24 +13,30 @@
 namespace PV {
 
 ScaleXActivityBuffer::ScaleXActivityBuffer(
-      char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+      
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 void ScaleXActivityBuffer::initialize(
-      char const *name, PVParams *params, Communicator const *comm) {
-   HyPerActivityBuffer::initialize(name, params, comm);
+      
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerActivityBuffer::initialize(params, defaults, comm);
 }
 
-int ScaleXActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
+int ScaleXActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerActivityBuffer::ioParamsFillGroup(ioSwitch);
    if (status != PV_SUCCESS) {
       return status;
    }
 
-   ioParam_scaleFactorMin(ioFlag);
-   ioParam_scaleFactorMax(ioFlag);
-   if (ioFlag == PARAMS_IO_READ and mScaleFactorMax < mScaleFactorMin) {
+   ioParam_scaleFactorMin(ioSwitch);
+   ioParam_scaleFactorMax(ioSwitch);
+   if (ioSwitch == ParamsIOSwitch::Read and mScaleFactorMax < mScaleFactorMin) {
       WarnLog().printf(
             "%s: specified value of max (%f) is less than specified value of min (%f)\n",
             getDescription_c(),
@@ -53,25 +59,20 @@ int ScaleXActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
          "%s parameter scaleFactorMin is too close to zero (value %f; minimum allowed %f)\n",
          getDescription_c(), (double)mScaleFactorMin, (double)minScaleAllowed);
    pvAssert(mScaleFactorMax >= mScaleFactorMin);
-   ioParam_writeScaleFactorsFile(ioFlag);
+   ioParam_writeScaleFactorsFile(ioSwitch);
    return status;
 }
 
-void ScaleXActivityBuffer::ioParam_scaleFactorMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "scaleFactorMin", &mScaleFactorMin);
+void ScaleXActivityBuffer::ioParam_scaleFactorMin(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "scaleFactorMin", &mScaleFactorMin);
 }
 
-void ScaleXActivityBuffer::ioParam_scaleFactorMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "scaleFactorMax", &mScaleFactorMax);
+void ScaleXActivityBuffer::ioParam_scaleFactorMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "scaleFactorMax", &mScaleFactorMax);
 }
 
-void ScaleXActivityBuffer::ioParam_writeScaleFactorsFile(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag,
-         getName(),
-         "writeScaleFactorsFile",
-         &mWriteScaleFactorsFile,
-         mWriteScaleFactorsFile);
+void ScaleXActivityBuffer::ioParam_writeScaleFactorsFile(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "writeScaleFactorsFile", &mWriteScaleFactorsFile);
 }
 
 void ScaleXActivityBuffer::setObjectType() { mObjectType = "ScaleXActivityBuffer"; }
@@ -104,7 +105,7 @@ Response::Status ScaleXActivityBuffer::registerData(
    }
    auto *checkpointer = message->mDataRegistry;
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      if (mWriteScaleFactorsFile) {
+      if (!mWriteScaleFactorsFile.empty()) {
          auto fileManager = getCommunicator()->getOutputFileManager();
          fileManager->ensureDirectoryExists(".");
          mWriteScaleFactorsStream = FileStreamBuilder(

@@ -21,8 +21,8 @@ namespace PV {
 class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
   public:
    PostsynapticPerspectiveStochasticDelivery(
-         char const *name,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          Communicator const *comm);
 
    virtual ~PostsynapticPerspectiveStochasticDelivery();
@@ -45,7 +45,10 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
   protected:
    PostsynapticPerspectiveStochasticDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

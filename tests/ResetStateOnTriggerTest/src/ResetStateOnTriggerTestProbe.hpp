@@ -8,27 +8,20 @@
 #include <columns/Messages.hpp>
 #include <structures/PVLayerLoc.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <observerpattern/Response.hpp>
 #include <probes/TargetLayerComponent.hpp>
 
 #include <memory>
 
-using PV::BaseObject;
-using PV::CommunicateInitInfoMessage;
-using PV::Communicator;
-using PV::InitializeStateMessage;
-using PV::LayerOutputStateMessage;
-using PV::ProbeWriteParamsMessage;
-using PV::PVParams;
-using PV::TargetLayerComponent;
+using namespace PV;
 
-class ResetStateOnTriggerTestProbe : public PV::BaseObject {
+class ResetStateOnTriggerTestProbe : public BaseObject {
   public:
    ResetStateOnTriggerTestProbe(
-         char const *name,
-         PV::PVParams *params,
-         PV::Communicator const *comm);
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ResetStateOnTriggerTestProbe();
 
    /**
@@ -46,23 +39,26 @@ class ResetStateOnTriggerTestProbe : public PV::BaseObject {
   protected:
    ResetStateOnTriggerTestProbe() {}
 
-   virtual PV::Response::Status
-   communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
-   PV::Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
-   PV::Response::Status
-   registerData(std::shared_ptr<PV::RegisterDataMessage<PV::Checkpointer> const> message) override;
+   Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   PV::Response::Status
+   Response::Status
    respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
-   PV::Response::Status
+   Response::Status
    respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
 
    // Data members
@@ -77,6 +73,9 @@ class ResetStateOnTriggerTestProbe : public PV::BaseObject {
 };
 
 BaseObject *
-createResetStateOnTriggerTestProbe(char const *name, PVParams *params, Communicator const *comm);
+createResetStateOnTriggerTestProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
 #endif // RESETSTATEONTRIGGERTESTPROBE_HPP_

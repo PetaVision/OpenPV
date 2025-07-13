@@ -15,14 +15,20 @@ namespace PV {
 
 class LIFGapActivityComponent : public LIFActivityComponent {
   public:
-   LIFGapActivityComponent(const char *name, PVParams *params, Communicator const *comm);
+   LIFGapActivityComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~LIFGapActivityComponent();
 
    float const *getGapStrength() { return mGapStrength->getBufferData(); }
 
   protected:
    LIFGapActivityComponent();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void fillComponentTable() override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

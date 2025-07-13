@@ -14,16 +14,19 @@ namespace PV {
 BaseConnectionProbe::BaseConnectionProbe() {}
 
 BaseConnectionProbe::BaseConnectionProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
 
-void BaseConnectionProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseProbe::initialize(name, params, comm);
+void BaseConnectionProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseProbe::initialize(params, defaults, comm);
 }
 
 void BaseConnectionProbe::initMessageActionMap() {
@@ -37,10 +40,10 @@ void BaseConnectionProbe::initMessageActionMap() {
    mMessageActionMap.emplace("ConnectionOutput", action);
 }
 
-void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
+void BaseConnectionProbe::ioParam_targetName(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamString(ioFlag, name, "targetConnection", &targetName, NULL, false);
    if (targetName == NULL) {
-      BaseProbe::ioParam_targetName(ioFlag);
+      BaseProbe::ioParam_targetName(ioSwitch, paramsIO);
    }
 }
 

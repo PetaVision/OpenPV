@@ -34,10 +34,10 @@
 namespace PV {
 
 StochasticReleaseTestProbe::StochasticReleaseTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 StochasticReleaseTestProbe::StochasticReleaseTestProbe() {}
@@ -79,15 +79,16 @@ void StochasticReleaseTestProbe::checkStats() {
          simTime);
 }
 
-void StochasticReleaseTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void StochasticReleaseTestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
 void StochasticReleaseTestProbe::createProbeOutputter(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<StochasticReleaseTestProbeOutputter>(name, params, comm);
+   mProbeOutputter = std::make_shared<StochasticReleaseTestProbeOutputter>(params, defaults, comm);
 }
 
 Response::Status StochasticReleaseTestProbe::communicateInitInfo(
@@ -115,7 +116,7 @@ Response::Status StochasticReleaseTestProbe::communicateInitInfo(
          if (connectionData == nullptr) {
             continue;
          }
-         if (!strcmp(connectionData->getPostLayerName(), getTargetLayer()->getName())) {
+         if (connectionData->getPostLayerName() == getTargetLayer()->getName()) {
             FatalIf(
                   mConn != nullptr,
                   ": %s cannot have more than one connnection going to target %s.\n",
@@ -254,10 +255,10 @@ int StochasticReleaseTestProbe::computePValues() {
 }
 
 void StochasticReleaseTestProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 StochasticReleaseTestProbe::~StochasticReleaseTestProbe() {}

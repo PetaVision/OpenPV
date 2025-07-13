@@ -169,9 +169,13 @@ int checkResults(PV_Init &pv_initObj, int displayPeriodOffset) {
    int status = PV_SUCCESS;
    // Read params values we'll need later
    PVParams *params = pv_initObj.getParams();
-   int nfPre  = params->valueInt("Pre", "nf");
-   int nfPost = params->valueInt("Post", "nf");
-   int nbatch = params->valueInt("column", "nbatch");
+   auto preParamsIO = params->makeParamsIO("Pre");
+   auto postParamsIO = params->makeParamsIO("Post");
+   auto columnParamsIO = params->makeParamsIO("column");
+   int nfPre, nfPost, nbatch;
+   nfPre  = preParamsIO->readValue<int>("nf");
+   nfPost = postParamsIO->readValue<int>("nf");
+   nbatch = columnParamsIO->readValue<int>("nbatch");
 
    // Check the weights file
    std::string weightsPath("output/PreToPost.pvp");
@@ -188,21 +192,16 @@ int checkResults(PV_Init &pv_initObj, int displayPeriodOffset) {
    }
    weightsStream = nullptr; // close the weights file
 
-   // Find the last checkpoints directory
-   char const *lastCheckpointDir = params->stringValue("column", "lastCheckpointDir");
-   std::string checkpointDir;
-   if (lastCheckpointDir) {
-      checkpointDir = lastCheckpointDir;
-   }
-   else {
-      char const *writeCheckpointDir = params->stringValue("column", "checkpointWriteDir");
-      float stopTime = params->value("column", "stopTime");
-      float dt = params->value("column", "dt");
-      int numSteps = static_cast<int>(std::round(stopTime / dt));
-      checkpointDir = std::string(writeCheckpointDir) + "/Checkpoint" + std::to_string(numSteps);
+   // Find the latest checkpoints directory
+   std::string checkpointDir = columnParamsIO->readValue<std::string>("lastCheckpointDir");
+   if (checkpointDir.empty()) {
+      checkpointDir  = columnParamsIO->readValue<std::string>("checkpointWriteDir");
+      float stopTime = columnParamsIO->readValue<float>("stopTime");
+      float dt       = columnParamsIO->readValue<float>("dt");
+      int numSteps   = static_cast<int>(std::round(stopTime / dt));
+      checkpointDir.append("/Checkpoint").append(std::to_string(numSteps));
    }
    std::string checkpointPath(checkpointDir + "/" + "PreToPost_W.pvp");
-   std::string checkpointFileDesc("File \"" + checkpointPath + "\"");
    auto checkpointStream = std::make_shared<FileStream>(checkpointPath.c_str(), std::ios_base::in);
    FatalIf(!(*checkpointStream), "Unable to open \"%s\" for reading.\n", checkpointPath.c_str());
 

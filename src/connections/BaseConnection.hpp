@@ -18,7 +18,10 @@ namespace PV {
 
 class BaseConnection : public ComponentBasedObject {
   public:
-   BaseConnection(char const *name, PVParams *params, Communicator const *comm);
+   BaseConnection(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~BaseConnection();
 
@@ -31,7 +34,10 @@ class BaseConnection : public ComponentBasedObject {
   protected:
    BaseConnection();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 
@@ -40,7 +46,7 @@ class BaseConnection : public ComponentBasedObject {
    virtual ConnectionData *createConnectionData();
    virtual BaseDelivery *createDeliveryObject();
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    Response::Status
    respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);

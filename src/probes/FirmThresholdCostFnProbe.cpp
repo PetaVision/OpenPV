@@ -4,21 +4,22 @@
 namespace PV {
 
 FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-void FirmThresholdCostFnProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<FirmThresholdCostFnProbeLocal>(name, params);
+void FirmThresholdCostFnProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<FirmThresholdCostFnProbeLocal>(params, defaults);
 }
 
 void FirmThresholdCostFnProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   AbstractNormProbe::initialize(name, params, comm);
+   AbstractNormProbe::initialize(params, defaults, comm);
 }
 
 } // namespace PV

@@ -10,20 +10,26 @@
 
 namespace PV {
 
-CPTestInputLayer::CPTestInputLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+CPTestInputLayer::CPTestInputLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 CPTestInputLayer::~CPTestInputLayer() {}
 
-void CPTestInputLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void CPTestInputLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *CPTestInputLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      CPTestInputInternalStateBuffer,
-                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
+                                     HyPerActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

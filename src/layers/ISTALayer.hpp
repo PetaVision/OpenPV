@@ -14,15 +14,19 @@ namespace PV {
 
 class ISTALayer : public HyPerLayer {
   public:
-   ISTALayer(const char *name, PVParams *params, Communicator const *comm);
+   ISTALayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ISTALayer();
 
   protected:
    ISTALayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-
-   virtual LayerInputBuffer *createLayerInput() override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

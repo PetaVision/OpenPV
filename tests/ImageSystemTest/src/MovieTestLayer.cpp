@@ -5,15 +5,18 @@
 
 namespace PV {
 
-MovieTestLayer::MovieTestLayer(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+MovieTestLayer::MovieTestLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 MovieTestLayer::~MovieTestLayer() {}
 
 ActivityComponent *MovieTestLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<MovieTestBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

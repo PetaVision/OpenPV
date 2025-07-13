@@ -16,12 +16,18 @@ namespace PV {
 // SigmoidLayer can be used to implement Sigmoid junctions between spiking neurons
 class SigmoidLayer : public CloneVLayer {
   public:
-   SigmoidLayer(const char *name, PVParams *params, Communicator const *comm);
+   SigmoidLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~SigmoidLayer();
 
   protected:
    SigmoidLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ActivityComponent *createActivityComponent() override;
 }; // class SigmoidLayer
 

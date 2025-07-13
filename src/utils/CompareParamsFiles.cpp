@@ -15,15 +15,15 @@ int compareParamsFiles(
       std::string const &paramsFile2,
       MPI_Comm mpiComm) {
    int status = PV_SUCCESS;
-   PVParams params1{paramsFile1.c_str(), INITIAL_LAYER_ARRAY_SIZE, mpiComm};
-   PVParams params2{paramsFile2.c_str(), INITIAL_LAYER_ARRAY_SIZE, mpiComm};
+   PVParams params1{paramsFile1.c_str(), mpiComm};
+   PVParams params2{paramsFile2.c_str(), mpiComm};
 
    // create a map between groups in paramsFile1 and those in paramsFile2.
-   std::map<ParameterGroup *, ParameterGroup *> parameterGroupMap;
+   std::map<std::shared_ptr<ParamGroup>, std::shared_ptr<ParamGroup>> paramGroupMap;
    char const *groupName = nullptr;
    for (int idx = 0; (groupName = params1.groupNameFromIndex(idx)) != nullptr; idx++) {
-      ParameterGroup *g1 = params1.group(groupName);
-      ParameterGroup *g2 = params2.group(groupName);
+      std::shared_ptr<ParamGroup> g1 = params1.group(groupName);
+      std::shared_ptr<ParamGroup> g2 = params2.group(groupName);
       if (g2 == nullptr) {
          ErrorLog().printf(
                "Group name \"%s\" is in \"%s\" but not in \"%s\".\n",
@@ -33,7 +33,7 @@ int compareParamsFiles(
          status = PV_FAILURE;
       }
       else {
-         parameterGroupMap.emplace(std::make_pair(g1, g2));
+         paramGroupMap.emplace(std::make_pair(g1, g2));
       }
    }
    for (int idx = 0; (groupName = params2.groupNameFromIndex(idx)) != nullptr; idx++) {
@@ -47,252 +47,121 @@ int compareParamsFiles(
       }
    }
 
-   for (auto &p : parameterGroupMap) {
-      status |= compareParameterGroups(p.first, p.second);
+   for (auto &p : paramGroupMap) {
+      status |= compareParamGroups(p.first, p.second);
    }
    return status;
 }
 
-int compareParameterGroups(ParameterGroup *group1, ParameterGroup *group2) {
+int compareParamGroups(std::shared_ptr<ParamGroup> group1, std::shared_ptr<ParamGroup> group2) {
    int status = PV_SUCCESS;
-   if (strcmp(group1->getName(), group2->getName())) {
+   if (group1->getName() != group2->getName()) {
       ErrorLog().printf(
             "Groups have different names (\"%s\" versus \"%s\")\n",
-            group1->getName(),
-            group2->getName());
+            group1->getName().c_str(),
+            group2->getName().c_str());
       status = PV_FAILURE;
    }
-   if (strcmp(group1->getGroupKeyword(), group2->getGroupKeyword())) {
+   if (group1->getKeyword() != group2->getKeyword()) {
       ErrorLog().printf(
-            "Keywords for group \"%s\" do not match (\"%s\" versus \"%s\").\n",
-            group1->getName(),
-            group1->getGroupKeyword(),
-            group2->getGroupKeyword());
+            "Groups have different keywords (\"%s\" versus \"%s\").\n",
+            group1->getKeyword().c_str(),
+            group2->getKeyword().c_str());
       status = PV_FAILURE;
    }
-   ParameterStack *numericStack1 = group1->copyStack();
-   ParameterStack *numericStack2 = group2->copyStack();
-   status |= compareParameterNumericStacks(group1->getName(), numericStack1, numericStack2);
-   delete numericStack1;
-   delete numericStack2;
 
-   ParameterArrayStack *arrayStack1 = group1->copyArrayStack();
-   ParameterArrayStack *arrayStack2 = group2->copyArrayStack();
-   status |= compareParameterArrayStacks(group1->getName(), arrayStack1, arrayStack2);
-   delete arrayStack1;
-   delete arrayStack2;
-
-   ParameterStringStack *stringStack1 = group1->copyStringStack();
-   ParameterStringStack *stringStack2 = group2->copyStringStack();
-   status |= compareParameterStringStacks(group1->getName(), stringStack1, stringStack2);
-   delete stringStack1;
-   delete stringStack2;
-
-   return status;
-}
-
-int compareParameterNumericStacks(
-      char const *groupName,
-      ParameterStack *stack1,
-      ParameterStack *stack2) {
-   int status = PV_SUCCESS;
-
-   // Vector of booleans indicating for each element of stack2 whether the name exists in stack1
-   std::vector<bool> inStack1(stack2->size(), false);
-   for (int i = 0; i < stack1->size(); i++) {
-      Parameter *param1      = stack1->peek(i);
-      char const *paramName1 = param1->getName();
-      bool found             = false;
-      for (int j = 0; j < stack2->size(); j++) {
-         Parameter *param2      = stack2->peek(j);
-         char const *paramName2 = param2->getName();
-         if (!strcmp(paramName1, paramName2)) {
-            found       = true;
-            inStack1[j] = true;
-            if (param1->value() != param2->value()) {
-               ErrorLog().printf(
-                     "Parameter \"%s\" in group \"%s\" has different values (%f versus %f).\n",
-                     paramName1,
-                     groupName,
-                     param1->value(),
-                     param2->value());
-               status = PV_FAILURE;
+   for (auto const &p : *group1) {
+      std::string const &name1 = p.first;
+      Parameter const &param1 = p.second;
+      bool foundIn2 = group2->present(name1);
+      if (!foundIn2) {
+         ErrorLog().printf(
+               "In group \"%s\", file 1 contains parameter \"%s\" but file 2 does not.\n",
+               group1->getName().c_str(), name1.c_str()); 
+         status = PV_FAILURE;
+         continue;
+      }
+      auto type1 = param1.getType();
+      switch (type1) {
+         case Parameter::Type::Numeric:
+            {
+               double const *value1Ptr = param1.peek<double>();
+               assert(value1Ptr);
+               double const *value2Ptr = group2->peek<double>(name1);
+               assert(value2Ptr); // Above, we checked that the name was present in group2
+               if (*value1Ptr != *value2Ptr) {
+                  ErrorLog().printf(
+                        "Group \"%s\" numeric parameter %s differs "
+                        "(%f versus %f, discrepancy %g)\n",
+                        group1->getName().c_str(), name1.c_str(),
+                        *value1Ptr, *value2Ptr, *value2Ptr - *value1Ptr);
+                  status = PV_FAILURE;
+               }
             }
             break;
-         }
-      }
-      if (!found) {
-         ErrorLog().printf(
-               "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n",
-               paramName1,
-               groupName);
-         status = PV_FAILURE;
-      }
-   }
-   for (int j = 0; j < stack2->size(); j++) {
-      if (!inStack1[j]) {
-         ErrorLog().printf(
-               "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n",
-               stack2->peek(j)->getName(),
-               groupName);
-         status = PV_FAILURE;
-      }
-   }
-   return status;
-}
-
-int compareParameterArrayStacks(
-      char const *groupName,
-      ParameterArrayStack *stack1,
-      ParameterArrayStack *stack2) {
-   int status = PV_SUCCESS;
-
-   // Vector of booleans indicating for each element of stack2 whether the name exists in stack1
-   std::vector<bool> inStack1(stack2->size(), false);
-   for (int i = 0; i < stack1->size(); i++) {
-      ParameterArray *param1 = stack1->peek(i);
-      char const *paramName1 = param1->getName();
-      bool found             = false;
-      for (int j = 0; j < stack2->size(); j++) {
-         ParameterArray *param2 = stack2->peek(j);
-         char const *paramName2 = param2->getName();
-         if (!strcmp(paramName1, paramName2)) {
-            found       = true;
-            inStack1[j] = true;
-            status |= compareParameterArray(groupName, param1, param2);
+         case Parameter::Type::Array:
+            {
+               auto const *value1Ptr = param1.peek<std::vector<double>>();
+               assert(value1Ptr);
+               auto const *value2Ptr = group2->peek<std::vector<double>>(name1);
+               assert(value2Ptr); // Above, we checked that the name was present in group2
+               if (value1Ptr->size() != value2Ptr->size()) {
+                  ErrorLog().printf(
+                        "Group \"%s\" array parameter \"%s\" has different sizes "
+                        "(%zu versus %zu)\n",
+                        group1->getName().c_str(), name1.c_str(),
+                        value1Ptr->size(), value2Ptr->size());
+                  status = PV_FAILURE;
+               }
+               else {
+                  auto N = value1Ptr->size();
+                  for (decltype(N) n = static_cast<decltype(N)>(0); n < N; ++n) {
+                     double value1 = (*value1Ptr)[n];
+                     double value2 = (*value2Ptr)[n];
+                     if (value1 != value2) {
+                        ErrorLog().printf(
+                              "Group \"%s\" array parameter \"%s\", element %zu differs "
+                              "(%f versus %f, discrepancy %g)\n",
+                              group1->getName().c_str(), name1.c_str(), n,
+                              value1, value2, value2 - value1);
+                        status = PV_FAILURE;
+                     }
+                  }
+               }
+            }
             break;
-         }
-      }
-      if (!found) {
-         ErrorLog().printf(
-               "Array parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n",
-               paramName1,
-               groupName);
-         status = PV_FAILURE;
-      }
-   }
-   for (int j = 0; j < stack2->size(); j++) {
-      if (!inStack1[j]) {
-         ErrorLog().printf(
-               "Array parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n",
-               stack2->peek(j)->getName(),
-               groupName);
-         status = PV_FAILURE;
-      }
-   }
-   return status;
-}
-
-int compareParameterArray(char const *groupName, ParameterArray *array1, ParameterArray *array2) {
-   int status = PV_SUCCESS;
-   if (strcmp(array1->getName(), array2->getName())) {
-      ErrorLog().printf(
-            "Arrays have different names (\"%s\" versus \"%s\")\n",
-            array1->getName(),
-            array2->getName());
-   }
-   if (array1->getArraySize() != array2->getArraySize()) {
-      ErrorLog().printf(
-            "Array \"%s\" in group \"%s\" differs in size (%d versus %d).\n",
-            array1->getName(),
-            groupName,
-            array1->getArraySize(),
-            array2->getArraySize());
-   }
-   int size1, size2;
-   double const *values1 = array1->getValuesDbl(&size1);
-   double const *values2 = array2->getValuesDbl(&size2);
-   int size              = size1 <= size2 ? size1 : size2;
-   int badIndex          = 0;
-   for (int i = 0; i < size; i++) {
-      if (values1[i] != values2[i]) {
-         badIndex = i + 1;
-         ErrorLog().printf(
-               "Group %s, array %s, index %d differs (%f versus %f).\n",
-               groupName,
-               array1->getName(),
-               badIndex,
-               values1[i],
-               values2[i]);
-         status = PV_FAILURE;
-      }
-   }
-   return status;
-}
-
-int compareParameterStringStacks(
-      char const *groupName,
-      ParameterStringStack *stack1,
-      ParameterStringStack *stack2) {
-   int status = PV_SUCCESS;
-
-   // Vector of booleans indicating for each element of stack2 whether the name exists in stack1
-   std::vector<bool> inStack1(stack2->size(), false);
-   for (int i = 0; i < stack1->size(); i++) {
-      ParameterString *param1 = stack1->peek(i);
-      char const *paramName1  = param1->getName();
-      bool found              = false;
-      for (int j = 0; j < stack2->size(); j++) {
-         ParameterString *param2 = stack2->peek(j);
-         char const *paramName2  = param2->getName();
-         if (!strcmp(paramName1, paramName2)) {
-            found       = true;
-            inStack1[j] = true;
-            status |= compareParameterString(groupName, param1, param2);
+         case Parameter::Type::String:
+            {
+               std::string const *value1Ptr = param1.peek<std::string>();
+               assert(value1Ptr);
+               auto const *value2Ptr = group2->peek<std::string>(name1);
+               assert(value2Ptr); // Above, we checked that the name was present in group2
+               if (*value1Ptr != *value2Ptr) {
+                  ErrorLog().printf(
+                        "Group \"%s\" string parameter %s differs (%s versus %s)\n",
+                        group1->getName().c_str(), name1.c_str(),
+                        value1Ptr->c_str(), value2Ptr->c_str());
+               }
+            }
             break;
-         }
-      }
-      if (!found) {
-         ErrorLog().printf(
-               "String parameter \"%s\" was found in group \"%s\" of one stack but not the "
-               "other.\n",
-               paramName1,
-               groupName);
-         status = PV_FAILURE;
+         default:
+            Fatal().printf(
+                  "Group 1 parameter \"%s\" has unrecognized type %d\n", name1.c_str(), type1);
+            break;
       }
    }
-   for (int j = 0; j < stack2->size(); j++) {
-      if (!inStack1[j]) {
-         ErrorLog().printf(
-               "String parameter \"%s\" was found in group \"%s\" of one stack "
-               "but not the other.\n",
-               stack2->peek(j)->getName(),
-               groupName);
-         status = PV_FAILURE;
-      }
-   }
-   return status;
-}
 
-int compareParameterString(
-      char const *groupName,
-      ParameterString *string1,
-      ParameterString *string2) {
-   int status = PV_SUCCESS;
-   if (strcmp(string1->getName(), string2->getName())) {
-      ErrorLog().printf(
-            "ParameterStrings have different names (\"%s\" versus \"%s\")\n",
-            string1->getName(),
-            string2->getName());
-      status = PV_FAILURE;
-   }
-   char const *nullString = "(null)";
-   char const *value1     = string1->getValue();
-   if (value1 == nullptr) {
-      value1 = nullString;
-   }
-   char const *value2 = string2->getValue();
-   if (value2 == nullptr) {
-      value2 = nullString;
-   }
-   if (strcmp(value1, value2)) {
-      ErrorLog().printf(
-            "String parameter \"%s\" in group \"%s\" differs (\"%s\" versus \"%s\").\n",
-            string1->getName(),
-            groupName,
-            value1,
-            value2);
-      status = PV_FAILURE;
+   for (auto const &p : *group2) {
+      std::string const &name2 = p.first;
+      Parameter const &param2 = p.second;
+      bool foundIn1 = group1->present(name2);
+      if (!foundIn1) {
+         ErrorLog().printf(
+               "In group \"%s\", file 2 contains parameter \"%s\" but file 1 does not.\n",
+               group2->getName().c_str(), name2.c_str()); 
+         status = PV_FAILURE;
+         continue;
+      }
    }
    return status;
 }

@@ -30,14 +30,17 @@ class NormalizeBase : public BaseObject {
     * NormalizeMethod and using the Factory::createByKeyword template to
     * instantiate the function.
     */
-   virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeMethod(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_normalizeArborsIndividually(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_normalizeOnInitialize(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_normalizeOnWeightUpdate(ParamsIOSwitch ioSwitch);
    /** @} */ // end of NormalizeBase parameters
 
   public:
-   NormalizeBase(char const *name, PVParams *params, Communicator const *comm);
+   NormalizeBase(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~NormalizeBase();
 
@@ -51,13 +54,16 @@ class NormalizeBase : public BaseObject {
   protected:
    NormalizeBase() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    /**
     * If the normalizeOnInitialize flag is set and the simulation time is startTime(),
@@ -98,8 +104,8 @@ class NormalizeBase : public BaseObject {
    static int accumulateMin(float *dataPatchStart, int weights_in_patch, float *max);
 
   protected:
-   ConnectionData *mConnectionData   = nullptr;
-   char *mNormalizeMethod            = nullptr;
+   ConnectionData *mConnectionData = nullptr;
+   std::string mNormalizeMethod;
    float mStrength                   = 1.0f;
    bool mNormalizeArborsIndividually = false;
    bool mNormalizeOnInitialize       = true;

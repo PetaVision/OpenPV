@@ -14,14 +14,17 @@ namespace PV {
 
 class MaskActivityBuffer : public ANNActivityBuffer {
   protected:
-   virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_featureIdxs(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maskMethod(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_maskLayerName(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_featureIdxs(ParamsIOSwitch ioSwitch);
 
   public:
    enum Method { UNDEFINED, LAYER, INVERT_LAYER, FEATURES, INVERT_FEATURES };
 
-   MaskActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
+   MaskActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    MaskActivityBuffer();
    virtual ~MaskActivityBuffer();
    virtual Response::Status
@@ -29,15 +32,15 @@ class MaskActivityBuffer : public ANNActivityBuffer {
    virtual Response::Status allocateDataStructures() override;
 
   protected:
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
-   char *mMaskMethod           = nullptr;
-   Method mMaskMethodCode      = UNDEFINED;
-   char *mMaskLayerName        = nullptr;
+   std::string mMaskMethod;
+   Method mMaskMethodCode = UNDEFINED;
+   std::string mMaskLayerName;
    ActivityBuffer *mMaskBuffer = nullptr;
-   int *mFeatures              = nullptr;
+   std::vector<int> mFeatures;
    int mNumSpecifiedFeatures   = 0;
 
 }; // class MaskActivityBuffer

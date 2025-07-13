@@ -12,14 +12,20 @@ namespace PV {
 
 PlasticCloneConn::PlasticCloneConn() {}
 
-PlasticCloneConn::PlasticCloneConn(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+PlasticCloneConn::PlasticCloneConn(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 PlasticCloneConn::~PlasticCloneConn() {}
 
-void PlasticCloneConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   CloneConn::initialize(name, params, comm);
+void PlasticCloneConn::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   CloneConn::initialize(params, defaults, comm);
 }
 
 Response::Status
@@ -47,7 +53,7 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
 
    auto *originalUpdater = objectTable->findObject<HebbianUpdater>(originalConnName);
    FatalIf(
@@ -55,7 +61,7 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
          "%s specifies originalConnName \"%s\", but this connection does not have a "
          "Hebbian updater.\n",
          getDescription_c(),
-         originalConnName);
+         originalConnName.c_str());
    // Do we need to handle PlasticClones of PlasticClones? Right now, this won't handle that case.
    originalUpdater->addClone(connectionData);
 

@@ -8,86 +8,98 @@
 #include "ParamsInterface.hpp"
 
 namespace PV {
-ParamsInterface::~ParamsInterface() { free(mName); }
+ParamsInterface::~ParamsInterface() {}
 
-int ParamsInterface::initialize(char const *name, PVParams *params) {
-   setName(name);
-   setParams(params);
+int ParamsInterface::initialize(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   FatalIf(params == nullptr, "ParamsInterface called with null ParamGroup\n");
+   setName(params->getName());
+   setKeyword(params->getKeyword());
+   setParams(params, defaults);
    setObjectType();
    setDescription(getObjectType() + " \"" + getName() + "\"");
    CheckpointerDataInterface::initialize();
-   readParams();
+   ioParams(ParamsIOSwitch::Read, false, false);
    return PV_SUCCESS;
 }
 
-void ParamsInterface::setName(char const *name) {
-   pvAssert(mName == nullptr);
-   mName = strdup(name);
-   FatalIf(mName == nullptr, "could not set name \"%s\". %s\n", name, strerror(errno));
+void ParamsInterface::setName(std::string const &name) {
+   pvAssert(mName.empty());
+   mName = name;
 }
 
-void ParamsInterface::setParams(PVParams *params) { mParams = params; }
+void ParamsInterface::setKeyword(std::string const &keyword) {
+   pvAssert(mKeyword.empty());
+   mKeyword = keyword;
+}
+
+void ParamsInterface::setParams(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mParamsIO = std::make_shared<ParamsIO>(params, defaults);
+}
 
 void ParamsInterface::setObjectType() {
-   mObjectType = parameters()->groupKeywordFromName(getName());
+   mObjectType = getKeyword();
 }
 
-void ParamsInterface::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
+void ParamsInterface::ioParams(ParamsIOSwitch ioSwitch, bool printHeader, bool printFooter) {
    if (printHeader) {
-      ioParamsStartGroup(ioFlag);
+      ioParamsStartGroup(ioSwitch);
    }
-   ioParam_initializeFromCheckpointFlag(ioFlag);
-   ioParamsFillGroup(ioFlag);
+   ioParam_initializeFromCheckpointFlag(ioSwitch);
+   ioParamsFillGroup(ioSwitch);
    if (printFooter) {
-      ioParamsFinishGroup(ioFlag);
+      ioParamsFinishGroup(ioSwitch);
    }
 }
 /**
- * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
+ * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint directory
  * set in HyPerCol.
  * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
  */
-void ParamsInterface::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ or mWriteInitializeFromCheckpointFlag) {
-      parameters()->ioParamValue(
-            ioFlag,
-            mName,
-            "initializeFromCheckpointFlag",
-            &mInitializeFromCheckpointFlag,
-            mInitializeFromCheckpointFlag /*default value*/,
-            false /*no warnings if param is absent*/);
-   }
-}
-
-void ParamsInterface::ioParamsStartGroup(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_WRITE) {
-      const char *keyword = mParams->groupKeywordFromName(getName());
-
-      auto *printParamsStream = mParams->getPrintParamsStream();
-      if (printParamsStream) {
-         printParamsStream->printf("\n");
-         printParamsStream->printf("%s \"%s\" = {\n", keyword, getName());
+void ParamsInterface::ioParam_initializeFromCheckpointFlag(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      if (mParamsIO->isNumeric("initializeFromCheckpointFlag")) {
+         mParamsIO->ioParam(
+               ioSwitch,
+               "initializeFromCheckpointFlag",
+               &mInitializeFromCheckpointFlag,
+               false /*warnIfAbsentFlag*/);
       }
-
-      auto *printLuaStream = mParams->getPrintLuaStream();
-      if (printLuaStream) {
-         printLuaStream->printf("%s = {\n", getName());
-         printLuaStream->printf("groupType = \"%s\";\n", keyword);
+   }
+   else {
+      pvAssert(ioSwitch == ParamsIOSwitch::Write);
+      if (mWriteInitializeFromCheckpointFlag) {
+         mParamsIO->ioParam(
+               ioSwitch,
+               "initializeFromCheckpointFlag",
+               &mInitializeFromCheckpointFlag,
+               false /*warnIfAbsentFlag*/);
       }
    }
 }
 
-void ParamsInterface::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_WRITE) {
-      auto *printParamsStream = mParams->getPrintParamsStream();
-      if (printParamsStream) {
+void ParamsInterface::ioParamsStartGroup(ParamsIOSwitch ioSwitch) {
+   auto *printParamsStream = mParamsIO->getPrintParamsStream();
+   if (printParamsStream) {
+      printParamsStream->printf("\n");
+      printParamsStream->printf("%s \"%s\" = {\n", getKeyword(), getName());
+   }
+   auto *printLuaStream = mParamsIO->getPrintLuaStream();
+   if (printLuaStream) {
+      printLuaStream->printf("\n");
+      printLuaStream->printf("%s \"%s\" = {\n", getKeyword(), getName());
+   }
+}
+
+void ParamsInterface::ioParamsFinishGroup(ParamsIOSwitch ioSwitch) {
+   auto *printParamsStream = mParamsIO->getPrintParamsStream();
+   if (printParamsStream) {
          printParamsStream->printf("};\n");
-      }
-
-      auto *printLuaStream = mParams->getPrintLuaStream();
-      if (printLuaStream) {
+   }
+   auto *printLuaStream = mParamsIO->getPrintLuaStream();
+   if (printLuaStream) {
          printLuaStream->printf("};\n\n");
-      }
    }
 }
 

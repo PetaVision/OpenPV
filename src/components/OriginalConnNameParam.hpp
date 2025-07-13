@@ -18,14 +18,20 @@ namespace PV {
  */
 class OriginalConnNameParam : public LinkedObjectParam {
   public:
-   OriginalConnNameParam(char const *name, PVParams *params, Communicator const *comm);
+   OriginalConnNameParam(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~OriginalConnNameParam();
 
   protected:
    OriginalConnNameParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 };

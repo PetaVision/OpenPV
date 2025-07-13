@@ -19,9 +19,12 @@
 #include <string>
 
 namespace PV {
-LIFTestProbe::LIFTestProbe(const char *name, PVParams *params, Communicator const *comm)
+LIFTestProbe::LIFTestProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 LIFTestProbe::LIFTestProbe() : StatsProbeImmediate() {}
@@ -105,9 +108,12 @@ void LIFTestProbe::checkStats() {
    FatalIf(failed, "%s failed.\n", getDescription_c());
 }
 
-void LIFTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+void LIFTestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
 
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 
    mRadii.resize(mNumBins);
    mRates.resize(mNumBins);
@@ -149,19 +155,19 @@ void LIFTestProbe::initialize(const char *name, PVParams *params, Communicator c
    }
 }
 
-int LIFTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   ioParam_endingTime(ioFlag);
-   ioParam_tolerance(ioFlag);
+int LIFTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   ioParam_endingTime(ioSwitch);
+   ioParam_tolerance(ioSwitch);
    return status;
 }
 
-void LIFTestProbe::ioParam_endingTime(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "endingTime", &mEndingTime, mEndingTime);
+void LIFTestProbe::ioParam_endingTime(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "endingTime", &mEndingTime);
 }
 
-void LIFTestProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &mTolerance, mTolerance);
+void LIFTestProbe::ioParam_tolerance(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tolerance", &mTolerance);
 }
 
 LIFTestProbe::~LIFTestProbe() {}

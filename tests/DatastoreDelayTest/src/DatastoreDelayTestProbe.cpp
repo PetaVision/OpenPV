@@ -18,11 +18,11 @@
 namespace PV {
 
 DatastoreDelayTestProbe::DatastoreDelayTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void DatastoreDelayTestProbe::checkStats() {
@@ -78,15 +78,16 @@ void DatastoreDelayTestProbe::checkStats() {
 #endif // KOCHAB
 }
 
-void DatastoreDelayTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<VMembraneBufferStatsProbeLocal>(name, params);
+void DatastoreDelayTestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<VMembraneBufferStatsProbeLocal>(params, defaults);
 }
 
 void DatastoreDelayTestProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 Response::Status DatastoreDelayTestProbe::communicateInitInfo(

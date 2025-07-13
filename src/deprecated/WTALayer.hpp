@@ -13,17 +13,23 @@ namespace PV {
 
 class WTALayer : public HyPerLayer {
   public:
-   WTALayer(const char *name, PVParams *params, Communicator const *comm);
+   WTALayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~WTALayer();
    virtual Response::Status updateState(double timef, double dt) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
-   void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   void ioParam_originalLayerName(ParamsIOSwitch ioSwitch);
+   void ioParam_binMaxMin(ParamsIOSwitch ioSwitch);
 
    virtual LayerInputBuffer *createLayerInput() override;
    virtual InternalStateBuffer *createInternalState() override;

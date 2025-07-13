@@ -24,7 +24,10 @@ namespace PV {
 class ImageFromMemoryBuffer : public ImageLayer {
 
   public:
-   ImageFromMemoryBuffer(char const *name, PVParams *params, Communicator const *comm);
+   ImageFromMemoryBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ImageFromMemoryBuffer();
 }; // class ImageFromMemoryBuffer

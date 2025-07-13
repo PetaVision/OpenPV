@@ -18,8 +18,10 @@ int main(int argc, char *argv[]) {
    pv_initObj.registerKeyword(
          "MomentumConnViscosityCheckpointerTestProbe",
          Factory::create<MomentumConnViscosityCheckpointerTestProbe>);
+   std::string customDefaultsPath("input/DefaultParams.txt");
 
    pv_initObj.setParams("input/MomentumConnViscosityCheckpointerTest_freshstart_triggering.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,
@@ -37,6 +39,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.resetState();
 
    pv_initObj.setParams("input/MomentumConnViscosityCheckpointerTest_initfromCP_triggering.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,
@@ -47,6 +50,7 @@ int main(int argc, char *argv[]) {
 
    pv_initObj.setParams(
          "input/MomentumConnViscosityCheckpointerTest_freshstart_updateperiod.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,
@@ -65,6 +69,7 @@ int main(int argc, char *argv[]) {
 
    pv_initObj.setParams(
          "input/MomentumConnViscosityCheckpointerTest_initfromCP_updateperiod.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,

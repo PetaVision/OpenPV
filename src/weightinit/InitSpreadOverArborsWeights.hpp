@@ -14,19 +14,25 @@ namespace PV {
 
 class InitSpreadOverArborsWeights : public InitGauss2DWeights {
   protected:
-   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightInit(ParamsIOSwitch ioSwitch);
 
   public:
-   InitSpreadOverArborsWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitSpreadOverArborsWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitSpreadOverArborsWeights();
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
    InitSpreadOverArborsWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    int spreadOverArborsWeights(float *dataStart, int arborId);

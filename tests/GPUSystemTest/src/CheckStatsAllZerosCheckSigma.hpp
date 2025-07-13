@@ -1,7 +1,7 @@
 #ifndef CHECKSTATSALLZEROSCHECKSIGMA_HPP_
 #define CHECKSTATSALLZEROSCHECKSIGMA_HPP_
 
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "probes/CheckStatsAllZeros.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/StatsProbeTypes.hpp"

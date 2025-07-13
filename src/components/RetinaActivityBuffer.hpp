@@ -42,43 +42,45 @@ class RetinaActivityBuffer : public ActivityBuffer {
     * If true, the retina produces a spike train whose rates depend on the
     * input. If false, the retina treats the input like a HyPerLayer.
     */
-   virtual void ioParam_spikingFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_spikingFlag(ParamsIOSwitch ioSwitch);
 
    /**
     * The firing rate when the input is zero.
     */
-   virtual void ioParam_backgroundRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_backgroundRate(ParamsIOSwitch ioSwitch);
 
    /**
     * The amount by which the firing rate increases as the input
     * increases by one unit.
     */
-   virtual void ioParam_foregroundRate(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_beginStim(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_endStim(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_burstFreq(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_burstDuration(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_foregroundRate(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_beginStim(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_endStim(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_burstFreq(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_burstDuration(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_refractoryPeriod(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_absRefractoryPeriod(ParamsIOSwitch ioSwitch);
 
    /** @} */
   public:
-   // default refractory periods for neurons
-   static constexpr float mDefaultAbsRefractoryPeriod = 3.0f;
-   static constexpr float mDefaultRefractoryPeriod    = 5.0f;
-
-   RetinaActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   RetinaActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~RetinaActivityBuffer();
 
   protected:
    RetinaActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

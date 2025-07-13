@@ -2,7 +2,7 @@
 #include <columns/Messages.hpp>
 #include <columns/PV_Init.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <observerpattern/ObserverTable.hpp>
 #include <probes/TargetLayerComponent.hpp>
@@ -18,10 +18,6 @@ using PV::HyPerLayer;
 using PV::PV_Init;
 using PV::TargetLayerComponent;
 
-TargetLayerComponent initTargetLayerObject(
-      HyPerCol &hypercol,
-      std::string const &probeName,
-      std::string const &layerName);
 int run(PV::PV_Init &pv_init);
 
 int main(int argc, char **argv) {
@@ -35,10 +31,13 @@ int main(int argc, char **argv) {
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-TargetLayerComponent initTargetLayerObject(
-      HyPerCol &hypercol,
-      std::string const &probeName,
-      std::string const &layerName) {
+int run(PV::PV_Init &pv_init) {
+   PV::HyPerCol hypercol(&pv_init);
+   hypercol.allocateColumn();
+
+   std::string probeName("Probe");
+   std::string layerName("TestLayer");
+
    std::string paramsString;
    paramsString.append("debugParsing = false;\n");
    paramsString.append("TargetLayerComponent \"").append(probeName).append("\" = {\n");
@@ -46,10 +45,11 @@ TargetLayerComponent initTargetLayerObject(
    paramsString.append("};\n");
 
    MPI_Comm mpiComm = hypercol.getCommunicator()->globalCommunicator();
-   PV::PVParams params(paramsString.data(), paramsString.size(), 1UL, mpiComm);
+   PV::PVParams params(paramsString.data(), paramsString.size(), mpiComm);
 
-   TargetLayerComponent targetLayerObject(probeName.c_str(), &params);
-   targetLayerObject.ioParamsFillGroup(PV::PARAMS_IO_READ);
+   auto paramsIO = params.makeParamsIO(probeName);
+   TargetLayerComponent targetLayerObj(paramsIO->getParams(), paramsIO->getDefaults());
+   targetLayerObj.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
 
    PV::ObserverTable objectTable = hypercol.getAllObjectsFlat();
    auto communicateMessage       = std::make_shared<PV::CommunicateInitInfoMessage>(
@@ -59,24 +59,13 @@ TargetLayerComponent initTargetLayerObject(
          hypercol.getNyGlobal(),
          hypercol.getNBatchGlobal(),
          hypercol.getNumThreads());
-   targetLayerObject.communicateInitInfo(communicateMessage);
+   targetLayerObj.communicateInitInfo(communicateMessage);
 
-   return targetLayerObject;
-}
-
-int run(PV::PV_Init &pv_init) {
-   PV::HyPerCol hypercol(&pv_init);
-   hypercol.allocateColumn();
-
-   std::string probeName("Probe");
-   std::string layerName("TestLayer");
-   TargetLayerComponent targetLayerObj = initTargetLayerObject(hypercol, probeName, layerName);
-
-   char const *nameFromTargetLayerObject = targetLayerObj.getTargetLayerName();
+   std::string const &nameFromTargetLayerObject = targetLayerObj.getTargetLayerName();
    FatalIf(
          layerName != nameFromTargetLayerObject,
          "TargetLayerComponent::getTargetLayerName() returned %s instead of %s\n",
-         nameFromTargetLayerObject,
+         nameFromTargetLayerObject.c_str(),
          layerName.c_str());
 
    HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hypercol.getObjectFromName(layerName));

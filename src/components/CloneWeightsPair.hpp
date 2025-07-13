@@ -23,18 +23,21 @@ class CloneWeightsPair : public WeightsPair {
    /**
     * @brief writeStep: CloneWeightsPair never writes output, always sets writeStep to -1.
     */
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_writeStep(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief writeStep: CloneWeightsPair does not checkpoint, so writeCompressedCheckpoints is
     * always set to false.
     */
-   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_writeCompressedCheckpoints(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of CloneWeightsPair parameters
 
   public:
-   CloneWeightsPair(char const *name, PVParams *params, Communicator const *comm);
+   CloneWeightsPair(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~CloneWeightsPair();
 
@@ -55,11 +58,14 @@ class CloneWeightsPair : public WeightsPair {
   protected:
    CloneWeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -9,25 +9,31 @@
 
 namespace PV {
 
-StrengthParam::StrengthParam(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+StrengthParam::StrengthParam(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 StrengthParam::~StrengthParam() {}
 
-void StrengthParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void StrengthParam::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void StrengthParam::setObjectType() { mObjectType = "StrengthParam"; }
 
-int StrengthParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_strength(ioFlag);
+int StrengthParam::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_strength(ioSwitch);
    return PV_SUCCESS;
 }
 
-void StrengthParam::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "strength", &mStrength, mStrength);
+void StrengthParam::ioParam_strength(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "strength", &mStrength);
 }
 
 } // namespace PV

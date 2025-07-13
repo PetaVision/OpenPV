@@ -7,26 +7,26 @@
 
 #include "ConstantLayer.hpp"
 
-#include "components/DefaultNoOutputComponent.hpp"
-
 namespace PV {
 
-ConstantLayer::ConstantLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ConstantLayer::ConstantLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 ConstantLayer::ConstantLayer() {}
 
 ConstantLayer::~ConstantLayer() {}
 
-void ConstantLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void ConstantLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 LayerUpdateController *ConstantLayer::createLayerUpdateController() { return nullptr; }
-
-LayerOutputComponent *ConstantLayer::createLayerOutput() {
-   return new DefaultNoOutputComponent(getName(), parameters(), mCommunicator);
-}
 
 } /* namespace PV */

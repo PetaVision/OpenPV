@@ -12,84 +12,78 @@
 namespace PV {
 
 RetinaActivityBuffer::RetinaActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 RetinaActivityBuffer::~RetinaActivityBuffer() { delete mRandState; }
 
 void RetinaActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 void RetinaActivityBuffer::setObjectType() { mObjectType = "RetinaActivityBuffer"; }
 
-int RetinaActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_spikingFlag(ioFlag);
-   ioParam_backgroundRate(ioFlag);
-   ioParam_foregroundRate(ioFlag);
-   ioParam_beginStim(ioFlag);
-   ioParam_endStim(ioFlag);
-   ioParam_burstFreq(ioFlag);
-   ioParam_burstDuration(ioFlag);
-   ioParam_refractoryPeriod(ioFlag);
-   ioParam_absRefractoryPeriod(ioFlag);
+int RetinaActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_spikingFlag(ioSwitch);
+   ioParam_backgroundRate(ioSwitch);
+   ioParam_foregroundRate(ioSwitch);
+   ioParam_beginStim(ioSwitch);
+   ioParam_endStim(ioSwitch);
+   ioParam_burstFreq(ioSwitch);
+   ioParam_burstDuration(ioSwitch);
+   ioParam_refractoryPeriod(ioSwitch);
+   ioParam_absRefractoryPeriod(ioSwitch);
    return status;
 }
 
-void RetinaActivityBuffer::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "spikingFlag", &mSpikingFlag, true);
+void RetinaActivityBuffer::ioParam_spikingFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "spikingFlag", &mSpikingFlag);
 }
 
-void RetinaActivityBuffer::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "backgroundRate", &mBackgroundRate, 0.0);
+void RetinaActivityBuffer::ioParam_backgroundRate(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "backgroundRate", &mBackgroundRate);
 }
 
-void RetinaActivityBuffer::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "foregroundRate", &mForegroundRate, 1.0);
+void RetinaActivityBuffer::ioParam_foregroundRate(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "foregroundRate", &mForegroundRate);
 }
 
-void RetinaActivityBuffer::ioParam_beginStim(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "beginStim", &mBeginStim, 0.0);
+void RetinaActivityBuffer::ioParam_beginStim(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "beginStim", &mBeginStim);
 }
 
-void RetinaActivityBuffer::ioParam_endStim(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "endStim", &mEndStim, (double)FLT_MAX);
-   if (ioFlag == PARAMS_IO_READ && mEndStim < 0)
+void RetinaActivityBuffer::ioParam_endStim(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "endStim", &mEndStim);
+   if (ioSwitch == ParamsIOSwitch::Read && mEndStim < 0)
       mEndStim = FLT_MAX;
 }
 
-void RetinaActivityBuffer::ioParam_burstFreq(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "burstFreq", &mBurstFreq, 1.0f);
+void RetinaActivityBuffer::ioParam_burstFreq(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "burstFreq", &mBurstFreq);
 }
 
-void RetinaActivityBuffer::ioParam_burstDuration(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "burstDuration", &mBurstDuration, 1000.0f);
+void RetinaActivityBuffer::ioParam_burstDuration(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "burstDuration", &mBurstDuration);
 }
 
-void RetinaActivityBuffer::ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "spikingFlag"));
+void RetinaActivityBuffer::ioParam_refractoryPeriod(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("spikingFlag"));
    if (mSpikingFlag) {
-      parameters()->ioParamValue(
-            ioFlag, getName(), "refractoryPeriod", &mRefractoryPeriod, mDefaultRefractoryPeriod);
+      mParamsIO->ioParam(ioSwitch, "refractoryPeriod", &mRefractoryPeriod);
    }
 }
 
-void RetinaActivityBuffer::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "spikingFlag"));
+void RetinaActivityBuffer::ioParam_absRefractoryPeriod(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("spikingFlag"));
    if (mSpikingFlag) {
-      parameters()->ioParamValue(
-            ioFlag,
-            getName(),
-            "absRefractoryPeriod",
-            &mAbsRefractoryPeriod,
-            mDefaultAbsRefractoryPeriod);
+      mParamsIO->ioParam(ioSwitch, "absRefractoryPeriod", &mAbsRefractoryPeriod);
    }
 }
 

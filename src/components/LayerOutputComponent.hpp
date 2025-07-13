@@ -42,29 +42,35 @@ class LayerOutputComponent : public BaseObject {
     * @brief writeStep: Specifies how often to output a pvp file for this layer
     * @details Defaults to every timestep. -1 specifies not to write at all.
     */
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief initialWriteTime: Specifies the first timestep to start outputing pvp files
     */
-   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initialWriteTime(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of LayerOutputComponent parameters
 
   public:
-   LayerOutputComponent(char const *name, PVParams *params, Communicator const *comm);
+   LayerOutputComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~LayerOutputComponent();
 
   protected:
    LayerOutputComponent();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
    virtual void initMessageActionMap() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

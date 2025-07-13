@@ -1,0 +1,8 @@
+Defaults "ImageOffsetTestLayer" = {
+    #include "ImageLayer";
+};
+
+Defaults "ImagePvpOffsetTestLayer" = {
+    #include "PvpLayer";
+    #remove displayPeriod;
+};

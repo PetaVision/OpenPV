@@ -9,9 +9,12 @@
 
 namespace PV {
 
-PlasticTestUpdater::PlasticTestUpdater(const char *name, PVParams *params, Communicator const *comm)
+PlasticTestUpdater::PlasticTestUpdater(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : HebbianUpdater() {
-   HebbianUpdater::initialize(name, params, comm);
+   HebbianUpdater::initialize(params, defaults, comm);
 }
 
 float PlasticTestUpdater::updateRule_dW(float pre, float post) { return pre - post; }

@@ -72,7 +72,10 @@ LCALIFLayer::LCALIFLayer() {
    // initialize(arguments) should *not* be called by the protected constructor.
 }
 
-LCALIFLayer::LCALIFLayer(const char *name, PVParams *params, Communicator const *comm) {
+LCALIFLayer::LCALIFLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
    initialize(name, hc, "LCALIF_update_state");
 }
@@ -111,29 +114,29 @@ void LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = LIFGap::ioParamsFillGroup(ioFlag);
-   ioParam_tauTHR(ioFlag);
-   ioParam_targetRate(ioFlag);
-   ioParam_normalizeInput(ioFlag);
-   ioParam_Vscale(ioFlag);
+int LCALIFLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = LIFGap::ioParamsFillGroup(ioSwitch);
+   ioParam_tauTHR(ioSwitch);
+   ioParam_targetRate(ioSwitch);
+   ioParam_normalizeInput(ioSwitch);
+   ioParam_Vscale(ioSwitch);
    return status;
 }
 
-void LCALIFLayer::ioParam_tauTHR(enum ParamsIOFlag ioFlag) {
+void LCALIFLayer::ioParam_tauTHR(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "tauTHR", &tauTHR, tauTHR);
 }
 
-void LCALIFLayer::ioParam_targetRate(enum ParamsIOFlag ioFlag) {
+void LCALIFLayer::ioParam_targetRate(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "targetRate", &targetRateHz, targetRateHz);
 }
 
-void LCALIFLayer::ioParam_normalizeInput(enum ParamsIOFlag ioFlag) {
+void LCALIFLayer::ioParam_normalizeInput(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(
          ioFlag, name, "normalizeInput", &normalizeInputFlag, normalizeInputFlag);
 }
 
-void LCALIFLayer::ioParam_Vscale(enum ParamsIOFlag ioFlag) {
+void LCALIFLayer::ioParam_Vscale(ParamsIOSwitch ioSwitch) {
    PVParams *p = parameters();
    assert(!p->presentAndNotBeenRead(name, "VthRest"));
    assert(!p->presentAndNotBeenRead(name, "Vrest"));

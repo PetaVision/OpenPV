@@ -32,25 +32,28 @@ class PatchSize : public BaseObject {
     * @details If one pre to many post, nxp restricted to many * an odd number
     * If many pre to one post or one pre to one post, nxp restricted to an odd number
     */
-   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxp(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nyp: Specifies the y patch size
     * @details If one pre to many post, nyp restricted to many * an odd number
     * If many pre to one post or one pre to one post, nyp restricted to an odd number
     */
-   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyp(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief nfp: Specifies the post feature patch size. If negative, it can be
     * set during the CommunicateInitInfo phase.
     */
-   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nfp(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of PatchSize parameters
 
   public:
-   PatchSize(char const *name, PVParams *params, Communicator const *comm);
+   PatchSize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~PatchSize();
 
@@ -77,11 +80,14 @@ class PatchSize : public BaseObject {
   protected:
    PatchSize() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief If nfp was set to a negative number in params, set it here to the postsynaptic

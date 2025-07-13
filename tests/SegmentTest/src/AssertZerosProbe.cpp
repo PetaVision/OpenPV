@@ -17,9 +17,12 @@
 #include <memory>
 
 namespace PV {
-AssertZerosProbe::AssertZerosProbe(const char *name, PVParams *params, Communicator const *comm)
+AssertZerosProbe::AssertZerosProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
@@ -69,12 +72,16 @@ void AssertZerosProbe::checkStats() {
    }
 }
 
-void AssertZerosProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void AssertZerosProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
-void AssertZerosProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+void AssertZerosProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
 } // end namespace PV

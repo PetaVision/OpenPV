@@ -34,11 +34,14 @@ class WTADelivery : public BaseDelivery {
    /**
     * @brief WTADelivery does not use the GPU. It is an error to set receiveGpu to true.
     */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_receiveGpu(ParamsIOSwitch ioSwitch) override;
    /** @} */ // End of list of WTADelivery parameters.
 
   public:
-   WTADelivery(char const *name, PVParams *params, Communicator const *comm);
+   WTADelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~WTADelivery() {}
 
@@ -51,7 +54,10 @@ class WTADelivery : public BaseDelivery {
   protected:
    WTADelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -31,8 +31,9 @@ int main(int argc, char *argv[]) {
 int checkValues(PV_Init &pv_initObj) {
    auto globalMPIBlock = pv_initObj.getCommunicator()->getGlobalMPIBlock();
    std::string const &paramsFilename = pv_initObj.getStringArgument("ParamsFile");
-   PVParams params(paramsFilename.c_str(), 10 /*initialSize*/, globalMPIBlock->getComm());
-   int nbatchGlobal = params.valueInt("column", "nbatch");
+   PVParams params(paramsFilename.c_str(), globalMPIBlock->getComm());
+   auto columnParamsIO = params.makeParamsIO("column");
+   int nbatchGlobal = columnParamsIO->readValue<int>("nbatch");
    int globalMPIBatchDimension = globalMPIBlock->getBatchDimension();
    FatalIf(
          nbatchGlobal % globalMPIBatchDimension != 0,
@@ -41,7 +42,8 @@ int checkValues(PV_Init &pv_initObj) {
    int nbatchLocal = nbatchGlobal / globalMPIBatchDimension;
 
    std::string layerName("SparseBroadcast2");
-   int nf = params.valueInt(layerName.c_str(), "nf", 1, false);
+   auto layerParamsIO = params.makeParamsIO(layerName);
+   int nf = layerParamsIO->readValue<int>("nf", false /*warnIfAbsentFlag*/);
 
    // load data from output file
    auto outputMPIBlock = pv_initObj.getCommunicator()->getIOMPIBlock();

@@ -13,29 +13,32 @@
 namespace PV {
 
 DependentArborList::DependentArborList(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DependentArborList::DependentArborList() {}
 
 DependentArborList::~DependentArborList() {}
 
-void DependentArborList::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ArborList::initialize(name, params, comm);
+void DependentArborList::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ArborList::initialize(params, defaults, comm);
 }
 
 void DependentArborList::setObjectType() { mObjectType = "DependentArborList"; }
 
-int DependentArborList::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return ArborList::ioParamsFillGroup(ioFlag);
+int DependentArborList::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return ArborList::ioParamsFillGroup(ioSwitch);
 }
 
-void DependentArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "numAxonalArbors");
+void DependentArborList::ioParam_numAxonalArbors(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("numAxonalArbors");
    }
    // During the communication phase, numAxonalArbors will be copied from originalConn
 }
@@ -59,13 +62,13 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return Response::POSTPONE;
    }
 
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
    auto *originalArborList      = objectTable->findObject<ArborList>(originalConnName);
    FatalIf(
          originalArborList == nullptr,
          "%s original connection \"%s\" does not have an ArborList.\n",
          getDescription_c(),
-         originalConnName);
+         originalConnName.c_str());
 
    if (!originalArborList->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -73,13 +76,13 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConnName);
+               originalConnName.c_str());
       }
       return Response::POSTPONE;
    }
 
    mNumAxonalArbors = originalArborList->getNumAxonalArbors();
-   parameters()->handleUnnecessaryParameter(getName(), "numAxonalArbors", mNumAxonalArbors);
+   mParamsIO->handleUnnecessaryParameter("numAxonalArbors", mNumAxonalArbors);
 
    auto status = ArborList::communicateInitInfo(message);
    if (!Response::completed(status)) {

@@ -1,15 +1,15 @@
 #include "StochasticReleaseTestProbeOutputter.hpp"
 #include <columns/Communicator.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/StatsProbeOutputter.hpp>
 
 namespace PV {
 
 StochasticReleaseTestProbeOutputter::StochasticReleaseTestProbeOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(objName, params, comm);
+   initialize(params, defaults, comm);
 }
 
 StochasticReleaseTestProbeOutputter::StochasticReleaseTestProbeOutputter() {}
@@ -17,10 +17,10 @@ StochasticReleaseTestProbeOutputter::StochasticReleaseTestProbeOutputter() {}
 StochasticReleaseTestProbeOutputter::~StochasticReleaseTestProbeOutputter() {}
 
 void StochasticReleaseTestProbeOutputter::initialize(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeOutputter::initialize(objName, params, comm);
+   StatsProbeOutputter::initialize(params, defaults, comm);
 }
 
 void StochasticReleaseTestProbeOutputter::printNumNonzeroData(

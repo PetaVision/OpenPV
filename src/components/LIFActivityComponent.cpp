@@ -13,19 +13,19 @@
 namespace PV {
 
 LIFActivityComponent::LIFActivityComponent(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 LIFActivityComponent::~LIFActivityComponent() { delete mRandState; }
 
 void LIFActivityComponent::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityComponent::initialize(name, params, comm);
+   ActivityComponent::initialize(params, defaults, comm);
 }
 
 void LIFActivityComponent::setObjectType() { mObjectType = "LIFActivityComponent"; }
@@ -54,150 +54,143 @@ void LIFActivityComponent::fillComponentTable() {
    }
 }
 
-int LIFActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ActivityComponent::ioParamsFillGroup(ioFlag);
+int LIFActivityComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ActivityComponent::ioParamsFillGroup(ioSwitch);
 
-   ioParam_Vrest(ioFlag);
-   ioParam_Vexc(ioFlag);
-   ioParam_Vinh(ioFlag);
-   ioParam_VinhB(ioFlag);
-   ioParam_VthRest(ioFlag);
-   ioParam_tau(ioFlag);
-   ioParam_tauVth(ioFlag);
-   ioParam_deltaVth(ioFlag);
-   ioParam_deltaGIB(ioFlag);
-   ioParam_noiseAmpE(ioFlag);
-   ioParam_noiseAmpI(ioFlag);
-   ioParam_noiseAmpIB(ioFlag);
-   ioParam_noiseFreqE(ioFlag);
-   ioParam_noiseFreqI(ioFlag);
-   ioParam_noiseFreqIB(ioFlag);
-   ioParam_tauE(ioFlag);
-   ioParam_tauI(ioFlag);
-   ioParam_tauIB(ioFlag);
-   ioParam_method(ioFlag);
+   ioParam_Vrest(ioSwitch);
+   ioParam_Vexc(ioSwitch);
+   ioParam_Vinh(ioSwitch);
+   ioParam_VinhB(ioSwitch);
+   ioParam_VthRest(ioSwitch);
+   ioParam_tau(ioSwitch);
+   ioParam_tauVth(ioSwitch);
+   ioParam_deltaVth(ioSwitch);
+   ioParam_deltaGIB(ioSwitch);
+   ioParam_noiseAmpE(ioSwitch);
+   ioParam_noiseAmpI(ioSwitch);
+   ioParam_noiseAmpIB(ioSwitch);
+   ioParam_noiseFreqE(ioSwitch);
+   ioParam_noiseFreqI(ioSwitch);
+   ioParam_noiseFreqIB(ioSwitch);
+   ioParam_tauE(ioSwitch);
+   ioParam_tauI(ioSwitch);
+   ioParam_tauIB(ioSwitch);
+   ioParam_method(ioSwitch);
    return PV_SUCCESS;
 }
 
-void LIFActivityComponent::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "Vrest", &mLIFParams.Vrest, mLIFParams.Vrest);
+void LIFActivityComponent::ioParam_Vrest(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "Vrest", &mLIFParams.Vrest);
 }
 
-void LIFActivityComponent::ioParam_Vexc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "Vexc", &mLIFParams.Vexc, mLIFParams.Vexc);
+void LIFActivityComponent::ioParam_Vexc(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "Vexc", &mLIFParams.Vexc);
 }
 
-void LIFActivityComponent::ioParam_Vinh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "Vinh", &mLIFParams.Vinh, mLIFParams.Vinh);
+void LIFActivityComponent::ioParam_Vinh(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "Vinh", &mLIFParams.Vinh);
 }
 
-void LIFActivityComponent::ioParam_VinhB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "VinhB", &mLIFParams.VinhB, mLIFParams.VinhB);
+void LIFActivityComponent::ioParam_VinhB(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "VinhB", &mLIFParams.VinhB);
 }
 
-void LIFActivityComponent::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "VthRest", &mLIFParams.VthRest, mLIFParams.VthRest);
+void LIFActivityComponent::ioParam_VthRest(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "VthRest", &mLIFParams.VthRest);
 }
 
-void LIFActivityComponent::ioParam_tau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tau", &mLIFParams.tau, mLIFParams.tau);
+void LIFActivityComponent::ioParam_tau(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tau", &mLIFParams.tau);
 }
 
-void LIFActivityComponent::ioParam_tauVth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tauVth", &mLIFParams.tauVth, mLIFParams.tauVth);
+void LIFActivityComponent::ioParam_tauVth(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tauVth", &mLIFParams.tauVth);
 }
 
-void LIFActivityComponent::ioParam_deltaVth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "deltaVth", &mLIFParams.deltaVth, mLIFParams.deltaVth);
+void LIFActivityComponent::ioParam_deltaVth(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "deltaVth", &mLIFParams.deltaVth);
 }
 
-void LIFActivityComponent::ioParam_deltaGIB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "deltaGIB", &mLIFParams.deltaGIB, mLIFParams.deltaGIB);
+void LIFActivityComponent::ioParam_deltaGIB(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "deltaGIB", &mLIFParams.deltaGIB);
 }
 
-void LIFActivityComponent::ioParam_noiseAmpE(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "noiseAmpE", &mLIFParams.noiseAmpE, mLIFParams.noiseAmpE);
+void LIFActivityComponent::ioParam_noiseAmpE(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "noiseAmpE", &mLIFParams.noiseAmpE);
 }
 
-void LIFActivityComponent::ioParam_noiseAmpI(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "noiseAmpI", &mLIFParams.noiseAmpI, mLIFParams.noiseAmpI);
+void LIFActivityComponent::ioParam_noiseAmpI(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "noiseAmpI", &mLIFParams.noiseAmpI);
 }
 
-void LIFActivityComponent::ioParam_noiseAmpIB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "noiseAmpIB", &mLIFParams.noiseAmpIB, mLIFParams.noiseAmpIB);
+void LIFActivityComponent::ioParam_noiseAmpIB(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "noiseAmpIB", &mLIFParams.noiseAmpIB);
 }
 
-void LIFActivityComponent::ioParam_noiseFreqE(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "noiseFreqE", &mLIFParams.noiseFreqE, mLIFParams.noiseFreqE);
+void LIFActivityComponent::ioParam_noiseFreqE(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "noiseFreqE", &mLIFParams.noiseFreqE);
    // Truncation to 1/(0.001*dt) has been moved to initializeState() method.
 }
 
-void LIFActivityComponent::ioParam_noiseFreqI(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "noiseFreqI", &mLIFParams.noiseFreqI, mLIFParams.noiseFreqI);
+void LIFActivityComponent::ioParam_noiseFreqI(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "noiseFreqI", &mLIFParams.noiseFreqI);
    // Truncation to 1/(0.001*dt) has been moved to initializeState() method.
 }
 
-void LIFActivityComponent::ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "noiseFreqIB", &mLIFParams.noiseFreqIB, mLIFParams.noiseFreqIB);
+void LIFActivityComponent::ioParam_noiseFreqIB(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "noiseFreqIB", &mLIFParams.noiseFreqIB);
    // Truncation to 1/(0.001*dt) has been moved to initializeState() method.
 }
 
-void LIFActivityComponent::ioParam_tauE(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tauE", &mLIFParams.tauE, mLIFParams.tauE);
+void LIFActivityComponent::ioParam_tauE(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tauE", &mLIFParams.tauE);
 }
 
-void LIFActivityComponent::ioParam_tauI(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tauI", &mLIFParams.tauI, mLIFParams.tauI);
+void LIFActivityComponent::ioParam_tauI(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tauI", &mLIFParams.tauI);
 }
 
-void LIFActivityComponent::ioParam_tauIB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tauIB", &mLIFParams.tauIB, mLIFParams.tauIB);
+void LIFActivityComponent::ioParam_tauIB(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tauIB", &mLIFParams.tauIB);
 }
 
-void LIFActivityComponent::ioParam_method(enum ParamsIOFlag ioFlag) {
+void LIFActivityComponent::ioParam_method(ParamsIOSwitch ioSwitch) {
    // Read the integration method: one of 'arma' (preferred), 'beginning' (deprecated), or
    // 'original' (deprecated).
    char const *defaultMethod = "arma";
-   parameters()->ioParamString(
-         ioFlag, getName(), "method", &mMethodString, defaultMethod, true /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(mMethodString);
-      if (mMethodString[0] == '\0') {
-         free(mMethodString);
-         mMethodString = strdup(defaultMethod);
-         if (mMethodString == nullptr) {
-            Fatal().printf(
-                  "%s: unable to set method string: %s\n", getDescription_c(), strerror(errno));
-         }
+   mParamsIO->ioParam(ioSwitch, "method", &mMethodString);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      if (mMethodString.empty()) {
+         std::string const *defaultMethod = mParamsIO->getDefaults()->peek<std::string>("method");
+         FatalIf(
+               defaultMethod == nullptr,
+               "String parameter \"%s\" was not set in %s \"%s\" and no default value was found.\n",
+               "method", getKeyword(), getName());
+         mMethodString = *defaultMethod;
       }
+      // TODO: retrieve value from default params instead of hard-coding default method
       checkMethodString();
    }
 }
 
 void LIFActivityComponent::checkMethodString() {
-   pvAssert(mMethodString);
+   pvAssert(!mMethodString.empty());
    mMethod = mMethodString[0];
    if (mMethod != 'o' && mMethod != 'b' && mMethod != 'a') {
       if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
-               "LIFActivityComponent::ioParam_method error.  Layer \"%s\" has method \"%s\".  "
+               "LIFActivityComponent::ioParam_method error.  Layer \"%s\" has method \"%s\". "
                "Allowable values are \"arma\", \"beginning\" and \"original\".\n",
                getName(),
                mMethodString);
       }
       MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
    if (mMethod != 'a') {
       if (mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
-               "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
+               "LIF layer \"%s\" integration method \"%s\" is deprecated. Method \"arma\" is "
                "preferred.\n",
                getName(),
                mMethodString);
@@ -206,13 +199,14 @@ void LIFActivityComponent::checkMethodString() {
 }
 
 RestrictedBuffer *LIFActivityComponent::createRestrictedBuffer(char const *label) {
-   RestrictedBuffer *buffer = new RestrictedBuffer(getName(), parameters(), mCommunicator);
+   RestrictedBuffer *buffer =
+         new RestrictedBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
    buffer->setBufferLabel(label);
    return buffer;
 }
 
 InternalStateBuffer *LIFActivityComponent::createInternalState() {
-   return new InternalStateBuffer(getName(), parameters(), mCommunicator);
+   return new InternalStateBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 Response::Status LIFActivityComponent::communicateInitInfo(

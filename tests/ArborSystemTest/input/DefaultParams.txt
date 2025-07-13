@@ -1,0 +1,9 @@
+Defaults "ArborTestForOnesProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+};
+
+Defaults "ArborTestProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+};

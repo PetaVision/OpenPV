@@ -14,20 +14,26 @@ namespace PV {
 
 class InitUniformRandomWeights : public InitRandomWeights {
   protected:
-   void ioParam_wMinInit(enum ParamsIOFlag ioFlag);
-   void ioParam_wMaxInit(enum ParamsIOFlag ioFlag);
-   void ioParam_sparseFraction(enum ParamsIOFlag ioFlag);
-   void ioParam_minNNZ(enum ParamsIOFlag ioFlag);
+   void ioParam_wMinInit(ParamsIOSwitch ioSwitch);
+   void ioParam_wMaxInit(ParamsIOSwitch ioSwitch);
+   void ioParam_sparseFraction(ParamsIOSwitch ioSwitch);
+   void ioParam_minNNZ(ParamsIOSwitch ioSwitch);
 
   public:
-   InitUniformRandomWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitUniformRandomWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitUniformRandomWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    InitUniformRandomWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void randomWeights(float *patchDataStart, int patchIndex) override;
 
    // Data members

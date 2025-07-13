@@ -18,7 +18,10 @@ namespace PV {
  */
 class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
   public:
-   PoolingIndexLayerInputBuffer(char const *name, PVParams *params, Communicator const *comm);
+   PoolingIndexLayerInputBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~PoolingIndexLayerInputBuffer();
 
@@ -29,7 +32,10 @@ class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
   protected:
    PoolingIndexLayerInputBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void setObjectType() override;
 
    virtual MPI_Op setReductionOp() override;

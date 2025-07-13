@@ -9,7 +9,7 @@
 #include <components/InternalStateBuffer.hpp>
 #include <structures/PVLayerLoc.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <observerpattern/Observer.hpp>
 #include <probes/ProbeData.hpp>
@@ -317,10 +317,11 @@ int testStoredValues(
    paramsString.append("   buffer = \"").append(bufferTypeString).append("\";\n");
    paramsString.append("   nnzThreshold = ").append(nnzThresholdString).append(";\n");
    paramsString.append("};\n");
-   PV::PVParams probeParams(paramsString.c_str(), paramsString.size(), 1UL, MPI_COMM_WORLD);
+   PV::PVParams probeParams(paramsString.c_str(), paramsString.size(), MPI_COMM_WORLD);
 
-   StatsProbeLocal statsProbeLocal("probe", &probeParams);
-   statsProbeLocal.ioParamsFillGroup(PV::PARAMS_IO_READ);
+   auto paramsIO = probeParams.makeParamsIO("probe");
+   StatsProbeLocal statsProbeLocal(paramsIO->getParams(), paramsIO->getDefaults());
+   statsProbeLocal.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
    statsProbeLocal.initializeState(layer);
 
    PVLayerLoc const *loc         = layer->getLayerLoc();

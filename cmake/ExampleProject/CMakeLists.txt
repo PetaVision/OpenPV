@@ -27,7 +27,7 @@ set(${PV_PROJECT_NAME}_SRCFILES
    src/main.cpp
 )
 
-set(PV_CONFIG_FILE_DIR "${PV_BUILD_DIR}/lib/include")
+set(PV_CONFIG_FILE_DIR "${PV_BUILD_DIR}/include")
 set(PV_INCLUDE_DIR "${PV_SOURCE_DIR}")
 set(PV_LIBRARIES "${PV_BUILD_DIR}/lib/libpv.a")
 

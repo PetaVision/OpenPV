@@ -21,8 +21,11 @@ namespace PV {
 // derived classes.  It should NOT call any virtual methods
 HyPerLayer::HyPerLayer() {}
 
-HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+HyPerLayer::HyPerLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 HyPerLayer::~HyPerLayer() {}
@@ -32,8 +35,11 @@ HyPerLayer::~HyPerLayer() {}
 /// to take advantage of virtual methods.  Note that the HyPerLayer constructor
 /// does not call initialize.  This way, HyPerLayer::initialize can call virtual
 /// methods and the derived class's method will be the one that gets called.
-void HyPerLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   ComponentBasedObject::initialize(name, params, comm);
+void HyPerLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ComponentBasedObject::initialize(params, defaults, comm);
 
    // The layer writes this flag to output params file. ParamsInterface-derived components of the
    // layer will automatically read InitializeFromCheckpointFlag, but shouldn't also write it.
@@ -150,44 +156,44 @@ void HyPerLayer::fillComponentTable() {
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() {
-   return new LayerGeometry(getName(), parameters(), mCommunicator);
+   return new LayerGeometry(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 PhaseParam *HyPerLayer::createPhaseParam() {
-   return new PhaseParam(getName(), parameters(), mCommunicator);
+   return new PhaseParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 BoundaryConditions *HyPerLayer::createBoundaryConditions() {
-   return new BoundaryConditions(getName(), parameters(), mCommunicator);
+   return new BoundaryConditions(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 LayerUpdateController *HyPerLayer::createLayerUpdateController() {
-   return new LayerUpdateController(getName(), parameters(), mCommunicator);
+   return new LayerUpdateController(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 LayerInputBuffer *HyPerLayer::createLayerInput() {
-   return new LayerInputBuffer(getName(), parameters(), mCommunicator);
+   return new LayerInputBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 ActivityComponent *HyPerLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
+                                     HyPerActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 BasePublisherComponent *HyPerLayer::createPublisher() {
-   return new PublisherComponent(getName(), parameters(), mCommunicator);
+   return new PublisherComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 LayerOutputComponent *HyPerLayer::createLayerOutput() {
-   return new LayerOutputComponent(getName(), parameters(), mCommunicator);
+   return new LayerOutputComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 /******************************************************************
  * Read/write params for layer and for layer components
  *****************************************************************/
-int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
+int HyPerLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ComponentBasedObject::ioParamsFillGroup(ioSwitch);
    return status;
 }
 
@@ -237,7 +243,9 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer *layer) {
 
 Response::Status
 HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
-   writeParams();
+   mParamsIO->setPrintParamsStream(message->mPrintParamsStream);
+   mParamsIO->setPrintLuaStream(message->mPrintLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
 }
 

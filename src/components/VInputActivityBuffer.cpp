@@ -10,19 +10,19 @@
 namespace PV {
 
 VInputActivityBuffer::VInputActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 VInputActivityBuffer::~VInputActivityBuffer() {}
 
 void VInputActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 void VInputActivityBuffer::setObjectType() { mObjectType = "VInputActivityBuffer"; }

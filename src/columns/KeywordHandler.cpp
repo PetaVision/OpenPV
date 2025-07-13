@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <include/pv_common.h>
+#include <memory>
 
 namespace PV {
 
@@ -36,8 +37,11 @@ int KeywordHandler::initialize(char const *kw, ObjectCreateFn creator) {
 }
 
 BaseObject *
-KeywordHandler::create(char const *name, PVParams *params, Communicator const *comm) const {
-   return (mCreator)(name, params, comm);
+KeywordHandler::create(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) const {
+   return (mCreator)(params, defaults, comm);
 }
 
 KeywordHandler::~KeywordHandler() { free(mKeyword); }

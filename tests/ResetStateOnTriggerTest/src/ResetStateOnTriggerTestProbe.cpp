@@ -5,7 +5,7 @@
 #include <columns/Messages.hpp>
 #include <components/BasePublisherComponent.hpp>
 #include <components/PhaseParam.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <observerpattern/BaseMessage.hpp>
 #include <observerpattern/Response.hpp>
@@ -20,10 +20,10 @@
 using PV::BaseMessage;
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
-      char const *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
@@ -39,13 +39,14 @@ PV::Response::Status ResetStateOnTriggerTestProbe::communicateInitInfo(
 }
 
 void ResetStateOnTriggerTestProbe::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeLocal         = std::make_shared<ResetStateOnTriggerTestProbeLocal>(name, params);
-   mTargetLayerLocator = std::make_shared<TargetLayerComponent>(name, params);
-   mProbeOutputter = std::make_shared<ResetStateOnTriggerTestProbeOutputter>(name, params, comm);
-   BaseObject::initialize(name, params, comm);
+   mProbeLocal         = std::make_shared<ResetStateOnTriggerTestProbeLocal>(params, defaults);
+   mTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
+   mProbeOutputter =
+         std::make_shared<ResetStateOnTriggerTestProbeOutputter>(params, defaults, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void ResetStateOnTriggerTestProbe::initMessageActionMap() {
@@ -65,11 +66,11 @@ void ResetStateOnTriggerTestProbe::initMessageActionMap() {
    mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
-int ResetStateOnTriggerTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseObject::ioParamsFillGroup(ioFlag);
-   mTargetLayerLocator->ioParamsFillGroup(ioFlag);
-   mProbeOutputter->ioParamsFillGroup(ioFlag);
-   mProbeLocal->ioParamsFillGroup(ioFlag);
+int ResetStateOnTriggerTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseObject::ioParamsFillGroup(ioSwitch);
+   mTargetLayerLocator->ioParamsFillGroup(ioSwitch);
+   mProbeOutputter->ioParamsFillGroup(ioSwitch);
+   mProbeLocal->ioParamsFillGroup(ioSwitch);
    return status;
 }
 
@@ -129,11 +130,15 @@ PV::Response::Status ResetStateOnTriggerTestProbe::respondLayerOutputState(
 
 PV::Response::Status ResetStateOnTriggerTestProbe::respondProbeWriteParams(
       std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
+   mParamsIO->setPrintParamsStream(message->mPrintParamsStream);
+   mParamsIO->setPrintLuaStream(message->mPrintLuaStream);
    return PV::Response::SUCCESS;
 }
 
 BaseObject *
-createResetStateOnTriggerTestProbe(char const *name, PVParams *params, Communicator const *comm) {
-   return new ResetStateOnTriggerTestProbe(name, params, comm);
+createResetStateOnTriggerTestProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   return new ResetStateOnTriggerTestProbe(params, defaults, comm);
 }

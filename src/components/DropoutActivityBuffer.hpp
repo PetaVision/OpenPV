@@ -30,11 +30,14 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
     * Values above 99 are truncated to 99.
     *
     */
-   virtual void ioParam_probability(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_probability(ParamsIOSwitch ioSwitch);
 
    /** @} */
   public:
-   DropoutActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   DropoutActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~DropoutActivityBuffer();
 
@@ -43,11 +46,14 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
   protected:
    DropoutActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status allocateDataStructures() override;
 

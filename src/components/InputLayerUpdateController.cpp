@@ -11,10 +11,10 @@
 namespace PV {
 
 InputLayerUpdateController::InputLayerUpdateController(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InputLayerUpdateController::InputLayerUpdateController() {}
@@ -22,20 +22,19 @@ InputLayerUpdateController::InputLayerUpdateController() {}
 InputLayerUpdateController::~InputLayerUpdateController() {}
 
 void InputLayerUpdateController::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   LayerUpdateController::initialize(name, params, comm);
+   LayerUpdateController::initialize(params, defaults, comm);
 }
 
 void InputLayerUpdateController::setObjectType() { mObjectType = "InputLayerUpdateController"; }
 
-void InputLayerUpdateController::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      mTriggerLayerName = nullptr;
+void InputLayerUpdateController::ioParam_triggerLayerName(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mTriggerLayerName = "";
       mTriggerFlag      = false;
-      parameters()->handleUnnecessaryStringParameter(
-            getName(), "triggerLayerName", nullptr /*correct value*/);
+      mParamsIO->handleUnnecessaryParameter("triggerLayerName", std::string("") /*correct value*/);
    }
 }
 

@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
          "FixedImageSequenceByFile", Factory::create<FixedImageSequenceByFile>);
    pv_initObj.registerKeyword(
          "FixedImageSequenceByList", Factory::create<FixedImageSequenceByList>);
+   pv_initObj.registerDefaults("input/DefaultParams.txt");
    int status = buildandrun(&pv_initObj, NULL, NULL);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

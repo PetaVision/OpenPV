@@ -3,8 +3,11 @@
 
 namespace PV {
 
-MovieTestBuffer::MovieTestBuffer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+MovieTestBuffer::MovieTestBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {

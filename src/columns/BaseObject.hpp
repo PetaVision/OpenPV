@@ -75,7 +75,10 @@ class BaseObject : public ParamsInterface {
 
   protected:
    BaseObject();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    void setCommunicator(Communicator const *comm);
    virtual void initMessageActionMap() override;
 

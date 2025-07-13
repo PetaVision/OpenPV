@@ -2,16 +2,22 @@
 
 namespace PV {
 
-AlwaysFailsLayer::AlwaysFailsLayer(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+AlwaysFailsLayer::AlwaysFailsLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 AlwaysFailsLayer::AlwaysFailsLayer() {}
 
 AlwaysFailsLayer::~AlwaysFailsLayer() {}
 
-void AlwaysFailsLayer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void AlwaysFailsLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 Response::Status AlwaysFailsLayer::checkUpdateState(double simTime, double deltaTime) {

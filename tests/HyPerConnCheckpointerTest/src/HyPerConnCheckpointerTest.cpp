@@ -17,8 +17,10 @@ int main(int argc, char *argv[]) {
    checkConfiguration(pv_initObj, programName);
    pv_initObj.registerKeyword(
          "HyPerConnCheckpointerTestProbe", Factory::create<HyPerConnCheckpointerTestProbe>);
+   std::string customDefaultsPath("input/DefaultParams.txt");
 
    pv_initObj.setParams("input/HyPerConnCheckpointerTest_freshstart_triggering.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,
@@ -36,6 +38,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.resetState();
 
    pv_initObj.setParams("input/HyPerConnCheckpointerTest_initfromCP_triggering.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,
@@ -45,6 +48,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.resetState();
 
    pv_initObj.setParams("input/HyPerConnCheckpointerTest_freshstart_updateperiod.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,
@@ -62,6 +66,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.resetState();
 
    pv_initObj.setParams("input/HyPerConnCheckpointerTest_initfromCP_updateperiod.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(
          status != PV_SUCCESS,

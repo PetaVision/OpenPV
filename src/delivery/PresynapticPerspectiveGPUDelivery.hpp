@@ -20,7 +20,10 @@ namespace PV {
  */
 class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
   public:
-   PresynapticPerspectiveGPUDelivery(char const *name, PVParams *params, Communicator const *comm);
+   PresynapticPerspectiveGPUDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~PresynapticPerspectiveGPUDelivery();
 
@@ -37,7 +40,10 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
   protected:
    PresynapticPerspectiveGPUDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

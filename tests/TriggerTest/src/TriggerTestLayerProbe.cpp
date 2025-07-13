@@ -9,7 +9,7 @@
 #include <columns/Messages.hpp>
 #include <components/InputActivityBuffer.hpp>
 #include <components/PhaseParam.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <observerpattern/BaseMessage.hpp>
 #include <observerpattern/Response.hpp>
 #include <probes/ProbeTriggerComponent.hpp>
@@ -22,10 +22,10 @@
 
 namespace PV {
 TriggerTestLayerProbe::TriggerTestLayerProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 Response::Status TriggerTestLayerProbe::communicateInitInfo(
@@ -39,21 +39,21 @@ Response::Status TriggerTestLayerProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   char const *inputLayerName = mProbeTrigger->getTriggerLayerName();
-   if (inputLayerName) {
+   std::string const &inputLayerName = mProbeTrigger->getTriggerLayerName();
+   if (!inputLayerName.empty()) {
       auto *inputBuffer = message->mObjectTable->findObject<InputActivityBuffer>(inputLayerName);
       FatalIf(
             inputBuffer == nullptr,
             "%s: triggerLayerName \"%s\" is not an InputLayer-derived object, as required "
             "by TriggerTest.\n",
             getDescription_c(),
-            inputLayerName);
+            inputLayerName.c_str());
       FatalIf(
             inputBuffer->getDisplayPeriod() != mInputDisplayPeriod,
             "%s: triggerLayer \"%s\" has display period %d, "
             "but TriggerTest requires displayPeriod = %d.\n",
             getDescription_c(),
-            inputLayerName,
+            inputLayerName.c_str(),
             inputBuffer->getDisplayPeriod(),
             mInputDisplayPeriod);
    }
@@ -61,15 +61,15 @@ Response::Status TriggerTestLayerProbe::communicateInitInfo(
 }
 
 void TriggerTestLayerProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(name, params);
-   mProbeTrigger            = std::make_shared<ProbeTriggerComponent>(name, params);
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
+   mProbeTrigger            = std::make_shared<ProbeTriggerComponent>(params, defaults);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void TriggerTestLayerProbe::initMessageActionMap() {
@@ -89,10 +89,10 @@ void TriggerTestLayerProbe::initMessageActionMap() {
    mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
-int TriggerTestLayerProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseObject::ioParamsFillGroup(ioFlag);
-   mProbeTargetLayerLocator->ioParamsFillGroup(ioFlag);
-   mProbeTrigger->ioParamsFillGroup(ioFlag);
+int TriggerTestLayerProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseObject::ioParamsFillGroup(ioSwitch);
+   mProbeTargetLayerLocator->ioParamsFillGroup(ioSwitch);
+   mProbeTrigger->ioParamsFillGroup(ioSwitch);
    return status;
 }
 
@@ -164,7 +164,9 @@ Response::Status TriggerTestLayerProbe::respondLayerOutputState(
 
 Response::Status TriggerTestLayerProbe::respondProbeWriteParams(
       std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
+   mParamsIO->setPrintParamsStream(message->mPrintParamsStream);
+   mParamsIO->setPrintLuaStream(message->mPrintLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
 }
 

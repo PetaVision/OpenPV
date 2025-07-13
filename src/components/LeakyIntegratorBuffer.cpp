@@ -11,37 +11,31 @@
 namespace PV {
 
 LeakyIntegratorBuffer::LeakyIntegratorBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 LeakyIntegratorBuffer::~LeakyIntegratorBuffer() {}
 
 void LeakyIntegratorBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(name, params, comm);
+   HyPerInternalStateBuffer::initialize(params, defaults, comm);
 }
 
 void LeakyIntegratorBuffer::setObjectType() { mObjectType = "LeakyIntegratorBuffer"; }
 
-int LeakyIntegratorBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_integrationTime(ioFlag);
+int LeakyIntegratorBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_integrationTime(ioSwitch);
    return status;
 }
 
-void LeakyIntegratorBuffer::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "integrationTime",
-         &mIntegrationTime,
-         mIntegrationTime,
-         true /*warnIfAbsent*/);
+void LeakyIntegratorBuffer::ioParam_integrationTime(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "integrationTime", &mIntegrationTime);
 }
 
 void LeakyIntegratorBuffer::updateBufferCPU(double simTime, double deltaTime) {

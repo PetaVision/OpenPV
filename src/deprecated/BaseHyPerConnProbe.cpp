@@ -11,20 +11,23 @@
 namespace PV {
 
 BaseHyPerConnProbe::BaseHyPerConnProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 BaseHyPerConnProbe::BaseHyPerConnProbe() {}
 
-void BaseHyPerConnProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseConnectionProbe::initialize(name, params, comm);
+void BaseHyPerConnProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseConnectionProbe::initialize(params, defaults, comm);
 }
 
-void BaseHyPerConnProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void BaseHyPerConnProbe::ioParam_statsFlag(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       parameters()->handleUnnecessaryParameter(name, "statsFlag");
    }
 }

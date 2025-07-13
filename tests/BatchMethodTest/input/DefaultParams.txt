@@ -1,0 +1,7 @@
+Defaults "FixedImageSequenceByFile" = {
+    #include "BasicLayer";
+};
+
+Defaults "FixedImageSequenceByList" = {
+    #include "BasicLayer";
+};

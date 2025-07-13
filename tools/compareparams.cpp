@@ -70,8 +70,6 @@ int main(int argc, char *argv[]) {
    std::string file2 = argv[optind + 1];
    auto mpiComm      = pvInitObj->getCommunicator()->globalCommunicator();
 
-   std::stringstream configStream("NumRows:0\nNumColumns:0\nBatchWidth:0\n");
-
    int status = PV::compareParamsFiles(file1, file2, mpiComm);
    delete pvInitObj;
    if (status == PV_SUCCESS) {

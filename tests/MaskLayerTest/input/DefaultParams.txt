@@ -1,0 +1,4 @@
+Defaults "MaskTestLayer" = {
+    #include "ANNLayer";
+    // maskMethod string parameter is required
+};

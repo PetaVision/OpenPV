@@ -33,29 +33,29 @@ class LinkedObjectParam : public BaseObject {
     * that specifies the param name to search for. This method reads and writes
     * the param whose name is specified by that argument.
     */
-   virtual void ioParam_linkedObjectName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_linkedObjectName(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of LinkedObjectParam parameters
 
   public:
    virtual ~LinkedObjectParam();
 
-   char const *getLinkedObjectName() const { return mLinkedObjectName; }
+   std::string const &getLinkedObjectName() const { return mLinkedObjectName; }
 
   protected:
    LinkedObjectParam() {}
 
    void initialize(
-         char const *name,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          Communicator const *comm,
          std::string const &paramName);
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    std::string mParamName;
-   char *mLinkedObjectName = nullptr;
+   std::string mLinkedObjectName;
 };
 
 } // namespace PV

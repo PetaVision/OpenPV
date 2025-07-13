@@ -13,10 +13,10 @@
 namespace PV {
 
 FeedbackConnectionData::FeedbackConnectionData(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 FeedbackConnectionData::FeedbackConnectionData() {}
@@ -24,22 +24,22 @@ FeedbackConnectionData::FeedbackConnectionData() {}
 FeedbackConnectionData::~FeedbackConnectionData() {}
 
 void FeedbackConnectionData::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ConnectionData::initialize(name, params, comm);
+   ConnectionData::initialize(params, defaults, comm);
 }
 
 void FeedbackConnectionData::setObjectType() { mObjectType = "FeedbackConnectionData"; }
 
-int FeedbackConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return ConnectionData::ioParamsFillGroup(ioFlag);
+int FeedbackConnectionData::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return ConnectionData::ioParamsFillGroup(ioSwitch);
 }
 
 // FeedbackConn doesn't use preLayerName or postLayerName
 // If they're present, errors are handled by setPreAndPostLayerNames
-void FeedbackConnectionData::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {}
-void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
+void FeedbackConnectionData::ioParam_preLayerName(ParamsIOSwitch ioSwitch) {}
+void FeedbackConnectionData::ioParam_postLayerName(ParamsIOSwitch ioSwitch) {}
 
 Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -49,21 +49,19 @@ Response::Status FeedbackConnectionData::communicateInitInfo(
          originalConnNameParam == nullptr,
          "%s could not find an OriginalConnNameParam.\n",
          getDescription_c());
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
 
    auto *originalConnectionData = objectTable->findObject<ConnectionData>(originalConnName);
    FatalIf(
          originalConnectionData == nullptr,
          "%s set original connection to \"%s\", which does not have a ConnectionData component.\n",
          getDescription_c(),
-         originalConnName);
+         originalConnName.c_str());
    if (!originalConnectionData->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   free(mPreLayerName);
-   mPreLayerName = strdup(originalConnectionData->getPostLayerName());
-   free(mPostLayerName);
-   mPostLayerName = strdup(originalConnectionData->getPreLayerName());
+   mPreLayerName = originalConnectionData->getPostLayerName();
+   mPostLayerName = originalConnectionData->getPreLayerName();
 
    return ConnectionData::communicateInitInfo(message);
 }

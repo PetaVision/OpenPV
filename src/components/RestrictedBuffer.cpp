@@ -9,14 +9,20 @@
 
 namespace PV {
 
-RestrictedBuffer::RestrictedBuffer(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+RestrictedBuffer::RestrictedBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 RestrictedBuffer::~RestrictedBuffer() {}
 
-void RestrictedBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ComponentBuffer::initialize(name, params, comm);
+void RestrictedBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ComponentBuffer::initialize(params, defaults, comm);
    mExtendedFlag = false;
 }
 

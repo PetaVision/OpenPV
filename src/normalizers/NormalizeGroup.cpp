@@ -13,31 +13,37 @@
 
 namespace PV {
 
-NormalizeGroup::NormalizeGroup(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+NormalizeGroup::NormalizeGroup(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 NormalizeGroup::NormalizeGroup() {}
 
-NormalizeGroup::~NormalizeGroup() { free(mNormalizeGroupName); }
+NormalizeGroup::~NormalizeGroup() {}
 
-void NormalizeGroup::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   NormalizeBase::initialize(name, params, comm);
+void NormalizeGroup::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   NormalizeBase::initialize(params, defaults, comm);
 }
 
-int NormalizeGroup::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
-   ioParam_normalizeGroupName(ioFlag);
+int NormalizeGroup::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = NormalizeBase::ioParamsFillGroup(ioSwitch);
+   ioParam_normalizeGroupName(ioSwitch);
    return status;
 }
 
 // The NormalizeBase parameters are overridden to do nothing in NormalizeGroup.
-void NormalizeGroup::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {}
-void NormalizeGroup::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {}
-void NormalizeGroup::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {}
+void NormalizeGroup::ioParam_normalizeArborsIndividually(ParamsIOSwitch ioSwitch) {}
+void NormalizeGroup::ioParam_normalizeOnInitialize(ParamsIOSwitch ioSwitch) {}
+void NormalizeGroup::ioParam_normalizeOnWeightUpdate(ParamsIOSwitch ioSwitch) {}
 
-void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "normalizeGroupName", &mNormalizeGroupName);
+void NormalizeGroup::ioParam_normalizeGroupName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalizeGroupName", &mNormalizeGroupName);
 }
 
 Response::Status
@@ -47,13 +53,13 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       return status;
    }
 
-   auto *objectTable        = message->mObjectTable;
-   mGroupHead               = objectTable->findObject<NormalizeBase>(mNormalizeGroupName);
+   auto *objectTable = message->mObjectTable;
+   mGroupHead        = objectTable->findObject<NormalizeBase>(mNormalizeGroupName);
    FatalIf(
          mGroupHead == nullptr,
          "%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
          getDescription_c(),
-         mNormalizeGroupName);
+         mNormalizeGroupName.c_str());
    FatalIf(
          !strcmp(mGroupHead->getName(), getName()),
          "%s: normalizeGroupName must point to a connection other than itself.\n",
@@ -70,7 +76,7 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
          ErrorLog().printf(
                "%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
                getDescription_c(),
-               mNormalizeGroupName);
+               mNormalizeGroupName.c_str());
       }
       MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
@@ -92,7 +98,7 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (thisConnectionData->getPreIsBroadcast() != headConnectionData->getPreIsBroadcast()) {
       ErrorLog().printf(
             "broadcast flag for %s does not match that of normalizeGroupName \"%s\".\n",
-            getDescription_c(), mNormalizeGroupName);
+            getDescription_c(), mNormalizeGroupName.c_str());
       MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }

@@ -28,17 +28,23 @@ class InputLayerUpdateController : public LayerUpdateController {
     * triggerLayerName: InputLayer and derived classes do not use triggering, and always set
     * triggerLayerName to NULL.
     */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_triggerLayerName(ParamsIOSwitch ioSwitch) override;
    /** @} */ // end of InputLayerUpdateController parameters
 
   public:
-   InputLayerUpdateController(char const *name, PVParams *params, Communicator const *comm);
+   InputLayerUpdateController(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InputLayerUpdateController();
 
   protected:
    InputLayerUpdateController();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

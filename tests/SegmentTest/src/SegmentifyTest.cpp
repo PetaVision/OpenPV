@@ -2,8 +2,11 @@
 
 namespace PV {
 
-SegmentifyTest::SegmentifyTest(const char *name, PVParams *params, Communicator const *comm) {
-   Segmentify::initialize(name, params, comm);
+SegmentifyTest::SegmentifyTest(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   Segmentify::initialize(params, defaults, comm);
 }
 
 void SegmentifyTest::fillComponentTable() {
@@ -33,12 +36,12 @@ void SegmentifyTest::fillComponentTable() {
  */
 float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
    // We can convert yi and xi to an index between 0 and 2
-   int newYi               = yi / 3;
-   int newXi               = xi / 3;
-   int segmentLabel        = newYi * 3 + newXi + 1;
-   int returnLabel         = -1;
-   char const *inputMethod = mSegmentifyBuffer->getInputMethod();
-   if (strcmp(inputMethod, "sum") == 0) {
+   int newYi                      = yi / 3;
+   int newXi                      = xi / 3;
+   int segmentLabel               = newYi * 3 + newXi + 1;
+   int returnLabel                = -1;
+   std::string const &inputMethod = mSegmentifyBuffer->getInputMethod();
+   if (inputMethod == "sum") {
       // Account for edge cases
       if (segmentLabel == 3 || segmentLabel == 6 || segmentLabel == 7 || segmentLabel == 8) {
          returnLabel = segmentLabel * 6;
@@ -50,7 +53,7 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
          returnLabel = segmentLabel * 9;
       }
    }
-   else if (strcmp(inputMethod, "average") == 0 || strcmp(inputMethod, "max") == 0) {
+   else if (inputMethod == "average" or inputMethod == "max") {
       returnLabel = segmentLabel;
    }
    else {
@@ -62,11 +65,11 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
 
 int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal) {
    // We can convert yi and xi to an index between 0 and 2
-   int newYi                = yi / 3;
-   int newXi                = xi / 3;
-   char const *outputMethod = mSegmentifyBuffer->getOutputMethod();
+   int newYi                       = yi / 3;
+   int newXi                       = xi / 3;
+   std::string const &outputMethod = mSegmentifyBuffer->getOutputMethod();
 
-   if (strcmp(outputMethod, "centroid") == 0) {
+   if (outputMethod == "centroid") {
       int centX = newXi == 0 ? 1 : newXi == 1 ? 4 : newXi == 2 ? 6 : -1;
       int centY = newYi == 0 ? 1 : newYi == 1 ? 4 : newYi == 2 ? 6 : -1;
       FatalIf(centX < 0 or centY < 0, "Test failed.\n");
@@ -78,7 +81,7 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
          FatalIf(!(actualVal == 0), "Test failed.\n");
       }
    }
-   else if (strcmp(outputMethod, "fill") == 0) {
+   else if (outputMethod == "fill") {
       FatalIf(!(actualVal == targetVal), "Test failed.\n");
    }
    return PV_SUCCESS;

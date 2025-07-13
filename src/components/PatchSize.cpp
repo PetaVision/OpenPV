@@ -10,46 +10,52 @@
 
 namespace PV {
 
-PatchSize::PatchSize(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+PatchSize::PatchSize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 PatchSize::~PatchSize() {}
 
-void PatchSize::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void PatchSize::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void PatchSize::setObjectType() { mObjectType = "PatchSize"; }
 
-int PatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_nxp(ioFlag);
-   ioParam_nyp(ioFlag);
-   ioParam_nfp(ioFlag);
+int PatchSize::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_nxp(ioSwitch);
+   ioParam_nyp(ioSwitch);
+   ioParam_nfp(ioSwitch);
    return PV_SUCCESS;
 }
 
-void PatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nxp", &mNxp, mNxp, false);
-   if (ioFlag == PARAMS_IO_READ && mNxp < 0 && !parameters()->present(getName(), "nxp")
+void PatchSize::ioParam_nxp(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nxp", &mNxp, false /*warnIfAbsentFlag*/);
+   if (ioSwitch == ParamsIOSwitch::Read && mNxp < 0 && !mParamsIO->isPresent("nxp")
        && mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nxp will be set in the communicateInitInfo() stage.\n", getDescription_c());
    }
 }
 
-void PatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nyp", &mNyp, mNyp, false);
-   if (ioFlag == PARAMS_IO_READ && mNyp < 0 && !parameters()->present(getName(), "nyp")
+void PatchSize::ioParam_nyp(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nyp", &mNyp, false /*warnIfAbsentFlag*/);
+   if (ioSwitch == ParamsIOSwitch::Read && mNyp < 0 && !mParamsIO->isPresent("nyp")
        && mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nyp will be set in the communicateInitInfo() stage.\n", getDescription_c());
    }
 }
 
-void PatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nfp", &mNfp, mNfp, false);
-   if (ioFlag == PARAMS_IO_READ && mNfp < 0 && !parameters()->present(getName(), "nfp")
+void PatchSize::ioParam_nfp(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nfp", &mNfp, false /*warnIfAbsentFlag*/);
+   if (ioSwitch == ParamsIOSwitch::Read && mNfp < 0 && !mParamsIO->isPresent("nfp")
        && mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nfp will be set in the communicateInitInfo() stage.\n", getDescription_c());

@@ -28,22 +28,28 @@ class DependentSharedWeights : public SharedWeights {
     * @brief shareeWeihgts: DependentSharedWeightss does not use the sharedWeights parameter,
     * but uses the same setting as the original connection.
     */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_sharedWeights(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of DependentSharedWeights parameters
 
   public:
-   DependentSharedWeights(char const *name, PVParams *params, Communicator const *comm);
+   DependentSharedWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~DependentSharedWeights();
 
   protected:
    DependentSharedWeights();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

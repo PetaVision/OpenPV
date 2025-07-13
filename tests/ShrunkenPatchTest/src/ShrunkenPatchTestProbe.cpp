@@ -10,7 +10,7 @@
 #include <components/BasePublisherComponent.hpp>
 #include <components/LayerGeometry.hpp>
 #include <structures/PVLayerLoc.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
 #include <probes/ProbeData.hpp>
@@ -32,11 +32,11 @@ namespace PV {
  * @msg
  */
 ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void ShrunkenPatchTestProbe::checkStats() {
@@ -142,32 +142,33 @@ void ShrunkenPatchTestProbe::checkStats() {
    }
 }
 
-void ShrunkenPatchTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void ShrunkenPatchTestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
 void ShrunkenPatchTestProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    mCorrectValues = NULL;
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
-int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   ioParam_nxpShrunken(ioFlag);
-   ioParam_nypShrunken(ioFlag);
+int ShrunkenPatchTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   ioParam_nxpShrunken(ioSwitch);
+   ioParam_nypShrunken(ioSwitch);
    return status;
 }
 
-void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &mNxpShrunken);
+void ShrunkenPatchTestProbe::ioParam_nxpShrunken(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nxpShrunken", &mNxpShrunken);
    return;
 }
 
-void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &mNypShrunken);
+void ShrunkenPatchTestProbe::ioParam_nypShrunken(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "nypShrunken", &mNypShrunken);
    return;
 }
 

@@ -4,7 +4,6 @@
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/Communicator.hpp"
 #include "io/FileStream.hpp"
-#include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "probes/ProbeComponent.hpp"
 #include "structures/MPIBlock.hpp"
@@ -17,16 +16,19 @@ namespace PV {
 
 class BaseProbeOutputter : public ProbeComponent {
   protected:
-   virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_message(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_textOutputFlag(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_probeOutputFile(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_message(ParamsIOSwitch ioSwitch);
 
   public:
-   BaseProbeOutputter(char const *objName, PVParams *params, Communicator const *comm);
+   BaseProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~BaseProbeOutputter();
 
    void initOutputStreams(Checkpointer *checkpointer, int localNBatch);
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch);
 
    virtual void printHeader() {}
 
@@ -34,7 +36,7 @@ class BaseProbeOutputter : public ProbeComponent {
     * Returns true if a probeOutputFile is being used.
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
-   bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutputFilename[0]; }
+   bool isWritingToFile() const { return !mProbeOutputFilename.empty(); }
 
    /**
     * Writes the indicated string to the output stream associated with the given batchIndex.
@@ -43,15 +45,18 @@ class BaseProbeOutputter : public ProbeComponent {
    void writeString(std::string const &str, int batchIndex);
 
    std::string const &getMessage() const { return mMessageString; }
-   char const *getMessageParam() const { return mMessageParam; }
-   char const *getProbeOutputFilename() const { return mProbeOutputFilename; }
+   std::string const &getMessageParam() const { return mMessageParam; }
+   std::string const &getProbeOutputFilename() const { return mProbeOutputFilename; }
    bool getTextOutputFlag() const { return mTextOutputFlag; }
 
   protected:
    BaseProbeOutputter() {}
    int calcGlobalBatchOffset() const;
    void flushOutputStreams();
-   void initialize(char const *objName, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    void initMessageString();
 
    std::shared_ptr<PrintStream> returnOutputStream(int b);
@@ -67,13 +72,13 @@ class BaseProbeOutputter : public ProbeComponent {
    Communicator const *mCommunicator;
    std::shared_ptr<MPIBlock const> mIOMPIBlock;
    int mLocalNBatch;
-   char *mMessageParam = nullptr; // the message parameter in the params
+   std::string mMessageParam; // the message parameter in the params
    std::string mMessageString; // the string that gets printed when outputting the stats:
                                // the empty string if message is empty or null;
                                // message + ":" if message is nonempty
    std::vector<std::shared_ptr<FileStream>> mOutputStreams;
-   char *mProbeOutputFilename = nullptr;
-   bool mTextOutputFlag       = true;
+   std::string mProbeOutputFilename;
+   bool mTextOutputFlag = true;
 
 }; // class BaseProbeOutputter
 

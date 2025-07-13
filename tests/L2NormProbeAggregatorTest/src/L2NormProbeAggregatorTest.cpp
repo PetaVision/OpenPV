@@ -2,7 +2,7 @@
 #include <columns/Random.hpp>
 #include <columns/RandomSeed.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/L2NormProbeAggregator.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/ProbeDataBuffer.hpp>
@@ -152,7 +152,7 @@ PVParams generateProbeParams(std::string const &probeName, MPI_Comm comm, double
    paramsString.append("   probeOutputFile = \"NormProbeOutputter.txt\";\n");
    paramsString.append("   message         = \"NormProbeOutputter\";\n");
    paramsString.append("};\n");
-   PVParams probeParams(paramsString.c_str(), paramsString.size(), 1UL, comm);
+   PVParams probeParams(paramsString.c_str(), paramsString.size(), comm);
    return probeParams;
 }
 
@@ -220,7 +220,9 @@ int testAggregateStoredValues(std::shared_ptr<MPIBlock const> mpiBlock, int nbat
    MPI_Comm comm         = mpiBlock->getGlobalComm();
    double exponent       = 1.0;
    PVParams params       = generateProbeParams(std::string(probeName), comm, exponent);
-   L2NormProbeAggregator normAggregator(probeName, &params, mpiBlock);
+   auto paramGroup       = params.group(probeName);
+   auto defaultGroup     = params.defaultGroup(paramGroup->getKeyword());
+   L2NormProbeAggregator normAggregator(paramGroup, defaultGroup, mpiBlock);
    normAggregator.aggregateStoredValues(partialStore);
    ProbeDataBuffer<double> aggregatedStore = normAggregator.getStoredValues();
 

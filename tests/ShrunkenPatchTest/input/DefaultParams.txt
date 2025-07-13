@@ -1,0 +1,24 @@
+Defaults "ShrunkenPatchTestLayer" = {
+    broadcastFlag                       = false;
+    nxScale                             = 1.0;
+    nyScale                             = 1.0;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+    triggerBehavior                     = "updateOnlyOnTrigger";
+    // triggerResetLayerName is required if triggerBehavior is resetStateOnTrigger
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+};
+
+Defaults "ShrunkenPatchTestProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+    // nxpShrunken integer parameter is required
+    // nypShrunken integer parameter is required
+};

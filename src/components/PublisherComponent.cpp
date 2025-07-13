@@ -10,29 +10,32 @@
 namespace PV {
 
 PublisherComponent::PublisherComponent(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 PublisherComponent::PublisherComponent() {}
 
 PublisherComponent::~PublisherComponent() {}
 
-void PublisherComponent::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BasePublisherComponent::initialize(name, params, comm);
+void PublisherComponent::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BasePublisherComponent::initialize(params, defaults, comm);
 }
 
 void PublisherComponent::setObjectType() { mObjectType = "PublisherComponent"; }
 
-int PublisherComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_sparseLayer(ioFlag);
+int PublisherComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_sparseLayer(ioSwitch);
    return PV_SUCCESS;
 }
 
-void PublisherComponent::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "sparseLayer", &mSparseLayerFlag, false);
+void PublisherComponent::ioParam_sparseLayer(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "sparseLayer", &mSparseLayerFlag);
 }
 
 } // namespace PV

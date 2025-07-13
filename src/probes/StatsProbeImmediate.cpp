@@ -5,15 +5,14 @@
 #include "StatsProbeImmediate.hpp"
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
 
 namespace PV {
 
 StatsProbeImmediate::StatsProbeImmediate(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 StatsProbeImmediate::StatsProbeImmediate() {}
@@ -21,17 +20,16 @@ StatsProbeImmediate::StatsProbeImmediate() {}
 StatsProbeImmediate::~StatsProbeImmediate() {}
 
 void StatsProbeImmediate::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+   StatsProbe::initialize(params, defaults, comm);
 }
 
-void StatsProbeImmediate::ioParam_immediateMPIAssembly(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void StatsProbeImmediate::ioParam_immediateMPIAssembly(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       setImmediateMPIAssembly(true);
-      parameters()->handleUnnecessaryParameter(
-            getName(), "immediateMPIAssembly", getImmediateMPIAssembly());
+      mParamsIO->handleUnnecessaryParameter("immediateMPIAssembly", getImmediateMPIAssembly());
    }
 }
 

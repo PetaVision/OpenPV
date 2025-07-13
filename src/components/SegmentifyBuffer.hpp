@@ -16,25 +16,31 @@ namespace PV {
 
 class SegmentifyBuffer : public ActivityBuffer {
   protected:
-   void ioParam_segmentLayerName(enum ParamsIOFlag ioFlag);
+   void ioParam_segmentLayerName(ParamsIOSwitch ioSwitch);
    // Defines the way to reduce values within a segment
    // into a single scalar. Options are "average", "sum", and "max".
-   void ioParam_inputMethod(enum ParamsIOFlag ioFlag);
+   void ioParam_inputMethod(ParamsIOSwitch ioSwitch);
    // Defines the way to fill the output segment with the
    // reduced scalar method. Options are "centroid" and "fill"
-   void ioParam_outputMethod(enum ParamsIOFlag ioFlag);
+   void ioParam_outputMethod(ParamsIOSwitch ioSwitch);
 
   public:
-   SegmentifyBuffer(const char *name, PVParams *params, Communicator const *comm);
+   SegmentifyBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~SegmentifyBuffer();
 
-   char const *getInputMethod() const { return mInputMethod; }
-   char const *getOutputMethod() const { return mOutputMethod; }
+   std::string const &getInputMethod() const { return mInputMethod; }
+   std::string const &getOutputMethod() const { return mOutputMethod; }
 
   protected:
    SegmentifyBuffer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -52,8 +58,8 @@ class SegmentifyBuffer : public ActivityBuffer {
 
   protected:
    ActivityBuffer *mOriginalActivity = nullptr;
-   char *mSegmentLayerName           = nullptr;
-   SegmentBuffer *mSegmentBuffer     = nullptr;
+   std::string mSegmentLayerName;
+   SegmentBuffer *mSegmentBuffer = nullptr;
 
    // Reusing this buffer for batches
    // Map to go from label to index into labelVals
@@ -64,8 +70,8 @@ class SegmentifyBuffer : public ActivityBuffer {
    float **mLabelVals = nullptr;
    int **mLabelCount  = nullptr;
 
-   char *mInputMethod  = nullptr;
-   char *mOutputMethod = nullptr;
+   std::string mInputMethod;
+   std::string mOutputMethod;
 
 }; // class SegmentifyBuffer
 

@@ -6,7 +6,6 @@
 #include "components/BasePublisherComponent.hpp"
 #include "components/PhaseParam.hpp"
 #include "structures/PVLayerLoc.hpp"
-#include "io/PVParams.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeTriggerComponent.hpp"
@@ -18,8 +17,11 @@
 
 namespace PV {
 
-StatsProbe::StatsProbe(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+StatsProbe::StatsProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 StatsProbe::StatsProbe() {}
@@ -66,48 +68,57 @@ StatsProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    return status;
 }
 
-void StatsProbe::createComponents(char const *name, PVParams *params, Communicator const *comm) {
+void StatsProbe::createComponents(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createTargetLayerComponent(name, params);
-   createProbeLocal(name, params);
-   createProbeAggregator(name, params, comm);
-   createProbeOutputter(name, params, comm);
-   createProbeTrigger(name, params);
+   createTargetLayerComponent(params, defaults);
+   createProbeLocal(params, defaults);
+   createProbeAggregator(params, defaults, comm);
+   createProbeOutputter(params, defaults, comm);
+   createProbeTrigger(params, defaults);
 }
 
 void StatsProbe::createProbeAggregator(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    mProbeAggregator =
-         std::make_shared<StatsProbeAggregator>(name, params, comm->getLocalMPIBlock());
+         std::make_shared<StatsProbeAggregator>(params, defaults, comm->getLocalMPIBlock());
 }
 
-void StatsProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<StatsProbeLocal>(name, params);
+void StatsProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<StatsProbeLocal>(params, defaults);
 }
 
 void StatsProbe::createProbeOutputter(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<StatsProbeOutputter>(name, params, comm);
+   mProbeOutputter = std::make_shared<StatsProbeOutputter>(params, defaults, comm);
 }
 
-void StatsProbe::createProbeTrigger(char const *name, PVParams *params) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(name, params);
+void StatsProbe::createProbeTrigger(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
 }
 
-void StatsProbe::createTargetLayerComponent(char const *name, PVParams *params) {
-   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(name, params);
+void StatsProbe::createTargetLayerComponent(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(params, defaults);
 }
 
-void StatsProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   createComponents(name, params, comm);
+void StatsProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   createComponents(params, defaults, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(name, params, comm);
+   BaseObject::initialize(params, defaults, comm);
 }
 
 Response::Status
@@ -152,24 +163,18 @@ void StatsProbe::initProbeTimers(Checkpointer *checkpointer) {
    checkpointer->registerTimer(mTimerIO);
 }
 
-void StatsProbe::ioParam_immediateMPIAssembly(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "immediateMPIAssembly",
-         &mImmediateMPIAssembly,
-         mImmediateMPIAssembly,
-         true /*warnIfAbsent*/);
+void StatsProbe::ioParam_immediateMPIAssembly(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "immediateMPIAssembly", &mImmediateMPIAssembly);
 }
 
-int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseObject::ioParamsFillGroup(ioFlag);
-   mProbeTargetLayer->ioParamsFillGroup(ioFlag);
-   mProbeOutputter->ioParamsFillGroup(ioFlag);
-   mProbeTrigger->ioParamsFillGroup(ioFlag);
-   mProbeLocal->ioParamsFillGroup(ioFlag);
-   mProbeAggregator->ioParamsFillGroup(ioFlag);
-   ioParam_immediateMPIAssembly(ioFlag);
+int StatsProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseObject::ioParamsFillGroup(ioSwitch);
+   mProbeTargetLayer->ioParamsFillGroup(ioSwitch);
+   mProbeOutputter->ioParamsFillGroup(ioSwitch);
+   mProbeTrigger->ioParamsFillGroup(ioSwitch);
+   mProbeLocal->ioParamsFillGroup(ioSwitch);
+   mProbeAggregator->ioParamsFillGroup(ioSwitch);
+   ioParam_immediateMPIAssembly(ioSwitch);
    return status;
 }
 
@@ -224,8 +229,27 @@ StatsProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
 
 Response::Status
 StatsProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
+   setPrintStreams(message->mPrintParamsStream, message->mPrintLuaStream);
+
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
+}
+
+void StatsProbe::setComponentPrintStreams(
+      ProbeComponent &probeComponent, FileStream *printParamsStream, FileStream *printLuaStream) {
+   probeComponent.setPrintParamsStream(printParamsStream);
+   probeComponent.setPrintLuaStream(printLuaStream);
+}
+
+void StatsProbe::setPrintStreams(FileStream *printParamsStream, FileStream *printLuaStream) {
+   mParamsIO->setPrintParamsStream(printParamsStream);
+   mParamsIO->setPrintLuaStream(printLuaStream);
+
+   setComponentPrintStreams(*mProbeTargetLayer, printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeOutputter, printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeTrigger, printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeLocal, printParamsStream, printLuaStream);
+   setComponentPrintStreams(*mProbeAggregator, printParamsStream, printLuaStream);
 }
 
 } // namespace PV

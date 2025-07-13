@@ -1,0 +1,5 @@
+Defaults "AllConstantValueProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+    correctValue = 0.0;
+};

@@ -17,8 +17,10 @@ int main(int argc, char *argv[]) {
    checkConfiguration(pv_initObj, programName);
    pv_initObj.registerKeyword(
          "PoolingConnCheckpointerTestProbe", Factory::create<PoolingConnCheckpointerTestProbe>);
+   std::string customDefaultsPath("input/DefaultParams.txt");
 
    pv_initObj.setParams("input/PoolingConnCheckpointerTest_freshstart.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(status != PV_SUCCESS, "%s failed on run started from scratch.\n", programName);
 
@@ -30,6 +32,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.resetState();
 
    pv_initObj.setParams("input/PoolingConnCheckpointerTest_initfromCP.params");
+   pv_initObj.registerDefaults(customDefaultsPath);
    status = buildandrun(&pv_initObj, nullptr, checkProbe);
    FatalIf(status != PV_SUCCESS, "%s failed on run initialized from Checkpoint08.\n", programName);
 

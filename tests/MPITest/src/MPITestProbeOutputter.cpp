@@ -1,7 +1,7 @@
 #include "MPITestProbeOutputter.hpp"
 #include <columns/Communicator.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <io/PrintStream.hpp>
 #include <probes/StatsProbeOutputter.hpp>
 #include <probes/StatsProbeTypes.hpp>
@@ -13,10 +13,10 @@
 namespace PV {
 
 MPITestProbeOutputter::MPITestProbeOutputter(
-      char const *objName,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
-      : StatsProbeOutputter(objName, params, comm) {}
+      : StatsProbeOutputter(params, defaults, comm) {}
 
 MPITestProbeOutputter::~MPITestProbeOutputter() {}
 

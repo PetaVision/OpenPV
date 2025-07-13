@@ -9,18 +9,24 @@
 #define ARBORTESTFORONESPROBE_HPP_
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
 class ArborTestForOnesProbe : public PV::StatsProbeImmediate {
   public:
-   ArborTestForOnesProbe(const char *name, PVParams *params, Communicator const *comm);
+   ArborTestForOnesProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ArborTestForOnesProbe();
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void checkStats() override;
    int checkValue(float value, double timestamp, int batchIndex, char const *desc);
 };

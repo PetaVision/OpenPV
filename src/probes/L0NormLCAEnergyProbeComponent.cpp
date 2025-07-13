@@ -6,13 +6,13 @@
 
 namespace PV {
 L0NormLCAEnergyProbeComponent::L0NormLCAEnergyProbeComponent(
-      char const *objName,
-      PVParams *params) {
-   initialize(objName, params);
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-void L0NormLCAEnergyProbeComponent::initialize(char const *objName, PVParams *params) {
-   EnergyProbeComponent::initialize(objName, params);
+void L0NormLCAEnergyProbeComponent::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   EnergyProbeComponent::initialize(params, defaults);
 }
 
 Response::Status L0NormLCAEnergyProbeComponent::communicateInitInfo(
@@ -44,9 +44,9 @@ void L0NormLCAEnergyProbeComponent::initializeState(HyPerLayer *targetLayer) {
    setCoefficient(coefficient);
 }
 
-void L0NormLCAEnergyProbeComponent::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
-   assert(!getParams()->presentAndNotBeenRead(getName_c(), "energyProbe"));
-   // Should call getParams()->handleUnnecessaryParameters() here, if energyProbe is defined.
+void L0NormLCAEnergyProbeComponent::ioParam_coefficient(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("energyProbe"));
+   // Should call mParamsIO->handleUnnecessaryParameters() here, if energyProbe is defined.
 }
 
 } // namespace PV

@@ -13,43 +13,46 @@
 namespace PV {
 
 DependentPatchSize::DependentPatchSize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DependentPatchSize::DependentPatchSize() {}
 
 DependentPatchSize::~DependentPatchSize() {}
 
-void DependentPatchSize::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   PatchSize::initialize(name, params, comm);
+void DependentPatchSize::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   PatchSize::initialize(params, defaults, comm);
 }
 
 void DependentPatchSize::setObjectType() { mObjectType = "DependentPatchSize"; }
 
-int DependentPatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return PatchSize::ioParamsFillGroup(ioFlag);
+int DependentPatchSize::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   return PatchSize::ioParamsFillGroup(ioSwitch);
 }
 
-void DependentPatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "nxp");
+void DependentPatchSize::ioParam_nxp(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("nxp");
    }
    // During the communication phase, nxp will be copied from originalConn
 }
 
-void DependentPatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "nyp");
+void DependentPatchSize::ioParam_nyp(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("nyp");
    }
    // During the communication phase, nyp will be copied from originalConn
 }
 
-void DependentPatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "nfp");
+void DependentPatchSize::ioParam_nfp(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("nfp");
    }
    // During the communication phase, nfp will be copied from originalConn
 }
@@ -72,13 +75,13 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
       return Response::POSTPONE;
    }
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
    mOriginalPatchSize      = objectTable->findObject<PatchSize>(originalConnName);
    FatalIf(
          mOriginalPatchSize == nullptr,
          "%s original connection \"%s\" does not have a PatchSize.\n",
          getDescription_c(),
-         originalConnName);
+         originalConnName.c_str());
 
    if (!mOriginalPatchSize->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -86,7 +89,7 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConnName);
+               originalConnName.c_str());
       }
       return Response::POSTPONE;
    }
@@ -97,17 +100,17 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
 
 void DependentPatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
    mPatchSizeX = mOriginalPatchSize->getPatchSizeX();
-   parameters()->handleUnnecessaryParameter(getName(), "nxp", mNxp);
+   mParamsIO->handleUnnecessaryParameter("nxp", mNxp);
 }
 
 void DependentPatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) { 
    mPatchSizeY = mOriginalPatchSize->getPatchSizeY();
-   parameters()->handleUnnecessaryParameter(getName(), "nyp", mNyp);
+   mParamsIO->handleUnnecessaryParameter("nyp", mNyp);
 }
 
 void DependentPatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
    mPatchSizeF = mOriginalPatchSize->getPatchSizeF();
-   parameters()->handleUnnecessaryParameter(getName(), "nfp", mNfp);
+   mParamsIO->handleUnnecessaryParameter("nfp", mNfp);
 }
 
 } // namespace PV

@@ -6,11 +6,13 @@
 
 namespace PV {
 
-ProbeTriggerComponent::ProbeTriggerComponent(char const *objName, PVParams *params) {
-   initialize(objName, params);
+ProbeTriggerComponent::ProbeTriggerComponent(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-ProbeTriggerComponent::~ProbeTriggerComponent() { free(mTriggerLayerName); }
+ProbeTriggerComponent::~ProbeTriggerComponent() {}
 
 Response::Status ProbeTriggerComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -20,48 +22,47 @@ Response::Status ProbeTriggerComponent::communicateInitInfo(
             triggerLayer == nullptr,
             "Probe %s triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
             getName_c(),
-            mTriggerLayerName);
+            mTriggerLayerName.c_str());
       mTriggerControl = triggerLayer->getComponentByType<LayerUpdateController>();
       FatalIf(
             mTriggerControl == nullptr,
             "Probe %s triggerLayer \"%s\" does not have a LayerUpdateController component.\n",
             getName_c(),
-            mTriggerLayerName);
+            mTriggerLayerName.c_str());
    }
    return Response::SUCCESS;
 }
 
-void ProbeTriggerComponent::initialize(char const *objName, PVParams *params) {
-   ProbeComponent::initialize(objName, params);
+void ProbeTriggerComponent::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   ProbeComponent::initialize(params, defaults);
 }
 
-void ProbeTriggerComponent::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   bool warnIfAbsent = false;
-   getParams()->ioParamString(
-         ioFlag, getName_c(), "triggerLayerName", &mTriggerLayerName, nullptr, warnIfAbsent);
-   if (ioFlag == PARAMS_IO_READ) {
-      mTriggerLayerFlag = (mTriggerLayerName != nullptr && mTriggerLayerName[0] != '\0');
+void ProbeTriggerComponent::ioParam_triggerLayerName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "triggerLayerName", &mTriggerLayerName, false /*warnIfAbsentFlag*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mTriggerLayerFlag = (!mTriggerLayerName.empty());
    }
 }
 
-void ProbeTriggerComponent::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!getParams()->presentAndNotBeenRead(getName_c(), "triggerLayerName"));
+void ProbeTriggerComponent::ioParam_triggerOffset(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
    if (mTriggerLayerFlag) {
-      getParams()->ioParamValue(
-            ioFlag, getName_c(), "triggerOffset", &mTriggerOffset, mTriggerOffset);
+      mParamsIO->ioParam(ioSwitch, "triggerOffset", &mTriggerOffset);
       if (mTriggerOffset < 0) {
          Fatal().printf(
                "%s \"%s\" error: TriggerOffset (%f) must be positive\n",
-               getParams()->groupKeywordFromName(getName_c()),
+               mParamsIO->getKeyword(),
                getName_c(),
                mTriggerOffset);
       }
    }
 }
 
-void ProbeTriggerComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_triggerLayerName(ioFlag);
-   ioParam_triggerOffset(ioFlag);
+void ProbeTriggerComponent::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_triggerLayerName(ioSwitch);
+   ioParam_triggerOffset(ioSwitch);
 }
 
 bool ProbeTriggerComponent::needUpdate(double simTime, double deltaTime) {

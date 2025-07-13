@@ -33,10 +33,13 @@ PointProbe::PointProbe() {
    // PointProbe::initialize from their init-method.
 }
 
-PointProbe::PointProbe(const char *name, PVParams *params, Communicator const *comm)
+PointProbe::PointProbe(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm)
       : LegacyLayerProbe() {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 PointProbe::~PointProbe() {}
@@ -49,38 +52,41 @@ int PointProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void PointProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   LegacyLayerProbe::initialize(name, params, comm);
+void PointProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   LegacyLayerProbe::initialize(params, defaults, comm);
 }
 
-int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = LegacyLayerProbe::ioParamsFillGroup(ioFlag);
-   ioParam_xLoc(ioFlag);
-   ioParam_yLoc(ioFlag);
-   ioParam_fLoc(ioFlag);
-   ioParam_batchLoc(ioFlag);
+int PointProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = LegacyLayerProbe::ioParamsFillGroup(ioSwitch);
+   ioParam_xLoc(ioSwitch);
+   ioParam_yLoc(ioSwitch);
+   ioParam_fLoc(ioSwitch);
+   ioParam_batchLoc(ioSwitch);
    return status;
 }
 
-void PointProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
+void PointProbe::ioParam_statsFlag(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
       parameters()->handleUnnecessaryParameter(name, "statsFlag");
    }
 }
 
-void PointProbe::ioParam_xLoc(enum ParamsIOFlag ioFlag) {
+void PointProbe::ioParam_xLoc(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValueRequired(ioFlag, getName(), "xLoc", &xLoc);
 }
 
-void PointProbe::ioParam_yLoc(enum ParamsIOFlag ioFlag) {
+void PointProbe::ioParam_yLoc(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValueRequired(ioFlag, getName(), "yLoc", &yLoc);
 }
 
-void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
+void PointProbe::ioParam_fLoc(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValueRequired(ioFlag, getName(), "fLoc", &fLoc);
 }
 
-void PointProbe::ioParam_batchLoc(enum ParamsIOFlag ioFlag) {
+void PointProbe::ioParam_batchLoc(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
 }
 

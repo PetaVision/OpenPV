@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.registerKeyword("ImagePvpTestLayer", Factory::create<ImagePvpTestLayer>);
    pv_initObj.registerKeyword("MovieTestLayer", Factory::create<MovieTestLayer>);
    pv_initObj.registerKeyword("MoviePvpTestLayer", Factory::create<MoviePvpTestLayer>);
+   pv_initObj.registerDefaults("input/DefaultParams.txt");
    status = buildandrun(&pv_initObj);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

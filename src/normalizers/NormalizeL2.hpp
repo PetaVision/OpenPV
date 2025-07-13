@@ -15,17 +15,23 @@ namespace PV {
 class NormalizeL2 : public NormalizeMultiply {
    // Member functions
   public:
-   NormalizeL2(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeL2(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NormalizeL2();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual int normalizeWeights() override;
 
   protected:
    NormalizeL2();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual void ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minL2NormTolerated(ParamsIOSwitch ioSwitch);
 
   private:
    int initialize_base();

@@ -20,20 +20,26 @@ class MomentumLCAInternalStateBuffer : public HyPerLCAInternalStateBuffer {
     * @{
     */
 
-   virtual void ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_LCAMomentumRate(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   MomentumLCAInternalStateBuffer(const char *name, PVParams *params, Communicator const *comm);
+   MomentumLCAInternalStateBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~MomentumLCAInternalStateBuffer();
 
   protected:
    MomentumLCAInternalStateBuffer();
-   int initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;

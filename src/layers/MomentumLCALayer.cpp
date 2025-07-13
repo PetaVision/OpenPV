@@ -10,18 +10,24 @@
 
 namespace PV {
 
-MomentumLCALayer::MomentumLCALayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+MomentumLCALayer::MomentumLCALayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 MomentumLCALayer::~MomentumLCALayer() {}
 
-void MomentumLCALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLCALayer::initialize(name, params, comm);
+void MomentumLCALayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLCALayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *MomentumLCALayer::createActivityComponent() {
-   return new MomentumLCAActivityComponent(getName(), parameters(), mCommunicator);
+   return new MomentumLCAActivityComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

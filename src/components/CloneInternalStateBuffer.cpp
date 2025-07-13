@@ -13,27 +13,27 @@
 namespace PV {
 
 CloneInternalStateBuffer::CloneInternalStateBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 CloneInternalStateBuffer::~CloneInternalStateBuffer() {}
 
 void CloneInternalStateBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   InternalStateBuffer::initialize(name, params, comm);
+   InternalStateBuffer::initialize(params, defaults, comm);
    mCheckpointFlag = false; // Turns off checkpointing
 }
 
 void CloneInternalStateBuffer::setObjectType() { mObjectType = "CloneInternalStateBuffer"; }
 
-void CloneInternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "InitVType");
+void CloneInternalStateBuffer::ioParam_InitVType(ParamsIOSwitch ioSwitch) {
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("InitVType");
    }
 }
 
@@ -56,13 +56,13 @@ Response::Status CloneInternalStateBuffer::communicateInitInfo(
       }
 
       // Retrieve original layer's InternalStateBuffer
-      char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+      std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
       mOriginalBuffer = objectTable->findObject<InternalStateBuffer>(originalLayerName);
       FatalIf(
             mOriginalBuffer == nullptr,
             "%s could not find an InternalStateBuffer within %s.\n",
             getDescription_c(),
-            originalLayerName);
+            originalLayerName.c_str());
    }
    if (!mOriginalBuffer->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

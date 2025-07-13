@@ -1,7 +1,6 @@
 #ifndef L0NORMPROBELOCAL_HPP_
 #define L0NORMPROBELOCAL_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/CostFunctionSum.hpp"
 #include "probes/CostFunctions.hpp"
 #include "probes/NormProbeLocalTemplate.hpp"
@@ -14,17 +13,17 @@ typedef NormProbeLocalTemplate<L0CostFunctionSum> BaseL0NormProbeLocal;
 
 class L0NormProbeLocal : public BaseL0NormProbeLocal {
   protected:
-   virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nnzThreshold(ParamsIOSwitch ioSwitch);
 
   public:
-   L0NormProbeLocal(char const *objName, PVParams *params);
+   L0NormProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    virtual ~L0NormProbeLocal() {}
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    L0NormProbeLocal() {}
    virtual std::shared_ptr<L0CostFunctionSum const> createCostFunctionSum() override;
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
   protected:
    double mNnzThreshold = 0.0;

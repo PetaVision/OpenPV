@@ -10,36 +10,42 @@
 
 namespace PV {
 
-InitGaborWeights::InitGaborWeights(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+InitGaborWeights::InitGaborWeights(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 InitGaborWeights::InitGaborWeights() {}
 
 InitGaborWeights::~InitGaborWeights() {}
 
-void InitGaborWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InitGauss2DWeights::initialize(name, params, comm);
+void InitGaborWeights::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InitGauss2DWeights::initialize(params, defaults, comm);
 }
 
-int InitGaborWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitGauss2DWeights::ioParamsFillGroup(ioFlag);
-   ioParam_lambda(ioFlag);
-   ioParam_phi(ioFlag);
-   ioParam_invert(ioFlag);
+int InitGaborWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitGauss2DWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_lambda(ioSwitch);
+   ioParam_phi(ioSwitch);
+   ioParam_invert(ioSwitch);
    return status;
 }
 
-void InitGaborWeights::ioParam_lambda(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "lambda", &mLambda, mLambda);
+void InitGaborWeights::ioParam_lambda(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "lambda", &mLambda);
 }
 
-void InitGaborWeights::ioParam_phi(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "phi", &mPhi, mPhi);
+void InitGaborWeights::ioParam_phi(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "phi", &mPhi);
 }
 
-void InitGaborWeights::ioParam_invert(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "invert", &mInvert, mInvert);
+void InitGaborWeights::ioParam_invert(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "invert", &mInvert);
 }
 
 void InitGaborWeights::calcOtherParams(int patchIndex) {

@@ -3,15 +3,15 @@
 namespace PV {
 
 ImagePvpOffsetTestActivityBuffer::ImagePvpOffsetTestActivityBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   PvpActivityBuffer::initialize(name, params, comm);
+   PvpActivityBuffer::initialize(params, defaults, comm);
 }
 
-void ImagePvpOffsetTestActivityBuffer::ioParam_displayPeriod(enum ParamsIOFlag) {
+void ImagePvpOffsetTestActivityBuffer::ioParam_displayPeriod(ParamsIOSwitch ioSwitch) {
    mDisplayPeriod = 0;
-   parameters()->handleUnnecessaryParameter(getName(), "displayPeriod", mDisplayPeriod);
+   mParamsIO->handleUnnecessaryParameter("displayPeriod", mDisplayPeriod);
 }
 
 void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

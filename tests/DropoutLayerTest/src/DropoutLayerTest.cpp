@@ -52,8 +52,9 @@ int main(int argc, char *argv[]) {
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    std::string programName = baseName(argv[0]);
 
-   int probability;
-   hc->parameters()->ioParamValueRequired(PARAMS_IO_READ, "Output", "probability", &probability);
+   PVParams *pvParams = hc->getPV_InitObj()->getParams();
+   auto paramsIO = pvParams->makeParamsIO("Output");
+   int probability = paramsIO->readValue<int>("probability");
    float targetAvg = (float)(100 - probability) * 0.01f;
 
    HyPerLayer *averageLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Counts"));

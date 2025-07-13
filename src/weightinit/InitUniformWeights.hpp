@@ -26,7 +26,7 @@ class InitUniformWeights : public InitWeights {
    /**
     * @brief weightInit: The value of each weight.
     */
-   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightInit(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief connectOnlySameFeatures: If this flag is set to false,
@@ -34,21 +34,27 @@ class InitUniformWeights : public InitWeights {
     * post- feature. If the flag is set to true, the weights are zero unless
     * the pre- and post- feature indices are the same.
     */
-   virtual void ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_connectOnlySameFeatures(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   InitUniformWeights(const char *name, PVParams *params, Communicator const *comm);
+   InitUniformWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitUniformWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    float getWeightInit() const { return mWeightInit; }
    bool getConnectOnlySameFeatures() const { return mConnectOnlySameFeatures; }
 
   protected:
    InitUniformWeights();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   private:

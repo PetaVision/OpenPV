@@ -9,15 +9,22 @@ namespace PV {
 
 class L0NormProbe : public AbstractNormProbe {
   public:
-   L0NormProbe(char const *name, PVParams *params, Communicator const *comm);
+   L0NormProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~L0NormProbe() {}
 
   protected:
    L0NormProbe() {}
 
-   virtual void createProbeLocal(char const *name, PVParams *params) override;
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 };
 
 } // namespace PV

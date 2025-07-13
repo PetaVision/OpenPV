@@ -15,12 +15,18 @@ namespace PV {
 class VaryingHyPerConn : public HyPerConn {
 
   public:
-   VaryingHyPerConn(const char *name, PVParams *params, Communicator const *comm);
+   VaryingHyPerConn(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~VaryingHyPerConn();
 
   protected:
    VaryingHyPerConn() {}
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    BaseWeightUpdater *createWeightUpdater() override;
 
 }; // end class VaryingHyPerConn

@@ -4,8 +4,11 @@
 
 namespace PV {
 
-ProbeInterface::ProbeInterface(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+ProbeInterface::ProbeInterface(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 std::vector<double> const &ProbeInterface::getValues() const { return mValues->getValues(); }
@@ -17,8 +20,11 @@ std::vector<double> const &ProbeInterface::getValues(double timestamp) {
    return getValues();
 }
 
-void ProbeInterface::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void ProbeInterface::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void ProbeInterface::initMessageActionMap() {
@@ -43,8 +49,15 @@ ProbeInterface::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
 
 Response::Status
 ProbeInterface::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
+   setPrintStreams(message->mPrintParamsStream, message->mPrintLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
+}
+
+void ProbeInterface::setComponentPrintStreams(
+      ProbeComponent &probeComponent, FileStream *printParamsStream, FileStream *printLuaStream) {
+   probeComponent.setPrintParamsStream(printParamsStream);
+   probeComponent.setPrintLuaStream(printLuaStream);
 }
 
 void ProbeInterface::setNumValues(int numValues) {
@@ -52,6 +65,11 @@ void ProbeInterface::setNumValues(int numValues) {
    mValues    = std::make_shared<ProbeData<double>>(-1.0, numValues);
    // Use a negative timestamp so that the first time getValues(double timestamp) is called,
    // even if timestamp is 0.0, the value of the probe gets calculated.
+}
+
+void ProbeInterface::setPrintStreams(FileStream *printParamsStream, FileStream *printLuaStream) {
+   mParamsIO->setPrintParamsStream(printParamsStream);
+   mParamsIO->setPrintLuaStream(printLuaStream);
 }
 
 void ProbeInterface::setValues(ProbeData<double> const &newValues) {

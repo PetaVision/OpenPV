@@ -8,7 +8,7 @@
 #include <columns/BaseObject.hpp>
 #include <columns/Communicator.hpp>
 #include <columns/Messages.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <observerpattern/Response.hpp>
 #include <probes/ProbeTriggerComponent.hpp>
 #include <probes/TargetLayerComponent.hpp>
@@ -19,14 +19,20 @@ namespace PV {
 
 class TriggerTestLayerProbe : public PV::BaseObject {
   public:
-   TriggerTestLayerProbe(const char *name, PVParams *params, Communicator const *comm);
+   TriggerTestLayerProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual void initMessageActionMap() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
 

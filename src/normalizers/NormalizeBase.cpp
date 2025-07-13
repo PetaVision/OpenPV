@@ -13,14 +13,20 @@
 
 namespace PV {
 
-NormalizeBase::NormalizeBase(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+NormalizeBase::NormalizeBase(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-NormalizeBase::~NormalizeBase() { free(mNormalizeMethod); }
+NormalizeBase::~NormalizeBase() {}
 
-void NormalizeBase::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void NormalizeBase::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
 void NormalizeBase::initMessageActionMap() {
@@ -35,45 +41,35 @@ void NormalizeBase::initMessageActionMap() {
 }
 
 void NormalizeBase::setObjectType() {
-   auto *params                = parameters();
-   char const *normalizeMethod = params->stringValue(getName(), "normalizeMethod", false);
-   mObjectType                 = normalizeMethod ? normalizeMethod : "Normalizer for";
+   std::string const *objectTypePtr = mParamsIO->getParams()->read<std::string>("normalizeMethod");
+   FatalIf(
+         objectTypePtr == nullptr or objectTypePtr->empty(),
+         "normalizeMethod for parameter group \"%s\" cannot be NULL or empty.\n", getName());
+   mObjectType = *objectTypePtr;
 }
 
-int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_normalizeMethod(ioFlag);
-   ioParam_normalizeArborsIndividually(ioFlag);
-   ioParam_normalizeOnInitialize(ioFlag);
-   ioParam_normalizeOnWeightUpdate(ioFlag);
+int NormalizeBase::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_normalizeMethod(ioSwitch);
+   ioParam_normalizeArborsIndividually(ioSwitch);
+   ioParam_normalizeOnInitialize(ioSwitch);
+   ioParam_normalizeOnWeightUpdate(ioSwitch);
    return PV_SUCCESS;
 }
 
-void NormalizeBase::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "normalizeMethod", &mNormalizeMethod);
+void NormalizeBase::ioParam_normalizeMethod(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalizeMethod", &mNormalizeMethod);
 }
 
-void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "normalizeArborsIndividually",
-         &mNormalizeArborsIndividually,
-         mNormalizeArborsIndividually,
-         true /*warnIfAbsent*/);
+void NormalizeBase::ioParam_normalizeArborsIndividually(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalizeArborsIndividually", &mNormalizeArborsIndividually);
 }
 
-void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "normalizeOnInitialize", &mNormalizeOnInitialize, mNormalizeOnInitialize);
+void NormalizeBase::ioParam_normalizeOnInitialize(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalizeOnInitialize", &mNormalizeOnInitialize);
 }
 
-void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "normalizeOnWeightUpdate",
-         &mNormalizeOnWeightUpdate,
-         mNormalizeOnWeightUpdate);
+void NormalizeBase::ioParam_normalizeOnWeightUpdate(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "normalizeOnWeightUpdate", &mNormalizeOnWeightUpdate);
 }
 
 Response::Status NormalizeBase::respondConnectionNormalize(

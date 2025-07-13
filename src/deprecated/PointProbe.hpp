@@ -12,7 +12,7 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/LegacyLayerProbe.hpp"
 #include <memory>
@@ -21,7 +21,10 @@ namespace PV {
 
 class PointProbe : public LegacyLayerProbe {
   public:
-   PointProbe(const char *name, PVParams *params, Communicator const *comm);
+   PointProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~PointProbe();
 
    virtual Response::Status
@@ -38,17 +41,20 @@ class PointProbe : public LegacyLayerProbe {
    int batchLoc;
 
    PointProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief statsFlag: PointProbe does not use statsFlag.
     */
-   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_batchLoc(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_statsFlag(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_xLoc(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_yLoc(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_fLoc(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_batchLoc(ParamsIOSwitch ioSwitch);
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;

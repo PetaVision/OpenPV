@@ -23,7 +23,10 @@ namespace PV {
 class ComponentBuffer : public BaseObject {
 
   public:
-   ComponentBuffer(char const *name, PVParams *params, Communicator const *comm);
+   ComponentBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~ComponentBuffer();
 
@@ -108,7 +111,10 @@ class ComponentBuffer : public BaseObject {
   protected:
    ComponentBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

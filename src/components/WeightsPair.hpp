@@ -24,15 +24,18 @@ class WeightsPair : public WeightsPairInterface {
     * @{
     */
 
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_initialWriteTime(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_writeCompressedWeights(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_writeCompressedCheckpoints(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of WeightsPair parameters
 
   public:
-   WeightsPair(char const *name, PVParams *params, Communicator const *comm);
+   WeightsPair(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~WeightsPair();
 
@@ -50,13 +53,16 @@ class WeightsPair : public WeightsPairInterface {
   protected:
    WeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
    virtual void initMessageActionMap() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    Response::Status
    respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message);

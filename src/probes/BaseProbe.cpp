@@ -39,18 +39,6 @@ BaseProbe::BaseProbe() {
 BaseProbe::~BaseProbe() {
    flushOutputStreams();
    mOutputStreams.clear();
-   std::free(targetName);
-   targetName = nullptr;
-   std::free(msgparams);
-   msgparams = nullptr;
-   std::free(msgstring);
-   msgstring = nullptr;
-   std::free(mProbeOutputFilename);
-   mProbeOutputFilename = nullptr;
-   if (triggerLayerName) {
-      std::free(triggerLayerName);
-      triggerLayerName = nullptr;
-   }
    mMPIRecvStreams.clear();
    delete mInitialIOTimer;
    delete mInitialIOWaitTimer;
@@ -59,12 +47,12 @@ BaseProbe::~BaseProbe() {
 }
 
 int BaseProbe::initialize_base() {
-   targetName       = nullptr;
-   msgparams        = nullptr;
-   msgstring        = nullptr;
+   targetName       = "";
+   msgparams        = "";
+   msgstring        = "";
    textOutputFlag   = true;
    triggerFlag      = false;
-   triggerLayerName = nullptr;
+   triggerLayerName = "";
    triggerOffset    = 0;
    lastUpdateTime   = 0.0;
    mProbeValues.clear();
@@ -75,74 +63,70 @@ int BaseProbe::initialize_base() {
  * @filename
  * @layer
  */
-void BaseProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+void BaseProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseObject::initialize(params, defaults, comm);
 }
 
-int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_targetName(ioFlag);
-   ioParam_message(ioFlag);
-   ioParam_textOutputFlag(ioFlag);
-   ioParam_probeOutputFile(ioFlag);
-   ioParam_statsFlag(ioFlag);
-   ioParam_triggerLayerName(ioFlag);
-   ioParam_triggerOffset(ioFlag);
+int BaseProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_targetName(ioSwitch);
+   ioParam_message(ioSwitch);
+   ioParam_textOutputFlag(ioSwitch);
+   ioParam_probeOutputFile(ioSwitch);
+   ioParam_statsFlag(ioSwitch);
+   ioParam_triggerLayerName(ioSwitch);
+   ioParam_triggerOffset(ioSwitch);
    return PV_SUCCESS;
 }
 
-void BaseProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "targetName", &targetName);
+void BaseProbe::ioParam_targetName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "targetName", &targetName);
 }
 
-void BaseProbe::ioParam_message(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(ioFlag, getName(), "message", &msgparams, NULL, false /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
+void BaseProbe::ioParam_message(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "message", &msgparams, false /*warnIfAbsentFlag*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
       initMessage(msgparams);
    }
 }
 
-void BaseProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "textOutputFlag", &textOutputFlag, textOutputFlag);
+void BaseProbe::ioParam_textOutputFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "textOutputFlag", &textOutputFlag);
 }
 
-void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "textOutputFlag"));
+void BaseProbe::ioParam_probeOutputFile(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("textOutputFlag"));
    if (textOutputFlag) {
-      parameters()->ioParamString(
-            ioFlag,
-            getName(),
-            "probeOutputFile",
-            &mProbeOutputFilename,
-            nullptr,
-            false /*warnIfAbsent*/);
+      mParamsIO->ioParam(
+            ioSwitch, "probeOutputFile", &mProbeOutputFilename, false /*warnIfAbsentFlag*/);
    }
 }
 
-void BaseProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "textOutputFlag"));
+void BaseProbe::ioParam_statsFlag(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("textOutputFlag"));
    if (textOutputFlag) {
-      parameters()->ioParamValue(
-            ioFlag, getName(), "statsFlag", &mStatsFlag, mStatsFlag, false /*warnIfAbsent*/);
+      mParamsIO->ioParam(ioSwitch, "statsFlag", &mStatsFlag, false /*warnIfAbsentFlag*/);
    }
 }
 
-void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, getName(), "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      triggerFlag = (triggerLayerName != NULL && triggerLayerName[0] != '\0');
+void BaseProbe::ioParam_triggerLayerName(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "triggerLayerName", &triggerLayerName, false /*warnIfAbsentFlag*/);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      triggerFlag = !triggerLayerName.empty();
    }
 }
 
-void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
+void BaseProbe::ioParam_triggerOffset(ParamsIOSwitch ioSwitch) {
+   assert(!mParamsIO->presentAndNotBeenRead("triggerLayerName"));
    if (triggerFlag) {
-      parameters()->ioParamValue(ioFlag, getName(), "triggerOffset", &triggerOffset, triggerOffset);
+      mParamsIO->ioParam(ioSwitch, "triggerOffset", &triggerOffset);
       if (triggerOffset < 0) {
          Fatal().printf(
                "%s \"%s\" error in rank %d process: TriggerOffset (%f) "
                "must be positive\n",
-               parameters()->groupKeywordFromName(getName()),
+               getKeyword(),
                getName(),
                mCommunicator->globalCommRank(),
                triggerOffset);
@@ -190,7 +174,7 @@ void BaseProbe::initOutputStreamsStatsFlag(
          getCommunicator()->getOutputFileManager()->getBaseDirectory());
    if (globalFileManager->isRoot()) {
       mOutputStreams.resize(1);
-      if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
+      if (!getProbeOutputFilename().empty()) {
          bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
          auto fileStream = FileStreamBuilder(
                                  globalFileManager,
@@ -230,10 +214,9 @@ void BaseProbe::initOutputStreamsByBatchElement(
       mOutputStreams.resize(mLocalBatchWidth);
       if (isWritingToFile()) {
          if (isRootProc()) {
-            std::string probeOutputFilename(mProbeOutputFilename);
-            std::string dir      = dirName(probeOutputFilename);
-            std::string base     = stripExtension(probeOutputFilename);
-            std::string ext      = extension(probeOutputFilename);
+            std::string dir      = dirName(mProbeOutputFilename);
+            std::string base     = stripExtension(mProbeOutputFilename);
+            std::string ext      = extension(mProbeOutputFilename);
             std::string pathRoot = dir + "/" + base + "_batchElement_";
 
             int blockBatchSize = ioMPIBlock->getBatchDimension() * mLocalBatchWidth;
@@ -305,7 +288,9 @@ void BaseProbe::initOutputStreamsByBatchElement(
 
 Response::Status
 BaseProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const>(message)) {
-   writeParams();
+   mParamsIO->setPrintParamsStream(message->mPrintParamsStream);
+   mParamsIO->setPrintLuaStream(message->mPrintLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
 }
 
@@ -336,46 +321,27 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
             triggerLayer == nullptr,
             "%s triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
             getDescription_c(),
-            triggerLayerName);
+            triggerLayerName.c_str());
       mTriggerControl = triggerLayer->getComponentByType<LayerUpdateController>();
       FatalIf(
             mTriggerControl == nullptr,
             "%s triggerLayer \"%s\" does not have a LayerUpdateController component.\n",
             getDescription_c(),
-            triggerLayerName);
+            triggerLayerName.c_str());
    }
    return Response::SUCCESS;
 }
 
-int BaseProbe::initMessage(const char *msg) {
-   assert(msgstring == NULL);
-   int status = PV_SUCCESS;
-   if (msg != NULL && msg[0] != '\0') {
-      size_t msglen   = strlen(msg);
-      this->msgstring = (char *)std::calloc(
-            msglen + 2,
-            sizeof(char)); // Allocate room for colon plus null terminator
-      if (this->msgstring) {
-         std::memcpy(this->msgstring, msg, msglen);
-         this->msgstring[msglen]     = ':';
-         this->msgstring[msglen + 1] = '\0';
-      }
+int BaseProbe::initMessage(std::string const &msg) {
+   assert(msgstring.empty());
+   if (!msg.empty()) {
+      size_t msglen   = msg.size();
+      msgstring = msg + ":";
    }
    else {
-      this->msgstring = (char *)std::calloc(1, sizeof(char));
-      if (this->msgstring) {
-         this->msgstring[0] = '\0';
-      }
+      this->msgstring = "";
    }
-   if (!this->msgstring) {
-      ErrorLog().printf(
-            "%s \"%s\": Unable to allocate memory for probe's message.\n",
-            parameters()->groupKeywordFromName(getName()),
-            getName());
-      status = PV_FAILURE;
-   }
-   assert(status == PV_SUCCESS);
-   return status;
+   return PV_SUCCESS;
 }
 
 bool BaseProbe::needUpdate(double simTime, double dt) const {

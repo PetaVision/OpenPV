@@ -26,17 +26,20 @@ class BinningActivityBuffer : public ActivityBuffer {
     * @{
     */
 
-   void ioParam_binMin(enum ParamsIOFlag ioFlag);
-   void ioParam_binMax(enum ParamsIOFlag ioFlag);
-   void ioParam_delay(enum ParamsIOFlag ioFlag);
-   void ioParam_binSigma(enum ParamsIOFlag ioFlag);
-   void ioParam_zeroNeg(enum ParamsIOFlag ioFlag);
-   void ioParam_zeroDCR(enum ParamsIOFlag ioFlag);
-   void ioParam_normalDist(enum ParamsIOFlag ioFlag);
+   void ioParam_binMin(ParamsIOSwitch ioSwitch);
+   void ioParam_binMax(ParamsIOSwitch ioSwitch);
+   void ioParam_delay(ParamsIOSwitch ioSwitch);
+   void ioParam_binSigma(ParamsIOSwitch ioSwitch);
+   void ioParam_zeroNeg(ParamsIOSwitch ioSwitch);
+   void ioParam_zeroDCR(ParamsIOSwitch ioSwitch);
+   void ioParam_normalDist(ParamsIOSwitch ioSwitch);
 
    /** @} */
   public:
-   BinningActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   BinningActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~BinningActivityBuffer();
 
@@ -45,11 +48,14 @@ class BinningActivityBuffer : public ActivityBuffer {
   protected:
    BinningActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

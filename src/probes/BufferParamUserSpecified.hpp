@@ -1,19 +1,20 @@
 #ifndef BUFFERPARAMUSERSPECIFIED_HPP_
 #define BUFFERPARAMUSERSPECIFIED_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/BufferParamInterface.hpp"
 
 namespace PV {
 
 class BufferParamUserSpecified : public BufferParamInterface {
   public:
-   BufferParamUserSpecified(char const *name, PVParams *params);
+   BufferParamUserSpecified(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(ParamsIOSwitch ioSwitch);
 
   protected:
-   void initialize(char const *name, PVParams *params);
+   void initialize(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 };
 
 } // namespace PV

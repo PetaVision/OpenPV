@@ -14,24 +14,30 @@ namespace PV {
 
 DiscreteUniformRandomV::DiscreteUniformRandomV() { initialize_base(); }
 
-DiscreteUniformRandomV::DiscreteUniformRandomV(char const *name, PVParams *params, Communicator const *comm) {
+DiscreteUniformRandomV::DiscreteUniformRandomV(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 DiscreteUniformRandomV::~DiscreteUniformRandomV() {}
 
 int DiscreteUniformRandomV::initialize_base() { return PV_SUCCESS; }
 
-void DiscreteUniformRandomV::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseInitV::initialize(name, params, comm);
+void DiscreteUniformRandomV::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseInitV::initialize(params, defaults, comm);
 }
 
-int DiscreteUniformRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseInitV::ioParamsFillGroup(ioFlag);
-   ioParam_minV(ioFlag);
-   ioParam_maxV(ioFlag);
-   ioParam_numValues(ioFlag);
+int DiscreteUniformRandomV::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseInitV::ioParamsFillGroup(ioSwitch);
+   ioParam_minV(ioSwitch);
+   ioParam_maxV(ioSwitch);
+   ioParam_numValues(ioSwitch);
    FatalIf(
          mMaxV < mMinV,
          "%s has maxV=%f less than minV=%f.\n",
@@ -41,17 +47,35 @@ int DiscreteUniformRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void DiscreteUniformRandomV::ioParam_minV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "minV", &mMinV, mMinV);
+void DiscreteUniformRandomV::ioParam_minV(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "minV", &mMinV);
 }
 
-void DiscreteUniformRandomV::ioParam_maxV(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "minV"));
-   parameters()->ioParamValue(ioFlag, getName(), "maxV", &mMaxV, mMinV + 1.0f);
+void DiscreteUniformRandomV::ioParam_maxV(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("minV"));
+   if (mParamsIO->isPresent("maxV")) {
+      mParamsIO->ioParam(ioSwitch, "maxV", &mMaxV);
+   }
+   else {
+      switch (ioSwitch) {
+         case ParamsIOSwitch::Read:
+            mMaxV = mMinV + 1.0f;
+            WarnLog().printf(
+                  "Using inferred value %f for parameter %s in group \"%s\"\n",
+                  (double)mMaxV, "maxV", getName());
+            break;
+         case ParamsIOSwitch::Write:
+            mParamsIO->ioParam(ioSwitch, "maxV", &mMaxV);
+            break;
+         default:
+            Fatal().printf("Unrecognized ParamsIOFlag %d\n", ioSwitch);
+            break;
+      }
+   }
 }
 
-void DiscreteUniformRandomV::ioParam_numValues(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "numValues", &mNumValues, mNumValues);
+void DiscreteUniformRandomV::ioParam_numValues(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "numValues", &mNumValues);
    FatalIf(
          mNumValues < 2,
          "%s parameter \"numValues\" is %d, but it must be at least 2.\n",

@@ -13,33 +13,33 @@ namespace PV {
 
 NormalizeSum::NormalizeSum() { initialize_base(); }
 
-NormalizeSum::NormalizeSum(const char *name, PVParams *params, Communicator const *comm) {
+NormalizeSum::NormalizeSum(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 NormalizeSum::~NormalizeSum() {}
 
 int NormalizeSum::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeSum::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   NormalizeMultiply::initialize(name, params, comm);
+void NormalizeSum::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   NormalizeMultiply::initialize(params, defaults, comm);
 }
 
-int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
-   ioParam_minSumTolerated(ioFlag);
+int NormalizeSum::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = NormalizeMultiply::ioParamsFillGroup(ioSwitch);
+   ioParam_minSumTolerated(ioSwitch);
    return status;
 }
 
-void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "minSumTolerated",
-         &mMinSumTolerated,
-         mMinSumTolerated,
-         true /*warnIfAbsent*/);
+void NormalizeSum::ioParam_minSumTolerated(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "minSumTolerated", &mMinSumTolerated);
 }
 
 int NormalizeSum::normalizeWeights() {

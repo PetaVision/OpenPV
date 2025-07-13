@@ -2,19 +2,19 @@
 #include "utils/PVLog.hpp"
 
 FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer(
-      char const *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer() {}
 
 void FailBeforeExpectedStartTimeLayer::initialize(
-      char const *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   return PV::HyPerLayer::initialize(name, params, comm);
+   return PV::HyPerLayer::initialize(params, defaults, comm);
 }
 
 PV::Response::Status FailBeforeExpectedStartTimeLayer::checkUpdateState(double simTime, double dt) {

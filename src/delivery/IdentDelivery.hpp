@@ -28,11 +28,14 @@ class IdentDelivery : public BaseDelivery {
    /**
     * @brief IdentDeliver does not use the GPU. It is an error to set receiveGpu to true.
     */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_receiveGpu(ParamsIOSwitch ioSwitch) override;
    /** @} */ // End of list of IdentDelivery parameters.
 
   public:
-   IdentDelivery(char const *name, PVParams *params, Communicator const *comm);
+   IdentDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~IdentDelivery() {}
 
@@ -45,7 +48,10 @@ class IdentDelivery : public BaseDelivery {
   protected:
    IdentDelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

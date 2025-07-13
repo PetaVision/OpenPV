@@ -6,7 +6,7 @@
 #include "ReceiveFromPostProbe.hpp"
 #include <columns/Communicator.hpp>
 #include <components/BasePublisherComponent.hpp>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
 #include <probes/StatsProbeImmediate.hpp>
@@ -17,11 +17,11 @@
 
 namespace PV {
 ReceiveFromPostProbe::ReceiveFromPostProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void ReceiveFromPostProbe::checkStats() {
@@ -44,25 +44,26 @@ void ReceiveFromPostProbe::checkStats() {
    }
 }
 
-void ReceiveFromPostProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void ReceiveFromPostProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
 void ReceiveFromPostProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
-int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   ioParam_tolerance(ioFlag);
+int ReceiveFromPostProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   ioParam_tolerance(ioSwitch);
    return status;
 }
 
-void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &mTolerance, mTolerance);
+void ReceiveFromPostProbe::ioParam_tolerance(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "tolerance", &mTolerance);
 }
 
 } // end namespace PV

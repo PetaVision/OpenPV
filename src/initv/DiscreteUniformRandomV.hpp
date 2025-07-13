@@ -28,14 +28,14 @@ class DiscreteUniformRandomV : public BaseInitV {
    /**
     * @brief minV: The minimum value of the random distribution. Default value 0.
     */
-   virtual void ioParam_minV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minV(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief maxV: The maximum value of the random distribution. Default value is minV + 1.
     *
     * It is a fatal error for maxV to be less than minV.
     */
-   virtual void ioParam_maxV(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maxV(ParamsIOSwitch ioSwitch);
 
    /**
     * @breif numValues: The number of possible values the weight can assume.
@@ -45,17 +45,23 @@ class DiscreteUniformRandomV : public BaseInitV {
     *
     * numValues must be an integer greater than 1.
     */
-   virtual void ioParam_numValues(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numValues(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   DiscreteUniformRandomV(char const *name, PVParams *params, Communicator const *comm);
+   DiscreteUniformRandomV(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~DiscreteUniformRandomV();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    DiscreteUniformRandomV();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    int initialize_base();

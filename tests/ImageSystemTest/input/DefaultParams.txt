@@ -1,0 +1,15 @@
+Defaults "ImageTestLayer" = {
+    #include "ImageLayer";
+};
+
+Defaults "ImagePvpTestLayer" = {
+    #include "PvpLayer";
+};
+
+Defaults "MovieTestLayer" = {
+    #include "ImageLayer";
+};
+
+Defaults "MoviePvpTestLayer" = {
+    #include "PvpLayer";
+};

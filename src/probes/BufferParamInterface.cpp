@@ -6,18 +6,18 @@
 
 namespace PV {
 
-BufferParamInterface::~BufferParamInterface() { free(mBufferString); }
+BufferParamInterface::~BufferParamInterface() {}
 
-void BufferParamInterface::initialize(char const *name, PVParams *params) {
-   ProbeComponent::initialize(name, params);
+void BufferParamInterface::initialize(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   ProbeComponent::initialize(params, defaults);
 }
 
-void BufferParamInterface::internal_ioParam_buffer(enum ParamsIOFlag ioFlag) {
-   getParams()->ioParamString(
-         ioFlag, getName_c(), "buffer", &mBufferString, "Activity", true /*warnIfAbsent*/);
+void BufferParamInterface::internal_ioParam_buffer(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "buffer", &mBufferString);
 }
 
-StatsBufferType BufferParamInterface::parseBufferType(char const *bufferString) {
+StatsBufferType BufferParamInterface::parseBufferType(std::string const &bufferString) {
    std::string buffer(bufferString);
    StatsBufferType bufferType;
    for (size_t c = 0; c < buffer.size(); c++) {
@@ -31,17 +31,16 @@ StatsBufferType BufferParamInterface::parseBufferType(char const *bufferString) 
    }
    else {
       Fatal().printf(
-            "Probe %s buffer type \"%s\" is not recognized.\n", getName_c(), buffer.c_str());
+            "Probe %s buffer type \"%s\" is not recognized.\n", getName_c(), bufferString.c_str());
    }
    return bufferType;
 }
 
 void BufferParamInterface::setBufferType(StatsBufferType bufferType) {
    mBufferType = bufferType;
-   free(mBufferString);
    switch (bufferType) {
-      case StatsBufferType::A: mBufferString = strdup("Activity"); break;
-      case StatsBufferType::V: mBufferString = strdup("MembranePotential"); break;
+      case StatsBufferType::A: mBufferString = "Activity"; break;
+      case StatsBufferType::V: mBufferString = "MembranePotential"; break;
       default: Fatal().printf("Unrecognized StatsBufferType in probe %s\n", getName_c());
    }
 }

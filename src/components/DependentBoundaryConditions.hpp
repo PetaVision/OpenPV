@@ -28,13 +28,13 @@ class DependentBoundaryConditions : public BoundaryConditions {
     * @brief mirrorBCflag: Not used by DependentBoundaryConditions; instead the flag
     * is copied from the layer named by the OriginalLayerNameParam parameter.
     */
-   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_mirrorBCflag(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief valueBC: Not used by DependentBoundaryConditions; instead the valueBC
     * parameter is copied from the layer named by the OriginalLayerNameParam parameter.
     */
-   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_valueBC(ParamsIOSwitch ioSwitch) override;
 
    /**
     * @brief
@@ -43,18 +43,24 @@ class DependentBoundaryConditions : public BoundaryConditions {
    /** @} */ // end of DependentBoundaryConditions parameters
 
   public:
-   DependentBoundaryConditions(char const *name, PVParams *params, Communicator const *comm);
+   DependentBoundaryConditions(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~DependentBoundaryConditions();
 
   protected:
    DependentBoundaryConditions() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

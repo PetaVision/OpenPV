@@ -21,24 +21,24 @@
 HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe() {}
 
 HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe(
-      const char *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 HyPerConnCheckpointerTestProbe::~HyPerConnCheckpointerTestProbe() {}
 
 void HyPerConnCheckpointerTestProbe::initialize(
-      const char *name,
-      PV::PVParams *params,
+      std::shared_ptr<PV::ParamGroup> params,
+      std::shared_ptr<PV::ParamGroup> defaults,
       PV::Communicator const *comm) {
-   return PV::ColProbe::initialize(name, params, comm);
+   return PV::ColProbe::initialize(params, defaults, comm);
 }
 
-void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
-   ColProbe::ioParam_textOutputFlag(ioFlag);
-   if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
+void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(PV::ParamsIOSwitch ioSwitch) {
+   ColProbe::ioParam_textOutputFlag(ioSwitch);
+   if (ioSwitch == PV::ParamsIOSwitch::Read && !getTextOutputFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog()
                << getDescription()

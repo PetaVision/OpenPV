@@ -18,11 +18,11 @@
 namespace PV {
 
 LayerPhaseTestProbe::LayerPhaseTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 void LayerPhaseTestProbe::checkStats() {
@@ -77,29 +77,31 @@ void LayerPhaseTestProbe::checkStats() {
    FatalIf(status != PV_SUCCESS, "%s failed.\n", getDescription_c());
 }
 
-void LayerPhaseTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<VMembraneBufferStatsProbeLocal>(name, params);
+void LayerPhaseTestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<VMembraneBufferStatsProbeLocal>(params, defaults);
 }
 
-void LayerPhaseTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+void LayerPhaseTestProbe::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
-int LayerPhaseTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   ioParam_equilibriumValue(ioFlag);
-   ioParam_equilibriumTime(ioFlag);
+int LayerPhaseTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   ioParam_equilibriumValue(ioSwitch);
+   ioParam_equilibriumTime(ioSwitch);
    return status;
 }
 
-void LayerPhaseTestProbe::ioParam_equilibriumValue(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "equilibriumValue", &mEquilibriumValue, mEquilibriumValue, true);
+void LayerPhaseTestProbe::ioParam_equilibriumValue(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "equilibriumValue", &mEquilibriumValue);
 }
 
-void LayerPhaseTestProbe::ioParam_equilibriumTime(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "equilibriumTime", &mEquilibriumTime, mEquilibriumTime, true);
+void LayerPhaseTestProbe::ioParam_equilibriumTime(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "equilibriumTime", &mEquilibriumTime);
 }
 
 } /* namespace PV */

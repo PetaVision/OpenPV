@@ -15,11 +15,11 @@ namespace PV {
 RunningAverageLayer::RunningAverageLayer() { initialize_base(); }
 
 RunningAverageLayer::RunningAverageLayer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 RunningAverageLayer::~RunningAverageLayer() {}
@@ -30,9 +30,12 @@ int RunningAverageLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void RunningAverageLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+void RunningAverageLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    WarnLog() << "RunningAverageLayer has been deprecated.\n";
-   int status_init = CloneVLayer::initialize(name, params, comm);
+   int status_init = CloneVLayer::initialize(params, defaults, comm);
    return status_init;
 }
 
@@ -42,9 +45,9 @@ Response::Status RunningAverageLayer::communicateInitInfo(
    // CloneVLayer sets mOriginalLayer and errors out if originalLayerName is not valid
 }
 
-int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   CloneVLayer::ioParamsFillGroup(ioFlag);
-   ioParam_numImagesToAverage(ioFlag);
+int RunningAverageLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   CloneVLayer::ioParamsFillGroup(ioSwitch);
+   ioParam_numImagesToAverage(ioSwitch);
 
    if (numImagesToAverage <= 0) {
       Fatal().printf(
@@ -53,7 +56,7 @@ int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-void RunningAverageLayer::ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag) {
+void RunningAverageLayer::ioParam_numImagesToAverage(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(
          ioFlag, name, "numImagesToAverage", &numImagesToAverage, numImagesToAverage);
 }

@@ -10,10 +10,10 @@
 namespace PV {
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() {}
@@ -21,20 +21,20 @@ InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() {}
 InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights() {}
 
 void InitSpreadOverArborsWeights::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   InitGauss2DWeights::initialize(name, params, comm);
+   InitGauss2DWeights::initialize(params, defaults, comm);
 }
 
-int InitSpreadOverArborsWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitGauss2DWeights::ioParamsFillGroup(ioFlag);
-   ioParam_weightInit(ioFlag);
+int InitSpreadOverArborsWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitGauss2DWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_weightInit(ioSwitch);
    return status;
 }
 
-void InitSpreadOverArborsWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
+void InitSpreadOverArborsWeights::ioParam_weightInit(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "weightInit", &mWeightInit);
 }
 
 void InitSpreadOverArborsWeights::calcWeights(int patchIndex, int arborId) {

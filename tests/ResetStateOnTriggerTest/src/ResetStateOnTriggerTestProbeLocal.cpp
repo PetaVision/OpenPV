@@ -8,9 +8,9 @@
 #include <vector>
 
 ResetStateOnTriggerTestProbeLocal::ResetStateOnTriggerTestProbeLocal(
-      char const *objName,
-      PVParams *params) {
-   initialize(objName, params);
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
 void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &values) const {
@@ -31,7 +31,7 @@ void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &value
          for (int k = 0; k < N; k++) {
             int kex          = calcExtendedIndex(k, loc);
             float a          = activity[kex];
-            int kGlobal      = PV::globalIndexFromLocal(k, *loc);
+            int kGlobal      = globalIndexFromLocal(k, *loc);
             int correctValue = 4 * (kGlobal + 1) * ((inttime + 4) % 5 + 1)
                                + (kGlobal == ((((inttime - 1) / 5) * 5) + 1) % NGlobal);
             if (a != (float)correctValue) {
@@ -50,13 +50,15 @@ void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &value
 
 void ResetStateOnTriggerTestProbeLocal::clearStoredValues() { mStoredValues.clear(); }
 
-void ResetStateOnTriggerTestProbeLocal::initialize(char const *objName, PVParams *params) {
-   ProbeComponent::initialize(objName, params);
+void ResetStateOnTriggerTestProbeLocal::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   ProbeComponent::initialize(params, defaults);
 }
 
 void ResetStateOnTriggerTestProbeLocal::initializeState(HyPerLayer *targetLayer) {
    mTargetLayer          = targetLayer;
-   auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
+   auto *targetPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          targetPublisher == nullptr,
          "Probe %s could not find layer data for target layer \"%s\".\n",
@@ -72,7 +74,7 @@ void ResetStateOnTriggerTestProbeLocal::storeValues(double simTime) {
 }
 
 int ResetStateOnTriggerTestProbeLocal::calcExtendedIndex(int k, PVLayerLoc const *loc) {
-   int kExt = PV::kIndexExtended(
+   int kExt = kIndexExtended(
          k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
    return kExt;
 }

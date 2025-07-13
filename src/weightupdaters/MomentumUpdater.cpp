@@ -16,37 +16,44 @@
 
 namespace PV {
 
-MomentumUpdater::MomentumUpdater(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+MomentumUpdater::MomentumUpdater(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void MomentumUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HebbianUpdater::initialize(name, params, comm);
+void MomentumUpdater::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HebbianUpdater::initialize(params, defaults, comm);
 }
 
 void MomentumUpdater::setObjectType() { mObjectType = "MomentumUpdater"; }
 
-int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HebbianUpdater::ioParamsFillGroup(ioFlag);
-   ioParam_momentumMethod(ioFlag);
-   ioParam_timeConstantTau(ioFlag);
-   ioParam_momentumTau(ioFlag); // marked obsolete July 30, 2024
-   ioParam_initPrev_dWFile(ioFlag);
-   ioParam_prev_dWFrameNumber(ioFlag);
+int MomentumUpdater::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HebbianUpdater::ioParamsFillGroup(ioSwitch);
+   ioParam_momentumMethod(ioSwitch);
+   ioParam_timeConstantTau(ioSwitch);
+   ioParam_momentumTau(ioSwitch); // marked obsolete July 30, 2024
+   ioParam_initPrev_dWFile(ioSwitch);
+   ioParam_prev_dWFrameNumber(ioSwitch);
    return status;
 }
 
-void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void MomentumUpdater::ioParam_momentumMethod(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamStringRequired(ioFlag, getName(), "momentumMethod", &mMomentumMethod);
-      if (std::strcmp(mMomentumMethod, "viscosity") == 0) {
+      mParamsIO->ioParam(ioSwitch, "momentumMethod", &mMomentumMethod);
+      if (mMomentumMethod == "viscosity") {
          mMethod = VISCOSITY;
       }
-      else if (std::strcmp(mMomentumMethod, "simple") == 0) {
+      else if (mMomentumMethod == "simple") {
          mMethod = SIMPLE;
       }
-      else if (std::strcmp(mMomentumMethod, "alex") == 0) {
+      else if (mMomentumMethod == "alex") {
+         // momentumMethod "alex" was marked obsolete on July 30, 2024
          Fatal().printf(
                "%s momentumMethod = \"alex\" is obsolete. "
                "Use \"viscosity\" or \"simple\" instead.\n",
@@ -59,24 +66,44 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void MomentumUpdater::ioParam_timeConstantTau(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumMethod"));
-      float defaultVal = 0;
-      switch (mMethod) {
-         case VISCOSITY: defaultVal = mDefaultTimeConstantTauViscosity; break;
-         case SIMPLE: defaultVal    = mDefaultTimeConstantTauSimple; break;
-         default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
-      }
-
-      bool warnIfAbsent = true;
-      parameters()->ioParamValue(
-            ioFlag, getName(), "timeConstantTau", &mTimeConstantTau, defaultVal, warnIfAbsent);
-      if (ioFlag == PARAMS_IO_READ) {
+      if (ioSwitch == ParamsIOSwitch::Read) {
+         auto paramType = mParamsIO->checkType("timeConstantTau");
+         switch (paramType) {
+            case Parameter::Type::NotFound:
+               pvAssert(!mParamsIO->presentAndNotBeenRead("momentumMethod"));
+               mTimeConstantTau = selectDefaultTimeConstantTau(mMethod);
+               WarnLog().printf(
+                     "Using default value %f for parameter \"%s\" in group \"%s\"\n",
+                     static_cast<double>(mTimeConstantTau), "timeConstantTau", getName());
+               break;
+            case Parameter::Type::Numeric:
+               mParamsIO->ioParam(ioSwitch, "timeConstantTau", &mTimeConstantTau);
+               break;
+            default:
+               ErrorLog().printf("Parameter %s in group %s exists but is non-numeric.\n",
+                     "timeConstantTau", getName());
+               break;
+         }
          checkTimeConstantTau();
       }
+      else {
+         pvAssert(ioSwitch == ParamsIOSwitch::Write);
+         mParamsIO->ioParam(ioSwitch, "timeConstantTau", &mTimeConstantTau);
+      }
    }
+}
+
+double MomentumUpdater::selectDefaultTimeConstantTau(Method method) {
+   float defaultVal = 0;
+   switch (method) {
+      case VISCOSITY: defaultVal = mDefaultTimeConstantTauViscosity; break;
+      case SIMPLE: defaultVal    = mDefaultTimeConstantTauSimple; break;
+      default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
+   }
+   return defaultVal;
 }
 
 void MomentumUpdater::checkTimeConstantTau() {
@@ -102,28 +129,27 @@ void MomentumUpdater::checkTimeConstantTau() {
 }
 
 // momentumTau was marked obsolete on July 30, 2024.
-void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
+void MomentumUpdater::ioParam_momentumTau(ParamsIOSwitch ioSwitch) {
    FatalIf(
-         parameters()->present(getName(), "momentumTau"),
+         mParamsIO->isPresent("momentumTau"),
          "%s sets the momentumDecay parameter, which is obsolete. "
          "Use timeConstantTau instead.\n",
          getDescription_c());
 }
 
-void MomentumUpdater::ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+void MomentumUpdater::ioParam_initPrev_dWFile(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamString(
-            ioFlag, getName(), "initPrev_dWFile", &mInitPrev_dWFile, "");
+      mParamsIO->ioParam(ioSwitch, "initPrev_dWFile", &mInitPrev_dWFile);
    }
 }
 
-void MomentumUpdater::ioParam_prev_dWFrameNumber(enum ParamsIOFlag ioFlag) {
+void MomentumUpdater::ioParam_prev_dWFrameNumber(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "initPrev_dWFile"));
-      if (mInitPrev_dWFile and mInitPrev_dWFile[0]) {
-         parameters()->ioParamValue(
-               ioFlag, getName(), "prev_dWFrameNumber", &mPrev_dWFrameNumber, mPrev_dWFrameNumber);
+      pvAssert(!mParamsIO->presentAndNotBeenRead("initPrev_dWFile"));
+      if (!mInitPrev_dWFile.empty()) {
+         mParamsIO->ioParam(ioSwitch, "prev_dWFrameNumber", &mPrev_dWFrameNumber);
       }
    }
 }
@@ -208,7 +234,7 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
    if (!Response::completed(status)) {
       return status;
    }
-   if (mPlasticityFlag and mInitPrev_dWFile and mInitPrev_dWFile[0]) {
+   if (mPlasticityFlag and !mInitPrev_dWFile.empty()) {
       auto globalMPIBlock = getCommunicator()->getGlobalMPIBlock();
       char const *baseDirectory = mInitPrev_dWFile[0] == '/' ? "/" : ".";
       auto fileManager = std::make_shared<FileManager>(globalMPIBlock, baseDirectory);
@@ -217,7 +243,7 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
       if (mPrevDeltaWeights->getSharedWeightsFlag()) {
          weightsFile = std::make_shared<SharedWeightsFile>(
                fileManager,
-               std::string(mInitPrev_dWFile),
+               mInitPrev_dWFile,
                mPrevDeltaWeights->getData(),
                false /* compressedFlag */,
                true /* readOnlyFlag */,
@@ -227,7 +253,7 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
       else if (mPrevDeltaWeights->prelayerIsBroadcast()) {
          weightsFile = std::make_shared<BroadcastPreWeightsFile>(
                fileManager,
-               std::string(mInitPrev_dWFile),
+               mInitPrev_dWFile,
                mPrevDeltaWeights->getData(),
                mPrevDeltaWeights->getGeometry()->getPreLoc().nf,
                mPrevDeltaWeights->getGeometry()->getPostLoc().bcast,
@@ -239,7 +265,7 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
       else {
          weightsFile = std::make_shared<LocalPatchWeightsFile>(
                fileManager,
-               std::string(mInitPrev_dWFile),
+               mInitPrev_dWFile,
                mPrevDeltaWeights->getData(),
                &mPrevDeltaWeights->getGeometry()->getPreLoc(),
                &mPrevDeltaWeights->getGeometry()->getPostLoc(),

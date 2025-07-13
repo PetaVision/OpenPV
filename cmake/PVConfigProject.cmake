@@ -226,7 +226,8 @@ macro(pv_config_project)
     set(PV_LIBRARIES "${PV_LIBRARY_DIR}/libpv.a")
   endif()
   
-  set(PV_CONFIG_FILE_DIR "${PV_LIBRARY_DIR}/include")
+  set(PV_CONFIG_FILE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
+  set(PV_SHARE_DIR "${CMAKE_CURRENT_BINARY_DIR}/share")
   
   ################################################################################
   # Find supporting libraries
@@ -245,7 +246,7 @@ macro(pv_config_project)
       
       # Set cuda compile flags
       if(CUDA_FOUND AND CUDNN_FOUND)
-        # Used later to set an variable in cMakeHeader.h PV_USE_CUDNN.
+        # Used later to set a variable in cMakeHeader.h PV_USE_CUDNN.
         # Without this, none of the CUDNN code will be compiled and all
         # CUDA code will fail
         set(PV_USE_CUDNN ON)

@@ -15,7 +15,10 @@ namespace PV {
 
 class IndexWeightUpdater : public HebbianUpdater {
   public:
-   IndexWeightUpdater(char const *name, PVParams *params, Communicator const *comm);
+   IndexWeightUpdater(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~IndexWeightUpdater() {}
 
@@ -24,7 +27,10 @@ class IndexWeightUpdater : public HebbianUpdater {
   protected:
    IndexWeightUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    Response::Status initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 };

@@ -6,7 +6,7 @@
 #include "components/BasePublisherComponent.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "include/pv_common.h"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
@@ -83,13 +83,12 @@ int checkStoredValues(
 }
 
 L1NormProbeLocal makeProbeLocal(char const *name, HyPerCol &hc, HyPerLayer *targetLayer) {
-   PVParams probeParams(
-         "input/L1NormProbeLocalTest.params",
-         static_cast<size_t>(3),
-         hc.getCommunicator()->communicator());
+   PVParams probeParams("input/L1NormProbeLocalTest.params", hc.getCommunicator()->communicator());
+   auto paramGroup = probeParams.group(name);
+   auto defaultGroup = probeParams.defaultGroup(paramGroup->getKeyword());
 
-   L1NormProbeLocal probeLocal(name, &probeParams);
-   probeLocal.ioParamsFillGroup(PARAMS_IO_READ);
+   L1NormProbeLocal probeLocal(paramGroup, defaultGroup);
+   probeLocal.ioParamsFillGroup(ParamsIOSwitch::Read);
 
    ObserverTable objectTable = hc.getAllObjectsFlat();
    auto communicateMessage   = std::make_shared<CommunicateInitInfoMessage>(

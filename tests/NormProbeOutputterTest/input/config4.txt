@@ -1,5 +1,5 @@
 ParamsFile:input/NormProbeOutputterTest.params
-LogFile:NormProbeOutputterTest_8.log
+LogFile:NormProbeOutputterTest_4.log
 NumThreads:-
 NumRows:1
 NumColumns:1

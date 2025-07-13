@@ -90,7 +90,7 @@ BinningLayer "binLayerSigma" = {
 };
 
 BinningTestProbe "binLayerProbe" = {
-    targetName = "binLayer";
+    targetLayer = "binLayer";
     message = NULL;
     textOutputFlag = true;
     probeOutputFile = NULL;
@@ -99,7 +99,7 @@ BinningTestProbe "binLayerProbe" = {
 };
 
 BinningTestProbe "binLayerSigmaProbe" = {
-    targetName = "binLayerSigma";
+    targetLayer = "binLayerSigma";
     message = NULL;
     textOutputFlag = true;
     probeOutputFile = NULL;

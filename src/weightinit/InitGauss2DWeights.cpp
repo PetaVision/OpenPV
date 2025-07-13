@@ -13,98 +13,101 @@
 namespace PV {
 
 InitGauss2DWeights::InitGauss2DWeights(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InitGauss2DWeights::InitGauss2DWeights() {}
 
 InitGauss2DWeights::~InitGauss2DWeights() {}
 
-void InitGauss2DWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InitWeights::initialize(name, params, comm);
+void InitGauss2DWeights::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InitWeights::initialize(params, defaults, comm);
 }
 
-int InitGauss2DWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitWeights::ioParamsFillGroup(ioFlag);
-   ioParam_aspect(ioFlag);
-   ioParam_sigma(ioFlag);
-   ioParam_rMax(ioFlag);
-   ioParam_rMin(ioFlag);
-   ioParam_numOrientationsPost(ioFlag);
-   ioParam_numOrientationsPre(ioFlag);
-   ioParam_deltaThetaMax(ioFlag);
-   ioParam_thetaMax(ioFlag);
-   ioParam_numFlanks(ioFlag);
-   ioParam_flankShift(ioFlag);
-   ioParam_rotate(ioFlag);
-   ioParam_bowtieFlag(ioFlag);
-   ioParam_bowtieAngle(ioFlag);
+int InitGauss2DWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = InitWeights::ioParamsFillGroup(ioSwitch);
+   ioParam_aspect(ioSwitch);
+   ioParam_sigma(ioSwitch);
+   ioParam_rMax(ioSwitch);
+   ioParam_rMin(ioSwitch);
+   ioParam_numOrientationsPost(ioSwitch);
+   ioParam_numOrientationsPre(ioSwitch);
+   ioParam_deltaThetaMax(ioSwitch);
+   ioParam_thetaMax(ioSwitch);
+   ioParam_numFlanks(ioSwitch);
+   ioParam_flankShift(ioSwitch);
+   ioParam_rotate(ioSwitch);
+   ioParam_bowtieFlag(ioSwitch);
+   ioParam_bowtieAngle(ioSwitch);
    return status;
 }
 
-void InitGauss2DWeights::ioParam_aspect(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "aspect", &mAspect, mAspect);
+void InitGauss2DWeights::ioParam_aspect(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "aspect", &mAspect);
 }
 
-void InitGauss2DWeights::ioParam_sigma(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "sigma", &mSigma, mSigma);
+void InitGauss2DWeights::ioParam_sigma(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "sigma", &mSigma);
 }
 
-void InitGauss2DWeights::ioParam_rMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "rMax", &mRMax, mRMax);
-   if (ioFlag == PARAMS_IO_READ) {
+void InitGauss2DWeights::ioParam_rMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "rMax", &mRMax);
+   if (ioSwitch == ParamsIOSwitch::Read) {
       double rMaxd = (double)mRMax;
       mRMaxSquared = rMaxd * rMaxd;
    }
 }
 
-void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "rMin", &mRMin, mRMin);
-   if (ioFlag == PARAMS_IO_READ) {
+void InitGauss2DWeights::ioParam_rMin(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "rMin", &mRMin);
+   if (ioSwitch == ParamsIOSwitch::Read) {
       double rMind = (double)mRMin;
       mRMinSquared = rMind * rMind;
    }
 }
 
-void InitGauss2DWeights::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "numOrientationsPost", &mNumOrientationsPost, -1);
+void InitGauss2DWeights::ioParam_numOrientationsPost(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "numOrientationsPost", &mNumOrientationsPost);
 }
 
-void InitGauss2DWeights::ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "numOrientationsPre", &mNumOrientationsPre, -1);
+void InitGauss2DWeights::ioParam_numOrientationsPre(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "numOrientationsPre", &mNumOrientationsPre);
 }
 
-void InitGauss2DWeights::ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "deltaThetaMax", &mDeltaThetaMax, mDeltaThetaMax);
+void InitGauss2DWeights::ioParam_deltaThetaMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "deltaThetaMax", &mDeltaThetaMax);
 }
 
-void InitGauss2DWeights::ioParam_thetaMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "thetaMax", &mThetaMax, mThetaMax);
+void InitGauss2DWeights::ioParam_thetaMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "thetaMax", &mThetaMax);
 }
 
-void InitGauss2DWeights::ioParam_numFlanks(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "numFlanks", &mNumFlanks, mNumFlanks);
+void InitGauss2DWeights::ioParam_numFlanks(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "numFlanks", &mNumFlanks);
 }
 
-void InitGauss2DWeights::ioParam_flankShift(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "flankShift", &mFlankShift, mFlankShift);
+void InitGauss2DWeights::ioParam_flankShift(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "flankShift", &mFlankShift);
 }
 
-void InitGauss2DWeights::ioParam_rotate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "rotate", &mRotate, mRotate);
+void InitGauss2DWeights::ioParam_rotate(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "rotate", &mRotate);
 }
 
-void InitGauss2DWeights::ioParam_bowtieFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "bowtieFlag", &mBowtieFlag, mBowtieFlag);
+void InitGauss2DWeights::ioParam_bowtieFlag(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "bowtieFlag", &mBowtieFlag);
 }
 
-void InitGauss2DWeights::ioParam_bowtieAngle(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "bowtieFlag"));
+void InitGauss2DWeights::ioParam_bowtieAngle(ParamsIOSwitch ioSwitch) {
+   pvAssert(!mParamsIO->presentAndNotBeenRead("bowtieFlag"));
    if (mBowtieFlag) {
-      parameters()->ioParamValue(ioFlag, getName(), "bowtieAngle", &mBowtieAngle, mBowtieAngle);
+      mParamsIO->ioParam(ioSwitch, "bowtieAngle", &mBowtieAngle);
    }
 }
 
@@ -149,7 +152,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
    }
    else {
-      strengthParam = new StrengthParam(getName(), parameters(), mCommunicator);
+      strengthParam = new StrengthParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
       parentConn->addUniqueComponent(strengthParam);
       status = status + Response::POSTPONE;
    }

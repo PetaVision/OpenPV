@@ -9,22 +9,29 @@
 #define LAYERPHASETESTPROBE_HPP_
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
+#include "params/PVParams.hpp"
 #include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
 class LayerPhaseTestProbe : public PV::StatsProbeImmediate {
   public:
-   LayerPhaseTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   LayerPhaseTestProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    virtual void checkStats() override;
-   virtual void createProbeLocal(char const *name, PVParams *params) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_equilibriumValue(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_equilibriumTime(enum ParamsIOFlag ioFlag);
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_equilibriumValue(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_equilibriumTime(ParamsIOSwitch ioSwitch);
 
   protected:
    float mEquilibriumValue = 0.0f;

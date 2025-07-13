@@ -11,31 +11,31 @@
 namespace PV {
 
 BackgroundActivityBuffer::BackgroundActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 BackgroundActivityBuffer::~BackgroundActivityBuffer() {}
 
 void BackgroundActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 void BackgroundActivityBuffer::setObjectType() { mObjectType = "BackgroundActivityBuffer"; }
 
-int BackgroundActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_repFeatureNum(ioFlag);
+int BackgroundActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ActivityBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_repFeatureNum(ioSwitch);
    return status;
 }
 
-void BackgroundActivityBuffer::ioParam_repFeatureNum(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "repFeatureNum", &mRepFeatureNum, mRepFeatureNum);
+void BackgroundActivityBuffer::ioParam_repFeatureNum(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "repFeatureNum", &mRepFeatureNum);
    if (mRepFeatureNum <= 0) {
       Fatal().printf(
             "BackgroundLayer %s: repFeatureNum must an integer greater or equal to 1 "
@@ -61,13 +61,13 @@ Response::Status BackgroundActivityBuffer::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+   std::string const &originalLayerName = originalLayerNameParam->getLinkedObjectName();
    mOriginalData = objectTable->findObject<BasePublisherComponent>(originalLayerName);
    FatalIf(
          mOriginalData == nullptr,
          "%s originalLayerName \"%s\" does not have a BasePublisherComponent.\n",
          getDescription_c(),
-         originalLayerNameParam->getLinkedObjectName());
+         originalLayerName.c_str());
    checkDimensions();
    return Response::SUCCESS;
 }

@@ -31,12 +31,12 @@ class KernelProbe : public BaseHyPerConnProbe {
   protected:
    KernelProbe(); // Default constructor, can only be called by derived classes
    void initialize(const char *probename, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_kernelIndex(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_arborId(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_outputWeights(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
+   virtual void ioParam_kernelIndex(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_arborId(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_outputWeights(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_outputPlasticIncr(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_outputPatchIndices(ParamsIOSwitch ioSwitch);
    int patchIndices();
 
    virtual void initNumValues() override;

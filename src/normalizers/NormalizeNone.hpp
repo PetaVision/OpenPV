@@ -15,17 +15,23 @@ namespace PV {
 class NormalizeNone : public NormalizeBase {
    // Member functions
   protected:
-   virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) override {}
-   virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) override {}
-   virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) override {}
+   virtual void ioParam_normalizeArborsIndividually(ParamsIOSwitch ioSwitch) override {}
+   virtual void ioParam_normalizeOnInitialize(ParamsIOSwitch ioSwitch) override {}
+   virtual void ioParam_normalizeOnWeightUpdate(ParamsIOSwitch ioSwitch) override {}
 
   public:
-   NormalizeNone(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeNone(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NormalizeNone();
 
   protected:
    NormalizeNone();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

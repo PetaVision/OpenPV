@@ -10,32 +10,31 @@
 namespace PV {
 
 ErrScaleInternalStateBuffer::ErrScaleInternalStateBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ErrScaleInternalStateBuffer::~ErrScaleInternalStateBuffer() {}
 
 void ErrScaleInternalStateBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(name, params, comm);
+   HyPerInternalStateBuffer::initialize(params, defaults, comm);
 }
 
 void ErrScaleInternalStateBuffer::setObjectType() { mObjectType = "ErrScaleInternalStateBuffer"; }
 
-int ErrScaleInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_errScale(ioFlag);
+int ErrScaleInternalStateBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_errScale(ioSwitch);
    return status;
 }
 
-void ErrScaleInternalStateBuffer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "errScale", &mErrScale, mErrScale, true /*warnIfAbsent*/);
+void ErrScaleInternalStateBuffer::ioParam_errScale(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "errScale", &mErrScale);
 }
 
 void ErrScaleInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {

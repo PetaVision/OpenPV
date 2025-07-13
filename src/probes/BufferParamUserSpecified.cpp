@@ -2,17 +2,21 @@
 
 namespace PV {
 
-BufferParamUserSpecified::BufferParamUserSpecified(char const *name, PVParams *params) {
-   initialize(name, params);
+BufferParamUserSpecified::BufferParamUserSpecified(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   initialize(params, defaults);
 }
 
-void BufferParamUserSpecified::initialize(char const *name, PVParams *params) {
-   BufferParamInterface::initialize(name, params);
+void BufferParamUserSpecified::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults) {
+   BufferParamInterface::initialize(params, defaults);
 }
 
-void BufferParamUserSpecified::ioParam_buffer(enum ParamsIOFlag ioFlag) {
-   internal_ioParam_buffer(ioFlag);
-   if (ioFlag == PARAMS_IO_READ) {
+void BufferParamUserSpecified::ioParam_buffer(ParamsIOSwitch ioSwitch) {
+   internal_ioParam_buffer(ioSwitch);
+   if (ioSwitch == ParamsIOSwitch::Read) {
       auto bufferType = parseBufferType(getBufferString());
       setBufferType(bufferType);
    }

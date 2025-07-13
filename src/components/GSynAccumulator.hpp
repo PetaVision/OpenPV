@@ -29,18 +29,21 @@ class GSynAccumulator : public RestrictedBuffer {
     * @brief channelIndices: Specifies an array of channel indices for which
     * channel coefficients will be specified.
     */
-   virtual void ioParam_channelIndices(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelIndices(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief channelCoefficients: Specifies an array of coefficients for
     * the channel indices specified in the channelIndices array param.
     * If specified, channelIndices and channelCoefficients must be the same length.
     */
-   virtual void ioParam_channelCoefficients(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCoefficients(ParamsIOSwitch ioSwitch);
 
    /** @} */
   public:
-   GSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
+   GSynAccumulator(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~GSynAccumulator();
 
@@ -49,13 +52,16 @@ class GSynAccumulator : public RestrictedBuffer {
   protected:
    GSynAccumulator() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
    virtual void initializeChannelCoefficients();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -73,10 +79,8 @@ class GSynAccumulator : public RestrictedBuffer {
 #endif // PV_USE_CUDA
 
   protected:
-   int mNumChannelIndices            = 0;
-   float *mChannelIndicesParams      = nullptr; // The channel indices as provided in params
-   int mNumChannelCoefficients       = 0;
-   float *mChannelCoefficientsParams = nullptr; // The channel coefficients as provided in params
+   std::vector<int> mChannelIndicesParams; // The channel indices as provided in params
+   std::vector<float> mChannelCoefficientsParams; // The channel coefficients as provided in params
    std::vector<float> mChannelCoefficients;
    LayerInputBuffer *mLayerInput = nullptr;
 

@@ -10,8 +10,11 @@
 
 namespace PV {
 
-BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+BaseConnection::BaseConnection(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 BaseConnection::BaseConnection() {}
@@ -21,8 +24,11 @@ BaseConnection::~BaseConnection() {
    delete mIOTimer;
 }
 
-void BaseConnection::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ComponentBasedObject::initialize(name, params, comm);
+void BaseConnection::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ComponentBasedObject::initialize(params, defaults, comm);
 
    // The WeightsPair writes this flag to output params file. Other ParamsInterface-derived
    // components of the connection will automatically read InitializeFromCheckpointFlag, but
@@ -66,21 +72,23 @@ void BaseConnection::fillComponentTable() {
 }
 
 ConnectionData *BaseConnection::createConnectionData() {
-   return new ConnectionData(getName(), parameters(), mCommunicator);
+   return new ConnectionData(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 BaseDelivery *BaseConnection::createDeliveryObject() {
-   return new BaseDelivery(getName(), parameters(), mCommunicator);
+   return new BaseDelivery(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
-int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
+int BaseConnection::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ComponentBasedObject::ioParamsFillGroup(ioSwitch);
    return status;
 }
 
 Response::Status BaseConnection::respondConnectionWriteParams(
       std::shared_ptr<ConnectionWriteParamsMessage const> message) {
-   writeParams();
+   mParamsIO->setPrintParamsStream(message->mPrintParamsStream);
+   mParamsIO->setPrintLuaStream(message->mPrintLuaStream);
+   ioParams(ParamsIOSwitch::Write, true, true);
    return Response::SUCCESS;
 }
 

@@ -14,33 +14,39 @@
 
 namespace PV {
 
-PoolingIndexLayer::PoolingIndexLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+PoolingIndexLayer::PoolingIndexLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 PoolingIndexLayer::PoolingIndexLayer() {}
 
 PoolingIndexLayer::~PoolingIndexLayer() {}
 
-void PoolingIndexLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void PoolingIndexLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
    // This layer is storing its buffers as ints. This is a check to make sure the sizes are the same
    assert(sizeof(int) == sizeof(float));
 }
 
-int PoolingIndexLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+int PoolingIndexLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerLayer::ioParamsFillGroup(ioSwitch);
    return status;
 }
 
 LayerInputBuffer *PoolingIndexLayer::createLayerInput() {
-   return new PoolingIndexLayerInputBuffer(getName(), parameters(), mCommunicator);
+   return new PoolingIndexLayerInputBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 ActivityComponent *PoolingIndexLayer::createActivityComponent() {
    return new HyPerActivityComponent<SingleChannelGSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
+                                     HyPerActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

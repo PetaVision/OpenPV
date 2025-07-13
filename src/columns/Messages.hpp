@@ -11,6 +11,7 @@
 #define MESSAGES_HPP_
 
 #include "cMakeHeader.h"
+#include "io/FileStream.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include <string>
@@ -74,17 +75,35 @@ class LayerSetMaxPhaseMessage : public BaseMessage {
 
 class LayerWriteParamsMessage : public BaseMessage {
   public:
-   LayerWriteParamsMessage() { setMessageType("LayerWriteParams"); }
+   LayerWriteParamsMessage(FileStream *printParamsStream, FileStream *printLuaStream) {
+      setMessageType("LayerWriteParams");
+      mPrintParamsStream = printParamsStream;
+      mPrintLuaStream = printLuaStream;
+   }
+   FileStream *mPrintParamsStream;
+   FileStream *mPrintLuaStream;
 };
 
 class ConnectionWriteParamsMessage : public BaseMessage {
   public:
-   ConnectionWriteParamsMessage() { setMessageType("ConnectionWriteParams"); }
+   ConnectionWriteParamsMessage(FileStream *printParamsStream, FileStream *printLuaStream) {
+      setMessageType("ConnectionWriteParams");
+      mPrintParamsStream = printParamsStream;
+      mPrintLuaStream = printLuaStream;
+   }
+   FileStream *mPrintParamsStream;
+   FileStream *mPrintLuaStream;
 };
 
 class ProbeWriteParamsMessage : public BaseMessage {
   public:
-   ProbeWriteParamsMessage() { setMessageType("ProbeWriteParams"); }
+   ProbeWriteParamsMessage(FileStream *printParamsStream, FileStream *printLuaStream) {
+      setMessageType("ProbeWriteParams");
+      mPrintParamsStream = printParamsStream;
+      mPrintLuaStream = printLuaStream;
+   }
+   FileStream *mPrintParamsStream;
+   FileStream *mPrintLuaStream;
 };
 
 class InitializeStateMessage : public BaseMessage {

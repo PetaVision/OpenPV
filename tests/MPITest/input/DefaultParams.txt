@@ -1,0 +1,9 @@
+Defaults "MPITestLayer" = {
+    #include "BasicLayer";
+};
+
+Defaults "MPITestProbe" = {
+    #include "StatsProbe";
+    #remove buffer;
+    #remove immediateMPIAssembly;
+};

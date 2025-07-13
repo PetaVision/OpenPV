@@ -2,31 +2,31 @@
 
 namespace PV {
 
-MaskTestLayer::MaskTestLayer(const char *name, PVParams *params, Communicator const *comm) {
-   ANNLayer::initialize(name, params, comm);
+MaskTestLayer::MaskTestLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ANNLayer::initialize(params, defaults, comm);
 }
 
-MaskTestLayer::~MaskTestLayer() {
-   if (maskMethod) {
-      free(maskMethod);
-   }
-}
-int MaskTestLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_maskMethod(ioFlag);
+MaskTestLayer::~MaskTestLayer() {}
+
+int MaskTestLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = ANNLayer::ioParamsFillGroup(ioSwitch);
+   ioParam_maskMethod(ioSwitch);
    return status;
 }
 
-void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, getName(), "maskMethod", &maskMethod);
+void MaskTestLayer::ioParam_maskMethod(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "maskMethod", &mMaskMethod);
    // Check valid methods
-   if (strcmp(maskMethod, "layer") == 0) {
+   if (mMaskMethod == "layer") {
    }
-   else if (strcmp(maskMethod, "invertLayer") == 0) {
+   else if (mMaskMethod == "invertLayer") {
    }
-   else if (strcmp(maskMethod, "maskFeatures") == 0) {
+   else if (mMaskMethod == "maskFeatures") {
    }
-   else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
+   else if (mMaskMethod == "noMaskFeatures") {
    }
    else {
       if (mCommunicator->globalCommRank() == 0) {
@@ -34,9 +34,9 @@ void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
                "%s: \"%s\" is not a valid maskMethod. Options are \"invertLayer\", "
                "\"maskFeatures\", or \"noMaskFeatures\".\n",
                getDescription_c(),
-               maskMethod);
+               mMaskMethod);
       }
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 }
 
@@ -57,7 +57,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
       // We only care about restricted space
 
       for (int k = 0; k < getNumNeurons(); k++) {
-         if (strcmp(maskMethod, "layer") == 0) {
+         if (mMaskMethod == "layer") {
             if (GSynInhB[k]) {
                if (GSynExt[k] != GSynInh[k]) {
                   ErrorLog() << "Connection " << getName() << " Mismatch at " << k
@@ -74,7 +74,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
                }
             }
          }
-         else if (strcmp(maskMethod, "invertLayer") == 0) {
+         else if (mMaskMethod == "invertLayer") {
             // ErrorLog() << "Connection " << name << " Mismatch at " << k << ": actual value:
             // " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if (!GSynInhB[k]) {
@@ -93,7 +93,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
                }
             }
          }
-         else if (strcmp(maskMethod, "maskFeatures") == 0) {
+         else if (mMaskMethod == "maskFeatures") {
             int featureIdx = featureIndex(k, nx, ny, nf);
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {
@@ -112,7 +112,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
                }
             }
          }
-         else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
+         else if (mMaskMethod == "noMaskFeatures") {
             int featureIdx = featureIndex(k, nx, ny, nf);
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {

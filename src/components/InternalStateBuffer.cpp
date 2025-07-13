@@ -11,39 +11,35 @@
 namespace PV {
 
 InternalStateBuffer::InternalStateBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 InternalStateBuffer::~InternalStateBuffer() {
-   free(mInitVTypeString);
    delete mInitVObject;
 }
 
-void InternalStateBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   RestrictedBuffer::initialize(name, params, comm);
+void InternalStateBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   RestrictedBuffer::initialize(params, defaults, comm);
    setBufferLabel("V");
 }
 
 void InternalStateBuffer::setObjectType() { mObjectType = "InternalStateBuffer"; }
 
-int InternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_InitVType(ioFlag);
+int InternalStateBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   ioParam_InitVType(ioSwitch);
    return PV_SUCCESS;
 }
 
-void InternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag,
-         getName(),
-         "InitVType",
-         &mInitVTypeString,
-         BaseInitV::mDefaultInitV.data(),
-         true /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      BaseObject *object = Factory::instance()->createByKeyword(mInitVTypeString, this);
+void InternalStateBuffer::ioParam_InitVType(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "InitVType", &mInitVTypeString);
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      BaseObject *object = Factory::instance()->createByKeyword(mInitVTypeString.c_str(), this);
       mInitVObject       = dynamic_cast<BaseInitV *>(object);
       FatalIf(
             mInitVObject == nullptr,
@@ -52,7 +48,11 @@ void InternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
             mInitVObject);
    }
    if (mInitVObject != nullptr) {
-      mInitVObject->ioParamsFillGroup(ioFlag);
+      if (ioSwitch == ParamsIOSwitch::Write) {
+         mInitVObject->getParamsIO()->setPrintParamsStream(mParamsIO->getPrintParamsStream());
+         mInitVObject->getParamsIO()->setPrintLuaStream(mParamsIO->getPrintLuaStream());
+      }
+      mInitVObject->ioParamsFillGroup(ioSwitch);
    }
 }
 

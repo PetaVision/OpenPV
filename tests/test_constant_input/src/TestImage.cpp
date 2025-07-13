@@ -10,20 +10,26 @@
 
 namespace PV {
 
-TestImage::TestImage(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+TestImage::TestImage(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 TestImage::TestImage() {}
 
 TestImage::~TestImage() {}
 
-void TestImage::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void TestImage::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *TestImage::createActivityComponent() {
-   return new TestImageActivityComponent(getName(), parameters(), mCommunicator);
+   return new TestImageActivityComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 float TestImage::getConstantVal() const {

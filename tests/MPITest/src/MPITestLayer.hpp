@@ -14,10 +14,16 @@ namespace PV {
 
 class MPITestLayer : public PV::HyPerLayer {
   public:
-   MPITestLayer(const char *name, PVParams *params, Communicator const *comm);
+   MPITestLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ActivityComponent *createActivityComponent() override;
 };
 

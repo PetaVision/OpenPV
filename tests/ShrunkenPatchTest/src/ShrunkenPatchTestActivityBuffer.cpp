@@ -10,19 +10,19 @@
 namespace PV {
 
 ShrunkenPatchTestActivityBuffer::ShrunkenPatchTestActivityBuffer(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ShrunkenPatchTestActivityBuffer::~ShrunkenPatchTestActivityBuffer() {}
 
 void ShrunkenPatchTestActivityBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   ActivityBuffer::initialize(name, params, comm);
+   ActivityBuffer::initialize(params, defaults, comm);
 }
 
 void ShrunkenPatchTestActivityBuffer::setObjectType() {

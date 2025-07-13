@@ -11,6 +11,8 @@
 #include "structures/Weights.hpp"
 #include "weightupdaters/BaseWeightUpdater.hpp"
 
+#include <string>
+
 namespace PV {
 
 class HebbianUpdater : public BaseWeightUpdater {
@@ -21,16 +23,16 @@ class HebbianUpdater : public BaseWeightUpdater {
     * @{
     */
 
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_triggerOffset(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_weightUpdatePeriod(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_initialWeightUpdateTime(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_immediateWeightUpdate(ParamsIOSwitch ioSwitch);
 
    /**
     * momentumDecay is a deprecated synonym for weightL2Decay: Use weightL2Decay instead.
     */
-   virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_momentumDecay(ParamsIOSwitch ioSwitch);
 
    /**
     * weightL1Decay: The L1-driven decay rate on the weights, applied after the momentum updates.
@@ -40,7 +42,7 @@ class HebbianUpdater : public BaseWeightUpdater {
     *
     * The default value is zero (no L1-decay). It is an error for weightL1Decay to be negative.
     */
-   virtual void ioParam_weightL1Decay(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightL1Decay(ParamsIOSwitch ioSwitch);
 
    /**
     * weightL2Decay: The L2-driven decay rate on the weights, applied after the momentum updates.
@@ -50,18 +52,20 @@ class HebbianUpdater : public BaseWeightUpdater {
     *
     * The default value is zero (no L2-decay). It is an error for weightL2Decay to be negative.
     */
-   virtual void ioParam_weightL2Decay(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightL2Decay(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_dWMax(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_dWMaxDecayInterval(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_dWMaxDecayFactor(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_normalizeDw(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_combine_dW_with_W_flag(ParamsIOSwitch ioSwitch);
 
    /** @} */ // end of HebbianUpdater parameters
 
   public:
-   HebbianUpdater(char const *name, PVParams *params, Communicator const *comm);
+   HebbianUpdater(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~HebbianUpdater();
 
@@ -78,11 +82,14 @@ class HebbianUpdater : public BaseWeightUpdater {
   protected:
    HebbianUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -162,13 +169,13 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual Response::Status cleanup() override;
 
   protected:
-   char *mTriggerLayerName         = nullptr;
+   std::string mTriggerLayerName;
    double mTriggerOffset           = 0.0;
    double mWeightUpdatePeriod      = 0.0;
    double mInitialWeightUpdateTime = 0.0;
    bool mImmediateWeightUpdate     = true;
-   float mWeightL1Decay     = 0.0f;
-   float mWeightL2Decay     = 0.0f;
+   float mWeightL1Decay            = 0.0f;
+   float mWeightL2Decay            = 0.0f;
 
    // dWMax is required if plasticityFlag is true
    float mDWMax                     = std::numeric_limits<float>::quiet_NaN();

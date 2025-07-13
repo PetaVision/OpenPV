@@ -62,7 +62,7 @@ PvpLayer "Input" = {
 };
 
 //an output layer
-ANNLayer "Output" = {
+HyPerLayer "Output" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 
@@ -75,13 +75,8 @@ ANNLayer "Output" = {
     updateGpu = false;
 
     InitVType = "ZeroV";
-
-    //define a linear relation between its input and output, with some hard cut-off.
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
+    channelIndices = [0, 1];
+    channelCoefficients = [1, -1];
 };
 
 //HyPerConns are connections between two layers

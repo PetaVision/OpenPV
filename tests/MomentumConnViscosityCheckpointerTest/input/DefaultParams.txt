@@ -1,0 +1,9 @@
+Defaults "MomentumConnViscosityCheckpointerTestProbe" = {
+    targetName          = NULL;
+    message             = NULL;
+    textOutputFlag      = true;
+    probeOutputFile     = NULL;
+    statsFlag           = false;
+    triggerLayerName    = NULL;
+    triggerOffset       = 0;
+};

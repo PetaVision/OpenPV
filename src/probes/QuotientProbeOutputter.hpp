@@ -8,7 +8,7 @@ namespace PV {
 
 class QuotientProbeOutputter : public BaseProbeOutputter {
   public:
-   QuotientProbeOutputter(char const *objName, PVParams *params, Communicator const *comm);
+   QuotientProbeOutputter(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, Communicator const *comm);
    virtual ~QuotientProbeOutputter() {}
 
    void printBuffer(ProbeDataBuffer<double> const &storedValues);
@@ -17,7 +17,7 @@ class QuotientProbeOutputter : public BaseProbeOutputter {
 
   protected:
    QuotientProbeOutputter() {}
-   void initialize(char const *objName, PVParams *params, Communicator const *comm);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, Communicator const *comm);
 
    void
    print(std::shared_ptr<PrintStream> printStreamPtr,

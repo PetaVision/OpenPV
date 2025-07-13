@@ -26,7 +26,10 @@ namespace PV {
  */
 class BaseDelivery : public LayerInputDelivery {
   public:
-   BaseDelivery(char const *name, PVParams *params, Communicator const *comm);
+   BaseDelivery(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~BaseDelivery() {}
 
@@ -36,7 +39,10 @@ class BaseDelivery : public LayerInputDelivery {
   protected:
    BaseDelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -1,7 +1,6 @@
 #ifndef NORMPROBEAGGREGATOR_HPP_
 #define NORMPROBEAGGREGATOR_HPP_
 
-#include "io/PVParams.hpp"
 #include "probes/ProbeComponent.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/ProbeDataBuffer.hpp"
@@ -13,14 +12,14 @@ namespace PV {
 class NormProbeAggregator : public ProbeComponent {
   public:
    NormProbeAggregator(
-         char const *objName,
-         PVParams *params,
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
          std::shared_ptr<MPIBlock const> mpiBlock);
    virtual ~NormProbeAggregator() {}
 
    void aggregateStoredValues(ProbeDataBuffer<double> const &partialStore);
    void clearStoredValues();
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch);
 
    ProbeDataBuffer<double> const &getStoredValues() const { return mStoredValues; }
 
@@ -29,7 +28,7 @@ class NormProbeAggregator : public ProbeComponent {
    virtual void aggregateNormsBatch(
          ProbeData<double> &aggregatedNormsBatch,
          ProbeData<double> const &partialNormsBatch);
-   void initialize(char const *objName, PVParams *params, std::shared_ptr<MPIBlock const> mpiBlock);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, std::shared_ptr<MPIBlock const> mpiBlock);
 
   private:
    std::shared_ptr<MPIBlock const> mMPIBlock;

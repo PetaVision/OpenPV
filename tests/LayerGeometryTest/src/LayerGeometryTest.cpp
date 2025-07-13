@@ -41,7 +41,10 @@ int main(int argc, char *argv[]) {
    int status            = PV_SUCCESS;
 
    // Test direct construction of the LayerGeometry component.
-   lg = new PV::LayerGeometry("Layer", hc->parameters(), hc->getCommunicator());
+   PV::PVParams *pvParams = pv_initObj.getParams();
+   auto paramsIO = pvParams->makeParamsIO("Layer");
+   lg = new PV::LayerGeometry(
+         paramsIO->getParams(), paramsIO->getDefaults(), hc->getCommunicator());
 
    auto objectTable           = hc->getAllObjectsFlat();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
@@ -75,14 +78,17 @@ int main(int argc, char *argv[]) {
 
 PVLayerLoc makeCorrectLoc(PV::HyPerCol *hc) {
    // Read parameters directly
-   auto *params = hc->parameters();
-   int nx       = params->value(hc->getName(), "nx");
-   int ny       = params->value(hc->getName(), "ny");
-   int nbatch   = params->value(hc->getName(), "nbatch");
+   PV::PVParams *pvParams = hc->getPV_InitObj()->getParams();
+   auto paramsIO = pvParams->makeParamsIO(hc->getName());
 
-   float nxScale   = params->value("Layer", "nxScale");
-   float nyScale   = params->value("Layer", "nyScale");
-   int numFeatures = params->value("Layer", "nf");
+   int nx     = paramsIO->readValue<int>("nx");
+   int ny     = paramsIO->readValue<int>("ny");
+   int nbatch = paramsIO->readValue<int>("nbatch");
+
+   paramsIO = pvParams->makeParamsIO("Layer");
+   float nxScale   = paramsIO->readValue<float>("nxScale");
+   float nyScale   = paramsIO->readValue<float>("nyScale");
+   int numFeatures = paramsIO->readValue<int>("nf");
 
    // Get location in MPI configuration
    auto comm          = hc->getCommunicator();

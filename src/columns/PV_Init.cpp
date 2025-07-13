@@ -164,7 +164,6 @@ int PV_Init::createParams() {
       delete mParams;
       mParams = new PVParams(
             paramsFile.c_str(),
-            2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator->globalCommunicator());
       unsigned int shuffleSeed = mArguments->getUnsignedIntArgument("ShuffleParamGroups");
       if (shuffleSeed) {
@@ -256,6 +255,15 @@ void PV_Init::printInitMessage() {
 
 int PV_Init::resetState() {
    mArguments->resetState();
+   return PV_SUCCESS;
+}
+
+int PV_Init::registerDefaults(std::string const &defaultsPath) {
+   FatalIf(
+         !getParams(),
+         "PV_Init::registerDefaults() was called without having set a params file\n");
+   int status = getParams()->addDefaults(defaultsPath);
+   FatalIf(status != PV_SUCCESS, "Error parsing \"%s\"\n", defaultsPath.c_str());
    return PV_SUCCESS;
 }
 

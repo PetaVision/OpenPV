@@ -8,13 +8,19 @@ namespace PV {
 class ImageLayer : public InputLayer {
 
   public:
-   ImageLayer(char const *name, PVParams *params, Communicator const *comm);
+   ImageLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ImageLayer();
 
   protected:
    ImageLayer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

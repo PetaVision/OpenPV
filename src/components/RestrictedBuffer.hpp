@@ -19,14 +19,20 @@ namespace PV {
  */
 class RestrictedBuffer : public ComponentBuffer {
   public:
-   RestrictedBuffer(char const *name, PVParams *params, Communicator const *comm);
+   RestrictedBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~RestrictedBuffer();
 
   protected:
    RestrictedBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 };

@@ -8,21 +8,27 @@
 
 namespace PV {
 
-RescaleLayer::RescaleLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+RescaleLayer::RescaleLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 RescaleLayer::RescaleLayer() {}
 
 RescaleLayer::~RescaleLayer() {}
 
-void RescaleLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   CloneVLayer::initialize(name, params, comm);
+void RescaleLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   CloneVLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *RescaleLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<RescaleActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

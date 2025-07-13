@@ -15,17 +15,23 @@ namespace PV {
 class NormalizeMax : public NormalizeMultiply {
    // Member functions
   public:
-   NormalizeMax(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeMax(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~NormalizeMax();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual int normalizeWeights() override;
 
   protected:
    NormalizeMax();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual void ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minMaxTolerated(ParamsIOSwitch ioSwitch);
 
   private:
    int initialize_base();

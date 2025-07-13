@@ -13,19 +13,25 @@
 
 namespace PV {
 
-LeakyIntegrator::LeakyIntegrator(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+LeakyIntegrator::LeakyIntegrator(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 LeakyIntegrator::LeakyIntegrator() {}
 
-void LeakyIntegrator::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   ANNLayer::initialize(name, params, comm);
+void LeakyIntegrator::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ANNLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *LeakyIntegrator::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator, LeakyIntegratorBuffer, ANNActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 LeakyIntegrator::~LeakyIntegrator() {}

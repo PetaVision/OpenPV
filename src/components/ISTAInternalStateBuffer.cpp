@@ -15,40 +15,34 @@ namespace PV {
 ISTAInternalStateBuffer::ISTAInternalStateBuffer() {}
 
 ISTAInternalStateBuffer::ISTAInternalStateBuffer(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
-ISTAInternalStateBuffer::~ISTAInternalStateBuffer() { free(mAdaptiveTimeScaleProbeName); }
+ISTAInternalStateBuffer::~ISTAInternalStateBuffer() {}
 
 void ISTAInternalStateBuffer::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(name, params, comm);
+   HyPerInternalStateBuffer::initialize(params, defaults, comm);
 }
 
-int ISTAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioFlag);
-   ioParam_timeConstantTau(ioFlag);
-   ioParam_adaptiveTimeScaleProbe(ioFlag);
+int ISTAInternalStateBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioSwitch);
+   ioParam_timeConstantTau(ioSwitch);
+   ioParam_adaptiveTimeScaleProbe(ioSwitch);
    return status;
 }
 
-void ISTAInternalStateBuffer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "timeConstantTau", &mTimeConstantTau, mTimeConstantTau);
+void ISTAInternalStateBuffer::ioParam_timeConstantTau(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "timeConstantTau", &mTimeConstantTau);
 }
 
-void ISTAInternalStateBuffer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag,
-         getName(),
-         "adaptiveTimeScaleProbe",
-         &mAdaptiveTimeScaleProbeName,
-         nullptr /*default*/,
-         true /*warn if absent*/);
+void ISTAInternalStateBuffer::ioParam_adaptiveTimeScaleProbe(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName);
 }
 
 Response::Status ISTAInternalStateBuffer::communicateInitInfo(
@@ -58,14 +52,14 @@ Response::Status ISTAInternalStateBuffer::communicateInitInfo(
       return status;
    }
    auto *objectTable = message->mObjectTable;
-   if (mAdaptiveTimeScaleProbeName) {
+   if (!mAdaptiveTimeScaleProbeName.empty()) {
       mAdaptiveTimeScaleProbe =
             objectTable->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
       FatalIf(
             mAdaptiveTimeScaleProbe == nullptr,
             "%s could not find an AdaptiveTimeScaleProbe named \"%s\".\n",
             getDescription_c(),
-            mAdaptiveTimeScaleProbeName);
+            mAdaptiveTimeScaleProbeName.c_str());
    }
    mActivity = objectTable->findObject<ANNActivityBuffer>(getName());
    FatalIf(mActivity == nullptr, "%s needs an ANNActivityBuffer.\n", getDescription_c());

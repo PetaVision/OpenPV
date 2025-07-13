@@ -12,21 +12,27 @@
 
 // SigmoidLayer can be used to implement Sigmoid junctions
 namespace PV {
-SigmoidLayer::SigmoidLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+SigmoidLayer::SigmoidLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 SigmoidLayer::SigmoidLayer() {}
 
 SigmoidLayer::~SigmoidLayer() {}
 
-void SigmoidLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   CloneVLayer::initialize(name, params, comm);
+void SigmoidLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   CloneVLayer::initialize(params, defaults, comm);
 }
 
 ActivityComponent *SigmoidLayer::createActivityComponent() {
    return new CloneActivityComponent<CloneInternalStateBuffer, SigmoidActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } // end namespace PV

@@ -12,18 +12,24 @@
 
 namespace PV {
 
-KmeansLayer::KmeansLayer(const char *name, PVParams *params, Communicator const *comm) {
+KmeansLayer::KmeansLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 KmeansLayer::~KmeansLayer() {}
 
 KmeansLayer::KmeansLayer() { initialize_base(); }
 
-void KmeansLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+void KmeansLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    WarnLog() << "KmeansLayer has been deprecated.\n";
-   int status = HyPerLayer::initialize(name, params, comm);
+   int status = HyPerLayer::initialize(params, defaults, comm);
    assert(status == PV_SUCCESS);
    return status;
 }
@@ -90,13 +96,13 @@ int KmeansLayer::setActivity() {
    return status;
 }
 
-void KmeansLayer::ioParam_TrainingFlag(enum ParamsIOFlag ioFlag) {
+void KmeansLayer::ioParam_TrainingFlag(ParamsIOSwitch ioSwitch) {
    parameters()->ioParamValue(ioFlag, name, "training", &trainingFlag, trainingFlag);
 }
 
-int KmeansLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_TrainingFlag(ioFlag);
+int KmeansLayer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = HyPerLayer::ioParamsFillGroup(ioSwitch);
+   ioParam_TrainingFlag(ioSwitch);
 
    return status;
 }

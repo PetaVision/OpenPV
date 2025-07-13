@@ -10,14 +10,20 @@
 namespace PV {
 BinningLayer::BinningLayer() {}
 
-BinningLayer::BinningLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+BinningLayer::BinningLayer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 BinningLayer::~BinningLayer() {}
 
-void BinningLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+void BinningLayer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   HyPerLayer::initialize(params, defaults, comm);
 }
 
 void BinningLayer::fillComponentTable() {
@@ -32,11 +38,11 @@ LayerInputBuffer *BinningLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *BinningLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<BinningActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 OriginalLayerNameParam *BinningLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
 }
 
 } /* namespace PV */

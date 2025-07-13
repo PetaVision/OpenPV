@@ -105,13 +105,19 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
    int rank              = hc->getCommunicator()->commRank();
    FatalIf(rows != hc->getCommunicator()->numCommRows(), "Test failed.\n");
    FatalIf(columns != hc->getCommunicator()->numCommColumns(), "Test failed.\n");
-   PVParams *params     = hc->parameters();
-   int nxGlobFromParams = params->value("column", "nx");
-   int nyGlobFromParams = params->value("column", "ny");
-   testpassed = (loc->nx == nxGlobFromParams / columns) && (loc->ny == nyGlobFromParams / rows)
-                && (loc->nf == params->value("layer", "nf")) && (loc->nxGlobal == nxGlobFromParams)
-                && (loc->nyGlobal == nyGlobFromParams) && (loc->kx0 == loc->nx * (rank % columns))
-                && (loc->ky0 == loc->ny * (rank / columns));
+   PVParams *params = hc->getPV_InitObj()->getParams();
+   auto columnParams = params->makeParamsIO("column");
+   auto layerParams  = params->makeParamsIO("layer");
+   int nxGlobalFromParams = columnParams->readValue<int>("nx");
+   int nyGlobalFromParams = columnParams->readValue<int>("ny");
+   int nf                 = layerParams->readValue<int>("nf");
+   testpassed = (loc->nx == nxGlobalFromParams / columns) &&
+                (loc->ny == nyGlobalFromParams / rows) &&
+                (loc->nf == nf) &&
+                (loc->nxGlobal == nxGlobalFromParams) &&
+                (loc->nyGlobal == nyGlobalFromParams) &&
+                (loc->kx0 == loc->nx * (rank % columns)) &&
+                (loc->ky0 == loc->ny * (rank / columns));
 
    PVLayerLoc mpiLoc;
    if (rank == 0) {

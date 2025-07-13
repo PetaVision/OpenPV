@@ -9,25 +9,30 @@
 
 namespace PV {
 
-RescaleDelivery::RescaleDelivery(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+RescaleDelivery::RescaleDelivery(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
-void RescaleDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseDelivery::initialize(name, params, comm);
+void RescaleDelivery::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   IdentDelivery::initialize(params, defaults, comm);
 }
 
 void RescaleDelivery::setObjectType() { mObjectType = "RescaleDelivery"; }
 
-int RescaleDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = IdentDelivery::ioParamsFillGroup(ioFlag);
-   ioParam_scale(ioFlag);
+int RescaleDelivery::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = IdentDelivery::ioParamsFillGroup(ioSwitch);
+   ioParam_scale(ioSwitch);
    return status;
 }
 
-void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, getName(), "scale", &mScale, mScale /*default*/, true /*warn if absent*/);
+void RescaleDelivery::ioParam_scale(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "scale", &mScale);
 }
 
 // Delivers a scalar multiple of the identity from presynaptic activity to postsynaptic GSyn.

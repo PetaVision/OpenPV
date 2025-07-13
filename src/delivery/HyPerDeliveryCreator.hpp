@@ -33,7 +33,7 @@ class HyPerDeliveryCreator : public BaseObject {
     * @brief receiveGpu: This parameter determines whether the created HyPerDelivery object
     * should use the GPU.
     */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_receiveGpu(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief pvpatchAccumulateType: Specifies the method to accumulate synaptic input
@@ -43,7 +43,7 @@ class HyPerDeliveryCreator : public BaseObject {
     *
     * Defaults to convolve.
     */
-   virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_pvpatchAccumulateType(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief updateGSynFromPostPerspective: Specifies if the connection should push from pre or pull
@@ -56,13 +56,16 @@ class HyPerDeliveryCreator : public BaseObject {
     * region of influence. This allows efficiency for sparse pre-layers, but requires extra memory
     * to manage potential collisions as multiple pre-neurons write to the same post-neuron.
     */
-   virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateGSynFromPostPerspective(ParamsIOSwitch ioSwitch);
    /** @} */ // End of list of HyPerDeliveryCreator parameters.
 
   public:
    enum AccumulateType { UNDEFINED, CONVOLVE, STOCHASTIC };
 
-   HyPerDeliveryCreator(char const *name, PVParams *params, Communicator const *comm);
+   HyPerDeliveryCreator(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~HyPerDeliveryCreator();
 
@@ -77,17 +80,20 @@ class HyPerDeliveryCreator : public BaseObject {
   protected:
    HyPerDeliveryCreator();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    // Data members
   protected:
    AccumulateType mAccumulateType = CONVOLVE;
 
-   char *mAccumulateTypeString         = nullptr;
+   std::string mAccumulateTypeString;
    bool mUpdateGSynFromPostPerspective = false;
    bool mReceiveGpu                    = false;
 

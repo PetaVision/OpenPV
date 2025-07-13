@@ -2,7 +2,6 @@
 #define ENERGYPROBECOMPONENT_HPP_
 
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
@@ -26,22 +25,24 @@ class EnergyProbeComponent : public ProbeComponent {
     * @details Note that coefficient does not affect the values computed by the probe itself;
     * it is the ColumnEnergyProbe object does the multiplication.
     */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_coefficient(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief energyProbe: If nonblank, specifies the name of a ColumnEnergyProbe
     * that this probe contributes an energy term to.
     */
-   virtual void ioParam_energyProbe(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_energyProbe(ParamsIOSwitch ioSwitch);
    /** @} */
 
   public:
-   EnergyProbeComponent(char const *objName, PVParams *params);
+   EnergyProbeComponent(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults);
    virtual ~EnergyProbeComponent();
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
    virtual void initializeState(HyPerLayer *targetLayer) {}
-   virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch);
 
    double getCoefficient() const { return mCoefficient; }
    ColumnEnergyProbe *getEnergyProbe() { return mEnergyProbe; }
@@ -49,13 +50,13 @@ class EnergyProbeComponent : public ProbeComponent {
 
   protected:
    EnergyProbeComponent() {}
-   void initialize(char const *objName, PVParams *params);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
    void setCoefficient(double coefficient) { mCoefficient = coefficient; }
 
   private:
    double mCoefficient             = 1.0;
    ColumnEnergyProbe *mEnergyProbe = nullptr;
-   char *mEnergyProbeName          = nullptr;
+   std::string mEnergyProbeName;
 
 }; // class EnergyProbeComponent
 

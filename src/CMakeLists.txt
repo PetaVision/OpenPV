@@ -7,35 +7,6 @@ set(PV_VERSION_MINOR 1)
 set(PV_VERSION_PATCH 0)
 set(PV_VERSION_TWEAK 0)
 
-# Nicer for in-source builds. Puts the library into a subdir
-set(LIBRARY_OUTPUT_PATH ${PV_LIBRARY_DIR})
-
-set(PV_IO_DIR "${PV_LIBRARY_DIR}/io")
-set(PV_PARSER_DIR "${PV_IO_DIR}/parser-generated")
-set(PV_PARAM_LEXER_C "${PV_PARSER_DIR}/param_lexer.c")
-set(PV_PARAM_PARSER_CPP "${PV_PARSER_DIR}/param_parser.cpp")
-set(PV_PARAM_PARSER_HPP "${PV_PARSER_DIR}/param_parser.hpp")
-
-set(PV_LIBRARY_NAME "pv")
-
-# Create directory structure for lexer and parser output
-file(MAKE_DIRECTORY ${PV_IO_DIR})
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PV_IO_DIR})
-file(MAKE_DIRECTORY ${PV_PARSER_DIR})
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PV_PARSER_DIR})
-
-# Lex/Yacc for parser
-if (NOT BISON_PARSER_DEFINED)
-  find_package(BISON REQUIRED)
-  BISON_TARGET(PARSER ${PV_SOURCE_DIR}/io/parser/params.y ${PV_PARAM_PARSER_CPP} DEFINES_FILE ${PV_PARAM_PARSER_HPP} COMPILE_FLAGS "-y")
-endif (NOT BISON_PARSER_DEFINED)
-
-if (NOT FLEX_SCANNER_DEFINED)
-  find_package(FLEX REQUIRED)
-  FLEX_TARGET(SCANNER ${PV_SOURCE_DIR}/io/parser/params.l ${PV_PARAM_LEXER_C})
-  ADD_FLEX_BISON_DEPENDENCY(SCANNER PARSER)
-endif (NOT FLEX_SCANNER_DEFINED)
-
 # Library source subdirectories
 set(SRC_SUBDIRS
   arch/cuda
@@ -52,6 +23,7 @@ set(SRC_SUBDIRS
   io
   layers
   normalizers
+  params
   structures
   observerpattern
   probes
@@ -152,3 +124,11 @@ set_target_properties(${PV_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_REL
 set_target_properties(${PV_LIBRARY_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${PV_LIBRARY_DIR})
 set_target_properties(${PV_LIBRARY_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PV_LIBRARY_DIR})
 set_target_properties(${PV_LIBRARY_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${PV_LIBRARY_DIR})
+
+file(MAKE_DIRECTORY ${PV_SHARE_DIR})
+add_custom_target(DefaultParams ALL DEPENDS "${PV_SHARE_DIR}/DefaultParams.txt")
+add_custom_command(
+  OUTPUT "${PV_SHARE_DIR}/DefaultParams.txt"
+  COMMAND ${CMAKE_COMMAND} -E copy
+    "${CMAKE_CURRENT_SOURCE_DIR}/params/DefaultParams.txt" "${PV_SHARE_DIR}/DefaultParams.txt"
+)

@@ -21,15 +21,20 @@ class ConstantLayer : public HyPerLayer {
     */
 
   public:
-   ConstantLayer(const char *name, PVParams *params, Communicator const *comm);
+   ConstantLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ConstantLayer();
 
   protected:
    ConstantLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    LayerUpdateController *createLayerUpdateController() override;
-   LayerOutputComponent *createLayerOutput() override;
 
 }; // class ConstantLayer
 

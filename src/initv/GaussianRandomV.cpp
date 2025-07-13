@@ -12,32 +12,38 @@ namespace PV {
 
 GaussianRandomV::GaussianRandomV() { initialize_base(); }
 
-GaussianRandomV::GaussianRandomV(char const *name, PVParams *params, Communicator const *comm) {
+GaussianRandomV::GaussianRandomV(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 GaussianRandomV::~GaussianRandomV() {}
 
 int GaussianRandomV::initialize_base() { return PV_SUCCESS; }
 
-void GaussianRandomV::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseInitV::initialize(name, params, comm);
+void GaussianRandomV::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   BaseInitV::initialize(params, defaults, comm);
 }
 
-int GaussianRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseInitV::ioParamsFillGroup(ioFlag);
-   ioParam_meanV(ioFlag);
-   ioParam_sigmaV(ioFlag);
+int GaussianRandomV::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseInitV::ioParamsFillGroup(ioSwitch);
+   ioParam_meanV(ioSwitch);
+   ioParam_sigmaV(ioSwitch);
    return status;
 }
 
-void GaussianRandomV::ioParam_meanV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "meanV", &meanV, meanV);
+void GaussianRandomV::ioParam_meanV(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "meanV", &meanV);
 }
 
-void GaussianRandomV::ioParam_sigmaV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "maxV", &sigmaV, sigmaV);
+void GaussianRandomV::ioParam_sigmaV(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "maxV", &sigmaV);
 }
 
 void GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {

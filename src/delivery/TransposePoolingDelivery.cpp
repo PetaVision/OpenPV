@@ -15,10 +15,10 @@
 namespace PV {
 
 TransposePoolingDelivery::TransposePoolingDelivery(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 TransposePoolingDelivery::TransposePoolingDelivery() {}
@@ -26,39 +26,34 @@ TransposePoolingDelivery::TransposePoolingDelivery() {}
 TransposePoolingDelivery::~TransposePoolingDelivery() {}
 
 void TransposePoolingDelivery::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseDelivery::initialize(name, params, comm);
+   BaseDelivery::initialize(params, defaults, comm);
 }
 
 void TransposePoolingDelivery::setObjectType() { mObjectType = "TransposePoolingDelivery"; }
 
-int TransposePoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseDelivery::ioParamsFillGroup(ioFlag);
-   ioParam_updateGSynFromPostPerspective(ioFlag);
+int TransposePoolingDelivery::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = BaseDelivery::ioParamsFillGroup(ioSwitch);
+   ioParam_updateGSynFromPostPerspective(ioSwitch);
    return status;
 }
 
-void TransposePoolingDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+void TransposePoolingDelivery::ioParam_receiveGpu(ParamsIOSwitch ioSwitch) {
    // During the communication phase, receiveGpu will be copied from the original conn
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(getName(), "receiveGpu");
+   if (ioSwitch == ParamsIOSwitch::Read) {
+      mParamsIO->handleUnnecessaryParameter("receiveGpu");
    }
 }
 
-void TransposePoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
+void TransposePoolingDelivery::ioParam_updateGSynFromPostPerspective(ParamsIOSwitch ioSwitch) {
    // To read this param, we need to wait until the CommunicateInitInfo stage, because the behavior
    // depends on mReceiveGpu, which isn't determined until the communicate stage, since it is
    // copied from the original conn.
-   if (ioFlag == PARAMS_IO_WRITE) {
+   if (ioSwitch == ParamsIOSwitch::Write) {
       if (!mReceiveGpu) {
-         parameters()->ioParamValue(
-               ioFlag,
-               getName(),
-               "updateGSynFromPostPerspective",
-               &mUpdateGSynFromPostPerspective,
-               mUpdateGSynFromPostPerspective);
+         mParamsIO->ioParam(ioSwitch, "updateGSynFromPostPerspective", &mUpdateGSynFromPostPerspective);
       }
    }
 }
@@ -78,14 +73,14 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   const char *originalConnName = originalConnNameParam->getLinkedObjectName();
+   std::string const &originalConnName = originalConnNameParam->getLinkedObjectName();
 
    auto *originalPoolingDelivery = objectTable->findObject<PoolingDelivery>(originalConnName);
    FatalIf(
          originalPoolingDelivery == nullptr,
          "%s: original connection \"%s\" does not have a PoolingDelivery component.\n",
          getDescription_c(),
-         originalConnName);
+         originalConnName.c_str());
    if (!originalPoolingDelivery->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
@@ -115,7 +110,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
          originalConnectionData == nullptr,
          "%s: original connection \"%s\" does not have a ConnectionData component.\n",
          getDescription_c(),
-         originalConnName);
+         originalConnName.c_str());
    mOriginalPreData =
          originalConnectionData->getPre()->getComponentByType<BasePublisherComponent>();
    mOriginalPostGSyn = originalConnectionData->getPost()->getComponentByType<LayerInputBuffer>();
@@ -123,17 +118,13 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    // If receiveGpu is false, we need to read updateGSynFromPostPerspective.
    // If it is true, we use the CUDA routine, which currently only has the post perspective.
    if (!mReceiveGpu) {
-      parameters()->ioParamValue(
-            PARAMS_IO_READ,
-            getName(),
-            "updateGSynFromPostPerspective",
-            &mUpdateGSynFromPostPerspective,
-            mUpdateGSynFromPostPerspective);
+      mParamsIO->ioParam(
+            ParamsIOSwitch::Read, "updateGSynFromPostPerspective", &mUpdateGSynFromPostPerspective);
    }
    else {
       mUpdateGSynFromPostPerspective = true;
-      parameters()->handleUnnecessaryParameter(
-            getName(), "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
+      mParamsIO->handleUnnecessaryParameter(
+            "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 
    mPatchSize = objectTable->findObject<TransposePatchSize>(getName());

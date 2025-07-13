@@ -11,6 +11,8 @@
 #include "columns/BaseObject.hpp"
 #include "layers/HyPerLayer.hpp"
 
+#include <string>
+
 namespace PV {
 
 class ConnectionData : public BaseObject {
@@ -25,28 +27,31 @@ class ConnectionData : public BaseObject {
     * @brief preLayerName: Specifies the connection's pre layer
     * @details Required parameter
     */
-   virtual void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_preLayerName(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief preLayerName: Specifies the connection's post layer
     * @details Required parameter
     */
-   virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_postLayerName(ParamsIOSwitch ioSwitch);
    /** @} */ // end of ConnectionData parameters
 
   public:
-   ConnectionData(char const *name, PVParams *params, Communicator const *comm);
+   ConnectionData(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ConnectionData();
 
    /**
     * Returns the name of the connection's presynaptic layer.
     */
-   char const *getPreLayerName() const { return mPreLayerName; }
+   std::string const &getPreLayerName() const { return mPreLayerName; }
 
    /**
     * Returns the name of the connection's postsynaptic layer.
     */
-   char const *getPostLayerName() const { return mPostLayerName; }
+   std::string const &getPostLayerName() const { return mPostLayerName; }
 
    /**
     * Returns a pointer to the connection's presynaptic layer.
@@ -64,11 +69,14 @@ class ConnectionData : public BaseObject {
   protected:
    ConnectionData();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -87,8 +95,8 @@ class ConnectionData : public BaseObject {
          std::string &postLayerNameString);
 
   protected:
-   char *mPreLayerName   = nullptr;
-   char *mPostLayerName  = nullptr;
+   std::string mPreLayerName;
+   std::string mPostLayerName;
    HyPerLayer *mPre      = nullptr;
    HyPerLayer *mPost     = nullptr;
    bool mPreIsBroadcast  = false;

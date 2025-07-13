@@ -3,7 +3,7 @@
 #include <columns/Random.hpp>
 #include <columns/RandomSeed.hpp>
 #include <include/pv_common.h>
-#include <io/PVParams.hpp>
+#include <params/PVParams.hpp>
 #include <probes/CheckStatsAllZeros.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/StatsProbeTypes.hpp>
@@ -17,6 +17,7 @@
 
 using PV::CheckStatsAllZeros;
 using PV::LayerStats;
+using PV::ParamsIO;
 using PV::ProbeData;
 using PV::PV_Init;
 using PV::PVParams;
@@ -70,10 +71,11 @@ CheckStatsAllZeros initTestObject(PV_Init const &pv_init, bool exitFlag, bool im
    paramsString.append("};\n");
 
    MPI_Comm mpiComm = pv_init.getCommunicator()->globalCommunicator();
-   PVParams params(paramsString.data(), paramsString.size(), 1UL, mpiComm);
+   PVParams params(paramsString.data(), paramsString.size(), mpiComm);
+   auto paramsIO = params.makeParamsIO("TestObject");
 
-   CheckStatsAllZeros testObject("TestObject", &params);
-   testObject.ioParamsFillGroup(PV::PARAMS_IO_READ);
+   CheckStatsAllZeros testObject(paramsIO->getParams(), paramsIO->getDefaults());
+   testObject.ioParamsFillGroup(PV::ParamsIOSwitch::Read, paramsIO);
    return testObject;
 }
 

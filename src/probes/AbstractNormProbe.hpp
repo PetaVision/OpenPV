@@ -5,7 +5,6 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
-#include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/EnergyProbeComponent.hpp"
@@ -22,12 +21,15 @@ namespace PV {
 
 class AbstractNormProbe : public ProbeInterface {
   public:
-   AbstractNormProbe(char const *name, PVParams *params, Communicator const *comm);
+   AbstractNormProbe(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~AbstractNormProbe() {}
 
    HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
    HyPerLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
-   char const *getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
+   std::string const &getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
 
   protected:
    AbstractNormProbe() {}
@@ -38,23 +40,39 @@ class AbstractNormProbe : public ProbeInterface {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createComponents(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
-   virtual void createEnergyProbeComponent(char const *name, PVParams *params);
-   virtual void createProbeAggregator(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeLocal(char const *name, PVParams *params) = 0;
-   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
-   virtual void createProbeTrigger(char const *name, PVParams *params);
-   virtual void createTargetLayerComponent(char const *name, PVParams *params);
+   virtual void createEnergyProbeComponent(
+         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual void createProbeAggregator(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeLocal(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) = 0;
+   virtual void createProbeOutputter(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual void createProbeTrigger(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual void createTargetLayerComponent(
+        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    virtual void initMessageActionMap() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
@@ -65,6 +83,8 @@ class AbstractNormProbe : public ProbeInterface {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+
+   virtual void setPrintStreams(FileStream *printParamsStream, FileStream *printLuaStream) override;
 
   protected:
    // Probe components, set by createComponents(), called by initialize()

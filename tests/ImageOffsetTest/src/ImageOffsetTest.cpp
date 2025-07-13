@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
    pv_initObj.registerKeyword("ImageOffsetTestLayer", PV::Factory::create<ImageOffsetTestLayer>);
    pv_initObj.registerKeyword(
          "ImagePvpOffsetTestLayer", PV::Factory::create<ImagePvpOffsetTestLayer>);
-   int status = buildandrun(&pv_initObj, NULL, NULL);
+   pv_initObj.registerDefaults("input/DefaultParams.txt");
+   int status = buildandrun(&pv_initObj, nullptr, nullptr);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

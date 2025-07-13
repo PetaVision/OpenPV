@@ -9,14 +9,20 @@
 
 namespace PV {
 
-PvpActivityBuffer::PvpActivityBuffer(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+PvpActivityBuffer::PvpActivityBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 PvpActivityBuffer::~PvpActivityBuffer() {}
 
-void PvpActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InputActivityBuffer::initialize(name, params, comm);
+void PvpActivityBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   InputActivityBuffer::initialize(params, defaults, comm);
 }
 
 void PvpActivityBuffer::setObjectType() { mObjectType = "PvpActivityBuffer"; }

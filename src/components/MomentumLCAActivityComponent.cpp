@@ -14,19 +14,19 @@
 namespace PV {
 
 MomentumLCAActivityComponent::MomentumLCAActivityComponent(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 MomentumLCAActivityComponent::~MomentumLCAActivityComponent() {}
 
 void MomentumLCAActivityComponent::initialize(
-      char const *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseMomentumActivityComponent::initialize(name, params, comm);
+   BaseMomentumActivityComponent::initialize(params, defaults, comm);
 }
 
 void MomentumLCAActivityComponent::setObjectType() { mObjectType = "MomentumLCAActivityComponent"; }
@@ -41,7 +41,7 @@ void MomentumLCAActivityComponent::fillComponentTable() {
 }
 
 RestrictedBuffer *MomentumLCAActivityComponent::createPrevDrive() {
-   RestrictedBuffer *buffer = new RestrictedBuffer(getName(), parameters(), mCommunicator);
+   RestrictedBuffer *buffer = new RestrictedBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
    buffer->setBufferLabel("prevDrive");
    return buffer;
 }

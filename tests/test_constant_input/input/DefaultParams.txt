@@ -1,0 +1,4 @@
+Defaults "TestImage" = {
+    #include "HyPerLayer";
+    constantVal = 1.0;
+};

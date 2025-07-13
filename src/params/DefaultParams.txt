@@ -1,0 +1,667 @@
+debugParsing = false;
+
+Defaults "HyPerCol" = {
+    initializeFromCheckpointFlag        = false;
+    dt                                  = 1.0;
+    stopTime                            = 0.0;
+    progressInterval                    = 1.0;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    // randomSeed has no default. If not specified on the command line, use wallclock time
+    // nx, ny integer parameters are required
+    nbatch                              = 1;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = false;
+    outputPath                          = "output"; 
+    verifyWrites                        = true;
+    checkpointWrite                     = false;
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 1;
+    checkpointWriteTimeInterval         = 1.0;
+    checkpointWriteClockUnit            = "seconds";
+    checkpointIndexWidth                = -1;
+    suppressNonplasticCheckpoints       = false;
+    deleteOlderCheckpoints              = false;
+    numCheckpointsKept                  = 1;
+    initializeFromCheckpointDir         = "";
+};
+
+Defaults "BasicLayer" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1.0;
+    nyScale                             = 1.0;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+    triggerBehavior                     = "updateOnlyOnTrigger";
+    // triggerResetLayerName string parameter is required if triggerBehavior is resetStateOnTrigger
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+};
+
+Defaults "BackgroundLayer" = {
+    #include "BasicLayer";
+    repFeatureNum                       = 1;
+    // originalLayerName string parameter is required
+};
+
+Defaults "BinningLayer" = {
+    #include "BasicLayer";
+    binMin                              = 0.0;
+    binMax                              = 1.0;
+    binSigma                            = 0.0;
+    delay                               = 0;
+    zeroNeg                             = true;
+    zeroDCR                             = false;
+    normalDist                          = true;
+    // originalLayerName string parameter is required
+};
+
+Defaults "FilenameParsingLayer" = {
+    #include "BasicLayer";
+    classList                           = NULL;
+    gtClassTrueValue                    = 1.0;
+    gtClassFalseValue                   = -1.0;
+};
+
+Defaults "GaussianNoiseLayer" = {
+    #include "BasicLayer";
+    mu                                  = 0.0;
+    sigma                               = 1.0;
+};
+
+Defaults "Retina" = {
+    #include "BasicLayer";
+    spikingFlag                         = true;
+    backgroundRate                      = 0.0;
+    foregroundRate                      = 1.0;
+    beginStim                           = 0.0;
+    endStim                             = infinity;
+    burstFreq                           = 1.0;
+    burstDuration                       = 1000.0;
+    refractoryPeriod                    = 5.0;
+    absRefractoryPeriod                 = 3.0;
+};
+
+Defaults "SegmentLayer" = {
+    #include "BasicLayer";
+    // segmentMethod string parameter is required
+    // originalLayerName string parameter is required
+};
+
+Defaults "Segmentify" = {
+    #include "BasicLayer";
+    // segmentLayerName
+    // inputMethod
+    // outputMethod
+    // originalLayerName string parameter is required
+};
+
+Defaults "HyPerLayer" = {
+    #include "BasicLayer";
+
+    // Used by GSyn buffer
+    channelIndices                      = [];
+    channelCoefficients                 = [];
+
+    // Used by V buffer
+    InitVType                           = "ConstantV";
+    // InitV types
+    valueV                              = -70.0; // Used by ConstantV
+    minV                                = 0.0;   // Used by DiscreteUniformRandomV, UniformRandomV
+    // maxV defaults to minV + 1                 // Used by DiscreteUniformRandomV, UniformRandomV
+    numValues                           = 2;     // Used by DiscreteUniformRandomV, must be >= 2.
+    meanV                               = 0.0;   // Used by GaussianRandomV
+    sigmaV                              = 1.0;   // Used by GaussianRandomV
+    // Vfilename filepath parameter is required if InitVType is "InitVFromFile"
+    frameNumber                         = 0;     // Used by InitVFromFile
+};
+
+Defaults "ANNLayer" = {
+    #include "HyPerLayer";
+    slopeNegInf                         = 1.0;
+    slopePosInf                         = 1.0;
+    VThresh                             = -infinity;
+    // AMin defaults to the value of VThresh
+    AMax                                = infinity;
+    AShift                              = 0.0;
+    VWidth                              = 0.0;
+};
+
+Defaults "ANNErrorLayer" = {
+    #include "ANNLayer";
+    errScale                            = 1.0;
+};
+
+Defaults "ANNSquaredLayer" = {
+    #include "ANNLayer";
+};
+
+Defaults "DropoutLayer" = {
+    #include "ANNLayer";
+    probability = 0;
+};
+
+Defaults "HyPerLCALayer" = {
+    #include "ANNLayer";
+    timeConstantTau                     = 1.0;
+    selfInteract                        = true;
+    adaptiveTimeScaleProbe              = NULL;
+};
+
+Defaults "MomentumLCALayer" = {
+    #include "HyPerLCALayer";
+    LCAMomentumRate                     = 0.0;
+};
+
+Defaults "ISTALayer" = {
+    #include "ANNLayer";
+    timeConstantTau                     = 1.0;
+    adaptiveTimeScaleProbe              = NULL;
+};
+
+Defaults "LeakyIntegrator" = {
+    #include "ANNLayer";
+    integrationTime = infinity;
+};
+
+Defaults "MaskLayer" = {
+    #include "ANNLayer";
+    // maskMethod string parameter is required
+    // maskLayerName string parameter is required
+    // featureIdxs array parameter is required, and must not be empty
+};
+
+Defaults "ConstantLayer" = {
+    #include "HyPerLayer";
+    @writeStep                           = -1;
+};
+
+Defaults "DependentFirmThresholdCostLayer" = {
+    #include "HyPerLayer";
+    // originalLayerName string parameter is required; VThresh and VWidth will be taken from there
+};
+
+Defaults "FirmThresholdCostLayer" = {
+    #include "HyPerLayer";
+    // VThresh floating-point parameter is required
+    VWidth = 0.0;
+};
+
+Defaults "LIF" = {
+    #include "HyPerLayer";
+    #remove channelIndices;
+    #remove channelCoefficients;
+    Vrest                               = -70.0;
+    Vexc                                = 0.0;
+    Vinh                                = -75.0;
+    VinhB                               = -90.0;
+    VthRest                             = -55.0;
+    tau                                 = 20.0;
+    tauVth                              = 10.0;
+    deltaVth                            = 5.0;
+    deltaGIB                            = 1.0;
+    noiseAmpE                           = 0.0;
+    noiseAmpI                           = 0.0;
+    noiseAmpIB                          = 0.0;
+    noiseFreqE                          = 250.0;
+    noiseFreqI                          = 250.0;
+    noiseFreqIB                         = 250.0;
+    tauE                                = 1.0;
+    tauI                                = 5.0;
+    tauIB                               = 10.0;
+    method                              = "arma";
+};
+
+Defaults "LIFGap" = {
+    #include "LIF";
+};
+
+Defaults "PoolingIndexLayer" = {
+    #include "HyPerLayer";
+    #remove channelIndices;
+    #remove channelCoefficients;
+};
+
+Defaults "PtwiseProductLayer" = {
+    #include "HyPerLayer";
+    #remove channelIndices;
+    #remove channelCoefficients;
+};
+
+Defaults "PtwiseQuotientLayer" = {
+    #include "HyPerLayer";
+    #remove channelIndices;
+    #remove channelCoefficients;
+};
+
+Defaults "RotateLayer" = {
+    #include "HyPerLayer";
+    // angleMin floating-point parameter is required
+    // angleMax floating-point parameter is required
+    // angleUnits string parameter is required. Must be "degrees" or "radians" (case-insensitive)
+    writeAnglesFile                     = NULL;
+};
+
+Defaults "ScaleXLayer" = {
+    #include "HyPerLayer";
+    // scaleFactorMin floating-point parameter is required
+    // scaleFactorMax floating-point parameter is required
+    writeScaleFactorsFile               = NULL;
+};
+
+Defaults "ScaleYLayer" = {
+    #include "HyPerLayer";
+    // scaleFactorMin floating-point parameter is required
+    // scaleFactorMax floating-point parameter is required
+    writeScaleFactorsFile               = NULL;
+};
+
+Defaults "CloneVLayer" = {
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+    triggerBehavior                     = "updateOnlyOnTrigger";
+    // triggerResetLayerName is required if triggerBehavior is resetStateOnTrigger
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+    // originalLayerName string parameter is required
+};
+
+Defaults "GapLayer" = {
+    #include "CloneVLayer";
+    ampSpikelet                         = 50.0;
+};
+
+Defaults "RescaleLayer" = {
+    #include "CloneVLayer";
+    // rescaleMethod string parameter is required
+    targetMax                           = 1.0;
+    targetMin                           = -1.0;
+    targetMean                          = 0.0;
+    targetStd                           = 1.0;
+    patchSize                           = 1;
+};
+
+Defaults "SigmoidLayer" = {
+    #include "CloneVLayer";
+    Vrest                               = -70.0;
+    VthRest                             = -55.0;
+    InverseFlag                         = false;
+    SigmoidFlag                         = true;
+    SigmoidAlpha                        = 0.1;
+};
+
+Defaults "ImageLayer" = {
+    broadcastFlag                       = false;
+    nxScale                             = 1.0;
+    nyScale                             = 1.0;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    displayPeriod                       = 0;
+    // inputPath filepath parameter is required
+    useInputBCflag                      = false;
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    jitterChangeIntervalUnit            = "displayPeriod";
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    randomSeed                          = 123456789;
+    offsetAnchor                        = "tl";
+    autoResizeFlag                      = false;
+    aspectRatioAdjustment               = "crop";
+    interpolationMethod                 = "bicubic";
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    normalizeStdDev                     = true;
+    padValue                            = 0.0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [];
+    skip_frame_index                    = [];
+    resetToStartOnLoop                  = false;
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+};
+
+Defaults "PvpLayer" = {
+    #include "ImageLayer";
+};
+
+Defaults "PvpListLayer" = {
+    #include "PvpLayer";
+};
+
+Defaults "InputRegionLayer" = {
+    broadcastFlag                       = false;
+    nxScale                             = 1.0;
+    nyScale                             = 1.0;
+    nf                                  = 1;
+    updateGpu                           = false;
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+    // originalLayerName string parameter is required
+};
+
+Defaults "HyPerConn" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    // channelCode integer parameter is required
+    numAxonalArbors                     = 1;
+    delay                               = [0.0];
+    nxp                                 = -1; // Negative values mean patch size will be inferred
+    nyp                                 = -1; // Negative values mean patch size will be inferred
+    nfp                                 = -1; // Negative values mean patch size will be inferred
+    sharedWeights                       = true;
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    // weightInitType string parameter is required
+    initWeightsFile                     = NULL;
+    frameNumber                         = 0;
+    sigmaCocirc                         = 1.57079637; // Used by CocircWeight
+    sigmaKurve                          = 1.0;        // Used by CocircWeight
+    cocircSelf                          = false;      // Used by CocircWeight
+    deltaRadiusCurvature                = 1.0;        // Used by CocircWeight
+    // wMin floating-point parameter is required by DiscreteUniformRandomWeight
+    // wMax floating-point parameter is required by DiscreteUniformRandomWeight (must be > wMin)
+    // wNumValues integer parameter is required by DiscreteUniformRandomWeight (must be >= 2)
+    aspect                              = 1.0;        // Used by Gauss2DWeight
+    sigma                               = 0.8;        // Used by Gauss2DWeight
+    rMax                                = 1.4;        // Used by Gauss2DWeight
+    rMin                                = 0.0;        // Used by Gauss2DWeight
+    numOrientationsPost                 = -1;         // Used by Gauss2DWeight
+    numOrientationsPre                  = -1;         // Used by Gauss2DWeight
+    deltaThetaMax                       = 6.28318548; // Used by Gauss2DWeight
+    thetaMax                            = 1.0;        // Used by Gauss2DWeight
+    numFlanks                           = 1;          // Used by Gauss2DWeight
+    flankShift                          = 0.0;        // Used by Gauss2DWeight
+    rotate                              = 0.0;        // Used by Gauss2DWeight
+    bowtieFlag                          = false;      // Used by Gauss2DWeight
+    bowtieAngle                         = 6.28318548; // Used by Gauss2DWeight
+    // wGaussMean floating-point parameter is required by GaussianRandomWeight
+    // wGaussStdev floating-point parameter is required by GaussianRandomWeight
+    weightInit                          = 1.0;        // Used by OneToOneWeight, SpreadOverArborsWeights, UniformWeight
+    wMinInit                            = 0.0;        // Used by UniformRandomWeight
+    wMaxInit                            = 1.0;        // Used by UniformRandomWeight
+    sparseFraction                      = 0.0;        // Used by UniformRandomWeight
+    minNNZ                              = 0;          // Used by UniformRandomWeight
+    connectOnlySameFeatures             = false;      // Used by UniformWeight
+    // normalizeMethod string parameter is required
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    minSumTolerated                     = 0.0;        // Used by NormalizeContrastZeroMean, NormalizeSum
+    // normalizeGroupName string parameter is required by NormalizeGroup
+    minL2NormTolerated                  = 0.0;        // Used by NormalizeL2
+    minMaxTolerated                     = 0.0;        // Used by NormalizeMax
+    rMinX                               = 0.0;        // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    rMinY                               = 0.0;        // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    nonnegativeConstraintFlag           = false;      // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    normalize_cutoff                    = 0.0;        // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    normalizeFromPostPerspective        = false;      // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    plasticityFlag                      = true;
+    triggerLayerName                    = NULL;       // Used if plasticityFlag is true
+    triggerOffset                       = 0.0;        // Used if plasticityFlag is true and triggerLayerName is set
+    // weightUpdatePeriod floating point parameter is required if plasticityFlag is true and triggerLayerName is not set
+    initialWeightUpdateTime             = 0.0;        // Used if plasticityFlag is true and triggerLayerName is not set
+    immediateWeightUpdate               = true;       // Used if plasticityFlag is true
+    momentumDecay                       = 0.0;        // Used if plasticityFlag is true; deprecated (use weightL2Decay instead)
+    weightL1Decay                       = 0.0;        // Used if plasticityFlag is true
+    weightL2Decay                       = 0.0;        // Used if plasticityFlag is true
+    // dWMax floating-point parameter is required if plasticityFlag is true
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0.0;        // Used if plasticityFlag is true; must have 0 < dWMaxDecayFactor < 1
+    normalizeDw                         = true;       // Used if plasticityFlag is true
+    combine_dW_with_W_flag              = false;      // Used if plasticityFlag is true
+    strength                            = 1.0;        // Used by Gauss2DWeight, several weight normalizers
+};
+
+Defaults "MomentumConn" = {
+    #include "HyPerConn";
+   // momentumMethod string parameter is required if plasticityFlag is true. Must be "viscosity" or "simple" (case-sensitive)
+   // timeConstantTau default depends on momentumMethod. 0.25 for simple; 100 for viscosity
+   initPrev_dWFile                      = "";         // Used if plasticityFlag is true
+   prev_dWFrameNumber                   = 0;          // Used if plasticityFlag is true and initPrev_dWFile is set
+};
+
+Defaults "CloneConn" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    // channelCode integer parameter is required
+    delay                               = [0.0];
+    // originalConnName string parameter is required
+};
+
+Defaults "PlasticCloneConn" = {
+    #include "CloneConn";
+};
+
+Defaults "CopyConn" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    // channelCode integer parameter is required
+    delay                               = [0.0];
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    // normalizeMethod string parameter is required
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    minSumTolerated                     = 0.0;        // Used by NormalizeContrastZeroMean, NormalizeSum
+    // normalizeGroupName string parameter is required by NormalizeGroup
+    minL2NormTolerated                  = 0.0;        // Used by NormalizeL2
+    minMaxTolerated                     = 0.0;        // Used by NormalizeMax
+    rMinX                               = 0.0;        // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    rMinY                               = 0.0;        // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    nonnegativeConstraintFlag           = false;      // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    normalize_cutoff                    = 0.0;        // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    normalizeFromPostPerspective        = false;      // Used by NormalizeL2, NormalizeMax, NormalizeSum
+    strength                            = 1.0;        // Used by Gauss2DWeight, several weight normalizers
+    // originalConnName string parameter is required
+};
+
+Defaults "IdentConn" = {
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    delay                               = [0.0];
+};
+
+Defaults "RescaleConn" = {
+    #include "IdentConn";
+    // scale is a required floating-point parameter
+};
+
+Defaults "PoolingConn" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    receiveGpu                          = false;
+    // pvpatchAccumulateType string parameter is required. "maxpooling", "sumpooling", or "avgpooling" (case-insensitive)
+    updateGSynFromPostPerspective       = false;
+    needPostIndexLayer                  = false;
+    // postIndexLayerName string parameter is required if needPostIndexLayer is true
+    // channelCode integer parameter is required
+    nxp                                 = -1; // Negative values mean patch size will be inferred
+    nyp                                 = -1; // Negative values mean patch size will be inferred
+    nfp                                 = -1; // Negative values mean patch size will be inferred
+    sharedWeights                       = true;
+};
+
+Defaults "TransposeConn" = {
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    // channelCode integer parameter is required
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+    writeCompressedWeights              = false;
+    // originalConnName string parameter is required
+};
+
+Defaults "FeedbackConn" = {
+    #include "TransposeConn";
+    #remove preLayerName;
+    #remove postLayerName;
+};
+
+Defaults "TransposePoolingConn" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    updateGSynFromPostPerspective       = false;
+    // channelCode integer parameter is required
+    // originalConnName string parameter is required
+};
+
+Defaults "WTAConn" = {
+    preLayerName                        = NULL;
+    postLayerName                       = NULL;
+    // channelCode integer parameter is required
+    delay                               = [0.0];
+};
+
+// Probes
+Defaults "AdaptiveTimeScaleProbe"       = {
+    // targetName string parameter is required
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    message                             = NULL;
+    writeTimeScaleFieldnames            = true;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+    baseMax                             = 1.0;
+    baseMin                             = 1.0;
+    tauFactor                           = 1.0;
+    growthFactor                        = 1.0;
+};
+
+Defaults "KneeTimeScaleProbe" = {
+    #include "AdaptiveTimeScaleProbe";
+    kneeThresh                          = 1.0;
+    kneeSlope                           = 1.0;
+};
+
+Defaults "LogTimeScaleProbe" = {
+    #include "AdaptiveTimeScaleProbe";
+    logThresh                           = 1024.0;
+    logSlope                            = 1.0;
+};
+
+Defaults "ColumnEnergyProbe" = {
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    message                             = NULL;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+};
+
+Defaults "GeneralNormProbe" = {
+    // targetLayer string parameter is required
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    message                             = NULL;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+    maskLayerName                       = NULL;
+    energyProbe                         = NULL;
+    coefficient                         = 1.0;
+};
+
+Defaults "FirmThresholdCostFnLCAProbe" = {
+    #include "GeneralNormProbe";
+};
+
+Defaults "FirmThresholdCostFnProbe" = {
+    #include "GeneralNormProbe";
+    VThresh                             = 0.0;
+    VWidth                              = 0.0;
+};
+
+Defaults "L0NormLCAProbe" = {
+    #include "GeneralNormProbe";
+};
+
+Defaults "L0NormProbe" = {
+    #include "GeneralNormProbe";
+    nnzThreshold                        = 0.0;
+};
+
+Defaults "L1NormLCAProbe" = {
+    #include "GeneralNormProbe";
+};
+
+Defaults "L1NormProbe" = {
+    #include "GeneralNormProbe";
+};
+
+Defaults "L2NormProbe" = {
+    #include "GeneralNormProbe";
+    exponent                            = 1.0;
+};
+
+Defaults "QuotientProbe" = {
+    // targetName string parameter is required
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    message                             = NULL;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+    // numerator is a required string parameter;
+    // denominator is a required string parameter;
+};
+
+Defaults "StatsProbe" = {
+    // targetLayer string parameter is required
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    message                             = NULL;
+    triggerLayerName                    = NULL;
+    triggerOffset                       = 0.0;
+    buffer                              = "Activity"; // Must be "Activity" or "MembranePotential" (case-insensitive)
+    nnzThreshold                        = 0.0;
+    immediateMPIAssembly                = false;
+};
+
+Defaults "RequireAllZeroActivityProbe" = {
+    #include "StatsProbe";
+    #remove immediateMPIAssembly;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = true;
+};

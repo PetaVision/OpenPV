@@ -3,7 +3,6 @@
 
 #include "columns/Random.hpp"
 #include "components/HyPerActivityBuffer.hpp"
-#include "io/PVParams.hpp"
 #include "structures/Buffer.hpp"
 #include <memory>
 
@@ -31,7 +30,7 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
     * Each display period, the angle is chosen randomly from
     * the interval [angleMin, angleMax].
     */
-   virtual void ioParam_angleMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_angleMin(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief angleMax: The maximum possible value for the angle
@@ -40,13 +39,13 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
     * If the max and min are equal, the only possible choice is the common value.
     * If the max is less then the min, a warning is issued and the values are flipped.
     */
-   virtual void ioParam_angleMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_angleMax(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief angleUnits: The units for the angles in the angle file path.
     * Must be "degree", "degrees", "radian", or "radians" (case insensitive).
     */
-   virtual void ioParam_angleUnits(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_angleUnits(ParamsIOSwitch ioSwitch);
 
    /**
     * @brief writeAnglesFile: The path to the file where angles are recorded.
@@ -60,12 +59,15 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
     *
     * The default is NULL (do not write to file).
     */
-   virtual void ioParam_writeAnglesFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeAnglesFile(ParamsIOSwitch ioSwitch);
 
    /** @} */
 
   public:
-   RotateActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
+   RotateActivityBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   protected:
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
@@ -78,8 +80,11 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
    virtual Response::Status allocateDataStructures() override;
    void applyTransformCPU(
          Buffer<float> const &inputBuffer, Buffer<float> &outputBuffer, float angle);
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    void copyRandStateToCheckpointData();
    void copyCheckpointDataToRandState();
@@ -100,7 +105,7 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
    AngleUnitType mAngleUnitType = AngleUnitType::UNSET;
    std::vector<unsigned int> mRandStateCheckpointData;
    std::shared_ptr<Random> mRandState = nullptr;
-   char *mWriteAnglesFile             = nullptr;
+   std::string mWriteAnglesFile;
 
    // FileStream to output file used when mWriteAnglesFile is set
    std::shared_ptr<FileStream> mWriteAnglesStream;

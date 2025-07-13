@@ -29,18 +29,24 @@ class CloneInternalStateBuffer : public InternalStateBuffer {
    /**
     * @brief initVType: CloneInternalStateBuffer does not use InitVType.
     */
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_InitVType(ParamsIOSwitch ioSwitch) override;
 
    /** @} */
   public:
-   CloneInternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
+   CloneInternalStateBuffer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual ~CloneInternalStateBuffer();
 
   protected:
    CloneInternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 

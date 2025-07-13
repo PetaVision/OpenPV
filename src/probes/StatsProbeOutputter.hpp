@@ -2,7 +2,6 @@
 #define STATSPROBEOUTPUTTER_HPP_
 
 #include "columns/Communicator.hpp"
-#include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "probes/BaseProbeOutputter.hpp"
 #include "probes/ProbeDataBuffer.hpp"
@@ -14,7 +13,7 @@ namespace PV {
 
 class StatsProbeOutputter : public BaseProbeOutputter {
   public:
-   StatsProbeOutputter(char const *objName, PVParams *params, Communicator const *comm);
+   StatsProbeOutputter(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, Communicator const *comm);
    virtual ~StatsProbeOutputter() {}
 
    void printGlobalStatsBuffer(ProbeDataBuffer<LayerStats> const &storedValues);
@@ -23,7 +22,7 @@ class StatsProbeOutputter : public BaseProbeOutputter {
 
   protected:
    StatsProbeOutputter() {}
-   void initialize(char const *objName, PVParams *params, Communicator const *comm);
+   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, Communicator const *comm);
 
    void printLayerStats(
          std::shared_ptr<PrintStream> printStreamPtr,

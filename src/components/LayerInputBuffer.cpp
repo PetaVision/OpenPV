@@ -9,8 +9,11 @@
 
 namespace PV {
 
-LayerInputBuffer::LayerInputBuffer(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+LayerInputBuffer::LayerInputBuffer(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   initialize(params, defaults, comm);
 }
 
 LayerInputBuffer::~LayerInputBuffer() {
@@ -22,8 +25,11 @@ LayerInputBuffer::~LayerInputBuffer() {
 #endif // PV_USE_CUDA
 }
 
-void LayerInputBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ComponentBuffer::initialize(name, params, comm);
+void LayerInputBuffer::initialize(
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
+      Communicator const *comm) {
+   ComponentBuffer::initialize(params, defaults, comm);
    mExtendedFlag = false;
    setBufferLabel("GSyn");
    mCheckpointFlag = false; // GSyn doesn't get checkpointed
@@ -50,7 +56,7 @@ void LayerInputBuffer::initMessageActionMap() {
 
 void LayerInputBuffer::setObjectType() { mObjectType = "LayerInputBuffer"; }
 
-int LayerInputBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
+int LayerInputBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) { return PV_SUCCESS; }
 
 Response::Status
 LayerInputBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

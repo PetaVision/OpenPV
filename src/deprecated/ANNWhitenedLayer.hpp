@@ -16,12 +16,18 @@ namespace PV {
 
 class ANNWhitenedLayer : public ANNLayer {
   public:
-   ANNWhitenedLayer(const char *name, PVParams *params, Communicator const *comm);
+   ANNWhitenedLayer(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~ANNWhitenedLayer();
 
   protected:
    ANNWhitenedLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual Response::Status updateState(double time, double dt) override;
 
   private:

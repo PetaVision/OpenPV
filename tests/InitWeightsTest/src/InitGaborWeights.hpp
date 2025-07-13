@@ -14,22 +14,28 @@ namespace PV {
 
 class InitGaborWeights : public PV::InitGauss2DWeights {
   protected:
-   virtual void ioParam_lambda(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_phi(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_invert(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_lambda(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_phi(ParamsIOSwitch ioSwitch);
+   virtual void ioParam_invert(ParamsIOSwitch ioSwitch);
 
   public:
-   InitGaborWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitGaborWeights(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~InitGaborWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual void calcWeights(int patchIndex, int arborId) override;
    void calcOtherParams(int patchIndex);
 
   protected:
    InitGaborWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
   private:
    void gaborWeights(float *dataStart);

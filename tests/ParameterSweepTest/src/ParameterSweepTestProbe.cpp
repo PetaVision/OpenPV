@@ -18,10 +18,10 @@
 namespace PV {
 
 ParameterSweepTestProbe::ParameterSweepTestProbe(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(name, params, comm);
+   initialize(params, defaults, comm);
 }
 
 ParameterSweepTestProbe::~ParameterSweepTestProbe() {}
@@ -47,34 +47,35 @@ void ParameterSweepTestProbe::checkStats() {
    }
 }
 
-void ParameterSweepTestProbe::createProbeLocal(char const *name, PVParams *params) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+void ParameterSweepTestProbe::createProbeLocal(
+      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
 }
 
 void ParameterSweepTestProbe::initialize(
-      const char *name,
-      PVParams *params,
+      std::shared_ptr<ParamGroup> params,
+      std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(params, defaults, comm);
 }
 
-int ParameterSweepTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
-   ioParam_expectedSum(ioFlag);
-   ioParam_expectedMin(ioFlag);
-   ioParam_expectedMax(ioFlag);
+int ParameterSweepTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioSwitch);
+   ioParam_expectedSum(ioSwitch);
+   ioParam_expectedMin(ioSwitch);
+   ioParam_expectedMax(ioSwitch);
    return status;
 }
 
-void ParameterSweepTestProbe::ioParam_expectedSum(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "expectedSum", &mExpectedSum, mExpectedSum);
+void ParameterSweepTestProbe::ioParam_expectedSum(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "expectedSum", &mExpectedSum);
 }
-void ParameterSweepTestProbe::ioParam_expectedMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "expectedMin", &mExpectedMin, mExpectedMin);
+void ParameterSweepTestProbe::ioParam_expectedMin(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "expectedMin", &mExpectedMin);
 }
 
-void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "expectedMax", &mExpectedMax, mExpectedMax);
+void ParameterSweepTestProbe::ioParam_expectedMax(ParamsIOSwitch ioSwitch) {
+   mParamsIO->ioParam(ioSwitch, "expectedMax", &mExpectedMax);
 }
 
 } /* namespace PV */

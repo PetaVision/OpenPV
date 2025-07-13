@@ -29,22 +29,28 @@ class DependentArborList : public ArborList {
     * @brief numAxonalArbors: DependentArborList does not use the numAxonalArbors parameter,
     * but gets the number of arbors from the original connection.
     */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_numAxonalArbors(ParamsIOSwitch ioSwitch) override;
 
    /** @} */ // end of DependentArborList parameters
 
   public:
-   DependentArborList(char const *name, PVParams *params, Communicator const *comm);
+   DependentArborList(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
    virtual ~DependentArborList();
 
   protected:
    DependentArborList();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   void initialize(
+         std::shared_ptr<ParamGroup> params,
+         std::shared_ptr<ParamGroup> defaults,
+         Communicator const *comm);
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
