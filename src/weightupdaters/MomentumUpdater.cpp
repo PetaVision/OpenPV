@@ -69,41 +69,8 @@ void MomentumUpdater::ioParam_momentumMethod(ParamsIOSwitch ioSwitch) {
 void MomentumUpdater::ioParam_timeConstantTau(ParamsIOSwitch ioSwitch) {
    pvAssert(!mParamsIO->presentAndNotBeenRead("plasticityFlag"));
    if (mPlasticityFlag) {
-      if (ioSwitch == ParamsIOSwitch::Read) {
-         auto paramType = mParamsIO->checkType("timeConstantTau");
-         switch (paramType) {
-            case Parameter::Type::NotFound:
-               pvAssert(!mParamsIO->presentAndNotBeenRead("momentumMethod"));
-               mTimeConstantTau = selectDefaultTimeConstantTau(mMethod);
-               WarnLog().printf(
-                     "Using default value %f for parameter \"%s\" in group \"%s\"\n",
-                     static_cast<double>(mTimeConstantTau), "timeConstantTau", getName());
-               break;
-            case Parameter::Type::Numeric:
-               mParamsIO->ioParam(ioSwitch, "timeConstantTau", &mTimeConstantTau);
-               break;
-            default:
-               ErrorLog().printf("Parameter %s in group %s exists but is non-numeric.\n",
-                     "timeConstantTau", getName());
-               break;
-         }
-         checkTimeConstantTau();
-      }
-      else {
-         pvAssert(ioSwitch == ParamsIOSwitch::Write);
-         mParamsIO->ioParam(ioSwitch, "timeConstantTau", &mTimeConstantTau);
-      }
+      mParamsIO->ioParam(ioSwitch, "timeConstantTau", &mTimeConstantTau);
    }
-}
-
-double MomentumUpdater::selectDefaultTimeConstantTau(Method method) {
-   float defaultVal = 0;
-   switch (method) {
-      case VISCOSITY: defaultVal = mDefaultTimeConstantTauViscosity; break;
-      case SIMPLE: defaultVal    = mDefaultTimeConstantTauSimple; break;
-      default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
-   }
-   return defaultVal;
 }
 
 void MomentumUpdater::checkTimeConstantTau() {

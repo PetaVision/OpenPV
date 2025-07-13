@@ -158,8 +158,6 @@ class MomentumUpdater : public HebbianUpdater {
 
    virtual void outputMomentum(double timestamp);
 
-   static double selectDefaultTimeConstantTau(Method method);
-
   protected:
    std::string mMomentumMethod;
    Method mMethod           = UNDEFINED_METHOD;

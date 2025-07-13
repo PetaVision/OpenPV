@@ -443,9 +443,9 @@ Defaults "HyPerConn" = {
 
 Defaults "MomentumConn" = {
     #include "HyPerConn";
-   // momentumMethod string parameter is required if plasticityFlag is true. Must be "viscosity" or "simple" (case-sensitive)
-   // timeConstantTau default depends on momentumMethod. 0.25 for simple; 100 for viscosity
-   initPrev_dWFile                      = "";         // Used if plasticityFlag is true
+   momentumMethod                       = "viscosity";
+   timeConstantTau                      = 100.0;
+   initPrev_dWFile                      = NULL;       // Used if plasticityFlag is true
    prev_dWFrameNumber                   = 0;          // Used if plasticityFlag is true and initPrev_dWFile is set
 };
 
