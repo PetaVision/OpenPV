@@ -697,26 +697,22 @@ int ParamGroupList::parseBuffer(char const *buffer, long int bufferLength) {
 
 int ParamGroupList::parseFile(const char *filename, MPI_Comm mpiComm) {
    int rootproc      = 0;
-   char *paramBuffer = nullptr;
+   std::string paramBuffer("");
    size_t bufferlen;
    int sz;
    MPI_Comm_size(mpiComm, &sz);
    int rank;
    MPI_Comm_rank(mpiComm, &rank);
    if (rank == rootproc) {
-      std::string paramBufferString("");
-      loadParamBuffer(filename, paramBufferString);
-      bufferlen = paramBufferString.size();
+      loadParamBuffer(filename, paramBuffer);
+      bufferlen = paramBuffer.size();
       // Older versions of MPI_Send require void*, not void const*
-      paramBuffer = (char *)malloc(bufferlen + 1);
-      memcpy(paramBuffer, paramBufferString.c_str(), bufferlen);
-      paramBuffer[bufferlen] = '\0';
 
 #ifdef PV_USE_MPI
       for (int i = 0; i < sz; i++) {
          if (i == rootproc)
             continue;
-         MPI_Send(paramBuffer, (int)bufferlen, MPI_CHAR, i, 31, mpiComm);
+         MPI_Send(&paramBuffer[0], (int)bufferlen, MPI_CHAR, i, 31, mpiComm);
       }
 #endif // PV_USE_MPI
    }
@@ -727,15 +723,10 @@ int ParamGroupList::parseFile(const char *filename, MPI_Comm mpiComm) {
       MPI_Probe(rootproc, 31, mpiComm, &mpi_status);
       MPI_Get_count(&mpi_status, MPI_CHAR, &count);
       bufferlen   = (size_t)count;
-      paramBuffer = (char *)malloc(bufferlen);
-      if (paramBuffer == nullptr) {
-         Fatal().printf(
-               "ParamGroupList::parseFile: Rank %d process unable to allocate memory for params buffer\n",
-               rank);
-      }
+      paramBuffer.resize(bufferlen);
       MPI_Recv(
-            paramBuffer,
-            (int)bufferlen,
+            &paramBuffer[0],
+            count,
             MPI_CHAR,
             rootproc,
             31,
@@ -744,8 +735,7 @@ int ParamGroupList::parseFile(const char *filename, MPI_Comm mpiComm) {
 #endif // PV_USE_MPI
    }
 
-   int status = parseBuffer(paramBuffer, bufferlen);
-   free(paramBuffer);
+   int status = parseBuffer(paramBuffer.data(), bufferlen);
    return status;
 }
 
