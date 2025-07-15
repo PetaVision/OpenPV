@@ -7,16 +7,13 @@
 
 namespace PV {
 
-MaxPoolTestLayer::MaxPoolTestLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+MaxPoolTestLayer::MaxPoolTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *MaxPoolTestLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, MaxPoolTestBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } /* namespace PV */

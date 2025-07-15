@@ -2,14 +2,12 @@
 
 namespace PV {
 
-FirmThresholdCostFnLCAProbeLocal::FirmThresholdCostFnLCAProbeLocal(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+FirmThresholdCostFnLCAProbeLocal::FirmThresholdCostFnLCAProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
-void FirmThresholdCostFnLCAProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   FirmThresholdCostFnProbeLocal::initialize(params, defaults);
+void FirmThresholdCostFnLCAProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   FirmThresholdCostFnProbeLocal::initialize(paramsIO);
 }
 
 void FirmThresholdCostFnLCAProbeLocal::ioParam_VThresh(ParamsIOSwitch ioSwitch) {

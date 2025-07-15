@@ -15,20 +15,14 @@ namespace PV {
 
 class BaseInitV : public BaseObject {
   public:
-   BaseInitV(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   BaseInitV(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~BaseInitV();
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc);
 
   protected:
    BaseInitV();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual void setObjectType() override;
 
   private:

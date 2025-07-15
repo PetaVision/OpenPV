@@ -11,8 +11,7 @@ namespace PV {
 
 class CheckStatsAllZerosCheckSigma : public CheckStatsAllZeros {
   public:
-   CheckStatsAllZerosCheckSigma(
-         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   CheckStatsAllZerosCheckSigma(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~CheckStatsAllZerosCheckSigma();
 
    virtual std::map<int, LayerStats const>

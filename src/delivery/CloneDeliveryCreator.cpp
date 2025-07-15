@@ -10,22 +10,16 @@
 
 namespace PV {
 
-CloneDeliveryCreator::CloneDeliveryCreator(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+CloneDeliveryCreator::CloneDeliveryCreator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 CloneDeliveryCreator::CloneDeliveryCreator() {}
 
 CloneDeliveryCreator::~CloneDeliveryCreator() {}
 
-void CloneDeliveryCreator::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerDeliveryCreator::initialize(params, defaults, comm);
+void CloneDeliveryCreator::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerDeliveryCreator::initialize(paramsIO, comm);
 }
 
 void CloneDeliveryCreator::setObjectType() { mObjectType = "CloneDeliveryCreator"; }

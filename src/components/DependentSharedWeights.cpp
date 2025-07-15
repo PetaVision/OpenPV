@@ -12,22 +12,16 @@
 
 namespace PV {
 
-DependentSharedWeights::DependentSharedWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+DependentSharedWeights::DependentSharedWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 DependentSharedWeights::DependentSharedWeights() {}
 
 DependentSharedWeights::~DependentSharedWeights() {}
 
-void DependentSharedWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   SharedWeights::initialize(params, defaults, comm);
+void DependentSharedWeights::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   SharedWeights::initialize(paramsIO, comm);
 }
 
 void DependentSharedWeights::setObjectType() { mObjectType = "DependentSharedWeights"; }

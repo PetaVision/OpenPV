@@ -45,10 +45,7 @@ class LinkedObjectParam : public BaseObject {
   protected:
    LinkedObjectParam() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm,
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm,
          std::string const &paramName);
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;

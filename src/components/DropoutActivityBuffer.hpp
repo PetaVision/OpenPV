@@ -34,10 +34,7 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
 
    /** @} */
   public:
-   DropoutActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   DropoutActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~DropoutActivityBuffer();
 
@@ -46,10 +43,7 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
   protected:
    DropoutActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

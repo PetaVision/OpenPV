@@ -12,10 +12,7 @@ class LogTimeScaleProbe : public AdaptiveTimeScaleProbe {
    virtual void ioParam_logThresh(ParamsIOSwitch ioSwitch);
    virtual void ioParam_logSlope(ParamsIOSwitch ioSwitch);
 
-   LogTimeScaleProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   LogTimeScaleProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;

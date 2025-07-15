@@ -10,20 +10,14 @@
 
 namespace PV {
 
-SharedWeightsFalse::SharedWeightsFalse(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+SharedWeightsFalse::SharedWeightsFalse(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 SharedWeightsFalse::~SharedWeightsFalse() {}
 
-void SharedWeightsFalse::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   SharedWeights::initialize(params, defaults, comm);
+void SharedWeightsFalse::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   SharedWeights::initialize(paramsIO, comm);
 }
 
 void SharedWeightsFalse::setObjectType() { mObjectType = "SharedWeightsFalse"; }

@@ -19,7 +19,7 @@ RunningAverageLayer::RunningAverageLayer(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 RunningAverageLayer::~RunningAverageLayer() {}
@@ -35,7 +35,7 @@ void RunningAverageLayer::initialize(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    WarnLog() << "RunningAverageLayer has been deprecated.\n";
-   int status_init = CloneVLayer::initialize(params, defaults, comm);
+   int status_init = CloneVLayer::initialize(paramsIO, comm);
    return status_init;
 }
 

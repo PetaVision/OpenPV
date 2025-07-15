@@ -21,20 +21,13 @@ class ParameterSweepTestProbe : public StatsProbeImmediate {
    virtual void ioParam_expectedMax(ParamsIOSwitch ioSwitch);
 
   public:
-   ParameterSweepTestProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ParameterSweepTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~ParameterSweepTestProbe();
 
   protected:
    virtual void checkStats() override;
-   virtual void createProbeLocal(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   virtual void createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) override;
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   private:

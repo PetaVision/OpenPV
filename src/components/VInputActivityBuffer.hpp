@@ -22,20 +22,14 @@ namespace PV {
 class VInputActivityBuffer : public ActivityBuffer {
 
   public:
-   VInputActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   VInputActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~VInputActivityBuffer();
 
   protected:
    VInputActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

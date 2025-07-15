@@ -9,18 +9,14 @@
 
 namespace PV {
 
-RescaleDelivery::RescaleDelivery(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+RescaleDelivery::RescaleDelivery(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
-void RescaleDelivery::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void RescaleDelivery::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   IdentDelivery::initialize(params, defaults, comm);
+   IdentDelivery::initialize(paramsIO, comm);
 }
 
 void RescaleDelivery::setObjectType() { mObjectType = "RescaleDelivery"; }

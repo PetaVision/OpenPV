@@ -17,7 +17,7 @@ KmeansLayer::KmeansLayer(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 KmeansLayer::~KmeansLayer() {}
@@ -29,7 +29,7 @@ void KmeansLayer::initialize(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    WarnLog() << "KmeansLayer has been deprecated.\n";
-   int status = HyPerLayer::initialize(params, defaults, comm);
+   int status = HyPerLayer::initialize(paramsIO, comm);
    assert(status == PV_SUCCESS);
    return status;
 }

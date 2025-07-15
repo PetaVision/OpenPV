@@ -2,16 +2,12 @@
 
 namespace PV {
 
-BufferParamUserSpecified::BufferParamUserSpecified(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+BufferParamUserSpecified::BufferParamUserSpecified(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
-void BufferParamUserSpecified::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   BufferParamInterface::initialize(params, defaults);
+void BufferParamUserSpecified::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   BufferParamInterface::initialize(paramsIO);
 }
 
 void BufferParamUserSpecified::ioParam_buffer(ParamsIOSwitch ioSwitch) {

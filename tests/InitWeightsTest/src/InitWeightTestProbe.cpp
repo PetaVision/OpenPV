@@ -16,12 +16,9 @@
 
 namespace PV {
 
-InitWeightTestProbe::InitWeightTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+InitWeightTestProbe::InitWeightTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 void InitWeightTestProbe::checkStats() {
@@ -45,16 +42,12 @@ void InitWeightTestProbe::checkStats() {
    }
 }
 
-void InitWeightTestProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
+void InitWeightTestProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(paramsIO);
 }
 
-void InitWeightTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void InitWeightTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 } /* namespace PV */

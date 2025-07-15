@@ -16,17 +16,11 @@ namespace PV {
 
 class RescaleConn : public IdentConn {
   public:
-   RescaleConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   RescaleConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    RescaleConn();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual BaseDelivery *createDeliveryObject() override;
 }; // class RescaleConn

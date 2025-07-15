@@ -11,20 +11,14 @@
 
 namespace PV {
 
-RetinaActivityBuffer::RetinaActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+RetinaActivityBuffer::RetinaActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 RetinaActivityBuffer::~RetinaActivityBuffer() { delete mRandState; }
 
-void RetinaActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityBuffer::initialize(params, defaults, comm);
+void RetinaActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityBuffer::initialize(paramsIO, comm);
 }
 
 void RetinaActivityBuffer::setObjectType() { mObjectType = "RetinaActivityBuffer"; }

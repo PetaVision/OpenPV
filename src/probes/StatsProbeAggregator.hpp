@@ -12,10 +12,7 @@ namespace PV {
 
 class StatsProbeAggregator : public ProbeComponent {
   public:
-   StatsProbeAggregator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         std::shared_ptr<MPIBlock const> mpiBlock);
+   StatsProbeAggregator(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock);
    ~StatsProbeAggregator() {}
 
    void aggregateStoredValues(ProbeDataBuffer<LayerStats> const &partialStore);
@@ -26,10 +23,7 @@ class StatsProbeAggregator : public ProbeComponent {
 
   protected:
    StatsProbeAggregator() {}
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         std::shared_ptr<MPIBlock const> mpiBlock);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock);
 
   private:
    void broadcastStoredValues();

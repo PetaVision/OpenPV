@@ -10,22 +10,16 @@
 
 namespace PV {
 
-SingleArbor::SingleArbor(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+SingleArbor::SingleArbor(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 SingleArbor::SingleArbor() {}
 
 SingleArbor::~SingleArbor() {}
 
-void SingleArbor::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ArborList::initialize(params, defaults, comm);
+void SingleArbor::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ArborList::initialize(paramsIO, comm);
 }
 
 void SingleArbor::setObjectType() { mObjectType = "SingleArbor"; }

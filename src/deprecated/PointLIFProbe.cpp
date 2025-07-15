@@ -26,14 +26,14 @@ PointLIFProbe::PointLIFProbe(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm)
       : PointProbe() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 void PointLIFProbe::initialize(
       std::shared_ptr<ParamGroup> params,
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   PointProbe::initialize(params, defaults, comm);
+   PointProbe::initialize(paramsIO, comm);
    writeTime = 0.0;
 }
 

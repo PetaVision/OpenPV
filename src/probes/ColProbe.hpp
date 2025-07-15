@@ -34,10 +34,7 @@ class ColProbe : public BaseProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   ColProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ColProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    /**
     * Destructor for the ColProbe class.
@@ -62,10 +59,7 @@ class ColProbe : public BaseProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    /**
     * Defines actions for the ColProbeWriteParams and ColProbeOutputState messages,

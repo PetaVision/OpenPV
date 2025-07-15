@@ -14,19 +14,13 @@ namespace PV {
 
 class LIFGap : public LIF {
   public:
-   LIFGap(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   LIFGap(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~LIFGap();
 
   protected:
    LIFGap();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

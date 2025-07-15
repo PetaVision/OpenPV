@@ -12,20 +12,14 @@
 
 namespace PV {
 
-DependentFirmThresholdCostActivityBuffer::DependentFirmThresholdCostActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+DependentFirmThresholdCostActivityBuffer::DependentFirmThresholdCostActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 DependentFirmThresholdCostActivityBuffer::~DependentFirmThresholdCostActivityBuffer() {}
 
-void DependentFirmThresholdCostActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerActivityBuffer::initialize(params, defaults, comm);
+void DependentFirmThresholdCostActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerActivityBuffer::initialize(paramsIO, comm);
 }
 
 void DependentFirmThresholdCostActivityBuffer::setObjectType() {

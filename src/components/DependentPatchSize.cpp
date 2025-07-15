@@ -12,22 +12,16 @@
 
 namespace PV {
 
-DependentPatchSize::DependentPatchSize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+DependentPatchSize::DependentPatchSize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 DependentPatchSize::DependentPatchSize() {}
 
 DependentPatchSize::~DependentPatchSize() {}
 
-void DependentPatchSize::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   PatchSize::initialize(params, defaults, comm);
+void DependentPatchSize::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   PatchSize::initialize(paramsIO, comm);
 }
 
 void DependentPatchSize::setObjectType() { mObjectType = "DependentPatchSize"; }

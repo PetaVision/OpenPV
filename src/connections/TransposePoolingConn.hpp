@@ -14,20 +14,14 @@ namespace PV {
 
 class TransposePoolingConn : public PoolingConn {
   public:
-   TransposePoolingConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TransposePoolingConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~TransposePoolingConn();
 
   protected:
    TransposePoolingConn();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void fillComponentTable() override;
 

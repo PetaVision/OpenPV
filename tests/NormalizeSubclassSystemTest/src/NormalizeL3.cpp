@@ -7,20 +7,14 @@
 
 namespace PV {
 
-NormalizeL3::NormalizeL3(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+NormalizeL3::NormalizeL3(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 NormalizeL3::NormalizeL3() {}
 
-void NormalizeL3::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   NormalizeMultiply::initialize(params, defaults, comm);
+void NormalizeL3::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   NormalizeMultiply::initialize(paramsIO, comm);
 }
 
 int NormalizeL3::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

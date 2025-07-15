@@ -30,18 +30,12 @@ class StatsProbeImmediate : public StatsProbe {
    virtual void ioParam_immediateMPIAssembly(ParamsIOSwitch ioSwitch) override;
 
   public:
-   StatsProbeImmediate(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   StatsProbeImmediate(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~StatsProbeImmediate();
 
   protected:
    StatsProbeImmediate();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 }; // end class StatsProbeImmediate
 
 } /* namespace PV */

@@ -16,12 +16,9 @@
 
 namespace PV {
 
-CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 void CloneHyPerConnTestProbe::checkStats() {
@@ -71,11 +68,8 @@ void CloneHyPerConnTestProbe::checkStats() {
    FatalIf(status != PV_SUCCESS, "Test failed.\n");
 }
 
-void CloneHyPerConnTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void CloneHyPerConnTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 } /* namespace PV */

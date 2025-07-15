@@ -19,10 +19,7 @@ class ProbeInterface : public BaseObject {
    typedef ProbeData<double> LayerProbeData;
    typedef std::vector<double>::size_type batchwidth_type;
 
-   ProbeInterface(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ProbeInterface(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~ProbeInterface() {}
 
    double getCoefficient() const { return mCoefficient; }
@@ -35,10 +32,7 @@ class ProbeInterface : public BaseObject {
 
    virtual void calcValues(double timestamp) = 0;
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 

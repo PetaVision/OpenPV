@@ -29,10 +29,7 @@ class BaseWeightUpdater : public BaseObject {
    /** @} */ // end of BaseWeightUpdater parameters
 
   public:
-   BaseWeightUpdater(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   BaseWeightUpdater(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~BaseWeightUpdater() {}
 
@@ -43,10 +40,7 @@ class BaseWeightUpdater : public BaseObject {
   protected:
    BaseWeightUpdater() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

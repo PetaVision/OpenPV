@@ -9,22 +9,18 @@
 
 namespace PV {
 
-InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() {}
 
 InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights() {}
 
-void InitSpreadOverArborsWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitSpreadOverArborsWeights::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InitGauss2DWeights::initialize(params, defaults, comm);
+   InitGauss2DWeights::initialize(paramsIO, comm);
 }
 
 int InitSpreadOverArborsWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

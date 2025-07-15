@@ -19,12 +19,9 @@
 #include <string>
 
 namespace PV {
-LIFTestProbe::LIFTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+LIFTestProbe::LIFTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 LIFTestProbe::LIFTestProbe() : StatsProbeImmediate() {}
@@ -108,12 +105,9 @@ void LIFTestProbe::checkStats() {
    FatalIf(failed, "%s failed.\n", getDescription_c());
 }
 
-void LIFTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
+void LIFTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
 
-   StatsProbeImmediate::initialize(params, defaults, comm);
+   StatsProbeImmediate::initialize(paramsIO, comm);
 
    mRadii.resize(mNumBins);
    mRates.resize(mNumBins);

@@ -9,20 +9,14 @@
 
 namespace PV {
 
-PtwiseProductGSynAccumulator::PtwiseProductGSynAccumulator(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+PtwiseProductGSynAccumulator::PtwiseProductGSynAccumulator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 PtwiseProductGSynAccumulator::~PtwiseProductGSynAccumulator() {}
 
-void PtwiseProductGSynAccumulator::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   GSynAccumulator::initialize(params, defaults, comm);
+void PtwiseProductGSynAccumulator::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   GSynAccumulator::initialize(paramsIO, comm);
 }
 
 void PtwiseProductGSynAccumulator::setObjectType() { mObjectType = "PtwiseProductGSynAccumulator"; }

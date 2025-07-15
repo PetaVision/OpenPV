@@ -11,11 +11,8 @@
 
 namespace PV {
 
-WeightsPairInterface::WeightsPairInterface(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+WeightsPairInterface::WeightsPairInterface(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 WeightsPairInterface::~WeightsPairInterface() {
@@ -23,11 +20,8 @@ WeightsPairInterface::~WeightsPairInterface() {
    delete mPostWeights;
 }
 
-void WeightsPairInterface::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void WeightsPairInterface::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void WeightsPairInterface::setObjectType() { mObjectType = "WeightsPairInterface"; }

@@ -30,10 +30,17 @@ BaseObject *Factory::createByKeyword(
       char const *keyword,
       std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) const {
-   if (paramsIO == nullptr) {
+   if (keyword == nullptr) {
       return nullptr;
    }
-   return createByKeyword(keyword, paramsIO->getParams(), paramsIO->getDefaults(), comm);
+   KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
+   if (keywordHandler == nullptr) {
+      std::string const &name = paramsIO->getName();
+      auto errorString = std::string(keyword).append(" \"").append(name).append("\": ");
+      errorString.append("keyword \"").append(keyword).append("\" is unrecognized.");
+      throw std::invalid_argument(errorString);
+   }
+   return keywordHandler->create(paramsIO, comm);
 }
 
 BaseObject *Factory::createByKeyword(
@@ -41,27 +48,20 @@ BaseObject *Factory::createByKeyword(
       std::shared_ptr<ParamGroup> params,
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) const {
-   if (keyword == nullptr) {
+   if (params == nullptr) {
       return nullptr;
    }
-   KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
-   if (keywordHandler == nullptr) {
-      std::string const &name = params->getName();
-      auto errorString = std::string(keyword).append(" \"").append(name).append("\": ");
-      errorString.append("keyword \"").append(keyword).append("\" is unrecognized.");
-      throw std::invalid_argument(errorString);
-   }
-   return keywordHandler ? keywordHandler->create(params, defaults, comm) : nullptr;
+   auto paramsIO = std::make_shared<ParamsIO>(params, defaults);
+   return createByKeyword(keyword, paramsIO, comm);
 }
 
 BaseObject *Factory::createByKeyword(char const *keyword, BaseObject *baseObject) const {
    BaseObject *newobject = nullptr;
    try {
       auto const *name = baseObject->getName();
-      auto params      = baseObject->getParamsIO()->getParams();
-      auto defaults    = baseObject->getParamsIO()->getDefaults();
+      auto paramsIO    = baseObject->getParamsIO();
       auto const *comm = baseObject->getCommunicator();
-      newobject        = createByKeyword(keyword, params, defaults, comm);
+      newobject        = createByKeyword(keyword, paramsIO, comm);
    } catch (const std::exception &e) {
       Fatal().printf(
             "%s unable to create %s: %s\n", baseObject->getDescription_c(), keyword, e.what());

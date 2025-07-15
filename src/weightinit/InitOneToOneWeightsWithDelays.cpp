@@ -9,22 +9,18 @@
 
 namespace PV {
 
-InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays() {}
 
 InitOneToOneWeightsWithDelays::~InitOneToOneWeightsWithDelays() {}
 
-void InitOneToOneWeightsWithDelays::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitOneToOneWeightsWithDelays::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InitWeights::initialize(params, defaults, comm);
+   InitWeights::initialize(paramsIO, comm);
 }
 
 void InitOneToOneWeightsWithDelays::calcWeights(int patchIndex, int arborId) {

@@ -7,12 +7,12 @@ namespace PV {
 
 class VMembraneBufferStatsProbeLocal : public StatsProbeLocal {
   public:
-   VMembraneBufferStatsProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   VMembraneBufferStatsProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~VMembraneBufferStatsProbeLocal() {};
 
   protected:
    VMembraneBufferStatsProbeLocal() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
 }; // class VMembraneBufferStatsProbeLocal
 

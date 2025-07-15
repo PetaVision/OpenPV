@@ -13,18 +13,14 @@ namespace PV {
 
 IdentConn::IdentConn() {}
 
-IdentConn::IdentConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+IdentConn::IdentConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
-void IdentConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void IdentConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   BaseConnection::initialize(params, defaults, comm);
+   BaseConnection::initialize(paramsIO, comm);
    mWriteInitializeFromCheckpointFlag = false;
 }
 
@@ -44,7 +40,7 @@ void IdentConn::fillComponentTable() {
 }
 
 SingleArbor *IdentConn::createSingleArbor() {
-   return new SingleArbor(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new SingleArbor(mParamsIO, mCommunicator);
 }
 
 } // end of namespace PV block

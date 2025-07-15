@@ -31,12 +31,9 @@ namespace PV {
  * @type
  * @msg
  */
-ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 void ShrunkenPatchTestProbe::checkStats() {
@@ -142,17 +139,13 @@ void ShrunkenPatchTestProbe::checkStats() {
    }
 }
 
-void ShrunkenPatchTestProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
+void ShrunkenPatchTestProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(paramsIO);
 }
 
-void ShrunkenPatchTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
+void ShrunkenPatchTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
    mCorrectValues = NULL;
-   StatsProbeImmediate::initialize(params, defaults, comm);
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 int ShrunkenPatchTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

@@ -16,17 +16,11 @@ namespace PV {
 
 class CloneKernelConnTestProbe : public PV::StatsProbeImmediate {
   public:
-   CloneKernelConnTestProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   CloneKernelConnTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual void checkStats() override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 };
 
 } /* namespace PV */

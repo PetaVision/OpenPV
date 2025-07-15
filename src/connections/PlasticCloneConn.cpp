@@ -12,20 +12,16 @@ namespace PV {
 
 PlasticCloneConn::PlasticCloneConn() {}
 
-PlasticCloneConn::PlasticCloneConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+PlasticCloneConn::PlasticCloneConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 PlasticCloneConn::~PlasticCloneConn() {}
 
-void PlasticCloneConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void PlasticCloneConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   CloneConn::initialize(params, defaults, comm);
+   CloneConn::initialize(paramsIO, comm);
 }
 
 Response::Status

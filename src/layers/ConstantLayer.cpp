@@ -9,22 +9,18 @@
 
 namespace PV {
 
-ConstantLayer::ConstantLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+ConstantLayer::ConstantLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ConstantLayer::ConstantLayer() {}
 
 ConstantLayer::~ConstantLayer() {}
 
-void ConstantLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void ConstantLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 LayerUpdateController *ConstantLayer::createLayerUpdateController() { return nullptr; }

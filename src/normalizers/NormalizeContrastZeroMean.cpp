@@ -12,21 +12,17 @@ namespace PV {
 
 NormalizeContrastZeroMean::NormalizeContrastZeroMean() { initialize_base(); }
 
-NormalizeContrastZeroMean::NormalizeContrastZeroMean(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+NormalizeContrastZeroMean::NormalizeContrastZeroMean(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 int NormalizeContrastZeroMean::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeContrastZeroMean::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void NormalizeContrastZeroMean::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   NormalizeBase::initialize(params, defaults, comm);
+   NormalizeBase::initialize(paramsIO, comm);
 }
 
 int NormalizeContrastZeroMean::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

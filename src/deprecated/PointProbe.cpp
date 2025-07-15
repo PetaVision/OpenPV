@@ -39,7 +39,7 @@ PointProbe::PointProbe(
       Communicator const *comm)
       : LegacyLayerProbe() {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 PointProbe::~PointProbe() {}
@@ -56,7 +56,7 @@ void PointProbe::initialize(
       std::shared_ptr<ParamGroup> params,
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   LegacyLayerProbe::initialize(params, defaults, comm);
+   LegacyLayerProbe::initialize(paramsIO, comm);
 }
 
 int PointProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

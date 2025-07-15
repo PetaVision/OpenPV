@@ -12,22 +12,16 @@
 
 namespace PV {
 
-FeedbackConnectionData::FeedbackConnectionData(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+FeedbackConnectionData::FeedbackConnectionData(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 FeedbackConnectionData::FeedbackConnectionData() {}
 
 FeedbackConnectionData::~FeedbackConnectionData() {}
 
-void FeedbackConnectionData::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ConnectionData::initialize(params, defaults, comm);
+void FeedbackConnectionData::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ConnectionData::initialize(paramsIO, comm);
 }
 
 void FeedbackConnectionData::setObjectType() { mObjectType = "FeedbackConnectionData"; }

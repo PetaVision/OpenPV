@@ -36,18 +36,12 @@ class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
    /** @} */
 
   public:
-   ISTAInternalStateBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ISTAInternalStateBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~ISTAInternalStateBuffer();
 
   protected:
    ISTAInternalStateBuffer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;

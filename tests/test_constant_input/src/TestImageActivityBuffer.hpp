@@ -32,10 +32,7 @@ class TestImageActivityBuffer : public ActivityBuffer {
 
    /** @} */
   public:
-   TestImageActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TestImageActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~TestImageActivityBuffer();
 
@@ -44,10 +41,7 @@ class TestImageActivityBuffer : public ActivityBuffer {
   protected:
    TestImageActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

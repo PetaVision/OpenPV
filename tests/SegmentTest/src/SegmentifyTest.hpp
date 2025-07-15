@@ -8,10 +8,7 @@ namespace PV {
 
 class SegmentifyTest : public PV::Segmentify {
   public:
-   SegmentifyTest(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SegmentifyTest(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual void fillComponentTable() override;

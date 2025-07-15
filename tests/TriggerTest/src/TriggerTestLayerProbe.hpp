@@ -19,18 +19,12 @@ namespace PV {
 
 class TriggerTestLayerProbe : public PV::BaseObject {
   public:
-   TriggerTestLayerProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TriggerTestLayerProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual void initMessageActionMap() override;
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 

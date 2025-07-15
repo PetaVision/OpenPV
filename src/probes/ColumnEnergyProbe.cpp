@@ -7,11 +7,9 @@
 
 namespace PV {
 
-ColumnEnergyProbe::ColumnEnergyProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+ColumnEnergyProbe::ColumnEnergyProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 Response::Status ColumnEnergyProbe::allocateDataStructures() {
@@ -75,36 +73,29 @@ void ColumnEnergyProbe::calcValues(double timestamp) {
    setValues(energy);
 }
 
-void ColumnEnergyProbe::createComponents(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void ColumnEnergyProbe::createComponents(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createProbeOutputter(params, defaults, comm);
-   createProbeTrigger(params, defaults);
+   createProbeOutputter(paramsIO, comm);
+   createProbeTrigger(paramsIO);
 }
 
-void ColumnEnergyProbe::createProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void ColumnEnergyProbe::createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<ColumnEnergyOutputter>(params, defaults, comm);
+   mProbeOutputter = std::make_shared<ColumnEnergyOutputter>(paramsIO, comm);
 }
 
-void ColumnEnergyProbe::createProbeTrigger(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
+void ColumnEnergyProbe::createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(paramsIO);
 }
 
-void ColumnEnergyProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void ColumnEnergyProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   createComponents(params, defaults, comm);
+   createComponents(paramsIO, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   ProbeInterface::initialize(params, defaults, comm);
+   ProbeInterface::initialize(paramsIO, comm);
 }
 
 void ColumnEnergyProbe::initMessageActionMap() {

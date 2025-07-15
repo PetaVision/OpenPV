@@ -7,10 +7,7 @@ namespace PV {
 
 class GateMaxPoolTestLayer : public HyPerLayer {
   public:
-   GateMaxPoolTestLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   GateMaxPoolTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    ActivityComponent *createActivityComponent() override;

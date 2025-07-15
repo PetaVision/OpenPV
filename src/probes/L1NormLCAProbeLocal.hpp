@@ -11,12 +11,12 @@ namespace PV {
 
 class L1NormLCAProbeLocal : public L1NormProbeLocal {
   public:
-   L1NormLCAProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   L1NormLCAProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~L1NormLCAProbeLocal() {}
 
   protected:
    L1NormLCAProbeLocal() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 };
 
 } // namespace PV

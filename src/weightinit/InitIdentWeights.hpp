@@ -17,18 +17,12 @@ class InitIdentWeights : public InitOneToOneWeights {
    virtual void ioParam_weightInit(ParamsIOSwitch ioSwitch) override;
 
   public:
-   InitIdentWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitIdentWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitIdentWeights();
 
   protected:
    InitIdentWeights();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 }; // class InitIdentWeights
 
 } /* namespace PV */

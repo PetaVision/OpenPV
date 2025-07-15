@@ -19,10 +19,7 @@ namespace PV {
  */
 class SquaredGSynAccumulator : public SingleChannelGSynAccumulator {
   public:
-   SquaredGSynAccumulator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SquaredGSynAccumulator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~SquaredGSynAccumulator();
 
@@ -31,10 +28,7 @@ class SquaredGSynAccumulator : public SingleChannelGSynAccumulator {
   protected:
    SquaredGSynAccumulator() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

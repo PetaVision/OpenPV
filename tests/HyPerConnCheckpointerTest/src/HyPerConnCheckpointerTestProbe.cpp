@@ -20,20 +20,14 @@
 
 HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe() {}
 
-HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   initialize(params, defaults, comm);
+HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 HyPerConnCheckpointerTestProbe::~HyPerConnCheckpointerTestProbe() {}
 
-void HyPerConnCheckpointerTestProbe::initialize(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   return PV::ColProbe::initialize(params, defaults, comm);
+void HyPerConnCheckpointerTestProbe::initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   return PV::ColProbe::initialize(paramsIO, comm);
 }
 
 void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(PV::ParamsIOSwitch ioSwitch) {

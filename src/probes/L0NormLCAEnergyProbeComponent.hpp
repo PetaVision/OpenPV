@@ -27,7 +27,7 @@ class L0NormLCAEnergyProbeComponent : public EnergyProbeComponent {
    /** @} */
 
   public:
-   L0NormLCAEnergyProbeComponent(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   L0NormLCAEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~L0NormLCAEnergyProbeComponent() {}
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
@@ -35,7 +35,7 @@ class L0NormLCAEnergyProbeComponent : public EnergyProbeComponent {
 
   protected:
    L0NormLCAEnergyProbeComponent() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 }; // class EnergyProbeComponent
 
 } // namespace PV

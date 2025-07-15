@@ -12,20 +12,14 @@
 
 namespace PV {
 
-DatastoreDelayTestBuffer::DatastoreDelayTestBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+DatastoreDelayTestBuffer::DatastoreDelayTestBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 DatastoreDelayTestBuffer::~DatastoreDelayTestBuffer() {}
 
-void DatastoreDelayTestBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   InternalStateBuffer::initialize(params, defaults, comm);
+void DatastoreDelayTestBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   InternalStateBuffer::initialize(paramsIO, comm);
    inited = false; // The first call to updateV sets this to true, so that the class knows whether
    // to initialize or not.
 }

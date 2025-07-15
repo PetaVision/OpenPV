@@ -8,9 +8,8 @@ namespace PV {
 
 BufferParamInterface::~BufferParamInterface() {}
 
-void BufferParamInterface::initialize(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   ProbeComponent::initialize(params, defaults);
+void BufferParamInterface::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   ProbeComponent::initialize(paramsIO);
 }
 
 void BufferParamInterface::internal_ioParam_buffer(ParamsIOSwitch ioSwitch) {

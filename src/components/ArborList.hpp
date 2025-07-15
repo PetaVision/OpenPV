@@ -41,10 +41,7 @@ class ArborList : public BaseObject {
    /** @} */ // end of ArborList parameters
 
   public:
-   ArborList(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ArborList(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~ArborList();
 
    /**
@@ -57,10 +54,7 @@ class ArborList : public BaseObject {
   protected:
    ArborList();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

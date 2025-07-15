@@ -53,10 +53,7 @@ class TransposePoolingDelivery : public BaseDelivery {
    virtual void ioParam_updateGSynFromPostPerspective(ParamsIOSwitch ioSwitch);
 
   public:
-   TransposePoolingDelivery(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TransposePoolingDelivery(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~TransposePoolingDelivery();
 
@@ -69,10 +66,7 @@ class TransposePoolingDelivery : public BaseDelivery {
   protected:
    TransposePoolingDelivery();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

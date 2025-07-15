@@ -10,22 +10,16 @@
 
 namespace PV {
 
-InputLayerUpdateController::InputLayerUpdateController(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+InputLayerUpdateController::InputLayerUpdateController(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 InputLayerUpdateController::InputLayerUpdateController() {}
 
 InputLayerUpdateController::~InputLayerUpdateController() {}
 
-void InputLayerUpdateController::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   LayerUpdateController::initialize(params, defaults, comm);
+void InputLayerUpdateController::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   LayerUpdateController::initialize(paramsIO, comm);
 }
 
 void InputLayerUpdateController::setObjectType() { mObjectType = "InputLayerUpdateController"; }

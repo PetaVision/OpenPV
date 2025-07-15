@@ -9,11 +9,8 @@
 
 namespace PV {
 
-BasePublisherComponent::BasePublisherComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+BasePublisherComponent::BasePublisherComponent(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 BasePublisherComponent::BasePublisherComponent() {}
@@ -24,11 +21,8 @@ BasePublisherComponent::~BasePublisherComponent() {
    delete mPublisher;
 }
 
-void BasePublisherComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void BasePublisherComponent::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void BasePublisherComponent::setObjectType() { mObjectType = "BasePublisherComponent"; }

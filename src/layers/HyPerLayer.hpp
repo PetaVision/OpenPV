@@ -49,10 +49,7 @@ namespace PV {
  */
 class HyPerLayer : public ComponentBasedObject {
   public:
-   HyPerLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   HyPerLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~HyPerLayer();
 
    void synchronizeMarginWidth(HyPerLayer *layer);
@@ -87,10 +84,7 @@ class HyPerLayer : public ComponentBasedObject {
 
   protected:
    HyPerLayer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void initMessageActionMap() override;
    virtual void fillComponentTable() override;

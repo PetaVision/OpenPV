@@ -13,11 +13,9 @@
 
 namespace PV {
 
-CloneVLayer::CloneVLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+CloneVLayer::CloneVLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 CloneVLayer::CloneVLayer() {
@@ -26,11 +24,9 @@ CloneVLayer::CloneVLayer() {
 
 CloneVLayer::~CloneVLayer() {}
 
-void CloneVLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void CloneVLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 void CloneVLayer::fillComponentTable() {
@@ -42,18 +38,18 @@ void CloneVLayer::fillComponentTable() {
 }
 
 OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO, mCommunicator);
 }
 
 LayerGeometry *CloneVLayer::createLayerGeometry() {
-   return new CloneLayerGeometry(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new CloneLayerGeometry(mParamsIO, mCommunicator);
 }
 
 LayerInputBuffer *CloneVLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *CloneVLayer::createActivityComponent() {
    return new CloneActivityComponent<CloneInternalStateBuffer, HyPerActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } /* namespace PV */

@@ -17,22 +17,16 @@
 
 namespace PV {
 
-PoolingDelivery::PoolingDelivery(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+PoolingDelivery::PoolingDelivery(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 PoolingDelivery::PoolingDelivery() {}
 
 PoolingDelivery::~PoolingDelivery() {}
 
-void PoolingDelivery::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseDelivery::initialize(params, defaults, comm);
+void PoolingDelivery::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseDelivery::initialize(paramsIO, comm);
 }
 
 void PoolingDelivery::setObjectType() { mObjectType = "PoolingDelivery"; }

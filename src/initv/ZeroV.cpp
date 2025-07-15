@@ -10,23 +10,19 @@
 namespace PV {
 ZeroV::ZeroV() { initialize_base(); }
 
-ZeroV::ZeroV(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+ZeroV::ZeroV(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ZeroV::~ZeroV() {}
 
 int ZeroV::initialize_base() { return PV_SUCCESS; }
 
-void ZeroV::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void ZeroV::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   ConstantV::initialize(params, defaults, comm);
+   ConstantV::initialize(paramsIO, comm);
 }
 
 void ZeroV::ioParam_valueV(ParamsIOSwitch ioSwitch) {

@@ -11,11 +11,8 @@
 
 namespace PV {
 
-ComponentBuffer::ComponentBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+ComponentBuffer::ComponentBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 ComponentBuffer::~ComponentBuffer() {
@@ -24,11 +21,8 @@ ComponentBuffer::~ComponentBuffer() {
 #endif // PV_USE_CUDA
 }
 
-void ComponentBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void ComponentBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
    mBufferLabel = "";
 }
 

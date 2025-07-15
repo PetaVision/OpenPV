@@ -25,11 +25,8 @@
 
 #include <cmath>
 
-FilenameParsingProbe::FilenameParsingProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+FilenameParsingProbe::FilenameParsingProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 FilenameParsingProbe::~FilenameParsingProbe() {}
@@ -64,15 +61,12 @@ Response::Status FilenameParsingProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-void FilenameParsingProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
+void FilenameParsingProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(paramsIO);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(params, defaults, comm);
+   BaseObject::initialize(paramsIO, comm);
 }
 
 int FilenameParsingProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

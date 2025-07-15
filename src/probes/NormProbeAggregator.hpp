@@ -11,10 +11,7 @@ namespace PV {
 
 class NormProbeAggregator : public ProbeComponent {
   public:
-   NormProbeAggregator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         std::shared_ptr<MPIBlock const> mpiBlock);
+   NormProbeAggregator(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock);
    virtual ~NormProbeAggregator() {}
 
    void aggregateStoredValues(ProbeDataBuffer<double> const &partialStore);
@@ -28,7 +25,7 @@ class NormProbeAggregator : public ProbeComponent {
    virtual void aggregateNormsBatch(
          ProbeData<double> &aggregatedNormsBatch,
          ProbeData<double> const &partialNormsBatch);
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, std::shared_ptr<MPIBlock const> mpiBlock);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock);
 
   private:
    std::shared_ptr<MPIBlock const> mMPIBlock;

@@ -31,10 +31,7 @@ class HyPerDelivery : public BaseDelivery {
    void ioParam_receiveGpu(ParamsIOSwitch ioSwitch) override;
 
   public:
-   HyPerDelivery(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   HyPerDelivery(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~HyPerDelivery();
 
@@ -45,10 +42,7 @@ class HyPerDelivery : public BaseDelivery {
   protected:
    HyPerDelivery();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

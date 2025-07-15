@@ -12,11 +12,9 @@
 #include "components/FilenameParsingLayerUpdateController.hpp"
 
 namespace PV {
-FilenameParsingLayer::FilenameParsingLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+FilenameParsingLayer::FilenameParsingLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 FilenameParsingLayer::~FilenameParsingLayer() {}
@@ -32,16 +30,16 @@ void FilenameParsingLayer::fillComponentTable() {
 LayerInputBuffer *FilenameParsingLayer::createLayerInput() { return nullptr; }
 
 LayerUpdateController *FilenameParsingLayer::createLayerUpdateController() {
-   return new FilenameParsingLayerUpdateController(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new FilenameParsingLayerUpdateController(mParamsIO, mCommunicator);
 }
 
 ActivityComponent *FilenameParsingLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<FilenameParsingActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 InputLayerNameParam *FilenameParsingLayer::createInputLayerNameParam() {
-   return new InputLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new InputLayerNameParam(mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

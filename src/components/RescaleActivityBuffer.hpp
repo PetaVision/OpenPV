@@ -109,10 +109,7 @@ class RescaleActivityBuffer : public ActivityBuffer {
       LOGREG
    };
 
-   RescaleActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   RescaleActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~RescaleActivityBuffer();
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
@@ -128,10 +125,7 @@ class RescaleActivityBuffer : public ActivityBuffer {
 
   protected:
    RescaleActivityBuffer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status

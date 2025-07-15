@@ -31,10 +31,7 @@ class StatsProbe : public BaseObject {
    virtual void ioParam_immediateMPIAssembly(ParamsIOSwitch ioSwitch);
 
   public:
-   StatsProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   StatsProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~StatsProbe();
 
    HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
@@ -49,30 +46,15 @@ class StatsProbe : public BaseObject {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void createComponents(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   virtual void createComponents(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
-   virtual void createProbeAggregator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeLocal(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
-   virtual void createProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeTrigger(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
-   virtual void createTargetLayerComponent(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual void createProbeAggregator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
+   virtual void createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO);
+   virtual void createTargetLayerComponent(std::shared_ptr<ParamsIO> paramsIO);
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;

@@ -33,20 +33,14 @@ class CloneInternalStateBuffer : public InternalStateBuffer {
 
    /** @} */
   public:
-   CloneInternalStateBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   CloneInternalStateBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~CloneInternalStateBuffer();
 
   protected:
    CloneInternalStateBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

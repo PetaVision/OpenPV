@@ -9,26 +9,22 @@
 
 namespace PV {
 
-FeedbackConn::FeedbackConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+FeedbackConn::FeedbackConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 FeedbackConn::FeedbackConn() {}
 
 FeedbackConn::~FeedbackConn() {}
 
-void FeedbackConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void FeedbackConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   TransposeConn::initialize(params, defaults, comm);
+   TransposeConn::initialize(paramsIO, comm);
 }
 
 ConnectionData *FeedbackConn::createConnectionData() {
-   return new FeedbackConnectionData(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new FeedbackConnectionData(mParamsIO, mCommunicator);
 }
 
 } // namespace PV

@@ -4,25 +4,21 @@
 
 namespace PV {
 
-PvpListLayer::PvpListLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+PvpListLayer::PvpListLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 PvpListLayer::~PvpListLayer() {}
 
-void PvpListLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void PvpListLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InputLayer::initialize(params, defaults, comm);
+   InputLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *PvpListLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<PvpListActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

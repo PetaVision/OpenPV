@@ -17,10 +17,7 @@ class InitSpreadOverArborsWeights : public InitGauss2DWeights {
    virtual void ioParam_weightInit(ParamsIOSwitch ioSwitch);
 
   public:
-   InitSpreadOverArborsWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitSpreadOverArborsWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitSpreadOverArborsWeights();
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
@@ -29,10 +26,7 @@ class InitSpreadOverArborsWeights : public InitGauss2DWeights {
 
   protected:
    InitSpreadOverArborsWeights();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   private:
    int spreadOverArborsWeights(float *dataStart, int arborId);

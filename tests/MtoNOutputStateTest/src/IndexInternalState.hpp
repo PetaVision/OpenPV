@@ -22,18 +22,12 @@ class IndexInternalState : public InternalStateBuffer {
    virtual void ioParam_InitVType(ParamsIOSwitch ioSwitch) override;
 
   public:
-   IndexInternalState(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   IndexInternalState(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    ~IndexInternalState();
 
   protected:
    IndexInternalState();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual void updateBufferCPU(double simTime, double deltaTime) override;

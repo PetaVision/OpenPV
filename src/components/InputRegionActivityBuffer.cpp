@@ -12,20 +12,14 @@
 
 namespace PV {
 
-InputRegionActivityBuffer::InputRegionActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+InputRegionActivityBuffer::InputRegionActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 InputRegionActivityBuffer::~InputRegionActivityBuffer() {}
 
-void InputRegionActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityBuffer::initialize(params, defaults, comm);
+void InputRegionActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityBuffer::initialize(paramsIO, comm);
    mCheckpointFlag = false; // Turns off checkpointing
 }
 

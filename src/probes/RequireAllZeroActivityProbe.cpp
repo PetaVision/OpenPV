@@ -17,11 +17,9 @@
 
 namespace PV {
 
-RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 RequireAllZeroActivityProbe::RequireAllZeroActivityProbe() {}
@@ -53,29 +51,23 @@ Response::Status RequireAllZeroActivityProbe::cleanup() {
    return Response::SUCCESS;
 }
 
-void RequireAllZeroActivityProbe::createComponents(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void RequireAllZeroActivityProbe::createComponents(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   StatsProbeImmediate::createComponents(params, defaults, comm);
-   createProbeCheckStats(params, defaults);
+   StatsProbeImmediate::createComponents(paramsIO, comm);
+   createProbeCheckStats(paramsIO);
 }
 
-void RequireAllZeroActivityProbe::createProbeCheckStats(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mCheckStats = std::make_shared<CheckStatsAllZeros>(params, defaults);
+void RequireAllZeroActivityProbe::createProbeCheckStats(std::shared_ptr<ParamsIO> paramsIO) {
+   mCheckStats = std::make_shared<CheckStatsAllZeros>(paramsIO);
 }
 
-void RequireAllZeroActivityProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
+void RequireAllZeroActivityProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(paramsIO);
 }
 
-void RequireAllZeroActivityProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void RequireAllZeroActivityProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 int RequireAllZeroActivityProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

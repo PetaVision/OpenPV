@@ -8,18 +8,12 @@ namespace PV {
 
 class Segmentify : public HyPerLayer {
   public:
-   Segmentify(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   Segmentify(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~Segmentify();
 
   protected:
    Segmentify();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual void fillComponentTable() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual LayerInputBuffer *createLayerInput() override;

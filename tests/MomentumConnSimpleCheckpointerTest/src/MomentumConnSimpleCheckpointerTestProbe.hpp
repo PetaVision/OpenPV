@@ -21,10 +21,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    /**
     * Public constructor for the MomentumConnSimpleCheckpointerTestProbe class.
     */
-   MomentumConnSimpleCheckpointerTestProbe(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   MomentumConnSimpleCheckpointerTestProbe(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
 
    /**
     * Destructor for the MomentumConnSimpleCheckpointerTestProbe class.
@@ -40,10 +37,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    bool getTestFailed() const { return mTestFailed; }
 
   protected:
-   void initialize(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   void initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
    virtual void ioParam_textOutputFlag(PV::ParamsIOSwitch ioSwitch) override;
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;

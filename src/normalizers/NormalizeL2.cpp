@@ -12,21 +12,17 @@ namespace PV {
 
 NormalizeL2::NormalizeL2() { initialize_base(); }
 
-NormalizeL2::NormalizeL2(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+NormalizeL2::NormalizeL2(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 int NormalizeL2::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeL2::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void NormalizeL2::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   NormalizeMultiply::initialize(params, defaults, comm);
+   NormalizeMultiply::initialize(paramsIO, comm);
 }
 
 int NormalizeL2::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

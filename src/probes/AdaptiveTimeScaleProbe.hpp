@@ -66,10 +66,7 @@ class AdaptiveTimeScaleProbe : public ProbeInterface {
    /** @} */
 
   public:
-   AdaptiveTimeScaleProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   AdaptiveTimeScaleProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~AdaptiveTimeScaleProbe();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -77,18 +74,10 @@ class AdaptiveTimeScaleProbe : public ProbeInterface {
 
   protected:
    AdaptiveTimeScaleProbe();
-   virtual void createComponents(
-         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeOutputter(
-         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeTrigger(
-         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   virtual void createComponents(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual void initMessageActionMap() override;
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual Response::Status prepareCheckpointWrite(double simTime) override;

@@ -11,10 +11,7 @@ namespace PV {
 
 class MPITestProbeOutputter : public StatsProbeOutputter {
   public:
-   MPITestProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   MPITestProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~MPITestProbeOutputter();
 
    void printGlobalXPosStats(

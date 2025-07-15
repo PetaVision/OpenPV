@@ -293,7 +293,7 @@ StatsProbeOutputter initStatsProbeOutputter(PV_Init &pv_initObj) {
    std::string probeName("probe");
    PVParams probeParams = generateProbeParams(probeName, comm);
    auto paramsIO = probeParams.makeParamsIO(probeName);
-   StatsProbeOutputter statsProbeOutputter(paramsIO->getParams(), paramsIO->getDefaults(), comm);
+   StatsProbeOutputter statsProbeOutputter(paramsIO, comm);
    statsProbeOutputter.ioParamsFillGroup(ParamsIOSwitch::Read);
 
    // create the output files.

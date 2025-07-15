@@ -17,14 +17,14 @@ class FirmThresholdCostFnProbeLocal : public BaseFirmThresholdCostFnProbeLocal {
    virtual void ioParam_VWidth(ParamsIOSwitch ioSwitch);
 
   public:
-   FirmThresholdCostFnProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   FirmThresholdCostFnProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~FirmThresholdCostFnProbeLocal() {}
    virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    FirmThresholdCostFnProbeLocal() {}
    virtual std::shared_ptr<FirmThresholdCostFunctionSum const> createCostFunctionSum() override;
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
   protected:
    double mVThresh = 0.0;

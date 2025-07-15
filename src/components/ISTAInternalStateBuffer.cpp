@@ -14,20 +14,14 @@ namespace PV {
 
 ISTAInternalStateBuffer::ISTAInternalStateBuffer() {}
 
-ISTAInternalStateBuffer::ISTAInternalStateBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+ISTAInternalStateBuffer::ISTAInternalStateBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 ISTAInternalStateBuffer::~ISTAInternalStateBuffer() {}
 
-void ISTAInternalStateBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(params, defaults, comm);
+void ISTAInternalStateBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerInternalStateBuffer::initialize(paramsIO, comm);
 }
 
 int ISTAInternalStateBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

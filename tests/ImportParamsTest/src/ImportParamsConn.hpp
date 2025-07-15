@@ -7,10 +7,7 @@ namespace PV {
 
 class ImportParamsConn : public PV::HyPerConn {
   public:
-   ImportParamsConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ImportParamsConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual Response::Status
@@ -18,10 +15,7 @@ class ImportParamsConn : public PV::HyPerConn {
    virtual Response::Status allocateDataStructures() override;
 
   private:
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    int initialize_base();
 };
 

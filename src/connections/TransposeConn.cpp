@@ -12,22 +12,18 @@
 
 namespace PV {
 
-TransposeConn::TransposeConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+TransposeConn::TransposeConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 TransposeConn::TransposeConn() {}
 
 TransposeConn::~TransposeConn() {}
 
-void TransposeConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void TransposeConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerConn::initialize(params, defaults, comm);
+   HyPerConn::initialize(paramsIO, comm);
    mWriteInitializeFromCheckpointFlag = false;
 }
 
@@ -40,19 +36,19 @@ void TransposeConn::fillComponentTable() {
 }
 
 ArborList *TransposeConn::createArborList() {
-   return new DependentArborList(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentArborList(mParamsIO, mCommunicator);
 }
 
 PatchSize *TransposeConn::createPatchSize() {
-   return new TransposePatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new TransposePatchSize(mParamsIO, mCommunicator);
 }
 
 SharedWeights *TransposeConn::createSharedWeights() {
-   return new DependentSharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentSharedWeights(mParamsIO, mCommunicator);
 }
 
 WeightsPairInterface *TransposeConn::createWeightsPair() {
-   return new TransposeWeightsPair(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new TransposeWeightsPair(mParamsIO, mCommunicator);
 }
 
 InitWeights *TransposeConn::createWeightInitializer() { return nullptr; }
@@ -62,7 +58,7 @@ NormalizeBase *TransposeConn::createWeightNormalizer() { return nullptr; }
 BaseWeightUpdater *TransposeConn::createWeightUpdater() { return nullptr; }
 
 OriginalConnNameParam *TransposeConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalConnNameParam(mParamsIO, mCommunicator);
 }
 
 Response::Status

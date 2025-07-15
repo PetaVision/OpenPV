@@ -8,22 +8,16 @@
 
 namespace PV {
 
-StatsProbeImmediate::StatsProbeImmediate(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+StatsProbeImmediate::StatsProbeImmediate(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 StatsProbeImmediate::StatsProbeImmediate() {}
 
 StatsProbeImmediate::~StatsProbeImmediate() {}
 
-void StatsProbeImmediate::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbe::initialize(params, defaults, comm);
+void StatsProbeImmediate::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbe::initialize(paramsIO, comm);
 }
 
 void StatsProbeImmediate::ioParam_immediateMPIAssembly(ParamsIOSwitch ioSwitch) {

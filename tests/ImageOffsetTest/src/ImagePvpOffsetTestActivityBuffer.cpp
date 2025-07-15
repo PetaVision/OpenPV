@@ -2,11 +2,8 @@
 
 namespace PV {
 
-ImagePvpOffsetTestActivityBuffer::ImagePvpOffsetTestActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   PvpActivityBuffer::initialize(params, defaults, comm);
+ImagePvpOffsetTestActivityBuffer::ImagePvpOffsetTestActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   PvpActivityBuffer::initialize(paramsIO, comm);
 }
 
 void ImagePvpOffsetTestActivityBuffer::ioParam_displayPeriod(ParamsIOSwitch ioSwitch) {

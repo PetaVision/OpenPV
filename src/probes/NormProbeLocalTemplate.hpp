@@ -20,7 +20,7 @@ namespace PV {
 template <class C>
 class NormProbeLocalTemplate : public NormProbeLocalInterface {
   public:
-   NormProbeLocalTemplate(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   NormProbeLocalTemplate(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~NormProbeLocalTemplate() {}
 
    virtual void initializeState(HyPerLayer *targetLayer) override;
@@ -28,7 +28,7 @@ class NormProbeLocalTemplate : public NormProbeLocalInterface {
   protected:
    NormProbeLocalTemplate() {}
    virtual std::shared_ptr<C const> createCostFunctionSum() { return nullptr; }
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
   private:
    void calculateNorms(double simTime, ProbeData<double> &values) const override;
@@ -38,8 +38,8 @@ class NormProbeLocalTemplate : public NormProbeLocalInterface {
 };
 
 template <class C>
-NormProbeLocalTemplate<C>::NormProbeLocalTemplate(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+NormProbeLocalTemplate<C>::NormProbeLocalTemplate(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 template <class C>
@@ -55,8 +55,8 @@ void NormProbeLocalTemplate<C>::calculateNorms(double simTime, ProbeData<double>
 }
 
 template <class C>
-void NormProbeLocalTemplate<C>::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   NormProbeLocalInterface::initialize(params, defaults);
+void NormProbeLocalTemplate<C>::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   NormProbeLocalInterface::initialize(paramsIO);
 }
 
 template <class C>

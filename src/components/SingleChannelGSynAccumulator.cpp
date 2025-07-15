@@ -9,20 +9,14 @@
 
 namespace PV {
 
-SingleChannelGSynAccumulator::SingleChannelGSynAccumulator(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+SingleChannelGSynAccumulator::SingleChannelGSynAccumulator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 SingleChannelGSynAccumulator::~SingleChannelGSynAccumulator() {}
 
-void SingleChannelGSynAccumulator::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   GSynAccumulator::initialize(params, defaults, comm);
+void SingleChannelGSynAccumulator::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   GSynAccumulator::initialize(paramsIO, comm);
 }
 
 void SingleChannelGSynAccumulator::setObjectType() { mObjectType = "SingleChannelGSynAccumulator"; }

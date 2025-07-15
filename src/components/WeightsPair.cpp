@@ -15,20 +15,14 @@
 
 namespace PV {
 
-WeightsPair::WeightsPair(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+WeightsPair::WeightsPair(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 WeightsPair::~WeightsPair() {}
 
-void WeightsPair::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   WeightsPairInterface::initialize(params, defaults, comm);
+void WeightsPair::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   WeightsPairInterface::initialize(paramsIO, comm);
 }
 
 void WeightsPair::initMessageActionMap() {

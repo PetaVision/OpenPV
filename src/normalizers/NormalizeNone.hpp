@@ -20,18 +20,12 @@ class NormalizeNone : public NormalizeBase {
    virtual void ioParam_normalizeOnWeightUpdate(ParamsIOSwitch ioSwitch) override {}
 
   public:
-   NormalizeNone(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   NormalizeNone(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~NormalizeNone();
 
   protected:
    NormalizeNone();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

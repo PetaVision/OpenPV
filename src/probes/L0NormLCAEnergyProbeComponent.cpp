@@ -5,14 +5,12 @@
 #include <cstdlib>
 
 namespace PV {
-L0NormLCAEnergyProbeComponent::L0NormLCAEnergyProbeComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+L0NormLCAEnergyProbeComponent::L0NormLCAEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
-void L0NormLCAEnergyProbeComponent::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   EnergyProbeComponent::initialize(params, defaults);
+void L0NormLCAEnergyProbeComponent::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   EnergyProbeComponent::initialize(paramsIO);
 }
 
 Response::Status L0NormLCAEnergyProbeComponent::communicateInitInfo(

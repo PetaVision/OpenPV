@@ -58,10 +58,7 @@ class ScaleYActivityBuffer : public HyPerActivityBuffer {
    /** @} */
 
   public:
-   ScaleYActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ScaleYActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
@@ -72,10 +69,7 @@ class ScaleYActivityBuffer : public HyPerActivityBuffer {
    virtual Response::Status allocateDataStructures() override;
    void applyTransformCPU(
          Buffer<float> const &inputBuffer, Buffer<float> &outputBuffer, float scaleFactor);
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    void copyRandStateToCheckpointData();

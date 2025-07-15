@@ -11,11 +11,9 @@
 namespace PV {
 
 PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
+      std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
    mCorrectReceiveGpu = true;
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery() {
@@ -29,11 +27,9 @@ PostsynapticPerspectiveGPUDelivery::~PostsynapticPerspectiveGPUDelivery() {
 }
 
 void PostsynapticPerspectiveGPUDelivery::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
+      std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
    mReceiveGpu = true; // If it's false, we should be using a different class.
-   HyPerDelivery::initialize(params, defaults, comm);
+   HyPerDelivery::initialize(paramsIO, comm);
 }
 
 void PostsynapticPerspectiveGPUDelivery::setObjectType() {

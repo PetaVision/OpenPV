@@ -27,26 +27,21 @@
 
 namespace PV {
 
-InitWeights::InitWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitWeights::InitWeights(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitWeights::InitWeights() {}
 
 InitWeights::~InitWeights() {}
 
-void InitWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitWeights::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void InitWeights::setObjectType() {
-   ParamsIO paramsIO(mParamsIO->getParams(), mParamsIO->getDefaults());
    std::string initType;
    mParamsIO->ioParam(
          ParamsIOSwitch::Read, "weightInitType", &initType, false /*warnIfAbsentFlag*/);

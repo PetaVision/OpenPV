@@ -62,10 +62,7 @@ class HyPerDeliveryCreator : public BaseObject {
   public:
    enum AccumulateType { UNDEFINED, CONVOLVE, STOCHASTIC };
 
-   HyPerDeliveryCreator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   HyPerDeliveryCreator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~HyPerDeliveryCreator();
 
@@ -80,10 +77,7 @@ class HyPerDeliveryCreator : public BaseObject {
   protected:
    HyPerDeliveryCreator();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

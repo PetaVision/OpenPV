@@ -18,20 +18,14 @@ using namespace PV;
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() {}
 
-PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 PoolingConnCheckpointerTestProbe::~PoolingConnCheckpointerTestProbe() {}
 
-void PoolingConnCheckpointerTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   return ColProbe::initialize(params, defaults, comm);
+void PoolingConnCheckpointerTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   return ColProbe::initialize(paramsIO, comm);
 }
 
 void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(ParamsIOSwitch ioSwitch) {

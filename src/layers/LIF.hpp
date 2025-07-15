@@ -15,19 +15,13 @@ namespace PV {
 
 class LIF : public HyPerLayer {
   public:
-   LIF(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   LIF(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~LIF();
 
   protected:
    LIF();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

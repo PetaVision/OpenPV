@@ -7,15 +7,12 @@
 #include "TriggerTestUpdater.hpp"
 
 namespace PV {
-TriggerTestConn::TriggerTestConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerConn::initialize(params, defaults, comm);
+TriggerTestConn::TriggerTestConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerConn::initialize(paramsIO, comm);
 }
 
 BaseWeightUpdater *TriggerTestConn::createWeightUpdater() {
-   return new TriggerTestUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new TriggerTestUpdater(mParamsIO, mCommunicator);
 }
 
 } // namespace PV

@@ -30,11 +30,8 @@ void CheckStatsProbe::ioParam_tolerance(PV::ParamsIOSwitch ioSwitch) {
    mParamsIO->ioParam(ioSwitch, "tolerance", &mTolerance);
 }
 
-CheckStatsProbe::CheckStatsProbe(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   initialize(params, defaults, comm);
+CheckStatsProbe::CheckStatsProbe(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 CheckStatsProbe::CheckStatsProbe() {}
@@ -91,11 +88,8 @@ void CheckStatsProbe::checkStats() {
    FatalIf(status != PV_SUCCESS, "%s failed.\n", getDescription_c());
 }
 
-void CheckStatsProbe::initialize(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void CheckStatsProbe::initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 int CheckStatsProbe::ioParamsFillGroup(PV::ParamsIOSwitch ioSwitch) {

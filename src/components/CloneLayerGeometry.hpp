@@ -48,19 +48,13 @@ class CloneLayerGeometry : public LayerGeometry {
    /** @} */ // end of CloneLayerGeometry parameters
 
   public:
-   CloneLayerGeometry(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   CloneLayerGeometry(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~CloneLayerGeometry();
 
   protected:
    CloneLayerGeometry();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

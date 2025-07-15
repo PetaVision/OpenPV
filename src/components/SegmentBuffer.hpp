@@ -20,10 +20,7 @@ class SegmentBuffer : public ActivityBuffer {
    void ioParam_segmentMethod(ParamsIOSwitch ioSwitch);
 
   public:
-   SegmentBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SegmentBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~SegmentBuffer();
 
    virtual Response::Status allocateDataStructures() override;
@@ -32,10 +29,7 @@ class SegmentBuffer : public ActivityBuffer {
 
   protected:
    SegmentBuffer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -21,20 +21,14 @@ namespace PV {
  */
 class PlasticConnTestActivityBuffer : public ActivityBuffer {
   public:
-   PlasticConnTestActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   PlasticConnTestActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~PlasticConnTestActivityBuffer();
 
   protected:
    PlasticConnTestActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

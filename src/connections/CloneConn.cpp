@@ -13,22 +13,18 @@
 
 namespace PV {
 
-CloneConn::CloneConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+CloneConn::CloneConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 CloneConn::CloneConn() {}
 
 CloneConn::~CloneConn() {}
 
-void CloneConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void CloneConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerConn::initialize(params, defaults, comm);
+   HyPerConn::initialize(paramsIO, comm);
 }
 
 void CloneConn::fillComponentTable() {
@@ -40,25 +36,25 @@ void CloneConn::fillComponentTable() {
 }
 
 BaseDelivery *CloneConn::createDeliveryObject() {
-   auto *deliveryCreator = new CloneDeliveryCreator(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   auto *deliveryCreator = new CloneDeliveryCreator(mParamsIO, mCommunicator);
    addUniqueComponent(deliveryCreator);
    return deliveryCreator->create();
 }
 
 ArborList *CloneConn::createArborList() {
-   return new DependentArborList(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentArborList(mParamsIO, mCommunicator);
 }
 
 PatchSize *CloneConn::createPatchSize() {
-   return new DependentPatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentPatchSize(mParamsIO, mCommunicator);
 }
 
 SharedWeights *CloneConn::createSharedWeights() {
-   return new DependentSharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentSharedWeights(mParamsIO, mCommunicator);
 }
 
 WeightsPairInterface *CloneConn::createWeightsPair() {
-   return new CloneWeightsPair(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new CloneWeightsPair(mParamsIO, mCommunicator);
 }
 
 InitWeights *CloneConn::createWeightInitializer() { return nullptr; }
@@ -68,7 +64,7 @@ NormalizeBase *CloneConn::createWeightNormalizer() { return nullptr; }
 BaseWeightUpdater *CloneConn::createWeightUpdater() { return nullptr; }
 
 OriginalConnNameParam *CloneConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalConnNameParam(mParamsIO, mCommunicator);
 }
 
 Response::Status CloneConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {

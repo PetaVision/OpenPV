@@ -203,8 +203,7 @@ void printGlobalStats(PV_Init &pv_init) {
    std::string probeName("probe");
    PVParams probeParams = generateProbeParams(probeName, comm);
    auto paramsIO = probeParams.makeParamsIO(probeName);
-   ColumnEnergyOutputter columnEnergyOutputter(
-         paramsIO->getParams(), paramsIO->getDefaults(), comm);
+   ColumnEnergyOutputter columnEnergyOutputter(paramsIO, comm);
    columnEnergyOutputter.ioParamsFillGroup(ParamsIOSwitch::Read);
 
    // create the output files.

@@ -9,26 +9,22 @@
 
 namespace PV {
 
-MomentumConn::MomentumConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+MomentumConn::MomentumConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 MomentumConn::MomentumConn() {}
 
 MomentumConn::~MomentumConn() {}
 
-void MomentumConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void MomentumConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerConn::initialize(params, defaults, comm);
+   HyPerConn::initialize(paramsIO, comm);
 }
 
 BaseWeightUpdater *MomentumConn::createWeightUpdater() {
-   return new MomentumUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new MomentumUpdater(mParamsIO, mCommunicator);
 }
 
 } // namespace PV

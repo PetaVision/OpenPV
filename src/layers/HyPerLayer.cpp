@@ -21,11 +21,9 @@ namespace PV {
 // derived classes.  It should NOT call any virtual methods
 HyPerLayer::HyPerLayer() {}
 
-HyPerLayer::HyPerLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+HyPerLayer::HyPerLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 HyPerLayer::~HyPerLayer() {}
@@ -35,11 +33,9 @@ HyPerLayer::~HyPerLayer() {}
 /// to take advantage of virtual methods.  Note that the HyPerLayer constructor
 /// does not call initialize.  This way, HyPerLayer::initialize can call virtual
 /// methods and the derived class's method will be the one that gets called.
-void HyPerLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void HyPerLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   ComponentBasedObject::initialize(params, defaults, comm);
+   ComponentBasedObject::initialize(paramsIO, comm);
 
    // The layer writes this flag to output params file. ParamsInterface-derived components of the
    // layer will automatically read InitializeFromCheckpointFlag, but shouldn't also write it.
@@ -156,37 +152,37 @@ void HyPerLayer::fillComponentTable() {
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() {
-   return new LayerGeometry(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new LayerGeometry(mParamsIO, mCommunicator);
 }
 
 PhaseParam *HyPerLayer::createPhaseParam() {
-   return new PhaseParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new PhaseParam(mParamsIO, mCommunicator);
 }
 
 BoundaryConditions *HyPerLayer::createBoundaryConditions() {
-   return new BoundaryConditions(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new BoundaryConditions(mParamsIO, mCommunicator);
 }
 
 LayerUpdateController *HyPerLayer::createLayerUpdateController() {
-   return new LayerUpdateController(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new LayerUpdateController(mParamsIO, mCommunicator);
 }
 
 LayerInputBuffer *HyPerLayer::createLayerInput() {
-   return new LayerInputBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new LayerInputBuffer(mParamsIO, mCommunicator);
 }
 
 ActivityComponent *HyPerLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+                                     HyPerActivityBuffer>(mParamsIO, mCommunicator);
 }
 
 BasePublisherComponent *HyPerLayer::createPublisher() {
-   return new PublisherComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new PublisherComponent(mParamsIO, mCommunicator);
 }
 
 LayerOutputComponent *HyPerLayer::createLayerOutput() {
-   return new LayerOutputComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new LayerOutputComponent(mParamsIO, mCommunicator);
 }
 
 /******************************************************************

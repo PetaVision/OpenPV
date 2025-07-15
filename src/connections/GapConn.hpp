@@ -14,10 +14,7 @@ namespace PV {
 
 class GapConn : public HyPerConn {
   public:
-   GapConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   GapConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~GapConn();
 }; // end class GapConn
 

@@ -13,25 +13,19 @@ namespace PV {
 
 NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights() {}
 
-NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : HyPerConn() {
-   NonsharedConnDebugInitWeights::initialize(params, defaults, comm);
+   NonsharedConnDebugInitWeights::initialize(paramsIO, comm);
 }
 
 NonsharedConnDebugInitWeights::~NonsharedConnDebugInitWeights() {}
 
-void NonsharedConnDebugInitWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerConn::initialize(params, defaults, comm);
+void NonsharedConnDebugInitWeights::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerConn::initialize(paramsIO, comm);
 }
 
 SharedWeights *NonsharedConnDebugInitWeights::createSharedWeights() {
-   return new SharedWeightsFalse(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new SharedWeightsFalse(mParamsIO, mCommunicator);
 }
 
 int NonsharedConnDebugInitWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

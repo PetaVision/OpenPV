@@ -12,12 +12,9 @@
 
 namespace PV {
 
-ArborTestForOnesProbe::ArborTestForOnesProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+ArborTestForOnesProbe::ArborTestForOnesProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ArborTestForOnesProbe::~ArborTestForOnesProbe() {}
@@ -66,10 +63,9 @@ int ArborTestForOnesProbe::checkValue(
 }
 
 void ArborTestForOnesProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+      std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 } /* namespace PV */

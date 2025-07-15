@@ -10,23 +10,19 @@
 
 namespace PV {
 
-PostsynapticPerspectiveConvolveDelivery::PostsynapticPerspectiveConvolveDelivery(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+PostsynapticPerspectiveConvolveDelivery::PostsynapticPerspectiveConvolveDelivery(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 PostsynapticPerspectiveConvolveDelivery::PostsynapticPerspectiveConvolveDelivery() {}
 
 PostsynapticPerspectiveConvolveDelivery::~PostsynapticPerspectiveConvolveDelivery() {}
 
-void PostsynapticPerspectiveConvolveDelivery::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void PostsynapticPerspectiveConvolveDelivery::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    mReceiveGpu = false; // If it's true, we should be using a different class.
-   HyPerDelivery::initialize(params, defaults, comm);
+   HyPerDelivery::initialize(paramsIO, comm);
 }
 
 void PostsynapticPerspectiveConvolveDelivery::setObjectType() {

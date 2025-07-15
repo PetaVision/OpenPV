@@ -34,10 +34,7 @@ class SharedWeights : public BaseObject {
    /** @} */ // end of SharedWeights parameters
 
   public:
-   SharedWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SharedWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~SharedWeights();
 
@@ -46,10 +43,7 @@ class SharedWeights : public BaseObject {
   protected:
    SharedWeights() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

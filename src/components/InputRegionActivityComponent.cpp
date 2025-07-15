@@ -13,27 +13,20 @@
 namespace PV {
 InputRegionActivityComponent::InputRegionActivityComponent() {}
 
-InputRegionActivityComponent::InputRegionActivityComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+InputRegionActivityComponent::InputRegionActivityComponent(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 InputRegionActivityComponent::~InputRegionActivityComponent() {}
 
-void InputRegionActivityComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityComponent::initialize(params, defaults, comm);
+void InputRegionActivityComponent::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityComponent::initialize(paramsIO, comm);
 }
 
 void InputRegionActivityComponent::setObjectType() { mObjectType = "InputRegionActivityComponent"; }
 
 ActivityBuffer *InputRegionActivityComponent::createActivity() {
-   return new InputRegionActivityBuffer(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new InputRegionActivityBuffer(mParamsIO, mCommunicator);
 }
 
 void InputRegionActivityComponent::ioParam_updateGpu(ParamsIOSwitch ioSwitch) {

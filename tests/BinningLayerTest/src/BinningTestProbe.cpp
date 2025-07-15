@@ -28,21 +28,15 @@
 
 namespace PV {
 
-BinningTestProbe::BinningTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+BinningTestProbe::BinningTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
-void BinningTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
+void BinningTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(paramsIO);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(params, defaults, comm);
+   BaseObject::initialize(paramsIO, comm);
 }
 
 Response::Status

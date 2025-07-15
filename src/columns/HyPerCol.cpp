@@ -103,7 +103,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    
    char const *group0Name = mParams->groupNameFromIndex(0);
    auto paramsIO = mParams->makeParamsIO(group0Name);
-   ParamsInterface::initialize(paramsIO->getParams(), paramsIO->getDefaults());
+   ParamsInterface::initialize(paramsIO);
 
    char const *programName = mPVInitObj->getProgramName();
 

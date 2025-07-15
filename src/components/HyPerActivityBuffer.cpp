@@ -9,20 +9,14 @@
 
 namespace PV {
 
-HyPerActivityBuffer::HyPerActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+HyPerActivityBuffer::HyPerActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 HyPerActivityBuffer::~HyPerActivityBuffer() {}
 
-void HyPerActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   VInputActivityBuffer::initialize(params, defaults, comm);
+void HyPerActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   VInputActivityBuffer::initialize(paramsIO, comm);
 }
 
 void HyPerActivityBuffer::setObjectType() { mObjectType = "HyPerActivityBuffer"; }

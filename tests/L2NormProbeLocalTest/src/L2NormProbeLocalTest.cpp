@@ -85,9 +85,8 @@ int checkStoredValues(
 L2NormProbeLocal makeProbeLocal(char const *name, HyPerCol &hc, HyPerLayer *targetLayer) {
    PVParams probeParams("input/L2NormProbeLocalTest.params", hc.getCommunicator()->communicator());
 
-   auto paramGroup   = probeParams.group(name);
-   auto defaultGroup = probeParams.defaultGroup(paramGroup->getKeyword());
-   L2NormProbeLocal probeLocal(paramGroup, defaultGroup);
+   auto paramsIO   = probeParams.makeParamsIO(name);
+   L2NormProbeLocal probeLocal(paramsIO);
    probeLocal.ioParamsFillGroup(ParamsIOSwitch::Read);
 
    ObserverTable objectTable = hc.getAllObjectsFlat();

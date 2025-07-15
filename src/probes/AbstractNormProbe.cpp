@@ -6,11 +6,9 @@
 
 namespace PV {
 
-AbstractNormProbe::AbstractNormProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+AbstractNormProbe::AbstractNormProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 Response::Status AbstractNormProbe::allocateDataStructures() {
@@ -69,57 +67,46 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    return status;
 }
 
-void AbstractNormProbe::createComponents(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void AbstractNormProbe::createComponents(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createTargetLayerComponent(params, defaults);
-   createProbeLocal(params, defaults);
-   createProbeAggregator(params, defaults, comm);
-   createProbeOutputter(params, defaults, comm);
-   createProbeTrigger(params, defaults);
-   createEnergyProbeComponent(params, defaults);
+   createTargetLayerComponent(paramsIO);
+   createProbeLocal(paramsIO);
+   createProbeAggregator(paramsIO, comm);
+   createProbeOutputter(paramsIO, comm);
+   createProbeTrigger(paramsIO);
+   createEnergyProbeComponent(paramsIO);
 }
 
-void AbstractNormProbe::createEnergyProbeComponent(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mEnergyProbeComponent = std::make_shared<EnergyProbeComponent>(params, defaults);
+void AbstractNormProbe::createEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   mEnergyProbeComponent = std::make_shared<EnergyProbeComponent>(paramsIO);
 }
 
-void AbstractNormProbe::createProbeAggregator(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void AbstractNormProbe::createProbeAggregator(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   mProbeAggregator = std::make_shared<NormProbeAggregator>(params, defaults, comm->getLocalMPIBlock());
+   mProbeAggregator = std::make_shared<NormProbeAggregator>(paramsIO, comm->getLocalMPIBlock());
 }
 
-void AbstractNormProbe::createProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void AbstractNormProbe::createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<NormProbeOutputter>(params, defaults, comm);
+   mProbeOutputter = std::make_shared<NormProbeOutputter>(paramsIO, comm);
 }
 
-void AbstractNormProbe::createProbeTrigger(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
+void AbstractNormProbe::createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(paramsIO);
 }
 
-void AbstractNormProbe::createTargetLayerComponent(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(params, defaults);
+void AbstractNormProbe::createTargetLayerComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(paramsIO);
 }
 
-void AbstractNormProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void AbstractNormProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   createComponents(params, defaults, comm);
+   createComponents(paramsIO, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   ProbeInterface::initialize(params, defaults, comm);
+   ProbeInterface::initialize(paramsIO, comm);
 }
 
 Response::Status

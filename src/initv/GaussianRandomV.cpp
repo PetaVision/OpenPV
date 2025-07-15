@@ -12,23 +12,19 @@ namespace PV {
 
 GaussianRandomV::GaussianRandomV() { initialize_base(); }
 
-GaussianRandomV::GaussianRandomV(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+GaussianRandomV::GaussianRandomV(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 GaussianRandomV::~GaussianRandomV() {}
 
 int GaussianRandomV::initialize_base() { return PV_SUCCESS; }
 
-void GaussianRandomV::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void GaussianRandomV::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   BaseInitV::initialize(params, defaults, comm);
+   BaseInitV::initialize(paramsIO, comm);
 }
 
 int GaussianRandomV::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

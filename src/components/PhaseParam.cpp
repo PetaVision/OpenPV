@@ -9,20 +9,14 @@
 
 namespace PV {
 
-PhaseParam::PhaseParam(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+PhaseParam::PhaseParam(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 PhaseParam::~PhaseParam() {}
 
-void PhaseParam::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void PhaseParam::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void PhaseParam::setObjectType() { mObjectType = "PhaseParam"; }

@@ -6,10 +6,8 @@
 
 namespace PV {
 
-ProbeTriggerComponent::ProbeTriggerComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+ProbeTriggerComponent::ProbeTriggerComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 ProbeTriggerComponent::~ProbeTriggerComponent() {}
@@ -33,10 +31,8 @@ Response::Status ProbeTriggerComponent::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-void ProbeTriggerComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   ProbeComponent::initialize(params, defaults);
+void ProbeTriggerComponent::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   ProbeComponent::initialize(paramsIO);
 }
 
 void ProbeTriggerComponent::ioParam_triggerLayerName(ParamsIOSwitch ioSwitch) {

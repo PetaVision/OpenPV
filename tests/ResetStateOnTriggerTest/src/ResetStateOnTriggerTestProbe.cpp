@@ -19,11 +19,8 @@
 
 using PV::BaseMessage;
 
-ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   initialize(params, defaults, comm);
+ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
@@ -38,15 +35,12 @@ PV::Response::Status ResetStateOnTriggerTestProbe::communicateInitInfo(
    return PV::Response::SUCCESS;
 }
 
-void ResetStateOnTriggerTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   mProbeLocal         = std::make_shared<ResetStateOnTriggerTestProbeLocal>(params, defaults);
-   mTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
+void ResetStateOnTriggerTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   mProbeLocal         = std::make_shared<ResetStateOnTriggerTestProbeLocal>(paramsIO);
+   mTargetLayerLocator = std::make_shared<TargetLayerComponent>(paramsIO);
    mProbeOutputter =
-         std::make_shared<ResetStateOnTriggerTestProbeOutputter>(params, defaults, comm);
-   BaseObject::initialize(params, defaults, comm);
+         std::make_shared<ResetStateOnTriggerTestProbeOutputter>(paramsIO, comm);
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void ResetStateOnTriggerTestProbe::initMessageActionMap() {
@@ -136,9 +130,6 @@ PV::Response::Status ResetStateOnTriggerTestProbe::respondProbeWriteParams(
 }
 
 BaseObject *
-createResetStateOnTriggerTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   return new ResetStateOnTriggerTestProbe(params, defaults, comm);
+createResetStateOnTriggerTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   return new ResetStateOnTriggerTestProbe(paramsIO, comm);
 }

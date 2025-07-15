@@ -4,16 +4,14 @@
 #include <cstdlib>
 
 namespace PV {
-EnergyProbeComponent::EnergyProbeComponent(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+EnergyProbeComponent::EnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 EnergyProbeComponent::~EnergyProbeComponent() {}
 
-void EnergyProbeComponent::initialize(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   ProbeComponent::initialize(params, defaults);
+void EnergyProbeComponent::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   ProbeComponent::initialize(paramsIO);
 }
 
 Response::Status EnergyProbeComponent::communicateInitInfo(

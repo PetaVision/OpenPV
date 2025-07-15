@@ -34,20 +34,14 @@ class BackgroundActivityBuffer : public ActivityBuffer {
    void ioParam_repFeatureNum(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   BackgroundActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   BackgroundActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~BackgroundActivityBuffer();
 
   protected:
    BackgroundActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

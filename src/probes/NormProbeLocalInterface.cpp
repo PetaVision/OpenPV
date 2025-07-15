@@ -2,8 +2,8 @@
 
 namespace PV {
 
-NormProbeLocalInterface::NormProbeLocalInterface(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+NormProbeLocalInterface::NormProbeLocalInterface(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 NormProbeLocalInterface::~NormProbeLocalInterface() {}
@@ -69,8 +69,8 @@ float const *NormProbeLocalInterface::findDataBuffer(HyPerLayer *layer) const {
    return layerData->getLayerData();
 }
 
-void NormProbeLocalInterface::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   ProbeComponent::initialize(params, defaults);
+void NormProbeLocalInterface::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   ProbeComponent::initialize(paramsIO);
 }
 
 void NormProbeLocalInterface::initializeState(HyPerLayer *targetLayer) {

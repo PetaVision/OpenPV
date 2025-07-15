@@ -2,18 +2,12 @@
 
 namespace PV {
 
-GateMaxPoolTestBuffer::GateMaxPoolTestBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+GateMaxPoolTestBuffer::GateMaxPoolTestBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
-void GateMaxPoolTestBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   GSynAccumulator::initialize(params, defaults, comm);
+void GateMaxPoolTestBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   GSynAccumulator::initialize(paramsIO, comm);
 }
 
 void GateMaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {

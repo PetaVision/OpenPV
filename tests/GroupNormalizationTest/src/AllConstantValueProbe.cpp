@@ -13,11 +13,8 @@
 
 namespace PV {
 
-AllConstantValueProbe::AllConstantValueProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+AllConstantValueProbe::AllConstantValueProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 AllConstantValueProbe::AllConstantValueProbe() {}
@@ -54,11 +51,8 @@ void AllConstantValueProbe::checkStats() {
    FatalIf(status != PV_SUCCESS, "Probe %s failed.\n", getDescription_c());
 }
 
-void AllConstantValueProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void AllConstantValueProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 int AllConstantValueProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

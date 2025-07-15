@@ -12,8 +12,7 @@ using namespace PV;
 
 class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
   public:
-   ResetStateOnTriggerTestProbeLocal(
-         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   ResetStateOnTriggerTestProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~ResetStateOnTriggerTestProbeLocal() {}
 
    void clearStoredValues();
@@ -26,7 +25,7 @@ class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
 
   protected:
    ResetStateOnTriggerTestProbeLocal() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
   private:
    static int calcExtendedIndex(int k, PVLayerLoc const *loc);

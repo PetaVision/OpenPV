@@ -9,20 +9,14 @@
 
 namespace PV {
 
-ActivityBuffer::ActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+ActivityBuffer::ActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 ActivityBuffer::~ActivityBuffer() {}
 
-void ActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ComponentBuffer::initialize(params, defaults, comm);
+void ActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ComponentBuffer::initialize(paramsIO, comm);
    mExtendedFlag = true;
    setBufferLabel("A");
 }

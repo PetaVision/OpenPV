@@ -12,23 +12,17 @@
 
 namespace PV {
 
-PlasticConnTestLayer::PlasticConnTestLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+PlasticConnTestLayer::PlasticConnTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
-void PlasticConnTestLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+void PlasticConnTestLayer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *PlasticConnTestLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<PlasticConnTestActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } /* namespace PV */

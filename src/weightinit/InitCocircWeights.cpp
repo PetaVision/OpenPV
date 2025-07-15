@@ -9,22 +9,18 @@
 
 namespace PV {
 
-InitCocircWeights::InitCocircWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitCocircWeights::InitCocircWeights(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitCocircWeights::InitCocircWeights() {}
 
 InitCocircWeights::~InitCocircWeights() {}
 
-void InitCocircWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitCocircWeights::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InitGauss2DWeights::initialize(params, defaults, comm);
+   InitGauss2DWeights::initialize(paramsIO, comm);
 }
 
 int InitCocircWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

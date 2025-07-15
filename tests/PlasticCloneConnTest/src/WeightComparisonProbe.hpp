@@ -26,10 +26,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   WeightComparisonProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         PV::Communicator const *comm);
+   WeightComparisonProbe(std::shared_ptr<ParamsIO> paramsIO, PV::Communicator const *comm);
 
    /**
     * Destructor for the ColProbe class.
@@ -39,10 +36,7 @@ class WeightComparisonProbe : public PV::ColProbe {
   protected:
    /**
     */
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         PV::Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, PV::Communicator const *comm);
    /**
     * Assembles the list of HyPerConns in the column.
     */

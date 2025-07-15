@@ -12,20 +12,14 @@
 namespace PV {
 GapActivityBuffer::GapActivityBuffer() {}
 
-GapActivityBuffer::GapActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+GapActivityBuffer::GapActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 GapActivityBuffer::~GapActivityBuffer() {}
 
-void GapActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerActivityBuffer::initialize(params, defaults, comm);
+void GapActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerActivityBuffer::initialize(paramsIO, comm);
 }
 
 int GapActivityBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

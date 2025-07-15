@@ -14,11 +14,9 @@
 
 namespace PV {
 
-PresynapticPerspectiveStochasticDelivery::PresynapticPerspectiveStochasticDelivery(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+PresynapticPerspectiveStochasticDelivery::PresynapticPerspectiveStochasticDelivery(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 PresynapticPerspectiveStochasticDelivery::PresynapticPerspectiveStochasticDelivery() {}
@@ -27,12 +25,10 @@ PresynapticPerspectiveStochasticDelivery::~PresynapticPerspectiveStochasticDeliv
    delete mRandState;
 }
 
-void PresynapticPerspectiveStochasticDelivery::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void PresynapticPerspectiveStochasticDelivery::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    mReceiveGpu = false; // If it's true, we should be using a different class.
-   HyPerDelivery::initialize(params, defaults, comm);
+   HyPerDelivery::initialize(paramsIO, comm);
 }
 
 void PresynapticPerspectiveStochasticDelivery::setObjectType() {

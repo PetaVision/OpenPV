@@ -17,20 +17,14 @@
 
 MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe() {}
 
-MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   initialize(params, defaults, comm);
+MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 MomentumConnSimpleCheckpointerTestProbe::~MomentumConnSimpleCheckpointerTestProbe() {}
 
-void MomentumConnSimpleCheckpointerTestProbe::initialize(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   return PV::ColProbe::initialize(params, defaults, comm);
+void MomentumConnSimpleCheckpointerTestProbe::initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   return PV::ColProbe::initialize(paramsIO, comm);
 }
 
 void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(PV::ParamsIOSwitch ioSwitch) {

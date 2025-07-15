@@ -7,11 +7,9 @@
 
 namespace PV {
 
-QuotientProbe::QuotientProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+QuotientProbe::QuotientProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 Response::Status QuotientProbe::allocateDataStructures() {
@@ -91,36 +89,29 @@ QuotientProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    return Response::SUCCESS;
 }
 
-void QuotientProbe::createComponents(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void QuotientProbe::createComponents(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createProbeOutputter(params, defaults, comm);
-   createProbeTrigger(params, defaults);
+   createProbeOutputter(paramsIO, comm);
+   createProbeTrigger(paramsIO);
 }
 
-void QuotientProbe::createProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void QuotientProbe::createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<QuotientProbeOutputter>(params, defaults, comm);
+   mProbeOutputter = std::make_shared<QuotientProbeOutputter>(paramsIO, comm);
 }
 
-void QuotientProbe::createProbeTrigger(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
+void QuotientProbe::createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(paramsIO);
 }
 
-void QuotientProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void QuotientProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   createComponents(params, defaults, comm);
+   createComponents(paramsIO, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   ProbeInterface::initialize(params, defaults, comm);
+   ProbeInterface::initialize(paramsIO, comm);
 }
 
 void QuotientProbe::initMessageActionMap() {

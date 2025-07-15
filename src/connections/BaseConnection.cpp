@@ -10,11 +10,8 @@
 
 namespace PV {
 
-BaseConnection::BaseConnection(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+BaseConnection::BaseConnection(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 BaseConnection::BaseConnection() {}
@@ -24,11 +21,8 @@ BaseConnection::~BaseConnection() {
    delete mIOTimer;
 }
 
-void BaseConnection::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ComponentBasedObject::initialize(params, defaults, comm);
+void BaseConnection::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ComponentBasedObject::initialize(paramsIO, comm);
 
    // The WeightsPair writes this flag to output params file. Other ParamsInterface-derived
    // components of the connection will automatically read InitializeFromCheckpointFlag, but
@@ -72,11 +66,11 @@ void BaseConnection::fillComponentTable() {
 }
 
 ConnectionData *BaseConnection::createConnectionData() {
-   return new ConnectionData(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new ConnectionData(mParamsIO, mCommunicator);
 }
 
 BaseDelivery *BaseConnection::createDeliveryObject() {
-   return new BaseDelivery(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new BaseDelivery(mParamsIO, mCommunicator);
 }
 
 int BaseConnection::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

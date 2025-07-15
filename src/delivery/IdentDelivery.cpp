@@ -10,18 +10,14 @@
 
 namespace PV {
 
-IdentDelivery::IdentDelivery(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+IdentDelivery::IdentDelivery(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
-void IdentDelivery::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void IdentDelivery::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   BaseDelivery::initialize(params, defaults, comm);
+   BaseDelivery::initialize(paramsIO, comm);
 }
 
 void IdentDelivery::setObjectType() { mObjectType = "IdentDelivery"; }

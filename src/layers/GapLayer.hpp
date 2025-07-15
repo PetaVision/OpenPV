@@ -18,19 +18,13 @@ namespace PV {
  */
 class GapLayer : public CloneVLayer {
   public:
-   GapLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   GapLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~GapLayer();
 
   protected:
    GapLayer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

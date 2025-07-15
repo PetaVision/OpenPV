@@ -31,20 +31,14 @@ class GaussianRandomV : public BaseInitV {
    virtual void ioParam_sigmaV(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   GaussianRandomV(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   GaussianRandomV(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~GaussianRandomV();
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    GaussianRandomV();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   private:
    int initialize_base();

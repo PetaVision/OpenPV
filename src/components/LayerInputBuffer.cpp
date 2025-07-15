@@ -9,11 +9,8 @@
 
 namespace PV {
 
-LayerInputBuffer::LayerInputBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+LayerInputBuffer::LayerInputBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 LayerInputBuffer::~LayerInputBuffer() {
@@ -25,11 +22,8 @@ LayerInputBuffer::~LayerInputBuffer() {
 #endif // PV_USE_CUDA
 }
 
-void LayerInputBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ComponentBuffer::initialize(params, defaults, comm);
+void LayerInputBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ComponentBuffer::initialize(paramsIO, comm);
    mExtendedFlag = false;
    setBufferLabel("GSyn");
    mCheckpointFlag = false; // GSyn doesn't get checkpointed

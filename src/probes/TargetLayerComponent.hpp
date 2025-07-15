@@ -15,8 +15,7 @@ class TargetLayerComponent : public ProbeComponent {
    virtual void ioParam_targetLayer(ParamsIOSwitch ioSwitch);
 
   public:
-   TargetLayerComponent(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   TargetLayerComponent(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~TargetLayerComponent();
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
@@ -28,8 +27,7 @@ class TargetLayerComponent : public ProbeComponent {
 
   protected:
    TargetLayerComponent() {}
-   void initialize(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
   private:
    std::string mTargetLayerName;

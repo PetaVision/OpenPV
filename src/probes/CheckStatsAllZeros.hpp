@@ -16,7 +16,7 @@ class CheckStatsAllZeros {
    void ioParam_immediateExitOnFailure(ParamsIOSwitch ioSwitch, std::shared_ptr<ParamsIO> paramsIO);
 
   public:
-   CheckStatsAllZeros(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   CheckStatsAllZeros(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~CheckStatsAllZeros();
 
    virtual std::map<int, LayerStats const> checkStats(ProbeData<LayerStats> const &batchProbeData);
@@ -28,10 +28,10 @@ class CheckStatsAllZeros {
    double getFirstFailureTime() const { return mFirstFailureTime; }
    bool getImmediateExitOnFailure() const { return mImmediateExitOnFailure; }
 
-   std::string const &getName() const { return mParams->getName(); }
-   std::string const &getKeyword() const { return mParams->getKeyword(); }
-   char const *getName_c() const { return mParams->getName().c_str(); }
-   char const *getKeyword_c() const { return mParams->getKeyword().c_str(); }
+   std::string const &getName() const { return mParamsIO->getName(); }
+   std::string const &getKeyword() const { return mParamsIO->getKeyword(); }
+   char const *getName_c() const { return mParamsIO->getName().c_str(); }
+   char const *getKeyword_c() const { return mParamsIO->getKeyword().c_str(); }
 
   protected:
    void setFirstFailure(std::map<int, LayerStats const> const &failureMap, double failureTime);
@@ -41,8 +41,7 @@ class CheckStatsAllZeros {
          std::string const &baseMessage) const;
 
   protected:
-   std::shared_ptr<ParamGroup> mParams;
-   std::shared_ptr<ParamGroup> mDefaults;
+   std::shared_ptr<ParamsIO> mParamsIO;
 
   private:
    bool mExitOnFailure = true;

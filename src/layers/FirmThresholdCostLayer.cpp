@@ -13,27 +13,23 @@
 
 namespace PV {
 
-FirmThresholdCostLayer::FirmThresholdCostLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+FirmThresholdCostLayer::FirmThresholdCostLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 FirmThresholdCostLayer::~FirmThresholdCostLayer() {}
 
-void FirmThresholdCostLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void FirmThresholdCostLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *FirmThresholdCostLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerInternalStateBuffer,
                                      FirmThresholdCostActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

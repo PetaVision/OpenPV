@@ -10,20 +10,14 @@
 
 namespace PV {
 
-BackgroundActivityBuffer::BackgroundActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+BackgroundActivityBuffer::BackgroundActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 BackgroundActivityBuffer::~BackgroundActivityBuffer() {}
 
-void BackgroundActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityBuffer::initialize(params, defaults, comm);
+void BackgroundActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityBuffer::initialize(paramsIO, comm);
 }
 
 void BackgroundActivityBuffer::setObjectType() { mObjectType = "BackgroundActivityBuffer"; }

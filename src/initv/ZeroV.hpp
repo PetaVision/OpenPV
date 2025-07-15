@@ -27,18 +27,12 @@ class ZeroV : public ConstantV {
    /** @} */
 
   public:
-   ZeroV(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ZeroV(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~ZeroV();
 
   protected:
    ZeroV();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   private:
    int initialize_base();

@@ -15,12 +15,9 @@
 
 namespace PV {
 
-CloneKernelConnTestProbe::CloneKernelConnTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+CloneKernelConnTestProbe::CloneKernelConnTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 void CloneKernelConnTestProbe::checkStats() {
@@ -70,11 +67,8 @@ void CloneKernelConnTestProbe::checkStats() {
    FatalIf(status != PV_SUCCESS, "Test failed.\n");
 }
 
-void CloneKernelConnTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void CloneKernelConnTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 } /* namespace PV */

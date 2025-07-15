@@ -10,22 +10,16 @@
 
 namespace PV {
 
-InitGaborWeights::InitGaborWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+InitGaborWeights::InitGaborWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 InitGaborWeights::InitGaborWeights() {}
 
 InitGaborWeights::~InitGaborWeights() {}
 
-void InitGaborWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   InitGauss2DWeights::initialize(params, defaults, comm);
+void InitGaborWeights::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   InitGauss2DWeights::initialize(paramsIO, comm);
 }
 
 int InitGaborWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

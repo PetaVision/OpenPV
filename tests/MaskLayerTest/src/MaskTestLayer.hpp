@@ -7,10 +7,7 @@ namespace PV {
 
 class MaskTestLayer : public PV::ANNLayer {
   public:
-   MaskTestLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   MaskTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    ~MaskTestLayer();
 
   protected:

@@ -27,20 +27,14 @@ namespace PV {
  */
 class PtwiseProductLayer : public HyPerLayer {
   public:
-   PtwiseProductLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   PtwiseProductLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~PtwiseProductLayer();
 
    virtual Response::Status allocateDataStructures() override;
 
   protected:
    PtwiseProductLayer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    ActivityComponent *createActivityComponent() override;
 }; // end class PtwiseProductLayer
 

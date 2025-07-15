@@ -48,7 +48,7 @@ int run(PV::PV_Init &pv_init) {
    PV::PVParams params(paramsString.data(), paramsString.size(), mpiComm);
 
    auto paramsIO = params.makeParamsIO(probeName);
-   TargetLayerComponent targetLayerObj(paramsIO->getParams(), paramsIO->getDefaults());
+   TargetLayerComponent targetLayerObj(paramsIO);
    targetLayerObj.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
 
    PV::ObserverTable objectTable = hypercol.getAllObjectsFlat();

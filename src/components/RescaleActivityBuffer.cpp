@@ -26,20 +26,14 @@
 namespace PV {
 RescaleActivityBuffer::RescaleActivityBuffer() {}
 
-RescaleActivityBuffer::RescaleActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+RescaleActivityBuffer::RescaleActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 RescaleActivityBuffer::~RescaleActivityBuffer() {}
 
-void RescaleActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityBuffer::initialize(params, defaults, comm);
+void RescaleActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityBuffer::initialize(paramsIO, comm);
 }
 
 // This is almost an exact duplicate of CloneInternalStateBuffer::communicateInitInfo; a separate

@@ -7,16 +7,14 @@ namespace PV {
 
 class BufferParamVMembraneSpecified : public BufferParamInterface {
   public:
-   BufferParamVMembraneSpecified(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   BufferParamVMembraneSpecified(std::shared_ptr<ParamsIO> paramsIO);
 
    virtual ~BufferParamVMembraneSpecified();
 
    virtual void ioParam_buffer(ParamsIOSwitch ioSwitch) override;
 
   protected:
-   void initialize(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 };
 
 } // namespace PV

@@ -14,20 +14,14 @@ namespace PV {
 
 class TestImage : public PV::HyPerLayer {
   public:
-   TestImage(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TestImage(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~TestImage();
 
    float getConstantVal() const;
 
   protected:
    TestImage();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ActivityComponent *createActivityComponent() override;
 
 }; // class TestImage

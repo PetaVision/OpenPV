@@ -9,18 +9,12 @@
 
 namespace PV {
 
-NormProbeOutputter::NormProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+NormProbeOutputter::NormProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
-void NormProbeOutputter::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseProbeOutputter::initialize(params, defaults, comm);
+void NormProbeOutputter::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseProbeOutputter::initialize(paramsIO, comm);
 }
 
 void NormProbeOutputter::printGlobalNormsBuffer(

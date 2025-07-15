@@ -34,10 +34,7 @@ class CloneWeightsPair : public WeightsPair {
    /** @} */ // end of CloneWeightsPair parameters
 
   public:
-   CloneWeightsPair(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   CloneWeightsPair(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~CloneWeightsPair();
 
@@ -58,10 +55,7 @@ class CloneWeightsPair : public WeightsPair {
   protected:
    CloneWeightsPair() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -2,11 +2,8 @@
 
 namespace PV {
 
-MaxPoolTestBuffer::MaxPoolTestBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ANNActivityBuffer::initialize(params, defaults, comm);
+MaxPoolTestBuffer::MaxPoolTestBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ANNActivityBuffer::initialize(paramsIO, comm);
 }
 
 void MaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {

@@ -16,10 +16,7 @@ namespace PV {
 
 class PoolingConn : public BaseConnection {
   public:
-   PoolingConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   PoolingConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~PoolingConn();
 
@@ -32,10 +29,7 @@ class PoolingConn : public BaseConnection {
   protected:
    PoolingConn();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void fillComponentTable() override;
 

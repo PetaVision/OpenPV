@@ -62,10 +62,7 @@ class HebbianUpdater : public BaseWeightUpdater {
    /** @} */ // end of HebbianUpdater parameters
 
   public:
-   HebbianUpdater(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   HebbianUpdater(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~HebbianUpdater();
 
@@ -82,10 +79,7 @@ class HebbianUpdater : public BaseWeightUpdater {
   protected:
    HebbianUpdater() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

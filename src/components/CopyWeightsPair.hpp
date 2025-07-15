@@ -23,10 +23,7 @@ namespace PV {
  */
 class CopyWeightsPair : public WeightsPair {
   public:
-   CopyWeightsPair(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   CopyWeightsPair(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~CopyWeightsPair();
 
@@ -54,10 +51,7 @@ class CopyWeightsPair : public WeightsPair {
   protected:
    CopyWeightsPair() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -12,22 +12,18 @@
 
 namespace PV {
 
-InitGauss2DWeights::InitGauss2DWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitGauss2DWeights::InitGauss2DWeights(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitGauss2DWeights::InitGauss2DWeights() {}
 
 InitGauss2DWeights::~InitGauss2DWeights() {}
 
-void InitGauss2DWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitGauss2DWeights::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InitWeights::initialize(params, defaults, comm);
+   InitWeights::initialize(paramsIO, comm);
 }
 
 int InitGauss2DWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
@@ -152,7 +148,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
    }
    else {
-      strengthParam = new StrengthParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+      strengthParam = new StrengthParam(mParamsIO, mCommunicator);
       parentConn->addUniqueComponent(strengthParam);
       status = status + Response::POSTPONE;
    }

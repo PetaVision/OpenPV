@@ -10,13 +10,13 @@ namespace PV {
 
 class L2NormProbeLocal : public NormProbeLocalTemplate<CostFunctionSum<L2CostFunction>> {
   public:
-   L2NormProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   L2NormProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~L2NormProbeLocal() {}
 
   protected:
    L2NormProbeLocal() {}
    virtual std::shared_ptr<CostFunctionSum<L2CostFunction> const> createCostFunctionSum() override;
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 };
 
 } // namespace PV

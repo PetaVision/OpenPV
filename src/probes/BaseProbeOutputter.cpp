@@ -11,11 +11,8 @@
 
 namespace PV {
 
-BaseProbeOutputter::BaseProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+BaseProbeOutputter::BaseProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 BaseProbeOutputter::~BaseProbeOutputter() {}
@@ -88,11 +85,8 @@ void BaseProbeOutputter::initOutputStreams(Checkpointer *checkpointer, int local
    }
 }
 
-void BaseProbeOutputter::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ProbeComponent::initialize(params, defaults);
+void BaseProbeOutputter::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ProbeComponent::initialize(paramsIO);
    mCommunicator = comm;
    mIOMPIBlock   = comm->getIOMPIBlock();
 }

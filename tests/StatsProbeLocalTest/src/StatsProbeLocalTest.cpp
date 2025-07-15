@@ -320,7 +320,7 @@ int testStoredValues(
    PV::PVParams probeParams(paramsString.c_str(), paramsString.size(), MPI_COMM_WORLD);
 
    auto paramsIO = probeParams.makeParamsIO("probe");
-   StatsProbeLocal statsProbeLocal(paramsIO->getParams(), paramsIO->getDefaults());
+   StatsProbeLocal statsProbeLocal(paramsIO);
    statsProbeLocal.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
    statsProbeLocal.initializeState(layer);
 

@@ -12,11 +12,9 @@
 
 namespace PV {
 
-L1NormLCAProbe::L1NormLCAProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+L1NormLCAProbe::L1NormLCAProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 Response::Status L1NormLCAProbe::allocateDataStructures() {
@@ -41,21 +39,17 @@ Response::Status L1NormLCAProbe::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-void L1NormLCAProbe::createEnergyProbeComponent(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mEnergyProbeComponent = std::make_shared<VThreshEnergyProbeComponent>(params, defaults);
+void L1NormLCAProbe::createEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   mEnergyProbeComponent = std::make_shared<VThreshEnergyProbeComponent>(paramsIO);
 }
 
-void L1NormLCAProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<L1NormLCAProbeLocal>(params, defaults);
+void L1NormLCAProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<L1NormLCAProbeLocal>(paramsIO);
 }
 
-void L1NormLCAProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void L1NormLCAProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   L1NormProbe::initialize(params, defaults, comm);
+   L1NormProbe::initialize(paramsIO, comm);
 }
 
 } /* namespace PV */

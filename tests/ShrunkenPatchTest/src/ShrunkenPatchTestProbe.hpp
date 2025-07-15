@@ -16,21 +16,14 @@ namespace PV {
 
 class ShrunkenPatchTestProbe : public PV::StatsProbeImmediate {
   public:
-   ShrunkenPatchTestProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ShrunkenPatchTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~ShrunkenPatchTestProbe();
 
   protected:
    virtual void checkStats() override;
-   virtual void createProbeLocal(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   virtual void createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) override;
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void ioParam_nxpShrunken(ParamsIOSwitch ioSwitch);
    virtual void ioParam_nypShrunken(ParamsIOSwitch ioSwitch);

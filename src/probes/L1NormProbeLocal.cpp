@@ -3,8 +3,8 @@
 
 namespace PV {
 
-L1NormProbeLocal::L1NormProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+L1NormProbeLocal::L1NormProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 std::shared_ptr<CostFunctionSum<L1CostFunction> const> L1NormProbeLocal::createCostFunctionSum() {
@@ -13,8 +13,8 @@ std::shared_ptr<CostFunctionSum<L1CostFunction> const> L1NormProbeLocal::createC
    return norm;
 }
 
-void L1NormProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   NormProbeLocalTemplate<CostFunctionSum<L1CostFunction>>::initialize(params, defaults);
+void L1NormProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   NormProbeLocalTemplate<CostFunctionSum<L1CostFunction>>::initialize(paramsIO);
 }
 
 } // namespace PV

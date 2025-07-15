@@ -7,27 +7,23 @@
 
 namespace PV {
 
-GaussianNoiseLayer::GaussianNoiseLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+GaussianNoiseLayer::GaussianNoiseLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 GaussianNoiseLayer::~GaussianNoiseLayer() {}
 
-void GaussianNoiseLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void GaussianNoiseLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *GaussianNoiseLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerInternalStateBuffer,
                                      GaussianNoiseActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

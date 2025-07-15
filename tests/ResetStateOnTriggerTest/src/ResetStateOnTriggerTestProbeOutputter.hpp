@@ -11,10 +11,7 @@
 
 class ResetStateOnTriggerTestProbeOutputter : public PV::BaseProbeOutputter {
   public:
-   ResetStateOnTriggerTestProbeOutputter(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   ResetStateOnTriggerTestProbeOutputter(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
    virtual ~ResetStateOnTriggerTestProbeOutputter() {}
 
    void printGlobalStatsBuffer(PV::ProbeData<int> const &globalDiscrepancies);
@@ -34,10 +31,7 @@ class ResetStateOnTriggerTestProbeOutputter : public PV::BaseProbeOutputter {
 
   protected:
    ResetStateOnTriggerTestProbeOutputter() {}
-   void initialize(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   void initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
 
    void printDiscrepancies(
          std::shared_ptr<PV::PrintStream> printStreamPtr,

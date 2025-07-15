@@ -56,20 +56,14 @@ class SigmoidActivityBuffer : public VInputActivityBuffer {
    virtual void ioParam_SigmoidAlpha(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   SigmoidActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SigmoidActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~SigmoidActivityBuffer();
 
   protected:
    SigmoidActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

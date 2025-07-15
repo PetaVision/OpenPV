@@ -9,22 +9,18 @@
 
 namespace PV {
 
-InitDiscreteUniformRandomWeights::InitDiscreteUniformRandomWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitDiscreteUniformRandomWeights::InitDiscreteUniformRandomWeights(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitDiscreteUniformRandomWeights::InitDiscreteUniformRandomWeights() {}
 
 InitDiscreteUniformRandomWeights::~InitDiscreteUniformRandomWeights() {}
 
-void InitDiscreteUniformRandomWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitDiscreteUniformRandomWeights::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InitRandomWeights::initialize(params, defaults, comm);
+   InitRandomWeights::initialize(paramsIO, comm);
 }
 
 int InitDiscreteUniformRandomWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

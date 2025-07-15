@@ -5,12 +5,12 @@
 #include <cstdlib>
 
 namespace PV {
-VThreshEnergyProbeComponent::VThreshEnergyProbeComponent(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+VThreshEnergyProbeComponent::VThreshEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
-void VThreshEnergyProbeComponent::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   EnergyProbeComponent::initialize(params, defaults);
+void VThreshEnergyProbeComponent::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   EnergyProbeComponent::initialize(paramsIO);
 }
 
 Response::Status VThreshEnergyProbeComponent::communicateInitInfo(

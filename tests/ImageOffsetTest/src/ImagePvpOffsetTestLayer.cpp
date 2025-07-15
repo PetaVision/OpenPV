@@ -5,25 +5,19 @@
 
 namespace PV {
 
-ImagePvpOffsetTestLayer::ImagePvpOffsetTestLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+ImagePvpOffsetTestLayer::ImagePvpOffsetTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 ImagePvpOffsetTestLayer::~ImagePvpOffsetTestLayer() {}
 
-void ImagePvpOffsetTestLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   PvpLayer::initialize(params, defaults, comm);
+void ImagePvpOffsetTestLayer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   PvpLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *ImagePvpOffsetTestLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<ImagePvpOffsetTestActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 Response::Status ImagePvpOffsetTestLayer::communicateInitInfo(

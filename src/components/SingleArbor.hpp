@@ -33,19 +33,13 @@ class SingleArbor : public ArborList {
    /** @} */ // end of SingleArbor parameters
 
   public:
-   SingleArbor(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SingleArbor(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~SingleArbor();
 
   protected:
    SingleArbor();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

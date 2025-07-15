@@ -12,20 +12,14 @@
 
 namespace PV {
 
-LIFActivityComponent::LIFActivityComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+LIFActivityComponent::LIFActivityComponent(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 LIFActivityComponent::~LIFActivityComponent() { delete mRandState; }
 
-void LIFActivityComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityComponent::initialize(params, defaults, comm);
+void LIFActivityComponent::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityComponent::initialize(paramsIO, comm);
 }
 
 void LIFActivityComponent::setObjectType() { mObjectType = "LIFActivityComponent"; }
@@ -199,14 +193,13 @@ void LIFActivityComponent::checkMethodString() {
 }
 
 RestrictedBuffer *LIFActivityComponent::createRestrictedBuffer(char const *label) {
-   RestrictedBuffer *buffer =
-         new RestrictedBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   RestrictedBuffer *buffer = new RestrictedBuffer(mParamsIO, mCommunicator);
    buffer->setBufferLabel(label);
    return buffer;
 }
 
 InternalStateBuffer *LIFActivityComponent::createInternalState() {
-   return new InternalStateBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new InternalStateBuffer(mParamsIO, mCommunicator);
 }
 
 Response::Status LIFActivityComponent::communicateInitInfo(

@@ -21,10 +21,7 @@ namespace PV {
 
 class AbstractNormProbe : public ProbeInterface {
   public:
-   AbstractNormProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   AbstractNormProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~AbstractNormProbe() {}
 
    HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
@@ -40,32 +37,16 @@ class AbstractNormProbe : public ProbeInterface {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void createComponents(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   virtual void createComponents(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
-   virtual void createEnergyProbeComponent(
-         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
-   virtual void createProbeAggregator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeLocal(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) = 0;
-   virtual void createProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeTrigger(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
-   virtual void createTargetLayerComponent(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   virtual void createEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO);
+   virtual void createProbeAggregator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) = 0;
+   virtual void createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO);
+   virtual void createTargetLayerComponent(std::shared_ptr<ParamsIO> paramsIO);
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;

@@ -47,10 +47,9 @@ ProbeTriggerComponent initTriggerObject(
 
    MPI_Comm mpiComm = hypercol.getCommunicator()->globalCommunicator();
    PV::PVParams params(paramsString.data(), paramsString.size(), mpiComm);
-   auto paramGroup   = params.group(probeName);
-   auto defaultGroup = params.defaultGroup(paramGroup->getKeyword());
+   auto paramsIO = params.makeParamsIO(probeName);
 
-   ProbeTriggerComponent triggerObject(paramGroup, defaultGroup);
+   ProbeTriggerComponent triggerObject(paramsIO);
    triggerObject.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
 
    PV::ObserverTable objectTable = hypercol.getAllObjectsFlat();

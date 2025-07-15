@@ -19,10 +19,7 @@ namespace PV {
  */
 class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
   public:
-   FirmThresholdCostFnLCAProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   FirmThresholdCostFnLCAProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~FirmThresholdCostFnLCAProbe() {}
 
   protected:
@@ -30,15 +27,10 @@ class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual void createProbeLocal(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
-   virtual void createEnergyProbeComponent(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   virtual void createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) override;
+   virtual void createEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO) override;
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 }; // class FirmThresholdCostFnLCAProbe
 
 } /* namespace PV */

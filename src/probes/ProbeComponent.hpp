@@ -10,7 +10,7 @@ namespace PV {
 
 class ProbeComponent {
   public:
-   ProbeComponent(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   ProbeComponent(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~ProbeComponent() {}
 
    void setPrintParamsStream(FileStream *stream);
@@ -23,7 +23,7 @@ class ProbeComponent {
 
   protected:
    ProbeComponent();
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
   protected:
    std::shared_ptr<ParamsIO> mParamsIO;

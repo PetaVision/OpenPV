@@ -13,10 +13,7 @@ class FixedImageSequence : public PV::HyPerLayer {
     */
 
   public:
-   FixedImageSequence(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm);
+   FixedImageSequence(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
    virtual ~FixedImageSequence() {}
 
   protected:

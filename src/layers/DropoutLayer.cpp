@@ -10,26 +10,22 @@
 
 namespace PV {
 
-DropoutLayer::DropoutLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+DropoutLayer::DropoutLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 DropoutLayer::~DropoutLayer() {}
 
-void DropoutLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void DropoutLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *DropoutLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     DropoutActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+                                     DropoutActivityBuffer>(mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

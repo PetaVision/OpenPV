@@ -18,10 +18,7 @@ namespace PV {
  */
 class ImageActivityBuffer : public InputActivityBuffer {
   public:
-   ImageActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ImageActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~ImageActivityBuffer();
 
@@ -31,10 +28,7 @@ class ImageActivityBuffer : public InputActivityBuffer {
   protected:
    ImageActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

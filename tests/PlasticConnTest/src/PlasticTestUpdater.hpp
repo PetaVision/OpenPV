@@ -19,10 +19,7 @@ namespace PV {
  */
 class PlasticTestUpdater : public HebbianUpdater {
   public:
-   PlasticTestUpdater(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   PlasticTestUpdater(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~PlasticTestUpdater();
 
   protected:

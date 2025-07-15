@@ -15,8 +15,7 @@ class ProbeTriggerComponent : public ProbeComponent {
    virtual void ioParam_triggerOffset(ParamsIOSwitch ioSwitch);
 
   public:
-   ProbeTriggerComponent(
-           std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   ProbeTriggerComponent(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~ProbeTriggerComponent();
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
@@ -29,7 +28,7 @@ class ProbeTriggerComponent : public ProbeComponent {
 
   protected:
    ProbeTriggerComponent() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
   private:
    LayerUpdateController *mTriggerControl = nullptr;

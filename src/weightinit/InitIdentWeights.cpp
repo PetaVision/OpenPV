@@ -9,22 +9,18 @@
 
 namespace PV {
 
-InitIdentWeights::InitIdentWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitIdentWeights::InitIdentWeights(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitIdentWeights::InitIdentWeights() {}
 
 InitIdentWeights::~InitIdentWeights() {}
 
-void InitIdentWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitIdentWeights::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InitOneToOneWeights::initialize(params, defaults, comm);
+   InitOneToOneWeights::initialize(paramsIO, comm);
 }
 
 void InitIdentWeights::ioParam_weightInit(ParamsIOSwitch ioSwitch) {

@@ -21,18 +21,12 @@ namespace PV {
  */
 class InputRegionLayer : public HyPerLayer {
   public:
-   InputRegionLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InputRegionLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InputRegionLayer();
 
   protected:
    InputRegionLayer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual void fillComponentTable() override;
    virtual PhaseParam *createPhaseParam() override;
    virtual BoundaryConditions *createBoundaryConditions() override;

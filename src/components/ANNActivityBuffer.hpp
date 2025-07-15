@@ -103,10 +103,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
 
    /** @} */
   public:
-   ANNActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ANNActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~ANNActivityBuffer();
 
@@ -121,10 +118,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
   protected:
    ANNActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

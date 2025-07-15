@@ -12,20 +12,16 @@
 namespace PV {
 BackgroundLayer::BackgroundLayer() {}
 
-BackgroundLayer::BackgroundLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+BackgroundLayer::BackgroundLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 BackgroundLayer::~BackgroundLayer() {}
 
-void BackgroundLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void BackgroundLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 void BackgroundLayer::fillComponentTable() {
@@ -40,11 +36,11 @@ LayerInputBuffer *BackgroundLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *BackgroundLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<BackgroundActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 OriginalLayerNameParam *BackgroundLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

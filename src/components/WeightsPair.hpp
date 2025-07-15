@@ -32,10 +32,7 @@ class WeightsPair : public WeightsPairInterface {
    /** @} */ // end of WeightsPair parameters
 
   public:
-   WeightsPair(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   WeightsPair(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~WeightsPair();
 
@@ -53,10 +50,7 @@ class WeightsPair : public WeightsPairInterface {
   protected:
    WeightsPair() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

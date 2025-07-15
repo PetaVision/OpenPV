@@ -38,20 +38,14 @@ class InitVFromFile : public BaseInitV {
    virtual void ioParam_frameNumber(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   InitVFromFile(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitVFromFile(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitVFromFile();
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    InitVFromFile();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

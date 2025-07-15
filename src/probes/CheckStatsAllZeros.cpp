@@ -8,8 +8,8 @@
 
 namespace PV {
 
-CheckStatsAllZeros::CheckStatsAllZeros(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults)
-      : mParams(params), mDefaults(defaults) {}
+CheckStatsAllZeros::CheckStatsAllZeros(std::shared_ptr<ParamsIO> paramsIO)
+      : mParamsIO(paramsIO) {}
 
 CheckStatsAllZeros::~CheckStatsAllZeros() {}
 
@@ -60,7 +60,7 @@ std::string CheckStatsAllZeros::errorMessage(
    }
 
    std::stringstream message("");
-   message << "Probe " << mParams->getName() << " has " << baseMessage
+   message << "Probe " << mParamsIO->getName() << " has " << baseMessage
            << " at time " << badTime << "\n";
    for (auto const &b : badCounts) {
       int batchIndex          = b.first;

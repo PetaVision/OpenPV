@@ -9,10 +9,7 @@ namespace PV {
 
 class StochasticReleaseTestProbeOutputter : public StatsProbeOutputter {
   public:
-   StochasticReleaseTestProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   StochasticReleaseTestProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~StochasticReleaseTestProbeOutputter();
 
    void
@@ -20,10 +17,7 @@ class StochasticReleaseTestProbeOutputter : public StatsProbeOutputter {
 
   protected:
    StochasticReleaseTestProbeOutputter();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 };
 
 } // namespace PV

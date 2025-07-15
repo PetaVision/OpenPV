@@ -8,22 +8,17 @@
 namespace PV {
 
 CloneLayerGeometry::CloneLayerGeometry(
-      
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+      std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 CloneLayerGeometry::CloneLayerGeometry() {}
 
 CloneLayerGeometry::~CloneLayerGeometry() {}
 
-void CloneLayerGeometry::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   LayerGeometry::initialize(params, defaults, comm);
+void CloneLayerGeometry::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   LayerGeometry::initialize(paramsIO, comm);
 }
 
 void CloneLayerGeometry::setObjectType() { mObjectType = "CloneLayerGeometry"; }

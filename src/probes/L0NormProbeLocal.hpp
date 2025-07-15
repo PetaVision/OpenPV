@@ -16,14 +16,14 @@ class L0NormProbeLocal : public BaseL0NormProbeLocal {
    virtual void ioParam_nnzThreshold(ParamsIOSwitch ioSwitch);
 
   public:
-   L0NormProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   L0NormProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~L0NormProbeLocal() {}
    virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    L0NormProbeLocal() {}
    virtual std::shared_ptr<L0CostFunctionSum const> createCostFunctionSum() override;
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
   protected:
    double mNnzThreshold = 0.0;

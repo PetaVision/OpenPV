@@ -13,22 +13,18 @@
 
 namespace PV {
 
-InputRegionLayer::InputRegionLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InputRegionLayer::InputRegionLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InputRegionLayer::InputRegionLayer() {}
 
 InputRegionLayer::~InputRegionLayer() {}
 
-void InputRegionLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InputRegionLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 void InputRegionLayer::fillComponentTable() {
@@ -40,11 +36,11 @@ void InputRegionLayer::fillComponentTable() {
 }
 
 PhaseParam *InputRegionLayer::createPhaseParam() {
-   return new DependentPhaseParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentPhaseParam(mParamsIO, mCommunicator);
 }
 
 BoundaryConditions *InputRegionLayer::createBoundaryConditions() {
-   return new DependentBoundaryConditions(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentBoundaryConditions(mParamsIO, mCommunicator);
 }
 
 LayerUpdateController *InputRegionLayer::createLayerUpdateController() { return nullptr; }
@@ -52,15 +48,15 @@ LayerUpdateController *InputRegionLayer::createLayerUpdateController() { return 
 LayerInputBuffer *InputRegionLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *InputRegionLayer::createActivityComponent() {
-   return new InputRegionActivityComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new InputRegionActivityComponent(mParamsIO, mCommunicator);
 }
 
 BasePublisherComponent *InputRegionLayer::createPublisher() {
-   return new BasePublisherComponent(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new BasePublisherComponent(mParamsIO, mCommunicator);
 }
 
 OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO, mCommunicator);
 }
 
 } /* namespace PV */

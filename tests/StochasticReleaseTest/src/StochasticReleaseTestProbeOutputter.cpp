@@ -5,22 +5,16 @@
 
 namespace PV {
 
-StochasticReleaseTestProbeOutputter::StochasticReleaseTestProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+StochasticReleaseTestProbeOutputter::StochasticReleaseTestProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 StochasticReleaseTestProbeOutputter::StochasticReleaseTestProbeOutputter() {}
 
 StochasticReleaseTestProbeOutputter::~StochasticReleaseTestProbeOutputter() {}
 
-void StochasticReleaseTestProbeOutputter::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeOutputter::initialize(params, defaults, comm);
+void StochasticReleaseTestProbeOutputter::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeOutputter::initialize(paramsIO, comm);
 }
 
 void StochasticReleaseTestProbeOutputter::printNumNonzeroData(

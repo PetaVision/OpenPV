@@ -16,11 +16,8 @@ InitRandomWeights::~InitRandomWeights() {
    mRandState = nullptr;
 }
 
-void InitRandomWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   InitWeights::initialize(params, defaults, comm);
+void InitRandomWeights::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   InitWeights::initialize(paramsIO, comm);
 }
 
 void InitRandomWeights::calcWeights(int dataPatchIndex, int arborId) {

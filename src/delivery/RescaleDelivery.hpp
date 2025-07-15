@@ -34,10 +34,7 @@ class RescaleDelivery : public IdentDelivery {
    // End of parameters needed from the RescaleConn class.
 
   public:
-   RescaleDelivery(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   RescaleDelivery(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~RescaleDelivery() {}
 
@@ -48,10 +45,7 @@ class RescaleDelivery : public IdentDelivery {
   protected:
    RescaleDelivery() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

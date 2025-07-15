@@ -40,7 +40,7 @@ LabelErrorLayer::LabelErrorLayer(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 LabelErrorLayer::~LabelErrorLayer() {}
@@ -56,7 +56,7 @@ void LabelErrorLayer::initialize(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    WarnLog() << "LabelErrorLayer has been deprecated.\n";
-   int status = ANNLayer::initialize(params, defaults, comm);
+   int status = ANNLayer::initialize(paramsIO, comm);
    mLayerInput->requireChannel(1);
    assert(mLayerInput->getNumChannels() == 2);
    return status;

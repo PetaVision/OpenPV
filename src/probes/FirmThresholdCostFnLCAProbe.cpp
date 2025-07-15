@@ -14,11 +14,9 @@
 
 namespace PV {
 
-FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 Response::Status FirmThresholdCostFnLCAProbe::allocateDataStructures() {
@@ -44,21 +42,17 @@ Response::Status FirmThresholdCostFnLCAProbe::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-void FirmThresholdCostFnLCAProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<FirmThresholdCostFnLCAProbeLocal>(params, defaults);
+void FirmThresholdCostFnLCAProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<FirmThresholdCostFnLCAProbeLocal>(paramsIO);
 }
 
-void FirmThresholdCostFnLCAProbe::createEnergyProbeComponent(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mEnergyProbeComponent = std::make_shared<VThreshEnergyProbeComponent>(params, defaults);
+void FirmThresholdCostFnLCAProbe::createEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   mEnergyProbeComponent = std::make_shared<VThreshEnergyProbeComponent>(paramsIO);
 }
 
-void FirmThresholdCostFnLCAProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void FirmThresholdCostFnLCAProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   FirmThresholdCostFnProbe::initialize(params, defaults, comm);
+   FirmThresholdCostFnProbe::initialize(paramsIO, comm);
 }
 
 } /* namespace PV */

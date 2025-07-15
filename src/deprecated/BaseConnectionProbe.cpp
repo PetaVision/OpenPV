@@ -17,7 +17,7 @@ BaseConnectionProbe::BaseConnectionProbe(
       std::shared_ptr<ParamGroup> params,
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
@@ -26,7 +26,7 @@ void BaseConnectionProbe::initialize(
       std::shared_ptr<ParamGroup> params,
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseProbe::initialize(params, defaults, comm);
+   BaseProbe::initialize(paramsIO, comm);
 }
 
 void BaseConnectionProbe::initMessageActionMap() {

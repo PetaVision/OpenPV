@@ -12,23 +12,17 @@ namespace PV {
 
 BaseInitV::BaseInitV() { initialize_base(); }
 
-BaseInitV::BaseInitV(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
+BaseInitV::BaseInitV(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 BaseInitV::~BaseInitV() {}
 
 int BaseInitV::initialize_base() { return PV_SUCCESS; }
 
-void BaseInitV::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void BaseInitV::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void BaseInitV::setObjectType() {

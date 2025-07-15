@@ -13,19 +13,12 @@ namespace PV {
 
 class GPUSystemTestProbe : public RequireAllZeroActivityProbe {
   public:
-   GPUSystemTestProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   GPUSystemTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~GPUSystemTestProbe();
 
   protected:
-   virtual void createProbeCheckStats(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   virtual void createProbeCheckStats(std::shared_ptr<ParamsIO> paramsIO) override;
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 };
 
 } // namespace PV

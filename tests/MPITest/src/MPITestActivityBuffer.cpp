@@ -9,20 +9,14 @@
 
 namespace PV {
 
-MPITestActivityBuffer::MPITestActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+MPITestActivityBuffer::MPITestActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 MPITestActivityBuffer::~MPITestActivityBuffer() {}
 
-void MPITestActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityBuffer::initialize(params, defaults, comm);
+void MPITestActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityBuffer::initialize(paramsIO, comm);
 }
 
 void MPITestActivityBuffer::setObjectType() { mObjectType = "MPITestActivityBuffer"; }

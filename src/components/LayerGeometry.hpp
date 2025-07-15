@@ -57,10 +57,7 @@ class LayerGeometry : public BaseObject {
    /** @} */ // end of LayerGeometry parameters
 
   public:
-   LayerGeometry(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   LayerGeometry(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~LayerGeometry();
 
    /**
@@ -130,10 +127,7 @@ class LayerGeometry : public BaseObject {
   protected:
    LayerGeometry();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

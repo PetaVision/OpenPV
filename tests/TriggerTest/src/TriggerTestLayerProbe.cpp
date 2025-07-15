@@ -21,11 +21,8 @@
 #include <string>
 
 namespace PV {
-TriggerTestLayerProbe::TriggerTestLayerProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+TriggerTestLayerProbe::TriggerTestLayerProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 Response::Status TriggerTestLayerProbe::communicateInitInfo(
@@ -60,16 +57,13 @@ Response::Status TriggerTestLayerProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-void TriggerTestLayerProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(params, defaults);
-   mProbeTrigger            = std::make_shared<ProbeTriggerComponent>(params, defaults);
+void TriggerTestLayerProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(paramsIO);
+   mProbeTrigger            = std::make_shared<ProbeTriggerComponent>(paramsIO);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(params, defaults, comm);
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void TriggerTestLayerProbe::initMessageActionMap() {

@@ -14,10 +14,7 @@ namespace PV {
 
 class TransposeConn : public HyPerConn {
   public:
-   TransposeConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TransposeConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~TransposeConn();
 
@@ -26,10 +23,7 @@ class TransposeConn : public HyPerConn {
 
    virtual void fillComponentTable() override;
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ArborList *createArborList() override;
    virtual PatchSize *createPatchSize() override;

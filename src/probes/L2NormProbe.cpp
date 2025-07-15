@@ -4,31 +4,24 @@
 
 namespace PV {
 
-L2NormProbe::L2NormProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+L2NormProbe::L2NormProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
-void L2NormProbe::createProbeAggregator(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void L2NormProbe::createProbeAggregator(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    mProbeAggregator =
-         std::make_shared<L2NormProbeAggregator>(params, defaults, comm->getLocalMPIBlock());
+         std::make_shared<L2NormProbeAggregator>(paramsIO, comm->getLocalMPIBlock());
 }
 
-void L2NormProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<L2NormProbeLocal>(params, defaults);
+void L2NormProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<L2NormProbeLocal>(paramsIO);
 }
 
-void L2NormProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void L2NormProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   AbstractNormProbe::initialize(params, defaults, comm);
+   AbstractNormProbe::initialize(paramsIO, comm);
 }
 
 } // namespace PV

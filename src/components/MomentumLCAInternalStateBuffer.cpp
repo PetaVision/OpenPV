@@ -14,20 +14,14 @@ namespace PV {
 
 MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer() {}
 
-MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 MomentumLCAInternalStateBuffer::~MomentumLCAInternalStateBuffer() {}
 
-int MomentumLCAInternalStateBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerLCAInternalStateBuffer::initialize(params, defaults, comm);
+int MomentumLCAInternalStateBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerLCAInternalStateBuffer::initialize(paramsIO, comm);
    return PV_SUCCESS;
 }
 

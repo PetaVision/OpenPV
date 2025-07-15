@@ -221,9 +221,8 @@ NormProbeOutputter initNormProbeOutputter(PV_Init &pv_initObj) {
    Communicator *comm = pv_initObj.getCommunicator();
    std::string probeName("probe");
    PVParams probeParams = generateProbeParams(probeName, comm);
-   auto paramGroup   = probeParams.group(probeName);
-   auto defaultGroup = probeParams.defaultGroup(paramGroup->getKeyword());
-   NormProbeOutputter normProbeOutputter(paramGroup, defaultGroup, comm);
+   auto paramsIO        = probeParams.makeParamsIO(probeName);
+   NormProbeOutputter normProbeOutputter(paramsIO, comm);
    normProbeOutputter.ioParamsFillGroup(ParamsIOSwitch::Read);
 
    // create the output files.

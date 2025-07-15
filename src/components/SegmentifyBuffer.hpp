@@ -25,10 +25,7 @@ class SegmentifyBuffer : public ActivityBuffer {
    void ioParam_outputMethod(ParamsIOSwitch ioSwitch);
 
   public:
-   SegmentifyBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SegmentifyBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~SegmentifyBuffer();
 
    std::string const &getInputMethod() const { return mInputMethod; }
@@ -36,10 +33,7 @@ class SegmentifyBuffer : public ActivityBuffer {
 
   protected:
    SegmentifyBuffer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
    virtual Response::Status

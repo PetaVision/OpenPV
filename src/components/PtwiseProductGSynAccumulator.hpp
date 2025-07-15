@@ -38,10 +38,7 @@ class PtwiseProductGSynAccumulator : public GSynAccumulator {
 
    /** @} */
   public:
-   PtwiseProductGSynAccumulator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   PtwiseProductGSynAccumulator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~PtwiseProductGSynAccumulator();
 
@@ -50,10 +47,7 @@ class PtwiseProductGSynAccumulator : public GSynAccumulator {
   protected:
    PtwiseProductGSynAccumulator() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

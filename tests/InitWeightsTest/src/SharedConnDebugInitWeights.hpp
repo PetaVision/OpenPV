@@ -18,17 +18,11 @@ class SharedConnDebugInitWeights : public PV::HyPerConn {
 
   public:
    SharedConnDebugInitWeights();
-   SharedConnDebugInitWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SharedConnDebugInitWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~SharedConnDebugInitWeights();
 
   protected:
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual SharedWeights *createSharedWeights() override;
 

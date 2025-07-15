@@ -9,20 +9,14 @@
 
 namespace PV {
 
-PoolingIndexLayerInputBuffer::PoolingIndexLayerInputBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+PoolingIndexLayerInputBuffer::PoolingIndexLayerInputBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 PoolingIndexLayerInputBuffer::~PoolingIndexLayerInputBuffer() {}
 
-void PoolingIndexLayerInputBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   LayerInputBuffer::initialize(params, defaults, comm);
+void PoolingIndexLayerInputBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   LayerInputBuffer::initialize(paramsIO, comm);
 }
 
 void PoolingIndexLayerInputBuffer::setObjectType() { mObjectType = "PoolingIndexLayerInputBuffer"; }

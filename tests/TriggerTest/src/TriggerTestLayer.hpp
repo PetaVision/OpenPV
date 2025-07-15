@@ -11,10 +11,7 @@ namespace PV {
 
 class TriggerTestLayer : public PV::HyPerLayer {
   public:
-   TriggerTestLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TriggerTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual Response::Status checkUpdateState(double simTime, double deltaTime) override;
 };
 }

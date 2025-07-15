@@ -12,11 +12,8 @@
 
 namespace PV {
 
-TransposeWeightsPair::TransposeWeightsPair(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+TransposeWeightsPair::TransposeWeightsPair(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 TransposeWeightsPair::~TransposeWeightsPair() {
@@ -24,11 +21,8 @@ TransposeWeightsPair::~TransposeWeightsPair() {
    mPostWeights = nullptr;
 }
 
-void TransposeWeightsPair::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   WeightsPair::initialize(params, defaults, comm);
+void TransposeWeightsPair::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   WeightsPair::initialize(paramsIO, comm);
 }
 
 void TransposeWeightsPair::setObjectType() { mObjectType = "TransposeWeightsPair"; }

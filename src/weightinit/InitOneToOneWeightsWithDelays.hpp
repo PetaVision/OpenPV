@@ -14,10 +14,7 @@ namespace PV {
 
 class InitOneToOneWeightsWithDelays : public InitOneToOneWeights {
   public:
-   InitOneToOneWeightsWithDelays(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitOneToOneWeightsWithDelays(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitOneToOneWeightsWithDelays();
 
    virtual void calcWeights(int patchIndex, int arborId) override;
@@ -25,10 +22,7 @@ class InitOneToOneWeightsWithDelays : public InitOneToOneWeights {
 
   protected:
    InitOneToOneWeightsWithDelays();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    void
    createOneToOneConnectionWithDelays(float *dataStart, int patchIndex, float iWeight, int arborId);
 

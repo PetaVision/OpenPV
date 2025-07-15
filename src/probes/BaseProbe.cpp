@@ -63,11 +63,8 @@ int BaseProbe::initialize_base() {
  * @filename
  * @layer
  */
-void BaseProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void BaseProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 int BaseProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

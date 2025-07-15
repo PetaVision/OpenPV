@@ -21,10 +21,7 @@ class BaseProbeOutputter : public ProbeComponent {
    virtual void ioParam_message(ParamsIOSwitch ioSwitch);
 
   public:
-   BaseProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   BaseProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~BaseProbeOutputter();
 
    void initOutputStreams(Checkpointer *checkpointer, int localNBatch);
@@ -53,10 +50,7 @@ class BaseProbeOutputter : public ProbeComponent {
    BaseProbeOutputter() {}
    int calcGlobalBatchOffset() const;
    void flushOutputStreams();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    void initMessageString();
 
    std::shared_ptr<PrintStream> returnOutputStream(int b);

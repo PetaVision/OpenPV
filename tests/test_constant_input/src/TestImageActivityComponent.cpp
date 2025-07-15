@@ -9,26 +9,20 @@
 
 namespace PV {
 
-TestImageActivityComponent::TestImageActivityComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+TestImageActivityComponent::TestImageActivityComponent(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 TestImageActivityComponent::~TestImageActivityComponent() {}
 
-void TestImageActivityComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityComponent::initialize(params, defaults, comm);
+void TestImageActivityComponent::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityComponent::initialize(paramsIO, comm);
 }
 
 void TestImageActivityComponent::setObjectType() { mObjectType = "TestImageActivityComponent"; }
 
 ActivityBuffer *TestImageActivityComponent::createActivity() {
-   return new TestImageActivityBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new TestImageActivityBuffer(mParamsIO, mCommunicator);
 }
 
 } // namespace PV

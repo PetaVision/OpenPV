@@ -17,19 +17,13 @@ namespace PV {
  */
 class ANNLayer : public HyPerLayer {
   public:
-   ANNLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   ANNLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~ANNLayer();
 
   protected:
    ANNLayer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

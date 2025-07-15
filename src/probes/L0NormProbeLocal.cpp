@@ -3,8 +3,8 @@
 
 namespace PV {
 
-L0NormProbeLocal::L0NormProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+L0NormProbeLocal::L0NormProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 std::shared_ptr<L0CostFunctionSum const> L0NormProbeLocal::createCostFunctionSum() {
@@ -13,8 +13,8 @@ std::shared_ptr<L0CostFunctionSum const> L0NormProbeLocal::createCostFunctionSum
    return norm;
 }
 
-void L0NormProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   BaseL0NormProbeLocal::initialize(params, defaults);
+void L0NormProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   BaseL0NormProbeLocal::initialize(paramsIO);
 }
 
 void L0NormProbeLocal::ioParam_nnzThreshold(ParamsIOSwitch ioSwitch) {

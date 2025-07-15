@@ -35,9 +35,7 @@ class EnergyProbeComponent : public ProbeComponent {
    /** @} */
 
   public:
-   EnergyProbeComponent(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults);
+   EnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~EnergyProbeComponent();
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
@@ -50,7 +48,7 @@ class EnergyProbeComponent : public ProbeComponent {
 
   protected:
    EnergyProbeComponent() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
    void setCoefficient(double coefficient) { mCoefficient = coefficient; }
 
   private:

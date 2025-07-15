@@ -10,22 +10,16 @@
 
 namespace PV {
 
-InternalStateBuffer::InternalStateBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+InternalStateBuffer::InternalStateBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 InternalStateBuffer::~InternalStateBuffer() {
    delete mInitVObject;
 }
 
-void InternalStateBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   RestrictedBuffer::initialize(params, defaults, comm);
+void InternalStateBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   RestrictedBuffer::initialize(paramsIO, comm);
    setBufferLabel("V");
 }
 

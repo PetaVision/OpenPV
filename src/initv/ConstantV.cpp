@@ -12,23 +12,19 @@ namespace PV {
 
 ConstantV::ConstantV() { initialize_base(); }
 
-ConstantV::ConstantV(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+ConstantV::ConstantV(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ConstantV::~ConstantV() {}
 
 int ConstantV::initialize_base() { return PV_SUCCESS; }
 
-void ConstantV::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void ConstantV::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   BaseInitV::initialize(params, defaults, comm);
+   BaseInitV::initialize(paramsIO, comm);
 }
 
 int ConstantV::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

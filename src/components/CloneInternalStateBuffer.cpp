@@ -12,20 +12,14 @@
 
 namespace PV {
 
-CloneInternalStateBuffer::CloneInternalStateBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+CloneInternalStateBuffer::CloneInternalStateBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 CloneInternalStateBuffer::~CloneInternalStateBuffer() {}
 
-void CloneInternalStateBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   InternalStateBuffer::initialize(params, defaults, comm);
+void CloneInternalStateBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   InternalStateBuffer::initialize(paramsIO, comm);
    mCheckpointFlag = false; // Turns off checkpointing
 }
 

@@ -57,10 +57,10 @@ class ParamsInterface : public CheckpointerDataInterface {
    std::string const &getObjectType() const { return mObjectType; }
 
   protected:
-   int initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   int initialize(std::shared_ptr<ParamsIO> params);
    void setName(std::string const &name);
    void setKeyword(std::string const &keyword);
-   void setParams(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void setParams(std::shared_ptr<ParamsIO> paramsIO);
    virtual void setObjectType();
    void ioParamsStartGroup(ParamsIOSwitch ioSwitch);
 

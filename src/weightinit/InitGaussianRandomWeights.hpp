@@ -19,20 +19,14 @@ class InitGaussianRandomWeights : public InitRandomWeights {
    void ioParam_wGaussStdev(ParamsIOSwitch ioSwitch);
 
   public:
-   InitGaussianRandomWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitGaussianRandomWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitGaussianRandomWeights();
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    InitGaussianRandomWeights();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int initRNGs(bool isKernel) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) override;
 

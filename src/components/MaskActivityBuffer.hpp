@@ -21,10 +21,7 @@ class MaskActivityBuffer : public ANNActivityBuffer {
   public:
    enum Method { UNDEFINED, LAYER, INVERT_LAYER, FEATURES, INVERT_FEATURES };
 
-   MaskActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   MaskActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    MaskActivityBuffer();
    virtual ~MaskActivityBuffer();
    virtual Response::Status

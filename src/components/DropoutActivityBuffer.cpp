@@ -9,20 +9,14 @@
 
 namespace PV {
 
-DropoutActivityBuffer::DropoutActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+DropoutActivityBuffer::DropoutActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 DropoutActivityBuffer::~DropoutActivityBuffer() { delete mRandState; }
 
-void DropoutActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ANNActivityBuffer::initialize(params, defaults, comm);
+void DropoutActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ANNActivityBuffer::initialize(paramsIO, comm);
 }
 
 void DropoutActivityBuffer::setObjectType() { mObjectType = "DropoutActivityBuffer"; }

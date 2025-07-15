@@ -20,10 +20,7 @@ class InitCocircWeights : public InitGauss2DWeights {
    virtual void ioParam_deltaRadiusCurvature(ParamsIOSwitch ioSwitch);
 
   public:
-   InitCocircWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitCocircWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitCocircWeights();
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
@@ -32,10 +29,7 @@ class InitCocircWeights : public InitGauss2DWeights {
 
   protected:
    InitCocircWeights();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   private:
    float calcKurvePostAndSigmaKurvePost(int kfPost);

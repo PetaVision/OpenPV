@@ -10,20 +10,14 @@
 
 namespace PV {
 
-SigmoidActivityBuffer::SigmoidActivityBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+SigmoidActivityBuffer::SigmoidActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 SigmoidActivityBuffer::~SigmoidActivityBuffer() {}
 
-void SigmoidActivityBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   VInputActivityBuffer::initialize(params, defaults, comm);
+void SigmoidActivityBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   VInputActivityBuffer::initialize(paramsIO, comm);
 }
 
 void SigmoidActivityBuffer::setObjectType() { mObjectType = "SigmoidActivityBuffer"; }

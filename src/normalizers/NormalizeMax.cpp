@@ -12,21 +12,17 @@ namespace PV {
 
 NormalizeMax::NormalizeMax() { initialize_base(); }
 
-NormalizeMax::NormalizeMax(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+NormalizeMax::NormalizeMax(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 int NormalizeMax::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeMax::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void NormalizeMax::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   NormalizeMultiply::initialize(params, defaults, comm);
+   NormalizeMultiply::initialize(paramsIO, comm);
 }
 
 int NormalizeMax::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

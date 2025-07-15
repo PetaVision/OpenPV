@@ -7,16 +7,10 @@ namespace PV {
 
 class GateMaxPoolTestBuffer : public GSynAccumulator {
   public:
-   GateMaxPoolTestBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   GateMaxPoolTestBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    void updateBufferCPU(double simTime, double deltaTime) override;
 };
 

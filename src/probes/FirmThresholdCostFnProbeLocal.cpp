@@ -3,10 +3,8 @@
 
 namespace PV {
 
-FirmThresholdCostFnProbeLocal::FirmThresholdCostFnProbeLocal(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+FirmThresholdCostFnProbeLocal::FirmThresholdCostFnProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 std::shared_ptr<FirmThresholdCostFunctionSum const>
@@ -16,8 +14,8 @@ FirmThresholdCostFnProbeLocal::createCostFunctionSum() {
    return costFnSum;
 }
 
-void FirmThresholdCostFnProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   BaseFirmThresholdCostFnProbeLocal::initialize(params, defaults);
+void FirmThresholdCostFnProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   BaseFirmThresholdCostFnProbeLocal::initialize(paramsIO);
 }
 
 void FirmThresholdCostFnProbeLocal::ioParam_VThresh(ParamsIOSwitch ioSwitch) {

@@ -21,19 +21,13 @@ class CheckStatsProbe : public PV::StatsProbeImmediate {
    virtual void ioParam_tolerance(PV::ParamsIOSwitch ioSwitch);
 
   public:
-   CheckStatsProbe(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   CheckStatsProbe(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
    virtual ~CheckStatsProbe();
 
   protected:
    CheckStatsProbe();
    virtual void checkStats() override;
-   void initialize(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   void initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
    virtual int ioParamsFillGroup(PV::ParamsIOSwitch ioSwitch) override;
 
   protected:

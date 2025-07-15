@@ -22,10 +22,7 @@ namespace PV {
 
 class StochasticReleaseTestProbe : public PV::StatsProbeImmediate {
   public:
-   StochasticReleaseTestProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   StochasticReleaseTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~StochasticReleaseTestProbe();
 
    virtual Response::Status
@@ -34,17 +31,10 @@ class StochasticReleaseTestProbe : public PV::StatsProbeImmediate {
   protected:
    StochasticReleaseTestProbe();
    virtual void checkStats() override;
-   virtual void createProbeLocal(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
+   virtual void createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) override;
    virtual void
-   createProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm) override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) override;
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    int computePValues();
 
    // Member variables

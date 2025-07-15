@@ -15,17 +15,11 @@ namespace PV {
 class DatastoreDelayTestBuffer : public InternalStateBuffer {
 
   public:
-   DatastoreDelayTestBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   DatastoreDelayTestBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~DatastoreDelayTestBuffer();
 
   protected:
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

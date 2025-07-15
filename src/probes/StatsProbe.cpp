@@ -17,11 +17,9 @@
 
 namespace PV {
 
-StatsProbe::StatsProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+StatsProbe::StatsProbe(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 StatsProbe::StatsProbe() {}
@@ -68,57 +66,46 @@ StatsProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    return status;
 }
 
-void StatsProbe::createComponents(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void StatsProbe::createComponents(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    // NB: the data members mName and mParams have not been set when createComponents() is called.
-   createTargetLayerComponent(params, defaults);
-   createProbeLocal(params, defaults);
-   createProbeAggregator(params, defaults, comm);
-   createProbeOutputter(params, defaults, comm);
-   createProbeTrigger(params, defaults);
+   createTargetLayerComponent(paramsIO);
+   createProbeLocal(paramsIO);
+   createProbeAggregator(paramsIO, comm);
+   createProbeOutputter(paramsIO, comm);
+   createProbeTrigger(paramsIO);
 }
 
-void StatsProbe::createProbeAggregator(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void StatsProbe::createProbeAggregator(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    mProbeAggregator =
-         std::make_shared<StatsProbeAggregator>(params, defaults, comm->getLocalMPIBlock());
+         std::make_shared<StatsProbeAggregator>(paramsIO, comm->getLocalMPIBlock());
 }
 
-void StatsProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<StatsProbeLocal>(params, defaults);
+void StatsProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<StatsProbeLocal>(paramsIO);
 }
 
-void StatsProbe::createProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void StatsProbe::createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   mProbeOutputter = std::make_shared<StatsProbeOutputter>(params, defaults, comm);
+   mProbeOutputter = std::make_shared<StatsProbeOutputter>(paramsIO, comm);
 }
 
-void StatsProbe::createProbeTrigger(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(params, defaults);
+void StatsProbe::createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(paramsIO);
 }
 
-void StatsProbe::createTargetLayerComponent(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(params, defaults);
+void StatsProbe::createTargetLayerComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(paramsIO);
 }
 
-void StatsProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void StatsProbe::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   createComponents(params, defaults, comm);
+   createComponents(paramsIO, comm);
    // createComponents() must be called before the base class's initialize(),
    // because BaseObject::initialize() calls the ioParamsFillGroup() method,
    // which calls each component's ioParamsFillGroup() method.
-   BaseObject::initialize(params, defaults, comm);
+   BaseObject::initialize(paramsIO, comm);
 }
 
 Response::Status

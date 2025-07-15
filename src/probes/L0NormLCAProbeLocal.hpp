@@ -14,14 +14,14 @@ class L0NormLCAProbeLocal : public L0NormProbeLocal {
    virtual void ioParam_nnzThreshold(ParamsIOSwitch ioSwitch) override;
 
   public:
-   L0NormLCAProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   L0NormLCAProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~L0NormLCAProbeLocal() {}
 
    void setNnzThreshold(double nnzThreshold);
 
   protected:
    L0NormLCAProbeLocal() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
    void warnUnnecessaryParameter(char const *paramName);
 };
 

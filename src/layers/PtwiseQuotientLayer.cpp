@@ -21,26 +21,22 @@ namespace PV {
 
 PtwiseQuotientLayer::PtwiseQuotientLayer() {}
 
-PtwiseQuotientLayer::PtwiseQuotientLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+PtwiseQuotientLayer::PtwiseQuotientLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 } // end PtwiseQuotientLayer::PtwiseQuotientLayer(const char *, HyPerCol *)
 
 PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
 
-void PtwiseQuotientLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void PtwiseQuotientLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *PtwiseQuotientLayer::createActivityComponent() {
    return new HyPerActivityComponent<PtwiseQuotientGSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+                                     HyPerActivityBuffer>(mParamsIO, mCommunicator);
 }
 
 Response::Status PtwiseQuotientLayer::allocateDataStructures() {

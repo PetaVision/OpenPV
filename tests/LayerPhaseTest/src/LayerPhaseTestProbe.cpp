@@ -17,12 +17,9 @@
 
 namespace PV {
 
-LayerPhaseTestProbe::LayerPhaseTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+LayerPhaseTestProbe::LayerPhaseTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 void LayerPhaseTestProbe::checkStats() {
@@ -77,16 +74,12 @@ void LayerPhaseTestProbe::checkStats() {
    FatalIf(status != PV_SUCCESS, "%s failed.\n", getDescription_c());
 }
 
-void LayerPhaseTestProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<VMembraneBufferStatsProbeLocal>(params, defaults);
+void LayerPhaseTestProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<VMembraneBufferStatsProbeLocal>(paramsIO);
 }
 
-void LayerPhaseTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void LayerPhaseTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 int LayerPhaseTestProbe::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

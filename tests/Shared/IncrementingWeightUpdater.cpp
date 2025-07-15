@@ -9,18 +9,12 @@
 
 namespace PV {
 
-IncrementingWeightUpdater::IncrementingWeightUpdater(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+IncrementingWeightUpdater::IncrementingWeightUpdater(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
-void IncrementingWeightUpdater::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HebbianUpdater::initialize(params, defaults, comm);
+void IncrementingWeightUpdater::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HebbianUpdater::initialize(paramsIO, comm);
 }
 
 int IncrementingWeightUpdater::updateWeights(int arborId) {

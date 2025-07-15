@@ -7,10 +7,8 @@
 
 #include <vector>
 
-ResetStateOnTriggerTestProbeLocal::ResetStateOnTriggerTestProbeLocal(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+ResetStateOnTriggerTestProbeLocal::ResetStateOnTriggerTestProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &values) const {
@@ -50,10 +48,8 @@ void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &value
 
 void ResetStateOnTriggerTestProbeLocal::clearStoredValues() { mStoredValues.clear(); }
 
-void ResetStateOnTriggerTestProbeLocal::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   ProbeComponent::initialize(params, defaults);
+void ResetStateOnTriggerTestProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   ProbeComponent::initialize(paramsIO);
 }
 
 void ResetStateOnTriggerTestProbeLocal::initializeState(HyPerLayer *targetLayer) {

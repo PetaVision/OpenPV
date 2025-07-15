@@ -26,7 +26,7 @@ ShuffleLayer::ShuffleLayer(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ShuffleLayer::~ShuffleLayer() {
@@ -69,7 +69,7 @@ void ShuffleLayer::initialize(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    WarnLog() << "ShuffleLayer has been deprecated.\n";
-   int status_init = HyPerLayer::initialize(params, defaults, comm);
+   int status_init = HyPerLayer::initialize(paramsIO, comm);
    // don't need conductance channels
    return status_init;
 }

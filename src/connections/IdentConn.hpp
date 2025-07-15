@@ -17,17 +17,11 @@ namespace PV {
 
 class IdentConn : public BaseConnection {
   public:
-   IdentConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   IdentConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    IdentConn();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void fillComponentTable() override;
 

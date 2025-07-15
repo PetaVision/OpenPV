@@ -12,22 +12,18 @@
 
 namespace PV {
 
-TransposePoolingConn::TransposePoolingConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+TransposePoolingConn::TransposePoolingConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 TransposePoolingConn::TransposePoolingConn() {}
 
 TransposePoolingConn::~TransposePoolingConn() {}
 
-void TransposePoolingConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void TransposePoolingConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   PoolingConn::initialize(params, defaults, comm);
+   PoolingConn::initialize(paramsIO, comm);
 }
 
 void TransposePoolingConn::fillComponentTable() {
@@ -39,19 +35,19 @@ void TransposePoolingConn::fillComponentTable() {
 }
 
 BaseDelivery *TransposePoolingConn::createDeliveryObject() {
-   return new TransposePoolingDelivery(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new TransposePoolingDelivery(mParamsIO, mCommunicator);
 }
 
 PatchSize *TransposePoolingConn::createPatchSize() {
-   return new TransposePatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new TransposePatchSize(mParamsIO, mCommunicator);
 }
 
 SharedWeights *TransposePoolingConn::createSharedWeights() {
-   return new DependentSharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new DependentSharedWeights(mParamsIO, mCommunicator);
 }
 
 OriginalConnNameParam *TransposePoolingConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalConnNameParam(mParamsIO, mCommunicator);
 }
 
 } // namespace PV

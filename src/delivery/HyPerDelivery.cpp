@@ -9,22 +9,16 @@
 
 namespace PV {
 
-HyPerDelivery::HyPerDelivery(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+HyPerDelivery::HyPerDelivery(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 HyPerDelivery::HyPerDelivery() {}
 
 HyPerDelivery::~HyPerDelivery() {}
 
-void HyPerDelivery::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseDelivery::initialize(params, defaults, comm);
+void HyPerDelivery::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseDelivery::initialize(paramsIO, comm);
 }
 
 void HyPerDelivery::setObjectType() { mObjectType = "HyPerDelivery"; }

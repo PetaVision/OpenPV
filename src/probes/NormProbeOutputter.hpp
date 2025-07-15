@@ -12,20 +12,14 @@ namespace PV {
 
 class NormProbeOutputter : public BaseProbeOutputter {
   public:
-   NormProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   NormProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~NormProbeOutputter() {}
 
    void printGlobalNormsBuffer(ProbeDataBuffer<double> const &storedValues, int numNeurons);
 
   protected:
    NormProbeOutputter() {}
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    void printNorm(
          std::shared_ptr<PrintStream> printStreamPtr,

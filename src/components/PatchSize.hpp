@@ -50,10 +50,7 @@ class PatchSize : public BaseObject {
    /** @} */ // end of PatchSize parameters
 
   public:
-   PatchSize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   PatchSize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~PatchSize();
 
@@ -80,10 +77,7 @@ class PatchSize : public BaseObject {
   protected:
    PatchSize() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -14,20 +14,14 @@ namespace PV {
 
 class CloneConn : public HyPerConn {
   public:
-   CloneConn(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   CloneConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~CloneConn();
 
   protected:
    CloneConn();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void fillComponentTable() override;
 

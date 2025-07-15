@@ -13,20 +13,16 @@
 
 namespace PV {
 
-DependentFirmThresholdCostLayer::DependentFirmThresholdCostLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+DependentFirmThresholdCostLayer::DependentFirmThresholdCostLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 DependentFirmThresholdCostLayer::~DependentFirmThresholdCostLayer() {}
 
-void DependentFirmThresholdCostLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void DependentFirmThresholdCostLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   FirmThresholdCostLayer::initialize(params, defaults, comm);
+   FirmThresholdCostLayer::initialize(paramsIO, comm);
 }
 
 void DependentFirmThresholdCostLayer::fillComponentTable() {
@@ -38,14 +34,14 @@ void DependentFirmThresholdCostLayer::fillComponentTable() {
 }
 
 OriginalLayerNameParam *DependentFirmThresholdCostLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO, mCommunicator);
 }
 
 ActivityComponent *DependentFirmThresholdCostLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerInternalStateBuffer,
                                      DependentFirmThresholdCostActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

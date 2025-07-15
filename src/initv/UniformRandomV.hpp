@@ -31,20 +31,14 @@ class UniformRandomV : public BaseInitV {
    virtual void ioParam_maxV(ParamsIOSwitch ioSwitch);
    /** @} */
   public:
-   UniformRandomV(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   UniformRandomV(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~UniformRandomV();
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    UniformRandomV();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   private:
    int initialize_base();

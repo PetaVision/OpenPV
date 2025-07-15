@@ -38,10 +38,7 @@ class SingleChannelGSynAccumulator : public GSynAccumulator {
 
    /** @} */
   public:
-   SingleChannelGSynAccumulator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   SingleChannelGSynAccumulator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~SingleChannelGSynAccumulator();
 
@@ -50,10 +47,7 @@ class SingleChannelGSynAccumulator : public GSynAccumulator {
   protected:
    SingleChannelGSynAccumulator() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

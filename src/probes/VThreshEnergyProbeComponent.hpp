@@ -27,7 +27,7 @@ class VThreshEnergyProbeComponent : public EnergyProbeComponent {
    /** @} */
 
   public:
-   VThreshEnergyProbeComponent(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   VThreshEnergyProbeComponent(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~VThreshEnergyProbeComponent() {}
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
@@ -35,7 +35,7 @@ class VThreshEnergyProbeComponent : public EnergyProbeComponent {
 
   protected:
    VThreshEnergyProbeComponent() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 }; // class EnergyProbeComponent
 
 } // namespace PV

@@ -23,7 +23,7 @@ class StatsProbeLocal : public ProbeComponent {
    virtual void ioParam_nnzThreshold(ParamsIOSwitch ioSwitch);
 
   public:
-   StatsProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   StatsProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~StatsProbeLocal() {}
 
    void clearStoredValues();
@@ -38,16 +38,16 @@ class StatsProbeLocal : public ProbeComponent {
 
   protected:
    StatsProbeLocal() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
    /**
     * Sets the BufferParam data member, based on the indicated typename.
     * The typename T must be a class derived from BufferParamInterface, and
-    * have a constructor that takes (std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults)
+    * have a constructor that takes (std::shared_ptr<ParamsIO> paramsIO)
     * as arguments.
     */
    template <typename T>
-   void setBufferParam(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void setBufferParam(std::shared_ptr<ParamsIO> paramsIO);
 
   private:
    template <StatsBufferType bufferType>
@@ -100,9 +100,8 @@ void StatsProbeLocal::calculateValues(LayerStats &stats, int localBatchIndex) co
 }
 
 template <typename T>
-void StatsProbeLocal::setBufferParam(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mBufferParam = std::make_shared<T>(params, defaults);
+void StatsProbeLocal::setBufferParam(std::shared_ptr<ParamsIO> paramsIO) {
+   mBufferParam = std::make_shared<T>(paramsIO);
 }
 
 } // namespace PV

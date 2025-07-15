@@ -10,25 +10,19 @@
 
 namespace PV {
 
-VaryingHyPerConn::VaryingHyPerConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+VaryingHyPerConn::VaryingHyPerConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : HyPerConn() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
-void VaryingHyPerConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerConn::initialize(params, defaults, comm);
+void VaryingHyPerConn::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerConn::initialize(paramsIO, comm);
 }
 
 BaseWeightUpdater *VaryingHyPerConn::createWeightUpdater() {
-   return new IncrementingWeightUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new IncrementingWeightUpdater(mParamsIO, mCommunicator);
 }
 
 } // end of namespace PV block

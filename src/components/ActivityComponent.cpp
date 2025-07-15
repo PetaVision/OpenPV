@@ -10,11 +10,8 @@
 
 namespace PV {
 
-ActivityComponent::ActivityComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+ActivityComponent::ActivityComponent(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 ActivityComponent::~ActivityComponent() {
@@ -25,11 +22,8 @@ ActivityComponent::~ActivityComponent() {
 #endif // PV_USE_CUDA
 }
 
-void ActivityComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ComponentBasedObject::initialize(params, defaults, comm);
+void ActivityComponent::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ComponentBasedObject::initialize(paramsIO, comm);
 }
 
 void ActivityComponent::setObjectType() { mObjectType = "ActivityComponent"; }
@@ -69,7 +63,7 @@ void ActivityComponent::fillComponentTable() {
 }
 
 ActivityBuffer *ActivityComponent::createActivity() {
-   return new ActivityBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new ActivityBuffer(mParamsIO, mCommunicator);
 }
 
 Response::Status

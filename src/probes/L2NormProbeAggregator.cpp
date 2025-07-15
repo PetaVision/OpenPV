@@ -6,11 +6,8 @@
 
 namespace PV {
 
-L2NormProbeAggregator::L2NormProbeAggregator(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      std::shared_ptr<MPIBlock const> mpiBlock) {
-   initialize(params, defaults, mpiBlock);
+L2NormProbeAggregator::L2NormProbeAggregator(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock) {
+   initialize(paramsIO, mpiBlock);
 }
 
 void L2NormProbeAggregator::aggregateNormsBatch(
@@ -29,11 +26,8 @@ void L2NormProbeAggregator::aggregateNormsBatch(
    }
 }
 
-void L2NormProbeAggregator::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      std::shared_ptr<MPIBlock const> mpiBlock) {
-   NormProbeAggregator::initialize(params, defaults, mpiBlock);
+void L2NormProbeAggregator::initialize(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock) {
+   NormProbeAggregator::initialize(paramsIO, mpiBlock);
 }
 
 void L2NormProbeAggregator::ioParam_exponent(ParamsIOSwitch ioSwitch) {

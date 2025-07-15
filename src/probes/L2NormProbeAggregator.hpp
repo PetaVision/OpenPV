@@ -14,10 +14,7 @@ class L2NormProbeAggregator : public NormProbeAggregator {
    virtual void ioParam_exponent(ParamsIOSwitch ioSwitch);
 
   public:
-   L2NormProbeAggregator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         std::shared_ptr<MPIBlock const> mpiBlock);
+   L2NormProbeAggregator(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock);
    virtual ~L2NormProbeAggregator() {}
 
    virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
@@ -27,7 +24,7 @@ class L2NormProbeAggregator : public NormProbeAggregator {
    virtual void aggregateNormsBatch(
          ProbeData<double> &aggregatedNormsBatch,
          ProbeData<double> const &partialNormsBatch) override;
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults, std::shared_ptr<MPIBlock const> mpiBlock);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock);
 
   private:
    double mExponent = 1.0;

@@ -15,14 +15,14 @@ class FirmThresholdCostFnLCAProbeLocal : public FirmThresholdCostFnProbeLocal {
    virtual void ioParam_VWidth(ParamsIOSwitch ioSwitch) override;
 
   public:
-   FirmThresholdCostFnLCAProbeLocal(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   FirmThresholdCostFnLCAProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~FirmThresholdCostFnLCAProbeLocal() {}
 
    void setFirmThresholdParams(double VThresh, double VWidth);
 
   protected:
    FirmThresholdCostFnLCAProbeLocal() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
    void warnUnnecessaryParameter(char const *paramName);
 };
 

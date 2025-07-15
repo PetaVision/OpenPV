@@ -4,10 +4,8 @@
 
 namespace PV {
 
-TargetLayerComponent::TargetLayerComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+TargetLayerComponent::TargetLayerComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 TargetLayerComponent::~TargetLayerComponent() {}
@@ -25,10 +23,8 @@ Response::Status TargetLayerComponent::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-void TargetLayerComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   ProbeComponent::initialize(params, defaults);
+void TargetLayerComponent::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   ProbeComponent::initialize(paramsIO);
 }
 
 void TargetLayerComponent::ioParam_targetLayer(ParamsIOSwitch ioSwitch) {

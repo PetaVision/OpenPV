@@ -14,25 +14,19 @@ namespace PV {
 
 SharedConnDebugInitWeights::SharedConnDebugInitWeights() {}
 
-SharedConnDebugInitWeights::SharedConnDebugInitWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+SharedConnDebugInitWeights::SharedConnDebugInitWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : HyPerConn() {
-   SharedConnDebugInitWeights::initialize(params, defaults, comm);
+   SharedConnDebugInitWeights::initialize(paramsIO, comm);
 }
 
 SharedConnDebugInitWeights::~SharedConnDebugInitWeights() {}
 
-void SharedConnDebugInitWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerConn::initialize(params, defaults, comm);
+void SharedConnDebugInitWeights::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerConn::initialize(paramsIO, comm);
 }
 
 SharedWeights *SharedConnDebugInitWeights::createSharedWeights() {
-   return new SharedWeightsTrue(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new SharedWeightsTrue(mParamsIO, mCommunicator);
 }
 
 int SharedConnDebugInitWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

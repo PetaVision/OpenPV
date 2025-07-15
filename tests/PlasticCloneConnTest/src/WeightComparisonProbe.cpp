@@ -15,23 +15,17 @@
 
 namespace PV {
 
-WeightComparisonProbe::WeightComparisonProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      PV::Communicator const *comm) {
+WeightComparisonProbe::WeightComparisonProbe(std::shared_ptr<ParamsIO> paramsIO, PV::Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 WeightComparisonProbe::~WeightComparisonProbe() {}
 
 int WeightComparisonProbe::initialize_base() { return PV_SUCCESS; }
 
-void WeightComparisonProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   ColProbe::initialize(params, defaults, comm);
+void WeightComparisonProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, PV::Communicator const *comm) {
+   ColProbe::initialize(paramsIO, comm);
 }
 
 Response::Status WeightComparisonProbe::communicateInitInfo(

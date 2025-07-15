@@ -4,11 +4,8 @@
 
 namespace PV {
 
-ProbeInterface::ProbeInterface(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+ProbeInterface::ProbeInterface(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 std::vector<double> const &ProbeInterface::getValues() const { return mValues->getValues(); }
@@ -20,11 +17,8 @@ std::vector<double> const &ProbeInterface::getValues(double timestamp) {
    return getValues();
 }
 
-void ProbeInterface::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void ProbeInterface::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void ProbeInterface::initMessageActionMap() {

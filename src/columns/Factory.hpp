@@ -82,10 +82,9 @@ class Factory {
     */
    template <typename T>
    static BaseObject *create(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
+         std::shared_ptr<ParamsIO> params,
          Communicator const *comm) {
-      return new T(params, defaults, comm);
+      return new T(params, comm);
    }
 
    /**

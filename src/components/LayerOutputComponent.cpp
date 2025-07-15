@@ -9,11 +9,8 @@
 
 namespace PV {
 
-LayerOutputComponent::LayerOutputComponent(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+LayerOutputComponent::LayerOutputComponent(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 LayerOutputComponent::LayerOutputComponent() {}
@@ -23,11 +20,8 @@ LayerOutputComponent::~LayerOutputComponent() {
    delete mIOTimer;
 }
 
-void LayerOutputComponent::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void LayerOutputComponent::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void LayerOutputComponent::setObjectType() { mObjectType = "LayerOutputComponent"; }

@@ -21,10 +21,7 @@ class QuotientProbe : public ProbeInterface {
    virtual void ioParam_numerator(ParamsIOSwitch ioSwitch);
 
   public:
-   QuotientProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   QuotientProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~QuotientProbe() {}
 
   protected:
@@ -35,20 +32,10 @@ class QuotientProbe : public ProbeInterface {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual void createComponents(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeOutputter(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
-   virtual void createProbeTrigger(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   virtual void createComponents(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
+   virtual void createProbeTrigger(std::shared_ptr<ParamsIO> paramsIO);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual void initMessageActionMap() override;
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 

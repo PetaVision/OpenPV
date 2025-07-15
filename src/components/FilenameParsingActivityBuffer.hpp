@@ -55,10 +55,7 @@ class FilenameParsingActivityBuffer : public ActivityBuffer {
    /** @} */
 
   public:
-   FilenameParsingActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   FilenameParsingActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~FilenameParsingActivityBuffer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

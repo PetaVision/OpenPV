@@ -62,10 +62,7 @@ class NormalizeMultiply : public NormalizeBase {
    /** @} */ // end of NormalizeMultiply parameters
 
   public:
-   NormalizeMultiply(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   NormalizeMultiply(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~NormalizeMultiply();
 
    float getRMinX() { return mRMinX; }
@@ -77,10 +74,7 @@ class NormalizeMultiply : public NormalizeBase {
 
   protected:
    NormalizeMultiply();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 

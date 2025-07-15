@@ -12,23 +12,17 @@
 
 namespace PV {
 
-LayerGeometry::LayerGeometry(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+LayerGeometry::LayerGeometry(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 LayerGeometry::LayerGeometry() {}
 
 LayerGeometry::~LayerGeometry() {}
 
-void LayerGeometry::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
+void LayerGeometry::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
    std::memset(&mLayerLoc, 0, sizeof(mLayerLoc));
-   BaseObject::initialize(params, defaults, comm);
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void LayerGeometry::setObjectType() { mObjectType = "LayerGeometry"; }

@@ -12,10 +12,7 @@
 
 namespace PV {
 
-typedef BaseObject *(*ObjectCreateFn)(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm);
+typedef BaseObject *(*ObjectCreateFn)(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
 /**
  * KeywordHandler is a class that associates a string, the keyword,
@@ -33,7 +30,7 @@ typedef BaseObject *(*ObjectCreateFn)(
  * one can insert a new HyPerLayer called "layer" into a given HyPerCol with
  * the statement.
  *
- * kwh->create("layer", params, comm);
+ * kwh->create("layer", paramsIO, comm);
  */
 class KeywordHandler {
   public:
@@ -65,10 +62,7 @@ class KeywordHandler {
    /**
     * The method that calls the function pointer with the given arguments
     */
-   BaseObject *create(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm) const;
+   BaseObject *create(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) const;
 
    /**
     * The destructor for KeywordHandler.
@@ -82,10 +76,7 @@ class KeywordHandler {
     */
    int initialize(
          char const *kw,
-         BaseObject *(*creator)(
-               std::shared_ptr<ParamGroup> params,
-               std::shared_ptr<ParamGroup> defaults,
-               Communicator const *comm));
+         BaseObject *(*creator)(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm));
 
    // Member variables
   private:

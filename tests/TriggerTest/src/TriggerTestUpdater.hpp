@@ -11,10 +11,7 @@ namespace PV {
 
 class TriggerTestUpdater : public HebbianUpdater {
   public:
-   TriggerTestUpdater(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   TriggerTestUpdater(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    void virtual updateState(double time, double dt) override;

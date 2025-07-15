@@ -4,25 +4,21 @@
 
 namespace PV {
 
-ImageLayer::ImageLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+ImageLayer::ImageLayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ImageLayer::~ImageLayer() {}
 
-void ImageLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void ImageLayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InputLayer::initialize(params, defaults, comm);
+   InputLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *ImageLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<ImageActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

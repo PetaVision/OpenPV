@@ -21,12 +21,9 @@
 
 namespace PV {
 
-MPITestProbe::MPITestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+MPITestProbe::MPITestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : StatsProbeImmediate() {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 void MPITestProbe::checkStats() {
@@ -63,23 +60,16 @@ void MPITestProbe::checkStats() {
    }
 }
 
-void MPITestProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
+void MPITestProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(paramsIO);
 }
 
-void MPITestProbe::createProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   mProbeOutputter = std::make_shared<MPITestProbeOutputter>(params, defaults, comm);
+void MPITestProbe::createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   mProbeOutputter = std::make_shared<MPITestProbeOutputter>(paramsIO, comm);
 }
 
-void MPITestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void MPITestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 } // end namespace PV

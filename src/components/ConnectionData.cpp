@@ -12,22 +12,16 @@
 
 namespace PV {
 
-ConnectionData::ConnectionData(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+ConnectionData::ConnectionData(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 ConnectionData::ConnectionData() {}
 
 ConnectionData::~ConnectionData() {}
 
-void ConnectionData::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseObject::initialize(params, defaults, comm);
+void ConnectionData::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseObject::initialize(paramsIO, comm);
 }
 
 void ConnectionData::setObjectType() { mObjectType = "ConnectionData"; }

@@ -17,7 +17,7 @@ WTALayer::WTALayer(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 WTALayer::~WTALayer() {}
@@ -35,7 +35,7 @@ void WTALayer::initialize(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 LayerInputBuffer *WTALayer::createLayerInput() { return nullptr; }

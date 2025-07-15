@@ -189,10 +189,7 @@ class InputActivityBuffer : public ActivityBuffer {
    /** @} */
 
   public:
-   InputActivityBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InputActivityBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~InputActivityBuffer();
 
@@ -211,10 +208,7 @@ class InputActivityBuffer : public ActivityBuffer {
   protected:
    InputActivityBuffer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

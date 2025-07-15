@@ -12,18 +12,12 @@ namespace PV {
  */
 class AlwaysFailsLayer : public HyPerLayer {
   public:
-   AlwaysFailsLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   AlwaysFailsLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~AlwaysFailsLayer();
 
   protected:
    AlwaysFailsLayer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual Response::Status checkUpdateState(double simTime, double deltaTime) override;
 };
 

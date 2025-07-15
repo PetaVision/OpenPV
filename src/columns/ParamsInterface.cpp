@@ -10,12 +10,11 @@
 namespace PV {
 ParamsInterface::~ParamsInterface() {}
 
-int ParamsInterface::initialize(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   FatalIf(params == nullptr, "ParamsInterface called with null ParamGroup\n");
-   setName(params->getName());
-   setKeyword(params->getKeyword());
-   setParams(params, defaults);
+int ParamsInterface::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   FatalIf(paramsIO == nullptr, "ParamsInterface called with null ParamsIO\n");
+   setName(paramsIO->getName());
+   setKeyword(paramsIO->getKeyword());
+   setParams(paramsIO);
    setObjectType();
    setDescription(getObjectType() + " \"" + getName() + "\"");
    CheckpointerDataInterface::initialize();
@@ -33,9 +32,8 @@ void ParamsInterface::setKeyword(std::string const &keyword) {
    mKeyword = keyword;
 }
 
-void ParamsInterface::setParams(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mParamsIO = std::make_shared<ParamsIO>(params, defaults);
+void ParamsInterface::setParams(std::shared_ptr<ParamsIO> paramsIO) {
+   mParamsIO = paramsIO;
 }
 
 void ParamsInterface::setObjectType() {

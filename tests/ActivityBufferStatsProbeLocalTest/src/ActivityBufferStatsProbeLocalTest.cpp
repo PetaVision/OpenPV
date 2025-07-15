@@ -266,10 +266,9 @@ int testStoredValues(HyPerLayer *layer, float nnzThreshold, unsigned int seed) {
    paramsString.append("   nnzThreshold = ").append(nnzThresholdString).append(";\n");
    paramsString.append("};\n");
    PV::PVParams probePVParams(paramsString.c_str(), paramsString.size(), MPI_COMM_WORLD);
-   auto probeParams = probePVParams.group("probe");
-   auto probeDefaults = probePVParams.defaultGroup("StatsProbe");
+   auto probeParamsIO = probePVParams.makeParamsIO("probe");
 
-   ActivityBufferStatsProbeLocal activityBufferProbeLocal(probeParams, probeDefaults);
+   ActivityBufferStatsProbeLocal activityBufferProbeLocal(probeParamsIO);
    activityBufferProbeLocal.ioParamsFillGroup(PV::ParamsIOSwitch::Read);
    activityBufferProbeLocal.initializeState(layer);
    FatalIf(

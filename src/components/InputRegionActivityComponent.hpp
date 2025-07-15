@@ -24,18 +24,12 @@ class InputRegionActivityComponent : public ActivityComponent {
    virtual void ioParam_updateGpu(ParamsIOSwitch ioSwitch) override;
 
   public:
-   InputRegionActivityComponent(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InputRegionActivityComponent(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InputRegionActivityComponent();
 
   protected:
    InputRegionActivityComponent();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

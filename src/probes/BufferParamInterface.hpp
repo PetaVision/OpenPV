@@ -24,7 +24,7 @@ class BufferParamInterface : public ProbeComponent {
   protected:
    BufferParamInterface() {}
 
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
    /**
     * A method for reading BufferString from params or writing BufferString to

@@ -20,25 +20,19 @@ ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    initialize_base();
 }
 
-ColProbe::ColProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
+ColProbe::ColProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
    WarnLog() << "ColProbe has been deprecated. Derive probe classes from ProbeInterface instead.\n";
    // ColProbe was deprecated on Apr 19, 2023.
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ColProbe::~ColProbe() {}
 
 int ColProbe::initialize_base() { return PV_SUCCESS; }
 
-void ColProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseProbe::initialize(params, defaults, comm);
+void ColProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseProbe::initialize(paramsIO, comm);
 }
 
 void ColProbe::initMessageActionMap() {

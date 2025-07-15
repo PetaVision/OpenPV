@@ -2,14 +2,14 @@
 
 namespace PV {
 
-ProbeComponent::ProbeComponent(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+ProbeComponent::ProbeComponent(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 ProbeComponent::ProbeComponent() {}
 
-void ProbeComponent::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mParamsIO = std::make_shared<ParamsIO>(params, defaults);
+void ProbeComponent::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   mParamsIO = paramsIO;
 }
 
 void ProbeComponent::setPrintParamsStream(FileStream *stream) {

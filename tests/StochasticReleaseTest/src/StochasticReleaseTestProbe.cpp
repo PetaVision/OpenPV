@@ -33,11 +33,8 @@
 
 namespace PV {
 
-StochasticReleaseTestProbe::StochasticReleaseTestProbe(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+StochasticReleaseTestProbe::StochasticReleaseTestProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 StochasticReleaseTestProbe::StochasticReleaseTestProbe() {}
@@ -79,16 +76,12 @@ void StochasticReleaseTestProbe::checkStats() {
          simTime);
 }
 
-void StochasticReleaseTestProbe::createProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(params, defaults);
+void StochasticReleaseTestProbe::createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(paramsIO);
 }
 
-void StochasticReleaseTestProbe::createProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   mProbeOutputter = std::make_shared<StochasticReleaseTestProbeOutputter>(params, defaults, comm);
+void StochasticReleaseTestProbe::createProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   mProbeOutputter = std::make_shared<StochasticReleaseTestProbeOutputter>(paramsIO, comm);
 }
 
 Response::Status StochasticReleaseTestProbe::communicateInitInfo(
@@ -254,11 +247,8 @@ int StochasticReleaseTestProbe::computePValues() {
    return status;
 }
 
-void StochasticReleaseTestProbe::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   StatsProbeImmediate::initialize(params, defaults, comm);
+void StochasticReleaseTestProbe::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   StatsProbeImmediate::initialize(paramsIO, comm);
 }
 
 StochasticReleaseTestProbe::~StochasticReleaseTestProbe() {}

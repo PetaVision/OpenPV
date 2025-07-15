@@ -14,23 +14,19 @@ namespace PV {
 
 DiscreteUniformRandomV::DiscreteUniformRandomV() { initialize_base(); }
 
-DiscreteUniformRandomV::DiscreteUniformRandomV(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+DiscreteUniformRandomV::DiscreteUniformRandomV(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 DiscreteUniformRandomV::~DiscreteUniformRandomV() {}
 
 int DiscreteUniformRandomV::initialize_base() { return PV_SUCCESS; }
 
-void DiscreteUniformRandomV::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void DiscreteUniformRandomV::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   BaseInitV::initialize(params, defaults, comm);
+   BaseInitV::initialize(paramsIO, comm);
 }
 
 int DiscreteUniformRandomV::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

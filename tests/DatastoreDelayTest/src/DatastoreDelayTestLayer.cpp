@@ -13,27 +13,21 @@
 
 namespace PV {
 
-DatastoreDelayTestLayer::DatastoreDelayTestLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+DatastoreDelayTestLayer::DatastoreDelayTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 DatastoreDelayTestLayer::~DatastoreDelayTestLayer() {}
 
-void DatastoreDelayTestLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+void DatastoreDelayTestLayer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 LayerInputBuffer *DatastoreDelayTestLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *DatastoreDelayTestLayer::createActivityComponent() {
    return new CloneActivityComponent<DatastoreDelayTestBuffer, HyPerActivityBuffer>(
-         mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+         mParamsIO, mCommunicator);
 }
 
 } // end of namespace PV block

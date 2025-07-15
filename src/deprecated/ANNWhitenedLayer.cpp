@@ -38,7 +38,7 @@ ANNWhitenedLayer::ANNWhitenedLayer(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 ANNWhitenedLayer::~ANNWhitenedLayer() {}
@@ -50,7 +50,7 @@ void ANNWhitenedLayer::initialize(
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
    WarnLog() << "ANNWhitenedLayer has been deprecated.\n";
-   ANNLayer::initialize(params, defaults, comm);
+   ANNLayer::initialize(paramsIO, comm);
    mLayerInput->requireChannel(2); // applyGSyn_ANNWhitenedLayer uses channels 0, 1, and 2
    pvAssert(mLayerInput->getNumChannels() == 3);
    return PV_SUCCESS;

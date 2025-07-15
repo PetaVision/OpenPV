@@ -14,20 +14,14 @@ namespace PV {
 
 HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer() {}
 
-HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 HyPerLCAInternalStateBuffer::~HyPerLCAInternalStateBuffer() {}
 
-void HyPerLCAInternalStateBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(params, defaults, comm);
+void HyPerLCAInternalStateBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerInternalStateBuffer::initialize(paramsIO, comm);
 }
 
 int HyPerLCAInternalStateBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

@@ -17,19 +17,13 @@ namespace PV {
  */
 class FirmThresholdCostLayer : public HyPerLayer {
   public:
-   FirmThresholdCostLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   FirmThresholdCostLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~FirmThresholdCostLayer();
 
   protected:
    FirmThresholdCostLayer() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

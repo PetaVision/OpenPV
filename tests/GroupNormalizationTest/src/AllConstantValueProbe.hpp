@@ -15,10 +15,7 @@ namespace PV {
 
 class AllConstantValueProbe : public StatsProbeImmediate {
   public:
-   AllConstantValueProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   AllConstantValueProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    ~AllConstantValueProbe();
 
    float getCorrectValue() { return mCorrectValue; }
@@ -26,10 +23,7 @@ class AllConstantValueProbe : public StatsProbeImmediate {
   protected:
    AllConstantValueProbe();
    virtual void checkStats() override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
    virtual void ioParam_correctValue(ParamsIOSwitch ioSwitch);
 

@@ -13,23 +13,19 @@ namespace PV {
 
 NormalizeSum::NormalizeSum() { initialize_base(); }
 
-NormalizeSum::NormalizeSum(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+NormalizeSum::NormalizeSum(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
    initialize_base();
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 NormalizeSum::~NormalizeSum() {}
 
 int NormalizeSum::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeSum::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void NormalizeSum::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   NormalizeMultiply::initialize(params, defaults, comm);
+   NormalizeMultiply::initialize(paramsIO, comm);
 }
 
 int NormalizeSum::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

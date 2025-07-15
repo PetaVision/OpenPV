@@ -11,10 +11,7 @@ namespace PV {
 
 class MovieTestBuffer : public PV::ImageActivityBuffer {
   public:
-   MovieTestBuffer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   MovieTestBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual void updateBufferCPU(double simTime, double deltaTime) override;

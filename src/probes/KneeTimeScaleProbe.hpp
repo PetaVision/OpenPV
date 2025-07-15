@@ -11,10 +11,7 @@ class KneeTimeScaleProbe : public AdaptiveTimeScaleProbe {
    virtual void ioParam_kneeThresh(ParamsIOSwitch ioSwitch);
    virtual void ioParam_kneeSlope(ParamsIOSwitch ioSwitch);
 
-   KneeTimeScaleProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   KneeTimeScaleProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   protected:
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;

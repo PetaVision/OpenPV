@@ -18,10 +18,7 @@ namespace PV {
  */
 class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
   public:
-   PostsynapticPerspectiveConvolveDelivery(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   PostsynapticPerspectiveConvolveDelivery(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~PostsynapticPerspectiveConvolveDelivery();
 
@@ -43,10 +40,7 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
   protected:
    PostsynapticPerspectiveConvolveDelivery();
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

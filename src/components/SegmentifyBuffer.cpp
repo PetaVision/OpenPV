@@ -12,11 +12,8 @@
 
 namespace PV {
 
-SegmentifyBuffer::SegmentifyBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+SegmentifyBuffer::SegmentifyBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 SegmentifyBuffer::SegmentifyBuffer() {
@@ -25,11 +22,8 @@ SegmentifyBuffer::SegmentifyBuffer() {
 
 SegmentifyBuffer::~SegmentifyBuffer() {}
 
-void SegmentifyBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   ActivityBuffer::initialize(params, defaults, comm);
+void SegmentifyBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   ActivityBuffer::initialize(paramsIO, comm);
 }
 
 int SegmentifyBuffer::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

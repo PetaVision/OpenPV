@@ -14,7 +14,7 @@ BaseHyPerConnProbe::BaseHyPerConnProbe(
       std::shared_ptr<ParamGroup> params,
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 BaseHyPerConnProbe::BaseHyPerConnProbe() {}
@@ -23,7 +23,7 @@ void BaseHyPerConnProbe::initialize(
       std::shared_ptr<ParamGroup> params,
       std::shared_ptr<ParamGroup> defaults,
       Communicator const *comm) {
-   BaseConnectionProbe::initialize(params, defaults, comm);
+   BaseConnectionProbe::initialize(paramsIO, comm);
 }
 
 void BaseHyPerConnProbe::ioParam_statsFlag(ParamsIOSwitch ioSwitch) {

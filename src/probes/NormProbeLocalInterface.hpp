@@ -22,7 +22,7 @@ class NormProbeLocalInterface : public ProbeComponent {
    virtual void ioParam_maskLayerName(ParamsIOSwitch ioSwitch);
 
   public:
-   NormProbeLocalInterface(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   NormProbeLocalInterface(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~NormProbeLocalInterface();
 
    void clearStoredValues();
@@ -38,7 +38,7 @@ class NormProbeLocalInterface : public ProbeComponent {
 
   protected:
    NormProbeLocalInterface() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
    float const *getMaskBuffer() const { return mMaskBuffer; }
    HyPerLayer *getMaskLayer() { return mMaskLayer; }

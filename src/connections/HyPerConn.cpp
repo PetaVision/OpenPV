@@ -14,22 +14,18 @@
 
 namespace PV {
 
-HyPerConn::HyPerConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+HyPerConn::HyPerConn(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 HyPerConn::HyPerConn() {}
 
 HyPerConn::~HyPerConn() { delete mUpdateTimer; }
 
-void HyPerConn::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void HyPerConn::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   BaseConnection::initialize(params, defaults, comm);
+   BaseConnection::initialize(paramsIO, comm);
 }
 
 void HyPerConn::initMessageActionMap() {
@@ -82,25 +78,24 @@ void HyPerConn::fillComponentTable() {
 }
 
 BaseDelivery *HyPerConn::createDeliveryObject() {
-   auto *deliveryCreator = new HyPerDeliveryCreator(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   auto *deliveryCreator = new HyPerDeliveryCreator(mParamsIO, mCommunicator);
    addUniqueComponent(deliveryCreator);
    return deliveryCreator->create();
 }
 
-ArborList *HyPerConn::createArborList() { return new ArborList(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator); }
+ArborList *HyPerConn::createArborList() { return new ArborList(mParamsIO, mCommunicator); }
 
-PatchSize *HyPerConn::createPatchSize() { return new PatchSize(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator); }
+PatchSize *HyPerConn::createPatchSize() { return new PatchSize(mParamsIO, mCommunicator); }
 
 SharedWeights *HyPerConn::createSharedWeights() {
-   return new SharedWeights(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new SharedWeights(mParamsIO, mCommunicator);
 }
 
 WeightsPairInterface *HyPerConn::createWeightsPair() {
-   return new WeightsPair(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new WeightsPair(mParamsIO, mCommunicator);
 }
 
 InitWeights *HyPerConn::createWeightInitializer() {
-   ParamsIO paramsIO(mParamsIO->getParams(), mParamsIO->getDefaults());
    std::string weightInitTypeString = mParamsIO->readValue<std::string>("weightInitType");
    // Note: The weightInitType string param gets read both here and by the
    // InitWeights::ioParam_weightInitType() method. It is read here because we need
@@ -126,7 +121,6 @@ InitWeights *HyPerConn::createWeightInitializer() {
 
 NormalizeBase *HyPerConn::createWeightNormalizer() {
    NormalizeBase *normalizer = nullptr;
-   ParamsIO paramsIO(mParamsIO->getParams(), mParamsIO->getDefaults());
    std::string normalizeMethod = mParamsIO->readValue<std::string>("normalizeMethod");
    // Note: The normalizeMethod string param gets read both here and by the
    // NormalizeBase::normalizeMethod() function. It is read here because we need
@@ -141,7 +135,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
       normalizeMethod = "none";
    }
    if (normalizeMethod != "none") {
-      auto strengthParam = new StrengthParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+      auto strengthParam = new StrengthParam(mParamsIO, mCommunicator);
       addUniqueComponent(strengthParam);
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod.c_str(), this);
@@ -159,7 +153,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
 }
 
 BaseWeightUpdater *HyPerConn::createWeightUpdater() {
-   return new HebbianUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new HebbianUpdater(mParamsIO, mCommunicator);
 }
 
 Response::Status

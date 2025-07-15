@@ -103,10 +103,7 @@ class MomentumUpdater : public HebbianUpdater {
    static constexpr float mDefaultTimeConstantTauSimple    = 0.25f;
    static constexpr float mDefaultTimeConstantTauViscosity = 100.0f;
 
-   MomentumUpdater(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   MomentumUpdater(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~MomentumUpdater() {}
 
@@ -120,10 +117,7 @@ class MomentumUpdater : public HebbianUpdater {
 
    MomentumUpdater() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

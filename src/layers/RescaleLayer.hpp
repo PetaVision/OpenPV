@@ -17,18 +17,12 @@ class RescaleLayer : public CloneVLayer {
    // Derived from CloneVLayer for OriginalLayerNameParam and the lack of LayerInput,
    // but its ActivityComponent will not have an InternalStateBuffer.
   public:
-   RescaleLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   RescaleLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~RescaleLayer();
 
   protected:
    RescaleLayer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ActivityComponent *createActivityComponent() override;
 }; // class RescaleLayer
 

@@ -5,22 +5,16 @@
 
 namespace PV {
 
-SegmentLayer::SegmentLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+SegmentLayer::SegmentLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 SegmentLayer::SegmentLayer() {}
 
 SegmentLayer::~SegmentLayer() {}
 
-void SegmentLayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+void SegmentLayer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 void SegmentLayer::fillComponentTable() {
@@ -32,13 +26,13 @@ void SegmentLayer::fillComponentTable() {
 }
 
 OriginalLayerNameParam *SegmentLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new OriginalLayerNameParam(mParamsIO, mCommunicator);
 }
 
 LayerInputBuffer *SegmentLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *SegmentLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<SegmentBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new ActivityComponentActivityOnly<SegmentBuffer>(mParamsIO, mCommunicator);
 }
 
 } /* namespace PV */

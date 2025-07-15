@@ -9,22 +9,18 @@
 
 namespace PV {
 
-InitOneToOneWeights::InitOneToOneWeights(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+InitOneToOneWeights::InitOneToOneWeights(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 InitOneToOneWeights::InitOneToOneWeights() {}
 
 InitOneToOneWeights::~InitOneToOneWeights() {}
 
-void InitOneToOneWeights::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void InitOneToOneWeights::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   InitWeights::initialize(params, defaults, comm);
+   InitWeights::initialize(paramsIO, comm);
 }
 
 int InitOneToOneWeights::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {

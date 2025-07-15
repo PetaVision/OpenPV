@@ -21,18 +21,12 @@ namespace PV {
  */
 class BackgroundLayer : public HyPerLayer {
   public:
-   BackgroundLayer(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   BackgroundLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~BackgroundLayer();
 
   protected:
    BackgroundLayer();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void fillComponentTable() override;
    virtual LayerInputBuffer *createLayerInput() override;

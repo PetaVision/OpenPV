@@ -40,10 +40,7 @@ class GSynAccumulator : public RestrictedBuffer {
 
    /** @} */
   public:
-   GSynAccumulator(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   GSynAccumulator(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~GSynAccumulator();
 
@@ -52,10 +49,7 @@ class GSynAccumulator : public RestrictedBuffer {
   protected:
    GSynAccumulator() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 

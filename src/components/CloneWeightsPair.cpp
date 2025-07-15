@@ -12,11 +12,8 @@
 
 namespace PV {
 
-CloneWeightsPair::CloneWeightsPair(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+CloneWeightsPair::CloneWeightsPair(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 CloneWeightsPair::~CloneWeightsPair() {
@@ -24,11 +21,8 @@ CloneWeightsPair::~CloneWeightsPair() {
    mPostWeights = nullptr;
 }
 
-void CloneWeightsPair::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   WeightsPair::initialize(params, defaults, comm);
+void CloneWeightsPair::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   WeightsPair::initialize(paramsIO, comm);
 }
 
 void CloneWeightsPair::setObjectType() { mObjectType = "CloneWeightsPair"; }

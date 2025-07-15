@@ -47,20 +47,14 @@ class InitGauss2DWeights : public InitWeights {
    /** @} */
 
   public:
-   InitGauss2DWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitGauss2DWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitGauss2DWeights();
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 
   protected:
    InitGauss2DWeights();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

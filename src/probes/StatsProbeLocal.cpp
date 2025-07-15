@@ -11,9 +11,8 @@
 #include "utils/conversions.hpp"
 
 namespace PV {
-StatsProbeLocal::StatsProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+StatsProbeLocal::StatsProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
 template <>
@@ -76,10 +75,9 @@ float const *StatsProbeLocal::findDataBufferV() const {
    return layerDataV->getBufferData();
 }
 
-void StatsProbeLocal::initialize(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   ProbeComponent::initialize(params, defaults);
-   setBufferParam<BufferParamUserSpecified>(params, defaults);
+void StatsProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   ProbeComponent::initialize(paramsIO);
+   setBufferParam<BufferParamUserSpecified>(paramsIO);
 }
 
 void StatsProbeLocal::initializeState(HyPerLayer *targetLayer) { mTargetLayer = targetLayer; }

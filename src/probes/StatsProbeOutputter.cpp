@@ -11,18 +11,12 @@
 
 namespace PV {
 
-StatsProbeOutputter::StatsProbeOutputter(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+StatsProbeOutputter::StatsProbeOutputter(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
-void StatsProbeOutputter::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   BaseProbeOutputter::initialize(params, defaults, comm);
+void StatsProbeOutputter::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   BaseProbeOutputter::initialize(paramsIO, comm);
 }
 
 void StatsProbeOutputter::printGlobalStatsBuffer(ProbeDataBuffer<LayerStats> const &storedValues) {

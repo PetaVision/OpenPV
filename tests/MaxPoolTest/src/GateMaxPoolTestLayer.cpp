@@ -7,17 +7,14 @@
 
 namespace PV {
 
-GateMaxPoolTestLayer::GateMaxPoolTestLayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+GateMaxPoolTestLayer::GateMaxPoolTestLayer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 ActivityComponent *GateMaxPoolTestLayer::createActivityComponent() {
    return new HyPerActivityComponent<GateMaxPoolTestBuffer,
                                      HyPerInternalStateBuffer,
-                                     ANNActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+                                     ANNActivityBuffer>(mParamsIO, mCommunicator);
 }
 
 } /* namespace PV */

@@ -7,18 +7,12 @@
 #include "utils/PVAssert.hpp"
 #include <vector>
 
-ResetStateOnTriggerTestProbeOutputter::ResetStateOnTriggerTestProbeOutputter(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   initialize(params, defaults, comm);
+ResetStateOnTriggerTestProbeOutputter::ResetStateOnTriggerTestProbeOutputter(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
-void ResetStateOnTriggerTestProbeOutputter::initialize(
-      std::shared_ptr<PV::ParamGroup> params,
-      std::shared_ptr<PV::ParamGroup> defaults,
-      PV::Communicator const *comm) {
-   BaseProbeOutputter::initialize(params, defaults, comm);
+void ResetStateOnTriggerTestProbeOutputter::initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm) {
+   BaseProbeOutputter::initialize(paramsIO, comm);
 }
 
 void ResetStateOnTriggerTestProbeOutputter::printGlobalStatsBuffer(

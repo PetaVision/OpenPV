@@ -212,9 +212,9 @@ int testAggregateStoredValues(std::shared_ptr<MPIBlock const> mpiBlock, PVLayerL
    }
 
    // Aggregate the values. Note that StatsProbeAggregator does not read any params
-   // Will need to adjust the probe components, since there's no params file to get thename from
+   // Will need to adjust the probe components, since there's no params file to get the name from
    // Make a params file with an empty group called "StatsProbeAggregator"?
-   StatsProbeAggregator statsProbeAggregator(nullptr /*params*/, nullptr /*defaults*/, mpiBlock);
+   StatsProbeAggregator statsProbeAggregator(nullptr /*paramsIO*/, mpiBlock);
    statsProbeAggregator.aggregateStoredValues(partialStatsStore);
 
    // Check that the values are correct

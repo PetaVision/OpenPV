@@ -2,14 +2,12 @@
 
 namespace PV {
 
-L0NormLCAProbeLocal::L0NormLCAProbeLocal(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+L0NormLCAProbeLocal::L0NormLCAProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
-void L0NormLCAProbeLocal::initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   L0NormProbeLocal::initialize(params, defaults);
+void L0NormLCAProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   L0NormProbeLocal::initialize(paramsIO);
 }
 
 void L0NormLCAProbeLocal::ioParam_nnzThreshold(ParamsIOSwitch ioSwitch) {

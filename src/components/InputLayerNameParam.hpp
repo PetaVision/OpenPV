@@ -17,20 +17,14 @@ namespace PV {
  */
 class InputLayerNameParam : public LinkedObjectParam {
   public:
-   InputLayerNameParam(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InputLayerNameParam(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual ~InputLayerNameParam();
 
   protected:
    InputLayerNameParam() {}
 
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual void setObjectType() override;
 };

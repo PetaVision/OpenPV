@@ -10,16 +10,13 @@
 
 namespace PV {
 
-PlasticTestConn::PlasticTestConn(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm)
+PlasticTestConn::PlasticTestConn(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm)
       : HyPerConn() {
-   HyPerConn::initialize(params, defaults, comm);
+   HyPerConn::initialize(paramsIO, comm);
 }
 
 BaseWeightUpdater *PlasticTestConn::createWeightUpdater() {
-   return new PlasticTestUpdater(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new PlasticTestUpdater(mParamsIO, mCommunicator);
 }
 
 PlasticTestConn::~PlasticTestConn() {}

@@ -3,15 +3,13 @@
 
 namespace PV {
 
-VMembraneBufferStatsProbeLocal::VMembraneBufferStatsProbeLocal(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   initialize(params, defaults);
+VMembraneBufferStatsProbeLocal::VMembraneBufferStatsProbeLocal(std::shared_ptr<ParamsIO> paramsIO) {
+   initialize(paramsIO);
 }
 
-void VMembraneBufferStatsProbeLocal::initialize(
-      std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) {
-   StatsProbeLocal::initialize(params, defaults);
-   setBufferParam<BufferParamVMembraneSpecified>(params, defaults);
+void VMembraneBufferStatsProbeLocal::initialize(std::shared_ptr<ParamsIO> paramsIO) {
+   StatsProbeLocal::initialize(paramsIO);
+   setBufferParam<BufferParamVMembraneSpecified>(paramsIO);
 }
 
 } // namespace PV

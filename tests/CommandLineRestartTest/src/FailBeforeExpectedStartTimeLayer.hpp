@@ -13,20 +13,14 @@
  */
 class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
   public:
-   FailBeforeExpectedStartTimeLayer(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   FailBeforeExpectedStartTimeLayer(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
    ~FailBeforeExpectedStartTimeLayer() {}
 
    void setExpectedStartTime(double expectedStartTime) { mExpectedStartTime = expectedStartTime; }
 
   protected:
    FailBeforeExpectedStartTimeLayer();
-   void initialize(
-         std::shared_ptr<PV::ParamGroup> params,
-         std::shared_ptr<PV::ParamGroup> defaults,
-         PV::Communicator const *comm);
+   void initialize(std::shared_ptr<PV::ParamsIO> paramsIO, PV::Communicator const *comm);
    virtual PV::Response::Status checkUpdateState(double simTime, double dt) override;
 
   private:

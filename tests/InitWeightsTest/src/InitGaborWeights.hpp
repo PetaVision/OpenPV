@@ -19,10 +19,7 @@ class InitGaborWeights : public PV::InitGauss2DWeights {
    virtual void ioParam_invert(ParamsIOSwitch ioSwitch);
 
   public:
-   InitGaborWeights(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   InitGaborWeights(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~InitGaborWeights();
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
@@ -32,10 +29,7 @@ class InitGaborWeights : public PV::InitGauss2DWeights {
 
   protected:
    InitGaborWeights();
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
   private:
    void gaborWeights(float *dataStart);

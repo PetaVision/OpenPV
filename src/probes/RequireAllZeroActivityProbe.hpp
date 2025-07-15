@@ -26,10 +26,7 @@ namespace PV {
 
 class RequireAllZeroActivityProbe : public StatsProbeImmediate {
   public:
-   RequireAllZeroActivityProbe(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   RequireAllZeroActivityProbe(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
    virtual ~RequireAllZeroActivityProbe();
 
    bool foundNonzero() const { return mCheckStats->foundNonzero(); }
@@ -41,18 +38,10 @@ class RequireAllZeroActivityProbe : public StatsProbeImmediate {
    virtual void checkStats() override;
    virtual Response::Status cleanup() override;
    virtual void
-   createComponents(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm) override;
-   virtual void createProbeCheckStats(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
-   virtual void createProbeLocal(
-        std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults) override;
-   void initialize(
-         std::shared_ptr<ParamGroup> params,
-         std::shared_ptr<ParamGroup> defaults,
-         Communicator const *comm);
+   createComponents(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) override;
+   virtual void createProbeCheckStats(std::shared_ptr<ParamsIO> paramsIO);
+   virtual void createProbeLocal(std::shared_ptr<ParamsIO> paramsIO) override;
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    virtual int ioParamsFillGroup(ParamsIOSwitch ioSwitch) override;
 

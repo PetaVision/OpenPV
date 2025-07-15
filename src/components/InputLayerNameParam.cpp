@@ -10,20 +10,14 @@
 
 namespace PV {
 
-InputLayerNameParam::InputLayerNameParam(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+InputLayerNameParam::InputLayerNameParam(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 InputLayerNameParam::~InputLayerNameParam() {}
 
-void InputLayerNameParam::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   LinkedObjectParam::initialize(params, defaults, comm, std::string("inputLayerName"));
+void InputLayerNameParam::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   LinkedObjectParam::initialize(paramsIO, comm, std::string("inputLayerName"));
 }
 
 void InputLayerNameParam::setObjectType() { mObjectType = "InputLayerNameParam"; }

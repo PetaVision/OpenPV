@@ -74,7 +74,7 @@ CheckStatsAllZeros initTestObject(PV_Init const &pv_init, bool exitFlag, bool im
    PVParams params(paramsString.data(), paramsString.size(), mpiComm);
    auto paramsIO = params.makeParamsIO("TestObject");
 
-   CheckStatsAllZeros testObject(paramsIO->getParams(), paramsIO->getDefaults());
+   CheckStatsAllZeros testObject(paramsIO);
    testObject.ioParamsFillGroup(PV::ParamsIOSwitch::Read, paramsIO);
    return testObject;
 }

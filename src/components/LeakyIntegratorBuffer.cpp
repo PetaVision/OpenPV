@@ -10,20 +10,14 @@
 
 namespace PV {
 
-LeakyIntegratorBuffer::LeakyIntegratorBuffer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   initialize(params, defaults, comm);
+LeakyIntegratorBuffer::LeakyIntegratorBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   initialize(paramsIO, comm);
 }
 
 LeakyIntegratorBuffer::~LeakyIntegratorBuffer() {}
 
-void LeakyIntegratorBuffer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm) {
-   HyPerInternalStateBuffer::initialize(params, defaults, comm);
+void LeakyIntegratorBuffer::initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm) {
+   HyPerInternalStateBuffer::initialize(paramsIO, comm);
 }
 
 void LeakyIntegratorBuffer::setObjectType() { mObjectType = "LeakyIntegratorBuffer"; }

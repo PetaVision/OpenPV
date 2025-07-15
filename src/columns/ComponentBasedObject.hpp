@@ -45,10 +45,7 @@ class ComponentBasedObject : public BaseObject, public Subject {
     *  should call ComponentBasedObject::initialize() during their own initialization.
     */
    ComponentBasedObject();
-   void initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
-      Communicator const *comm);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO, Communicator const *comm);
 
    /**
      * When called with the write flag, calls the ioParams function of each component.

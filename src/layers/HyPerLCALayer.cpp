@@ -14,30 +14,26 @@
 
 namespace PV {
 
-HyPerLCALayer::HyPerLCALayer(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+HyPerLCALayer::HyPerLCALayer(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   initialize(params, defaults, comm);
+   initialize(paramsIO, comm);
 }
 
 HyPerLCALayer::~HyPerLCALayer() {}
 
-void HyPerLCALayer::initialize(
-      std::shared_ptr<ParamGroup> params,
-      std::shared_ptr<ParamGroup> defaults,
+void HyPerLCALayer::initialize(std::shared_ptr<ParamsIO> paramsIO,
       Communicator const *comm) {
-   HyPerLayer::initialize(params, defaults, comm);
+   HyPerLayer::initialize(paramsIO, comm);
 }
 
 LayerInputBuffer *HyPerLCALayer::createLayerInput() {
-   return new LayerInputBuffer(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+   return new LayerInputBuffer(mParamsIO, mCommunicator);
 }
 
 ActivityComponent *HyPerLCALayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerLCAInternalStateBuffer,
-                                     ANNActivityBuffer>(mParamsIO->getParams(), mParamsIO->getDefaults(), mCommunicator);
+                                     ANNActivityBuffer>(mParamsIO, mCommunicator);
 }
 
 } // end namespace PV

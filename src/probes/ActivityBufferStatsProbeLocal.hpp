@@ -7,13 +7,12 @@ namespace PV {
 
 class ActivityBufferStatsProbeLocal : public StatsProbeLocal {
   public:
-   ActivityBufferStatsProbeLocal(
-         std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   ActivityBufferStatsProbeLocal(std::shared_ptr<ParamsIO> paramsIO);
    virtual ~ActivityBufferStatsProbeLocal() {}
 
   protected:
    ActivityBufferStatsProbeLocal() {}
-   void initialize(std::shared_ptr<ParamGroup> params, std::shared_ptr<ParamGroup> defaults);
+   void initialize(std::shared_ptr<ParamsIO> paramsIO);
 
 }; // class ActivityBufferStatsProbeLocal
 
