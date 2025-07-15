@@ -590,11 +590,24 @@ void HyPerCol::processParams(std::string const &path) {
       notifyLoop(std::make_shared<CommunicateInitInfoMessage>(
             &objectTable, mDeltaTime, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
    }
-   int unreadParamStatus = mParams->lookForUnread(mErrorOnUnusedParam);
-   FatalIf(
-         mErrorOnUnusedParam and unreadParamStatus != PV_SUCCESS,
-         "Params file \"%s\" contains unused parameters, and errorOnUnusedParam was set.\n",
-         mPVInitObj->getStringArgument("ParamsFile").c_str());
+   auto unreadParams = mParams->lookForUnread();
+   if (!unreadParams.empty()) {
+      for (auto const &p : unreadParams) {
+         std::string message("Parameter group \"#1\": parameter \"#2\" has not been read.\n");
+         message.replace(message.find("#1"), 2, p.first);
+         message.replace(message.find("#2"), 2, p.second);
+         if (mErrorOnUnusedParam) {
+            ErrorLog() << message;
+         }
+         else {
+            WarnLog() << message;
+         }
+      }
+      FatalIf(
+            mErrorOnUnusedParam,
+            "Params file \"%s\" contains unused parameters, and errorOnUnusedParam was set.\n",
+            mPVInitObj->getStringArgument("ParamsFile").c_str());
+   }
 
    // Print a cleaned up version of params to the file given by printParamsFilename
    if (!path.empty()) {

@@ -5,6 +5,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 namespace PV {
 
@@ -34,12 +35,10 @@ class ParamGroup {
    bool isString(std::string const &paramName) const;
 
    /**
-    * lookForUnread() tests each parameter in the parameter group for whether it's been read, and
-    * prints a message for each unread parameter.  If errorOnUnreadFlag is true, the message is an
-    * error; otherwise it is a warning. Returns false if all parameters have been read,
-    * and true otherwise.
+    * lookForUnread() tests each parameter in the parameter group for whether it's been read.
+    * It returns a vector of strings, each string the name of one unread parameter.
     */
-   bool lookForUnread(bool errorOnUnreadFlag);
+   std::vector<std::string> lookForUnread();
 
    template <typename T>
    T const *peek(std::string const &paramName) const; 

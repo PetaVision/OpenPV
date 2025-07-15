@@ -57,10 +57,10 @@ int main(int argc, char **argv) {
          "Reading parameter \"array\" did not give expected array values.\n");
 
    // We haven't read "float" yet. Let's see if lookForUnread() works.
-   bool anyUnread = testParamGroup.lookForUnread(false /*errorOnUnread*/);
+   auto unreadParams = testParamGroup.lookForUnread();
    FatalIf(
-         anyUnread == false,
-         "The lookForUnread() member function returned false when it should have been true.\n");
+         unreadParams.empty(),
+         "lookForUnread() was empty when there should have been an unread parameter.\n");
    // Now read it and check its value
    auto floatValuePtr = testParamGroup.read<double>("float");
    FatalIf(!floatValuePtr, "Failed to read parameter \"float\"\n");
@@ -69,17 +69,17 @@ int main(int argc, char **argv) {
          "Reading parameter \"float\" gave the value %f instead of expected 3.5\n",
          static_cast<double>(*floatValuePtr));
    // Then see if lookForUnread() reports that all parameters have been read.
-   anyUnread = testParamGroup.lookForUnread(false /*errorOnUnread*/);
+   unreadParams = testParamGroup.lookForUnread();
    FatalIf(
-         anyUnread == true,
-         "The lookForUnread() member function returned true when it should have been false.\n");
+         !unreadParams.empty(),
+         "lookForUnread() was non-empty when every parameter should have been read.\n");
 
    // Clear all the HasBeenRead flags, and test lookForUnread() again
    testParamGroup.clearAllHasBeenReadFlags();
-   anyUnread = testParamGroup.lookForUnread(false /*errorOnUnread*/);
+   unreadParams = testParamGroup.lookForUnread();
    FatalIf(
-         anyUnread == false,
-         "The lookForUnread() member function returned false when it should have been true.\n");
+         unreadParams.empty(),
+         "lookForUnread() was empty when all parameters should have been unread.\n");
 
    // Erase a parameter, checking before and after that present() returns the correct value
    bool boolIsPresent = testParamGroup.present("bool");

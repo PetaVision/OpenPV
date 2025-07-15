@@ -1,7 +1,6 @@
 #include <algorithm>
 
 #include "ParamGroup.hpp"
-#include "utils/PVLog.hpp"
 
 namespace PV {
 
@@ -63,27 +62,16 @@ bool ParamGroup::isString(std::string const &paramName) const {
 }
 
 
-bool ParamGroup::lookForUnread(bool errorOnUnreadFlag) {
-   bool status = false;
+std::vector<std::string> ParamGroup::lookForUnread() {
+   std::vector<std::string> unreadParams(0);
    for (auto const &p : mParameterMap) {
       std::string const &name = p.first;
       Parameter const &param = p.second;
       if (!param.getHasBeenReadFlag()) {
-         if (mProcessRank == 0) {
-            std::string message("Parameter group \"#1\": parameter \"#2\" has not been read.\n");
-            message.replace(message.find("#1"), 2, mName);
-            message.replace(message.find("#2"), 2, name);
-            if (errorOnUnreadFlag) {
-               ErrorLog() << message;
-            }
-            else {
-               WarnLog() << message;
-            }
-         }
-         status = true;
+         unreadParams.push_back(name);
       }
    }
-   return status;
+   return unreadParams;
 }
 
 bool ParamGroup::present(std::string const &paramName) {

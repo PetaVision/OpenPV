@@ -45,12 +45,11 @@ class PVParams {
    std::shared_ptr<ParamsIO> makeParamsIO(std::string const &name, std::string const &keyword);
 
    /**
-    * lookForUnread() tests each parameter in each parameter group for whether it's been read, and
-    * prints a message for each unread parameter.  If errorOnUnread is true, the message is an
-    * error; otherwise it is a warning. Returns PV_SUCCESS if all parameters have been read,
-    * and PV_FAILURE otherwise.
+    * lookForUnread() tests each parameter in each parameter group for whether it's been read.
+    * The return value is a vector of pairs of strings. Each pair consists of a group name
+    * and a parameter name, indicating that that parameter within that group has not been read.
     */
-   int lookForUnread(bool errorOnUnread);
+   std::vector<std::pair<std::string, std::string>> lookForUnread();
    bool hasBeenRead(const char *group_name, const char *param_name);
 
    int setParameterSweepValues(int n) { return mGroups.setParameterSweepValues(n); }

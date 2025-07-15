@@ -102,14 +102,16 @@ void PVParams::addGroup(char *keyword, char *name) {
    mGroups.addGroup(std::string(keyword), std::string(name));
 }
 
-int PVParams::lookForUnread(bool errorOnUnread) {
-   int status = PV_SUCCESS;
+std::vector<std::pair<std::string, std::string>> PVParams::lookForUnread() {
+   std::vector<std::pair<std::string, std::string>> result(0);
    for (int i = 0; i < getNumGroups(); i++) {
-      if (mGroups[i]->lookForUnread(errorOnUnread) != PV_SUCCESS) {
-         status = PV_FAILURE;
+      std::string const &name = mGroups[i]->getName();
+      auto unreadParams = mGroups[i]->lookForUnread();
+      for (auto const &u : unreadParams) {
+         result.emplace_back(mGroups[i]->getName(), u);
       }
    }
-   return status;
+   return result;
 }
 
 bool PVParams::hasBeenRead(const char *group_name, const char *param_name) {
