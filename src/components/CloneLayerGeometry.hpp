@@ -26,25 +26,25 @@ class CloneLayerGeometry : public LayerGeometry {
     * @brief broadcastFlag: CloneLayerGeometry does not read the broadcastFlag parameter.
     * Instead, it uses the broadcastFlag of the original layer.
     */
-   virtual void ioParam_broadcastFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_broadcastFlag(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief nxScale: CloneLayerGeometry does not read the nxScale parameter.
     * Instead, it uses the nxScale of the original layer.
     */
-   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief nyScale: CloneLayerGeometry does not read the nyScale parameter.
     * Instead, it uses the nyScale of the original layer.
     */
-   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief nf: CloneLayerGeometry does not read the nf parameter.
     * Instead, it uses the nf of the original layer.
     */
-   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nf(enum ParamsIOFlag ioFlag) override;
    /** @} */ // end of CloneLayerGeometry parameters
 
   public:

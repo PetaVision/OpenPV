@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 namespace PV {
 
@@ -405,7 +406,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
 
    float resetVal = 0.0f;
    if (mAccumulateType == MAXPOOLING) {
-      resetVal = -INFINITY;
+      resetVal = std::numeric_limits<float>::lowest();
    }
 
    int const nbatch = sourceLoc->nbatch;
@@ -544,7 +545,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 
    float resetVal = 0;
    if (mAccumulateType == MAXPOOLING) {
-      resetVal = -INFINITY;
+      resetVal = std::numeric_limits<float>::lowest();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -727,9 +728,9 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       }
 #endif
    }
-   if (activityCube.isSparse) {
+   if (mAccumulateType == MAXPOOLING and activityCube.isSparse) {
       for (int k = 0; k < mPostGSyn->getBufferSizeAcrossBatch(); k++) {
-         if (gSyn[k] == -INFINITY) {
+         if (gSyn[k] == std::numeric_limits<float>::lowest()) {
             gSyn[k] = 0.0f;
          }
       }
