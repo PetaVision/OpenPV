@@ -2,7 +2,7 @@
 #define PARAMSIO_HPP_
 
 #include "include/pv_common.h"
-#include "io/FileStream.hpp"
+#include "io/PrintStream.hpp"
 #include "params/ParamGroup.hpp"
 #include <cassert>
 #include <limits>
@@ -81,11 +81,11 @@ class ParamsIO {
    std::shared_ptr<ParamGroup> getParams() { return mParams; }
    std::shared_ptr<ParamGroup> getDefaults() { return mDefaults; }
 
-   FileStream *getPrintParamsStream() { return mPrintParamsStream; }
-   FileStream *getPrintLuaStream() { return mPrintLuaStream; }
+   PrintStream *getPrintParamsStream() { return mPrintParamsStream; }
+   PrintStream *getPrintLuaStream() { return mPrintLuaStream; }
 
-   void setPrintParamsStream(FileStream *stream) { mPrintParamsStream = stream; }
-   void setPrintLuaStream(FileStream *stream) { mPrintLuaStream = stream; }
+   void setPrintParamsStream(PrintStream *stream) { mPrintParamsStream = stream; }
+   void setPrintLuaStream(PrintStream *stream) { mPrintLuaStream = stream; }
 
   private:
    template <typename T>
@@ -118,8 +118,8 @@ class ParamsIO {
    std::shared_ptr<ParamGroup> mParams;
    std::shared_ptr<ParamGroup> mDefaults;
 
-   FileStream *mPrintParamsStream = nullptr;
-   FileStream *mPrintLuaStream    = nullptr;
+   PrintStream *mPrintParamsStream = nullptr;
+   PrintStream *mPrintLuaStream    = nullptr;
 };
 
 template <typename T>
