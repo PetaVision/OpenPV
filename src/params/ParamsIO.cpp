@@ -224,14 +224,9 @@ std::vector<double> const *ParamsIO::readArray(std::string const &paramName, boo
       if (mDefaults != nullptr) {
          valuePtr = mDefaults->peek<std::vector<double>>(paramName);
          if (valuePtr != nullptr and warnIfAbsentFlag) {
-            std::string arrayAsString;
-            for (int k = 0; k < valuePtr->size(); ++k) {
-               if (k != 0) { arrayAsString += ", "; }
-               arrayAsString += std::to_string(valuePtr->at(k));
-            }
             WarnLog().printf(
-                  "Using default value [%s] for parameter \"%s\" in group \"%s\"\n",
-                  arrayAsString.c_str(),
+                  "Using default value %s for parameter \"%s\" in group \"%s\"\n",
+                  paramToString(*valuePtr).c_str(),
                   paramName.c_str(),
                   groupName.c_str());
          }
