@@ -4,6 +4,7 @@
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
 #include "params/ParamGroup.hpp"
+#include <cassert>
 #include <limits>
 #include <memory>
 #include <string>
@@ -198,7 +199,7 @@ void ParamsIO::ioParam(
          writeParam<T>(paramName, *value);
          break;
       default:
-         Fatal().printf("Unrecognized ParamsIOSwitch value %d\n", ioSwitch);
+         assert(0); // All possibilities for ioSwitch are handled above
          break;
    }
 }

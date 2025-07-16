@@ -51,20 +51,13 @@ void ParamsIO::handleUnnecessaryParameter(std::string const &paramName) {
       auto type = checkType(paramName);
       switch (type) {
          case Parameter::Type::NotFound:
-            Fatal().printf(
-                  "handleUnnecessaryParameter(\"%s\", \"%s\"): "
-                  "isPresent() returned true but checkType() was NotFound\n",
-                  getKeyword().c_str(), getName().c_str());
+            assert(0); // Only here if mParams->present() was true, so the type can't be NotFound
             break;
          case Parameter::Type::Numeric: mParams->read<double>(paramName); break;
          case Parameter::Type::Array:   mParams->read<std::vector<double>>(paramName); break;
          case Parameter::Type::String:  mParams->read<std::string>(paramName); break;
          default:
-            Fatal().printf(
-                  "handleUnnecessaryParameter(\"%s\", \"%s\"): "
-                  "checkType() returned unrecognized type %d.\n",
-                  getKeyword().c_str(), getName().c_str(), static_cast<int>(type));
-
+            assert(0); // All possibilities for type are handled above
       }
    }
 }
