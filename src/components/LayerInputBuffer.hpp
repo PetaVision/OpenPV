@@ -108,7 +108,7 @@ class LayerInputBuffer : public ComponentBuffer {
    PVCuda::CudaTimer *mReceiveInputCudaTimer = nullptr;
    Timer *mCopyFromCudaTimer = nullptr;
 #endif
-   MPI_Op mMPIReductionOp;
+   MPI_Op mMPIReductionOp = MPI_SUM;
 };
 
 } // namespace PV

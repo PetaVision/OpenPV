@@ -250,7 +250,7 @@ void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
 
    mReceiveInputTimer->stop();
 
-   if (mLayerGeometry->getBroadcastFlag()) {
+   if (mLayerGeometry->getBroadcastFlag() and !mDeliverySources.empty()) {
       mBroadcastReduceTimer->start();
       MPI_Allreduce(
             MPI_IN_PLACE, 
