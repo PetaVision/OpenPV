@@ -6,9 +6,7 @@
  */
 
 #include "DependentSharedWeights.hpp"
-#include "columns/ComponentBasedObject.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 

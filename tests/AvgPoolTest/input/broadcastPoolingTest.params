@@ -103,7 +103,6 @@ PoolingConn "InputToAvgPool" = {
     channelCode = 0;
     nxp = 1; 
     nyp = 1; 
-    sharedWeights = false;
     
     pvpatchAccumulateType = "avgpooling";
      
