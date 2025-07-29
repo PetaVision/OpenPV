@@ -7,6 +7,7 @@
 
 #include "PoolingConn.hpp"
 #include "components/PatchSize.hpp"
+#include "components/SpecifiedSharedWeights.hpp"
 #include "delivery/PoolingDelivery.hpp"
 
 namespace PV {
@@ -48,7 +49,7 @@ PatchSize *PoolingConn::createPatchSize() {
 }
 
 SharedWeights *PoolingConn::createSharedWeights() {
-   return new SharedWeights(getName(), parameters(), mCommunicator);
+   return new SpecifiedSharedWeights<false>(getName(), parameters(), mCommunicator);
 }
 
 WeightsPairInterface *PoolingConn::createWeightsPair() {
