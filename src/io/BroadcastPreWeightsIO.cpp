@@ -327,7 +327,15 @@ int BroadcastPreWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) 
    BufferUtils::ActivityHeader const &observed = header.baseHeader;
    status = checkHeaderField(expected.headerSize, observed.headerSize, "headerSize", status);
    status = checkHeaderField(expected.numParams, observed.numParams, "numParams", status);
-   status = checkHeaderField(expected.fileType, observed.fileType, "fileType", status);
+   // fileType can be either kernel type or localpatch type
+   if (observed.fileType != PVP_WGT_FILE_TYPE and observed.fileType != PVP_KERNEL_FILE_TYPE) {
+      ErrorLog().printf(
+            "BroadcastPreWeights file \"%s\" header field fileType "
+            "should be either %d or %d, but it is %d\n",
+            mFileStream->getFileName().c_str(), PVP_WGT_FILE_TYPE, PVP_KERNEL_FILE_TYPE, observed);
+      return PV_FAILURE;
+      status = PV_FAILURE; 
+   }
    status = checkHeaderField(expected.nx, observed.nx, "nx", status);
    status = checkHeaderField(expected.ny, observed.ny, "ny", status);
    status = checkHeaderField(expected.nf, observed.nf, "nf", status);
@@ -357,17 +365,6 @@ int BroadcastPreWeightsIO::checkHeaderField(
    if (expected != observed) {
       ErrorLog().printf(
             "BroadcastPreWeights file \"%s\" header field %s should be %d, but it is %d\n",
-            mFileStream->getFileName().c_str(), fieldLabel.c_str(), expected, observed);
-      return PV_FAILURE;
-   }
-   return oldStatus;
-}
-
-int BroadcastPreWeightsIO::checkHeaderField(
-      double expected, double observed, std::string const &fieldLabel, int oldStatus) const {
-   if (expected != observed) {
-      ErrorLog().printf(
-            "BroadcastPreWeights file \"%s\" header field %s should be %f, but it is %f\n",
             mFileStream->getFileName().c_str(), fieldLabel.c_str(), expected, observed);
       return PV_FAILURE;
    }

@@ -639,10 +639,20 @@ void LocalPatchWeightsIO::initializeMargins() {
       else {
          fileName = "Connection on nonroot process";
       }
-      mXMargin = requiredConvolveMargin(
-            getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX(), 'x', fileName.c_str());
-      mYMargin = requiredConvolveMargin(
-            getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY(), 'x', fileName.c_str());
+      if (getNxRestrictedPost() > 1) {
+         mXMargin = requiredConvolveMargin(
+               getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX(), 'x', fileName.c_str());
+      }
+      else {
+          mXMargin = 0;
+      }
+      if (getNyRestrictedPost() > 1) {
+         mYMargin = requiredConvolveMargin(
+               getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY(), 'x', fileName.c_str());
+      }
+      else {
+          mYMargin = 0;
+      }
    }
    else {
       mXMargin = 0;

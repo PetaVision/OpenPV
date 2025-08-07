@@ -46,10 +46,12 @@ void PatchGeometry::initialize(
    mPatchStrideY = patchSizeX * mPatchSizeF;
    mPatchStrideF = 1;
 
-   try {
-      verifyPatchSize();
-   } catch (const std::exception &e) {
-      throw std::runtime_error(name + std::string(": ") + e.what());
+   if (!preLoc->bcast and !postLoc->bcast) {
+      try {
+         verifyPatchSize();
+      } catch (const std::exception &e) {
+         throw std::runtime_error(name + std::string(": ") + e.what());
+      }
    }
 
    mNumKernelsX = preLoc->nx > postLoc->nx ? preLoc->nx / postLoc->nx : 1;
