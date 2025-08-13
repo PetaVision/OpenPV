@@ -243,7 +243,7 @@ MomentumConn "ConnC" = {
     dWMaxDecayFactor                    = 0;
     momentumMethod                      = "viscosity";
     timeConstantTau                     = 100.0;
-    momentumDecay                       = 0.0;
+    weightDecayL2                       = 0.0;
 };
 
 PlasticCloneConn "ConnD" = {

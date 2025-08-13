@@ -382,7 +382,7 @@ for i=0,numDepthBins do
       initialWriteTime = 0.0;
 
       dWMax = learningRate;
-      momentumTau = learningMomentumTau;
+      timeConstantTau = learningMomentumTau;
       momentumMethod = "viscosity";
       shmget_flag = false;
       delay = 0;

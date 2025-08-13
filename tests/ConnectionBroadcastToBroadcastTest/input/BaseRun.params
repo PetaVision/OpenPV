@@ -85,6 +85,6 @@ HyPerConn "PreToPost" = {
     dWMax                               = 1;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    normalizeDw                         = true;
+    normalizeDw                         = false;
     combine_dW_with_W_flag              = false;
 };

@@ -7,6 +7,7 @@
 
 #include "InternalStateBuffer.hpp"
 #include "columns/Factory.hpp"
+#include <cassert>
 
 namespace PV {
 
@@ -51,8 +52,11 @@ void InternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
             getDescription_c(),
             mInitVObject);
    }
-   if (mInitVObject != nullptr) {
+   else if (mInitVObject != nullptr) {
+      assert(ioFlag == PARAMS_IO_WRITE);
       mInitVObject->ioParamsFillGroup(ioFlag);
+      // ioParamsFillGroup(PARAMS_IO_READ) is called by mInitVObject constructor in if-clause above.
+      // If ioFlag is PARAMS_IO_READ, we don't need to call it again.
    }
 }
 

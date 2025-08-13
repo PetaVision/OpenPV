@@ -19,7 +19,7 @@
  * for the input and output layers and for the weight between them, and the
  * number of updates.
  *
- * The update rule for momentumMethod=simple, momentumDecay=0, dWMax=1, and
+ * The update rule for momentumMethod=simple with no weight decay, dWMax=1, and
  * timeConstantTau = 0.75, is:
  *
  * input starts at 1 and increments by 1 at timesteps 5, 9, 13, etc.

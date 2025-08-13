@@ -21,37 +21,37 @@ local
 --
 --  local subnets = require "PVSubnets";
 --  subnets.addLCASubnet
---    { pvParams                      = params
---    , lcaLayerName                  = "S1"
---    , inputLayerName                = "Image"
---    , inputValueScale               = 1/math.sqrt(5 * 5)
---    , stride                        = 1
+--    { pvParams                       = params
+--    , lcaLayerName                   = "S1"
+--    , inputLayerName                 = "Image"
+--    , inputValueScale                = 1/math.sqrt(5 * 5)
+--    , stride                         = 1
 --
---    , lcaParams = { nf              = 96
---                  , VThresh         = 0.010
---                  , AShift          = 0.010
---                  , AMin            = 0
---                  , AMax            = INFINITY
---                  , timeConstantTau = 100
---                  , InitVType       = "UniformRandomV"
---                  , minV            = -1
---                  , maxV            = 0.05 
+--    , lcaParams = { nf               = 96
+--                  , VThresh          = 0.010
+--                  , AShift           = 0.010
+--                  , AMin             = 0
+--                  , AMax             = INFINITY
+--                  , timeConstantTau  = 100
+--                  , InitVType        = "UniformRandomV"
+--                  , minV             = -1
+--                  , maxV             = 0.05 
 --                  }
 --
---    , connParams = { nxp            = 5
---                   , nyp            = 5
---                   , plasticityFlag = true
---                   , momentumTau    = 100
---                   , dWMax          = 0.5 
---                   , weightInitType = "UniformRandomWeight"
---                   , wMinInit       = -1
+--    , connParams = { nxp             = 5
+--                   , nyp             = 5
+--                   , plasticityFlag  = true
+--                   , timeConstantTau = 100
+--                   , dWMax           = 0.5 
+--                   , weightInitType  = "UniformRandomWeight"
+--                   , wMinInit        = -1
 --                   , wMaxInit        = 1
---                   , sparseFraction = 0.7
+--                   , sparseFraction  = 0.7
 --                   , normalizeMethod = "normalizeL2"
---                   , strength       = 1
+--                   , strength        = 1
 --                   }
 --
---    , triggerLayerName              = "Image"
+--    , triggerLayerName               = "Image"
 --    };
 
 
@@ -263,7 +263,7 @@ function addLCASubnet
     nfp = errorLayer['nf'];
 
     momentumMethod = "viscosity";
-    momentumTau = connParams['momentumTau'];
+    timeConstantTau = connParams['timeConstantTau'];
 
     triggerFlag = connParams['plasticityFlag'];
     triggerLayerName = connParams['plasticityFlag']
