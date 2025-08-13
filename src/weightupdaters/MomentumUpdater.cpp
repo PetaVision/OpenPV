@@ -30,7 +30,6 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HebbianUpdater::ioParamsFillGroup(ioFlag);
    ioParam_momentumMethod(ioFlag);
    ioParam_timeConstantTau(ioFlag);
-   ioParam_momentumTau(ioFlag); // marked obsolete July 30, 2024
    ioParam_initPrev_dWFile(ioFlag);
    ioParam_prev_dWFrameNumber(ioFlag);
    return status;
@@ -99,15 +98,6 @@ void MomentumUpdater::checkTimeConstantTau() {
          break;
       default: Fatal().printf("Unrecognized momentumMethod\n"); break;
    }
-}
-
-// momentumTau was marked obsolete on July 30, 2024.
-void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
-   FatalIf(
-         parameters()->present(getName(), "momentumTau"),
-         "%s sets the momentumDecay parameter, which is obsolete. "
-         "Use timeConstantTau instead.\n",
-         getDescription_c());
 }
 
 void MomentumUpdater::ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag) {

@@ -215,7 +215,7 @@ local pvParams = {
        batchPeriod = stopTime;
        sharedWeights = true;
        momentumMethod = "viscosity";
-       momentumTau = 1;
+       timeConstantTau = 1;
    };
 }
 

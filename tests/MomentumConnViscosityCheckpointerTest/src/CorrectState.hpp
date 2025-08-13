@@ -24,7 +24,7 @@
  * was chosen so that the tauFactor=exp(-1/timeConstantTau) = 0.75 is the same
  * as that for MomentumConnSimpleCheckpointerTest.
  *
- * The update rule for momentumMethod=viscosity, momentumDecay=0, dWMax=1, and
+ * The update rule for momentumMethod=viscosity with no weight decay, dWMax=1, and
  * exp(-1/timeConstantTau) = 0.75 is:
  *
  * input starts at 1 and increments by 1 at timesteps 5, 9, 13, etc.

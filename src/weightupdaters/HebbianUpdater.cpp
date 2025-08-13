@@ -35,7 +35,7 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_immediateWeightUpdate(ioFlag);
-   ioParam_momentumDecay(ioFlag); // deprecated July 30, 2024
+   ioParam_momentumDecay(ioFlag); // marked obsolete Aug 13, 2025.
    ioParam_weightL1Decay(ioFlag);
    ioParam_weightL2Decay(ioFlag);
    ioParam_dWMax(ioFlag);
@@ -124,65 +124,30 @@ void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
    }
 }
 
-// momentumDecay was deprecated on July 30, 2024.
+// momentumDecay was marked obsolete on Aug 13, 2025.
 void HebbianUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "momentumDecay")) {
-         WarnLog().printf(
-               "%s sets momentumDecay parameter, which is deprecated. Use weightL2Decay instead.\n",
-               getDescription_c());
-         if (parameters()->present(getName(), "weightL2Decay")) {
-            return; // ioParam_weightL2Decay() will handle it
-         }
-         else {
-            parameters()->ioParamValue(
-                 ioFlag, getName(), "momentumDecay", &mWeightL2Decay, mWeightL2Decay);
-            if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
-               Fatal() << "Connection " << getName()
-                       << ": weightL2Decay must be between 0 and 1 inclusive\n";
-            }
-         }
-      }
+      FatalIf(
+            ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "momentumDecay"),
+            "%s sets momentumDecay parameter, which is obsolete. Use weightL2Decay instead.\n",
+            getDescription_c());
    }
 }
 
-// Once momentumDecay is marked obsolete, this function can be reduced to
-// pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-// if (mPlasticityFlag) {
-//    parameters()->ioParamValue(
-//          ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
-//    if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
-//       Fatal() << getDescription_c()
-//               << ": weightL2Decay must be between 0 and 1 inclusive\n";
-//    }
-// }
 void HebbianUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      if (ioFlag == PARAMS_IO_READ) {
-         pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumDecay"));
-         bool usesMomentumDecay = parameters()->present(getName(), "momentumDecay");
-         bool usesWeightL2Decay = parameters()->present(getName(), "weightL2Decay");
-         if (usesMomentumDecay and !usesWeightL2Decay) {
-            return; // ioParam_momentumDecay() read the parameter into mWeightL2Decay already.
-         }
-         parameters()->ioParamValue(
-               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
-         if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
-            Fatal() << getDescription_c()
-                    << ": weightL2Decay must be between 0 and 1 inclusive\n";
-         }
-         FatalIf(
-               mWeightL2Decay < 0.0f or mWeightL2Decay > 1.0f,
-               "%s: weightL2Decay must be between 0 and 1 inclusive (given value was %f)\n",
-               getDescription_c(),
-               static_cast<double>(mWeightL2Decay));
+      if (ioFlag == PARAMS_IO_READ) { // Remove this once ioParam_momentumDecay() is removed
+         pvAssert(!parameters()->present(getName(), "momentumDecay"));
       }
-      else { // PARAMS_IO_WRITE
-         parameters()->ioParamValue(
-               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
-      }
+      parameters()->ioParamValue(
+            ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
+      FatalIf(
+            mWeightL2Decay < 0.0f or mWeightL2Decay > 1.0f,
+            "%s: weightL2Decay must be between 0 and 1 inclusive (given value was %f)\n",
+            getDescription_c(),
+            static_cast<double>(mWeightL2Decay));
    }
 }
 
@@ -344,15 +309,24 @@ Response::Status HebbianUpdater::allocateDataStructures() {
                mConnectionData->getPost()->getLayerLoc()->halo);
          mDeltaWeights->allocateDataStructures();
       }
-      if (mWeights->getSharedWeightsFlag() && mNormalizeDw) {
+      if (mNormalizeDw) {
          int const numArbors = mArborList->getNumAxonalArbors();
-         mNumKernelActivations.resize(numArbors);
-         int const sp           = mDeltaWeights->getPatchSizeOverall();
-         int const nPatches     = mDeltaWeights->getNumDataPatches();
-         std::size_t numWeights = (std::size_t)(sp) * (std::size_t)nPatches;
-         for (int arborId = 0; arborId < numArbors; arborId++) {
-            mNumKernelActivations[arborId].resize(numWeights);
-         } // loop over arbors
+         if (mWeights->getSharedWeightsFlag()) {
+            mNumKernelActivations.resize(numArbors);
+            int const sp           = mDeltaWeights->getPatchSizeOverall();
+            int const nPatches     = mDeltaWeights->getNumDataPatches();
+            std::size_t numWeights = (std::size_t)(sp) * (std::size_t)nPatches;
+            for (int arborId = 0; arborId < numArbors; arborId++) {
+               mNumKernelActivations[arborId].resize(numWeights);
+            } // loop over arbors
+         }
+         else {
+            mNumPatchActivations.resize(numArbors);
+            int const numPatches     = mDeltaWeights->getNumDataPatches();
+            for (int arborId = 0; arborId < numArbors; arborId++) {
+               mNumPatchActivations[arborId].resize(numPatches);
+            } // loop over arbors
+         }
       }
    }
 
@@ -523,7 +497,7 @@ int HebbianUpdater::clear_dW(int arborId) {
 }
 
 int HebbianUpdater::clearNumActivations(int arborId) {
-   // zero out all dW.
+   // zero out all counts of activations.
    // This also zeroes out the unused parts of shrunken patches
    int const syPatch          = mWeights->getPatchStrideY();
    int const nxp              = mWeights->getPatchSizeX();
@@ -538,7 +512,7 @@ int HebbianUpdater::clearNumActivations(int arborId) {
          long *activations = &mNumKernelActivations[kArbor][kKernel * patchSizeOverall];
          for (int kyPatch = 0; kyPatch < nyp; kyPatch++) {
             for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
-               activations[kPatch] = 0.0f;
+               activations[kPatch] = 0L;
             }
             activations += syPatch;
          }
@@ -668,11 +642,16 @@ void HebbianUpdater::updateInd_dW(
    float *dwdata =
          mDeltaWeights->getDataFromPatchIndex(arborID, kExt) + mDeltaWeights->getPatch(kExt).offset;
    long *activations = nullptr;
-   if (mWeights->getSharedWeightsFlag() && mNormalizeDw) {
-      int dataIndex        = mWeights->calcDataIndexFromPatchIndex(kExt);
-      int patchSizeOverall = mWeights->getPatchSizeOverall();
-      int patchOffset      = mWeights->getPatch(kExt).offset;
-      activations = &mNumKernelActivations[arborID][dataIndex * patchSizeOverall + patchOffset];
+   if (mNormalizeDw) {
+      if (mWeights->getSharedWeightsFlag()) {
+         int dataIndex        = mWeights->calcDataIndexFromPatchIndex(kExt);
+         int patchSizeOverall = mWeights->getPatchSizeOverall();
+         int patchOffset      = mWeights->getPatch(kExt).offset;
+         activations = &mNumKernelActivations[arborID][dataIndex * patchSizeOverall + patchOffset];
+      }
+      else {
+         mNumPatchActivations[arborID][kExt]++;
+      }
    }
 
    int syp         = mWeights->getPatchStrideY();
@@ -684,7 +663,7 @@ void HebbianUpdater::updateInd_dW(
          // calculate contribution to dw
          // Note: this is a hack, as batching calls this function, but overwrites to allocate
          // numKernelActivations with non-shared weights
-         if (activations) {
+         if (activations and mWeights->getSharedWeightsFlag()) {
             // Offset in the case of a shrunken patch, where dwdata is applying when calling
             // getDeltaWeightsData
             activations[lineoffsetw + k]++;
@@ -783,7 +762,7 @@ int HebbianUpdater::reduceActivations(int arborID) {
             MPI_LONG,
             MPI_SUM,
             mpi_comm,
-            &(mDeltaWeightsReduceRequests.data())[sz]);
+            &mDeltaWeightsReduceRequests[sz]);
    }
 
    return PV_BREAK;
@@ -842,7 +821,7 @@ void HebbianUpdater::normalize_dW() {
 }
 
 int HebbianUpdater::normalize_dW(int arbor_ID) {
-   // This is here in case other classes overwrite the outer class calling this function
+   // This is here in case other classes override the outer class calling this function
    if (!mNormalizeDw) {
       return PV_SUCCESS;
    }
@@ -873,7 +852,27 @@ int HebbianUpdater::normalize_dW(int arbor_ID) {
          }
       }
    }
-   // TODO: non-shared weights should divide by batch period if applicable
+   else {
+      int const numPatches       = mWeights->getNumDataPatches();
+      int const numArbors        = mArborList->getNumAxonalArbors();
+      int const numItemsPerPatch = mWeights->getPatchSizeOverall();
+      for (int loop_arbor = 0; loop_arbor < numArbors; loop_arbor++) {
+         for (int patchIndex = 0; patchIndex < numPatches; ++patchIndex) {
+            float *dwpatchdata = mDeltaWeights->getDataFromPatchIndex(loop_arbor, patchIndex);
+            long numActivations  = mNumPatchActivations[loop_arbor][patchIndex];
+            if (numActivations != 0) {
+               for (int n = 0; n < numItemsPerPatch; ++n) {
+                  dwpatchdata[n] /= static_cast<float>(numActivations);
+               }
+            }
+            else {
+               for (int n = 0; n < numItemsPerPatch; ++n) {
+                  dwpatchdata[n] = 0.0f;
+               }
+            }
+         }
+      }
+   }
    return PV_BREAK;
 }
 

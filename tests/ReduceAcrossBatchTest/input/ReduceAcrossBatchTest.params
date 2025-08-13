@@ -138,6 +138,7 @@ HyPerConn "InputToOutput" = {
     dWMax = 1.0;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 0.0;
+    normalizeDw = false;
     combine_dW_with_W_flag = false;
 
     delay = 0;
