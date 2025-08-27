@@ -30,7 +30,7 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual void ioParam_immediateWeightUpdate(ParamsIOSwitch ioSwitch);
 
    /**
-    * momentumDecay is a deprecated synonym for weightL2Decay: Use weightL2Decay instead.
+    * momentumDecay is an obsolete synonym for weightL2Decay: Use weightL2Decay instead.
     */
    virtual void ioParam_momentumDecay(ParamsIOSwitch ioSwitch);
 
@@ -187,7 +187,14 @@ class HebbianUpdater : public BaseWeightUpdater {
    double mLastUpdateTime                 = 0.0;
    bool mNeedFinalize                     = true;
    int mDWMaxDecayTimer                   = 0;
-   std::vector<std::vector<long int>> mNumKernelActivations;
+
+   std::vector<std::vector<long int>> mNumKernelActivations; // Used if sharedWeights is on
+   std::vector<std::vector<long int>> mNumPatchActivations; // Used if sharedWeights is off
+   // NumKernelActivations keeps track of each individual weight in each kernel. As a result,
+   // the number of activations across a given patch can vary, due to edge effects and replication.
+   // By contrast, NumActivations keeps track of each patch. Since there is no replication, there
+   // is no need to separately track individual weights within a patch.
+
    std::vector<MPI_Request> mDeltaWeightsReduceRequests;
    bool mReductionPending = false;
    // mReductionPending is set by reduce_dW() and cleared by

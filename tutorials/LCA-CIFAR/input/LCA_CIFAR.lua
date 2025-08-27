@@ -32,7 +32,7 @@ local checkpointPeriod     = displayPeriod; -- How often to write checkpoints
 local dictionarySize       = 128;   --Number of patches/elements in dictionary
 local dictionaryFile       = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
 local plasticityFlag       = false; --Determines if we are learning our dictionary or holding it constant
-local timeConstantTauConn  = 5.0;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
+local timeConstantTauConn  = 5.0;   --Weight momentum parameter. A single weight update will last for timeConstantTauConn timesteps.
 local dWMax                = 4.0 / (stride * stride);   --The learning rate
 local VThresh              = 0.55;  --The threshold, or lambda, of the network
 local AMin                 = 0;
@@ -238,9 +238,9 @@ local pvParameters = {
       normalizeFromPostPerspective        = false;
       minL2NormTolerated                  = 0;
       dWMax                               = dWMax;
-      timeConstantTau                     = timeConstantTauConn;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
+      timeConstantTau                     = timeConstantTauConn;   --The momentum parameter. A single weight update will last for timeConstantTau timesteps.
       momentumMethod                      = "viscosity";
-      momentumDecay                       = 0;
+      weightDecayL2                       = 0;
    };
 
    LeakyIntegratorToRecon = {

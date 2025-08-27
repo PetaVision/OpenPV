@@ -78,13 +78,6 @@ class MomentumUpdater : public HebbianUpdater {
    virtual void ioParam_timeConstantTau(ParamsIOSwitch ioSwitch);
 
    /**
-    * @brief momentumTau is obsolete. Use timeConstantTau instead.
-    * If a momentum connection sets the momentumTau parameter, it is a fatal error
-    * and the error message advises to use momentumTau instead.
-    */
-   virtual void ioParam_momentumTau(ParamsIOSwitch ioSwitch);
-
-   /**
     * initPrev_dWFile: The .pvp file to read initial values of prev_dW used when applying momentum.
     * NULL or the empty string initialzies prev_dW to all zeroes.
     */

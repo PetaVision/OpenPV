@@ -455,7 +455,7 @@ pv.addGroup(pvParams, "V1ToLeftError",
       triggerOffset = 1;
       initialWriteTime = 0.0;
       dWMax = learningRate;
-      momentumTau = learningMomentumTau;
+      timeConstantTau = learningMomentumTau;
       momentumMethod = "viscosity";
       shmget_flag = false;
       delay = 0;

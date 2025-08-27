@@ -168,6 +168,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/SingleChannelGSynAccumulator.hpp
+   ${SUBDIR}/SpecifiedSharedWeights.hpp
    ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TransposePatchSize.hpp

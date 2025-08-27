@@ -7,6 +7,7 @@
 
 #include "InternalStateBuffer.hpp"
 #include "columns/Factory.hpp"
+#include <cassert>
 
 namespace PV {
 
@@ -41,12 +42,11 @@ void InternalStateBuffer::ioParam_InitVType(ParamsIOSwitch ioSwitch) {
             getDescription_c(),
             mInitVObject);
    }
-   if (mInitVObject != nullptr) {
-      if (ioSwitch == ParamsIOSwitch::Write) {
-         mInitVObject->getParamsIO()->setPrintParamsStream(mParamsIO->getPrintParamsStream());
-         mInitVObject->getParamsIO()->setPrintLuaStream(mParamsIO->getPrintLuaStream());
-      }
+   else if (mInitVObject != nullptr) {
+      assert(ioSwitch == ParamsIOSwitch::Write);
       mInitVObject->ioParamsFillGroup(ioSwitch);
+      // ioParamsFillGroup(ParamsIOSwitch::Read) is called by mInitVObject constructor in
+      // if-clause above. If ioSwitch is ParamsIOSwitch::Read, we don't need to call it again.
    }
 }
 

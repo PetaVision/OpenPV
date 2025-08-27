@@ -269,8 +269,6 @@ class BroadcastPreWeightsIO {
    int checkHeader(BufferUtils::WeightHeader const &header) const;
    int checkHeaderField(
          int expected, int observed, std::string const &fieldLabel, int oldStatus) const;
-   int checkHeaderField(
-         double expected, double observed, std::string const &fieldLabel, int oldStatus) const;
 
    void initializeFrameIndexer();
    void initializeHeader();

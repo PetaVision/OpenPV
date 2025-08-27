@@ -1,0 +1,96 @@
+//
+// NormalizeDwNonsharedTest.params
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   dt = 1.0;
+   stopTime = 10.0;
+   printParamsFilename = "NormalizeDwNonsharedTest.params";
+   nx = 4;
+   ny = 4;
+   nbatch = 8;
+   outputPath = "output/";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+PvpLayer "Input" = {
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 0;
+    inputPath                           = "input/testPreLayer.pvp";
+    useInputBCflag                      = true;
+    batchMethod                         = "byFile";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+ConstantLayer "Output" = {
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/testPostLayer.pvp";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+HyPerConn "InputToOutput" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = 0;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    sharedWeights                       = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    weightInitType                      = "UniformWeight";
+    weightInit                          = 0.0;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = true;
+    weightUpdatePeriod                  = 2;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    dWMax                               = 1;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+};
+
+HyPerConn "CorrectWeights" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = -1;
+    numAxonalArbors                     = 1;
+    delay                               = 0;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    sharedWeights                       = false;
+    writeStep                           = -1;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/correctWeights.pvp";
+    normalizeMethod                     = "none";
+    plasticityFlag                      = false;
+};

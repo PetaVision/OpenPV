@@ -88,7 +88,6 @@ PoolingConn "InputToOutputCPU" = {
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
     receiveGpu                          = false;
-    sharedWeights                       = true;
     updateGSynFromPostPerspective       = true;
     // pvpatchAccumulateType is set in ParameterSweep
     nxp                                 = 3;
