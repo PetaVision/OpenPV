@@ -176,7 +176,7 @@ void LIFActivityComponent::checkMethodString() {
                "LIFActivityComponent::ioParam_method error.  Layer \"%s\" has method \"%s\". "
                "Allowable values are \"arma\", \"beginning\" and \"original\".\n",
                getName(),
-               mMethodString);
+               mMethodString.c_str());
       }
       MPI_Barrier(mCommunicator->communicator());
       std::exit(EXIT_FAILURE);
@@ -187,7 +187,7 @@ void LIFActivityComponent::checkMethodString() {
                "LIF layer \"%s\" integration method \"%s\" is deprecated. Method \"arma\" is "
                "preferred.\n",
                getName(),
-               mMethodString);
+               mMethodString.c_str());
       }
    }
 }

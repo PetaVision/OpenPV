@@ -49,7 +49,7 @@ void ProbeTriggerComponent::ioParam_triggerOffset(ParamsIOSwitch ioSwitch) {
       if (mTriggerOffset < 0) {
          Fatal().printf(
                "%s \"%s\" error: TriggerOffset (%f) must be positive\n",
-               mParamsIO->getKeyword(),
+               mParamsIO->getKeyword().c_str(),
                getName_c(),
                mTriggerOffset);
       }

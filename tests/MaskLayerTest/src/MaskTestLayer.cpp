@@ -31,7 +31,7 @@ void MaskTestLayer::ioParam_maskMethod(ParamsIOSwitch ioSwitch) {
                "%s: \"%s\" is not a valid maskMethod. Options are \"invertLayer\", "
                "\"maskFeatures\", or \"noMaskFeatures\".\n",
                getDescription_c(),
-               mMaskMethod);
+               mMaskMethod.c_str());
       }
       std::exit(EXIT_FAILURE);
    }

@@ -96,7 +96,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
             mAccumulateType == PoolingDelivery::MAXPOOLING and mOriginalPostIndexData == nullptr,
             "TransposePoolingConn \"%s\" original conn \"%s\" is maxpooling, "
             "but needPostIndexLayer is set to false.\n",
-            getName(), originalConnName);
+            getName(), originalConnName.c_str());
    }
 
    auto *originalConnectionData = objectTable->findObject<ConnectionData>(originalConnName);
@@ -135,7 +135,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
          original_nxp != 1 or original_nyp != 1,
          "TransposePoolingConn \"%s\" original connection \"%s\" has patch size nxp=%d, nyp=%d. "
          "The original connection of a transpose pooling connection must have nxp=1, nyp=1.\n",
-         getName(), originalConnName, original_nxp, original_nyp);
+         getName(), originalConnName.c_str(), original_nxp, original_nyp);
 
    mWeightsPair = objectTable->findObject<ImpliedWeightsPair>(getName());
    FatalIf(

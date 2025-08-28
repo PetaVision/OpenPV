@@ -74,7 +74,7 @@ void HyPerDeliveryCreator::ioParam_pvpatchAccumulateType(ParamsIOSwitch ioSwitch
             ErrorLog().printf(
                   "%s error: pvpatchAccumulateType \"%s\" is unrecognized.\n",
                   getDescription_c(),
-                  mAccumulateTypeString);
+                  mAccumulateTypeString.c_str());
             ErrorLog().printf("  Allowed values are \"convolve\" or \"stochastic\".\n");
          }
          MPI_Barrier(mCommunicator->globalCommunicator());

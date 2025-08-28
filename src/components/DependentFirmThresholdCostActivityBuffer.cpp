@@ -82,26 +82,26 @@ Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
          originalActivityBuffer->usingVerticesListInParams(),
          "%s original layer \"%s\" must specify VThresh and VWidth, not verticesV and verticesA.\n",
          getDescription_c(),
-         linkedObjectName);
+         linkedObjectName.c_str());
    mVThresh = originalActivityBuffer->getVThresh();
    mVWidth  = originalActivityBuffer->getVWidth();
    FatalIf(
          originalActivityBuffer->getAMax() < 0.99f * FLT_MAX,
          "%s requires original layer \"%s\" have AMax = infinity; it is %f\n",
          getDescription_c(),
-         linkedObjectName,
+         linkedObjectName.c_str(),
          (double)originalActivityBuffer->getAMax());
    FatalIf(
          originalActivityBuffer->getAMin() != 0.0f,
          "%s requires original layer \"%s\" have AMin = 0; it is %f\n",
          getDescription_c(),
-         linkedObjectName,
+         linkedObjectName.c_str(),
          (double)originalActivityBuffer->getAMin());
    FatalIf(
          originalActivityBuffer->getAShift() != 0.0f,
          "%s requires original layer \"%s\" have AShift = 0; it is %f\n",
          getDescription_c(),
-         linkedObjectName,
+         linkedObjectName.c_str(),
          (double)originalActivityBuffer->getAShift());
    mParamsIO->handleUnnecessaryParameter("VThresh", mVThresh);
    mParamsIO->handleUnnecessaryParameter("VWidth", mVWidth);

@@ -102,7 +102,7 @@ void swap(ParamGroup &lhs, ParamGroup &rhs) {
 namespace std {
 
 template <>
-void swap<PV::ParamGroup>(PV::ParamGroup &lhs, PV::ParamGroup &rhs) {
+void swap<PV::ParamGroup>(PV::ParamGroup &lhs, PV::ParamGroup &rhs) noexcept {
    lhs.swap(rhs);
 }
 

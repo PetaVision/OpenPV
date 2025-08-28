@@ -138,7 +138,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       FatalIf(
             mPostIndexLayer == nullptr,
             "PoolingConn \"%s\" postIndexLayerName \"%s\" is not a PoolingIndexLayer\n",
-            getName(), mPostIndexLayerName);
+            getName(), mPostIndexLayerName.c_str());
       if (!mPostIndexLayer->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }

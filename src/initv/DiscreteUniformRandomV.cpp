@@ -53,7 +53,10 @@ void DiscreteUniformRandomV::ioParam_maxV(ParamsIOSwitch ioSwitch) {
    FatalIf(
          mMaxV <= mMinV,
          "%s \"%s\" with DiscreteUniformRandomV has maxV = %f <= minV = %f\n",
-         mParamsIO->getKeyword(), mParamsIO->getName(), (double)mMaxV, (double)mMinV);
+         mParamsIO->getKeyword().c_str(),
+         mParamsIO->getName().c_str(),
+         (double)mMaxV,
+         (double)mMinV);
 }
 
 void DiscreteUniformRandomV::ioParam_numValues(ParamsIOSwitch ioSwitch) {

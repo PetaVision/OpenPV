@@ -47,7 +47,10 @@ void InitDiscreteUniformRandomWeights::ioParam_wMax(ParamsIOSwitch ioSwitch) {
    FatalIf(
          mWMax <= mWMin,
          "%s \"%s\" with UniformRandomV has wMax = %f <= wMin = %f\n",
-         mParamsIO->getKeyword(), mParamsIO->getName(), (double)mWMax, (double)mWMin);
+         mParamsIO->getKeyword().c_str(),
+         mParamsIO->getName().c_str(),
+         (double)mWMax,
+         (double)mWMin);
 }
 
 void InitDiscreteUniformRandomWeights::ioParam_wNumValues(ParamsIOSwitch ioSwitch) {

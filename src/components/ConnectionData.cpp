@@ -70,7 +70,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
          ErrorLog().printf(
                "%s: postLayerName \"%s\" does not correspond to a layer in the column.\n",
                getDescription_c(),
-               getPostLayerName());
+               getPostLayerName().c_str());
       }
       failed = true;
    }

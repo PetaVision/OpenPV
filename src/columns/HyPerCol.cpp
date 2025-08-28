@@ -421,7 +421,7 @@ HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> 
          !registerSucceeded,
          "%s failed to register %s for checkpointing.\n",
          getDescription_c(),
-         getPrintParamsFilename());
+         getPrintParamsFilename().c_str());
 
    return Response::SUCCESS;
 }

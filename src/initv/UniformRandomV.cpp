@@ -45,7 +45,10 @@ void UniformRandomV::ioParam_maxV(ParamsIOSwitch ioSwitch) {
    FatalIf(
          mMaxV < mMinV,
          "%s \"%s\" with UniformRandomV has maxV = %f < minV = %f\n",
-         mParamsIO->getKeyword(), mParamsIO->getName(), (double)mMaxV, (double)mMinV);
+         mParamsIO->getKeyword().c_str(),
+         mParamsIO->getName().c_str(),
+         (double)mMaxV,
+         (double)mMinV);
 }
 
 void UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {

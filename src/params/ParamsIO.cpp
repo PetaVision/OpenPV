@@ -69,9 +69,9 @@ void ParamsIO::handleUnnecessaryCaseInsensitiveParameter(
       WarnLog().printf(
             "%s \"%s\" does not use string parameter %s, but it is present in the parameters "
             "file.\n",
-            getKeyword(),
-            getName(),
-            param_name);
+            getKeyword().c_str(),
+            getName().c_str(),
+            param_name.c_str());
       std::string const &params_value = readString(param_name, false /*warnIfAbsentFlag*/);
       // marks param as read so that presentAndNotBeenRead doesn't trip up
 
@@ -88,11 +88,11 @@ void ParamsIO::handleUnnecessaryCaseInsensitiveParameter(
             params_value_i != correct_value_i,
             "%s \"%s\": parameter string %s = \"%s\" is inconsistent with correct value \"%s\". "
             "Exiting.\n",
-            getKeyword(),
-            getName(),
-            param_name,
+            getKeyword().c_str(),
+            getName().c_str(),
+            param_name.c_str(),
             params_value.c_str(),
-            correct_value);
+            correct_value.c_str());
    }
 }
 
