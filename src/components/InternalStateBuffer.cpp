@@ -93,6 +93,14 @@ InternalStateBuffer::initializeState(std::shared_ptr<InitializeStateMessage cons
    if (mInitVObject != nullptr) {
       mInitVObject->calcV(mBufferData.data(), getLayerLoc());
    }
+   if (getLayerLoc()->bcast) {
+      MPI_Bcast(
+            mBufferData.data(),
+            int(mBufferData.size()),
+            MPI_FLOAT,
+            0 /*root*/,
+            getCommunicator()->ioCommunicator());
+   }
    return Response::SUCCESS;
 }
 
