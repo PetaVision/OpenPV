@@ -37,19 +37,19 @@ int requiredConvolveMargin(int nPre, int nPost, int patchSize, char axis, char c
       FatalIf(
             nPost % nPre != 0,
             "%s has one-to-many weights, which requires postsynaptic dimension to be a "
-            "power of two times the postsynaptic dimension (pre n%c = %d; post n%c = %d)\n",
+            "power of two times the presynaptic dimension (pre n%c = %d; post n%c = %d)\n",
             objectName, axis, nPre, axis, nPost);
       int densityRatio = nPost / nPre;
       double log2densityRatio = std::log2(densityRatio);
       FatalIf(
             log2densityRatio != std::round(log2densityRatio),
             "%s has one-to-many weights, which requires postsynaptic dimension to be a "
-            "power of two times the postsynaptic dimension (pre n%c = %d; post n%c = %d)\n",
+            "power of two times the presynaptic dimension (pre n%c = %d; post n%c = %d)\n",
             objectName, axis, nPre, axis, nPost);
       FatalIf(
             patchSize % densityRatio != 0,
             "%s has one-to-many weights, which requires postsynaptic dimension to be a "
-            "power of two times the postsynaptic dimension (pre n%c = %d; post n%c = %d)\n",
+            "power of two times the presynaptic dimension (pre n%c = %d; post n%c = %d)\n",
             objectName, axis, nPre, axis, nPost);
       int numCells = patchSize / densityRatio;
       margin       = numCells / 2;
