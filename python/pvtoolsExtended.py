@@ -3,6 +3,8 @@ Public facing general purpose analysis and data handling tools for work with Pet
 '''
 import pvtools as pv
 import numpy as np
+# import matplotlib
+# matplotlib.use('ps')
 import matplotlib.pyplot as plt
 import networkx as nx
 from typing import Any, Dict, Union
@@ -240,7 +242,7 @@ def vertical_layout(G, node_order, layer_spacing=1.5, horizontal_spacing=2.0):
 #draw a network diagram given a parameter path
 #Author: Nick Bruns
 #Created: 5/9/2025
-def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalConnectionName:bool=True,KKRedraw:bool=True):
+def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalConnectionName:bool=True,KKRedraw:bool=False):
 
     validStyles = {'terse', 'verbose'}
     if connectionLabelStyle not in validStyles:
