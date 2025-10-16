@@ -1,17 +1,22 @@
 '''
 Public facing general purpose analysis and data handling tools for work with Petavision. Extends the functionality of existing pvtools
+
+Author: Nick Bruns
 '''
 import pvtools as pv
 import numpy as np
 # import matplotlib
 # matplotlib.use('ps')
+import matplotlib.figure
+import matplotlib.text
 import matplotlib.pyplot as plt
 import networkx as nx
 from typing import Any, Dict, Union
 from collections import defaultdict
+from matplotlib.animation import FuncAnimation
+from IPython.display import HTML
 import argparse
 import sys
-
 
 def makeListFromFile(path):
     tempFile=open(path,'r')
@@ -44,6 +49,257 @@ def findBetween(substring,startExpression,endExpression):
         return substring[start:end]
     except ValueError:
         return ""
+
+def formatStringWithSeperators(s,insertionChar='\n'):
+    '''
+    Given any string with any type of seperator: (camel case, commas, spaces, hypens, etc.) instert an extra character between these breaks
+    '''
+    #get indices that have a case different from the one that preceded it
+    discontinousCaseIndex=np.array([i for i in range(1, len(s)) if s[i].isupper() != s[i-1].isupper()])
+    #case changes that I care about occur every second index, thus I want to only insert characters into a new string at those locations
+    caseChangeIndex=discontinousCaseIndex[1::2]
+
+    sReturn=s
+    for i,insertionPoint in enumerate(caseChangeIndex):
+        sReturn=sReturn[:insertionPoint+i]+insertionChar+sReturn[insertionPoint+i:]
+
+    return sReturn
+
+#a small method that unpacks a sparse, non-weight PVP file into a dense one and returns a 4D numpy array
+def unpackSparsePVP(input,partialRead:bool=True,blockLength:int=None):
+    '''
+    This function takes a sparse input/recon pvp file that has already
+    been read into an indexed dictionary and returns a 4D numpy array
+    matching the original value field of dense PVPs like the following:
+        [blockIndex][y][x][nf]
+
+        **Parameters**
+            input: *dict()*
+                a PVP file that was read in
+            partialRead: *bool*
+                Boolean indicating if the Input pvp file was read with a start stop frame index defined.
+                If **True** (*default*), nb=1 always. If *False* nb=input['header']['nb'].
+            blockLength: *int*
+                Integer indicating the block length dimension of a sparse PVP file that has had an incomplete range of it partially read. Defines internal 'nb' variable for reshaping a sparse array to a dense array. Default = *None*
+
+        **Returns**
+            output: *4Dndnumpy array*
+                A dense 4D numpy array matching the format:
+                    [nb][y][x][nf]
+    '''
+    
+    if input['header']['filetype']==6:
+        nx=input['header']['nx']
+        ny=input['header']['ny']
+        nf=input['header']['nf']
+        if partialRead is True:
+            if blockLength:
+                #if the pvp has been partially read externally as a range, then use the external one
+                nb=blockLength
+            else:
+                nb=1
+        else:
+            nb=input['header']['nb']
+        pvpShape=(nb,ny,nx,nf)
+        output=np.reshape(input['values'].toarray(),pvpShape)
+    else:
+        print("Input is not sparse")
+        output=input['values']
+
+    return output
+
+def previewPVP(PVPname,timeframe,weightDisplayTimestep:int=0,dpiScale:int=30,dpi:int=None,forceResolution:tuple=None,xSlice:slice=None,readMinimal:bool=False,returnInput:bool=False,unravelDims:tuple=None):
+    '''
+    Predominantly intended for using in jupyter notebooks or interactive windows. Displays a visual representation of a PVP file to the user.
+    
+    Takes either a path to a PVP file, a dictionary of an already read pvp file, or a 4D numpy array; as well as a timestep/frame/band/block (``nb``) in that file to plot.
+
+    4D PVP dense activity values are stored as
+    ``[nb][y][x][nf]``
+
+    6D PVP weight values are stored as
+    ``[nb][arbor][kernel][y][x][nf]``
+
+    **Parameters**
+
+        PVPname: *str* or *dict* or *np.ndarray*
+            a PVP file to plot
+        timeframe: *int*
+            Time step in the PVP to plot, corresponds to the ``[nb]`` dimension.
+            ``[nb]`` is the which is the first 
+        readMinimal: *bool* (Default=False)
+            Boolean indicating if the input pvp file is to be partially read with a start stop frame index defined. Set to true for speed.
+            If **True** (*default*), nb=1 always. If *False* nb=input['header']['nb'].
+        unravelDims: *tuple* (Default=None)
+            A 3 element tuple indicating the dimensions ``(ny,nx,nf)`` that the input values should be reshaped into. This operation is useful for use cases where the data being trained on has been reshaped into different vectors or dimensions than what it is normally viewed as naturally.
+                **Examples:** Input has a time vector of length 32 and a feature vector of length 22, each dimension should be learned on seperately from the other.
+                    
+                [nb] => different samples
+                [ny] => 1 (not used)
+                [nx] => 320 (time)
+                [nf] => 22 (features)
+
+                ``unravelDims=(22,320,1)``
+                    (samples,1,320,22) ==> (samples,22,320,1)
+
+                **Examples:** Input is a standard video and has an x and y dimension of 128x64, respectively. It is grayscale colored so its feature vector is length 1. The perframe pixel data is reshaped into 1D vector with the x and y dimension flattened into the feature dimension so it can be correlated to other data factors.
+
+                [nb] => frames
+                [ny] => 1
+                [nx] => 1
+                [nf] => 8192 (flattened x and y pixel values)
+
+                ``unravelDims=(64,128,1)``
+                    (frames,1,1,8192) ==> (frames,64,128,1)
+
+    **Returns**
+        output: optional *4D np.ndnumpy*
+            A dense 4D numpy array matching the format:
+                [nb][y][x][nf]
+    '''
+    if(weightDisplayTimestep!=0):
+        print("weightDisplayTimestep has been changed from its default value but is being deprecated.\nThe \'timeframe\' parameter will perform the same function for weight files now.\nThe internal timeframe argument will be changed to the user's value for \'weightDisplayTimestep\'.")
+        timeframe=weightDisplayTimestep
+    #a flag that is set to false which will trigger a specific plotting behavior for weights only
+    isWeightFile=False
+    # a flag to trigger on the appearance of a sparse file
+    isSparseFile=False
+    if(isinstance(PVPname,str)):
+        print("Filepath to PVP given")
+
+        if readMinimal is True:
+            print("readMinimal is True, timeframe variable will be internally set to 0 after pvp file is read")
+            pvpInput=pv.readpvpfile(PVPname,lastFrame=timeframe+1,startFrame=timeframe)
+            #if I have set to only read a specific given frame, then there is only one timeframe remaining after the targeted read, 0
+            timeframe=0
+            #nb is always 1 if a minimal read is performed because there is only 1 time point
+            nb=1
+        else:
+            pvpInput=pv.readpvpfile(PVPname)
+            #nb is defined as the number of bands
+            nb=pvpInput['header']['nbands']
+
+        # this set of variables is exclusively for use by sparse files, 
+        # since nb can change if I am doing a minimal read however, I will need to define it near the top
+        nx=pvpInput['header']['nx']
+        ny=pvpInput['header']['ny']
+        nf=pvpInput['header']['nf']
+
+        #nb=pvpInput['header']['nbands']    #nb is always 1 if a minimal read
+
+        #the shape that a sparse array needs to me unpacked into
+        pvpShape=(nb,ny,nx,nf)
+
+        #if the filetype field is 4, this must be dense and the values is always of 4D shape 
+        if pvpInput['header']['filetype']==4:
+            print("Dense 4D PVP detected")
+            input=pvpInput['values']
+        elif pvpInput['header']['filetype']==5:
+            print("6D weight PVP detected. Displaying learning period timestep: %d of %d total timesteps" %(timeframe,pvpInput['values'].shape[0]))
+            isWeightFile=True
+            #I'm changing the behavior to make it such that timeframe does double duty for weight displayTimestep
+            input=pv.arrangedictionary(pvpInput['values'][timeframe,0])
+        elif (pvpInput['header']['filetype']==6): #and (pvpInput['header']['datatype']==4):
+            print("Sparse PVP activity detected")
+            isSparseFile=True
+
+            #in one step, put the sparse values to a dense representation of them in an array and then reshape them to match the expect PVP 4D struct
+            input=np.reshape(pvpInput['values'].toarray(),pvpShape)#[timeframe]
+            
+        else:
+            print("PVP file has read successfully but data format case is not recognized, handling as 4D PVP")
+            input=pvpInput['values']
+    elif(isinstance(PVPname,np.ndarray)):
+        print('Generic Numpy nD array given')
+        #TODO: add intelligent checking and processing
+        input=PVPname
+        pvpShape=input.shape
+        nb=pvpShape[0]
+    else:
+        print("Generic nD array PVP given, handling as 4D")
+        input=PVPname
+
+    #if unravelDims is not none, then this indicates that a non-default argument has been supplied in the format of an ny,nx,nf shape to refactor the original PVP file into
+    if unravelDims:
+        print(f"Reshaping pvp from {pvpShape} to {(nb,*unravelDims)}")
+        pvpShape = (nb,*unravelDims)
+        input = input.reshape(pvpShape)
+
+    #TODO, add a means of checking if a list of paths that should be displayed together
+
+    #if this is a weight file, display it at the timestep given
+    if(isWeightFile is True):
+        
+        plt.figure(1)
+        matplotlib.interactive(True)
+        #normalize
+        wgts_display_8bit = np.uint8(np.squeeze(input) * 127.5 + 127.500001)
+
+        #if the weights cannot be shown in a standard color range
+        if(len(wgts_display_8bit.shape)>2) and (min(wgts_display_8bit.shape)>3):
+            weightDataStruct=np.moveaxis(wgts_display_8bit,-1,0)
+            fig, ax = plt.subplots()
+            img = ax.imshow(weightDataStruct[0])
+
+            #allegedly an updating method
+            def update(frame):
+                img.set_array(frame)
+                return [img]
+
+            ani = FuncAnimation(fig, update, frames=weightDataStruct, interval=200, blit=True, repeat=True, repeat_delay=1000)
+            HTML(ani.to_jshtml())
+        else:
+            plt.imshow(wgts_display_8bit)
+
+    else:
+        #if the arguement for slicing the x dimension is not none, then slice the plotted input
+        if xSlice:
+            plottedInput=input[timeframe,:,xSlice,:]
+            #define a native figure size
+            #nativeFigureSize=(plottedInput.shape[-2],plottedInput.shape[-3]*plottedInput.shape[-1]/dpiScale)
+        else:
+            plottedInput=input[timeframe,:,:,:]
+            #define a native figure size
+            #nativeFigureSize=(input.shape[-2]/dpiScale,input.shape[-3]*input.shape[-1]/dpiScale)
+
+        nativeFigureSize=(plottedInput.shape[-2]/dpiScale,plottedInput.shape[-3]*plottedInput.shape[-1]/dpiScale)
+
+        #if force resolution is defined then manually set it
+        if forceResolution:
+            if dpiScale !=30:
+                print(f"dpiScale argument has been given a non-default value but forceResolution argument takes precedence. Fig size will be adjusted to {forceResolution}")
+            #adjust the resolution to the forced one
+            f, ax = plt.subplots(input.shape[-1],1,sharex=True,figsize=forceResolution)
+        else:
+            f, ax = plt.subplots(input.shape[-1],1,sharex=True,figsize=nativeFigureSize)
+        
+        #if the dpi parameter is defined
+        if dpi:
+            print(f"DPI value for figure changed to {dpi}, default matplotlib value is 100")
+            #redefine the figure dpi
+            f.dpi=dpi
+
+        print(f'Figure size in pixels will be {f.get_size_inches()*f.dpi}')
+
+        #print("DEBUG: Figure Created") #The figure can be created but not plotted
+        #check if single image
+        if input.shape[-1]==1:
+            ax.imshow(plottedInput[...,0])
+            ax.set_xticks([])
+            ax.set_yticks([])
+        else:
+            f.subplots_adjust(wspace=0, hspace=0)  #no improvement
+            for i in range(input.shape[-1]):
+                ax[i].imshow(plottedInput[...,i])
+                ax[i].set_xticks([])
+                ax[i].set_yticks([])
+            #plt.subplots_adjust(wspace=0, hspace=0)
+
+    #plt.show()
+    if returnInput:
+        return input
+    else:
+        return
 
 #extract petavison generated lua parameters from a file and neatly organize them, params file path must be a .params.lua file
 #Author: Nick Bruns
@@ -242,7 +498,8 @@ def vertical_layout(G, node_order, layer_spacing=1.5, horizontal_spacing=2.0):
 #draw a network diagram given a parameter path
 #Author: Nick Bruns
 #Created: 5/9/2025
-def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalConnectionName:bool=True,KKRedraw:bool=False):
+#draw a network diagram given a parameter path
+def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalConnectionName:bool=True,KKRedraw:bool=True,title:str=True,labelSegment:str=None):
 
     validStyles = {'terse', 'verbose'}
     if connectionLabelStyle not in validStyles:
@@ -359,8 +616,6 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
         else:
             terseConnectionEdgeLabels.update({(pre,post):''})
 
-
-        
     #initialize a vertical and horizontal positioning dict, and various style tracking dicts such as for color or label
     verticalNodeOrder={}
     horizontalNodePositioning={}
@@ -379,7 +634,7 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
     if connectionLabelStyle == "terse":
         connectionLabelDisplay = terseConnectionEdgeLabels
     elif connectionLabelStyle == "verbose":
-        connectionLabelDisplay = terseConnectionEdgeLabels
+        connectionLabelDisplay = verboseConnectionEdgeLabels
     else:
         connectionLabelDisplay = None
 
@@ -412,14 +667,20 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
     if KKRedraw:
         #after computing a vertical layout, then process through a Kamada Kawai model to attempt reduction in overlap
         pos=nx.kamada_kawai_layout(G,pos=pos)
-    #nx.layout
 
     # Draw square-shaped nodes
     plt.figure(figsize=(10, 8))
     nx.draw_networkx_nodes(G, pos, node_color=defaultNodeColor, node_size=1000, node_shape='s')
 
     # Draw labels on nodes
-    nx.draw_networkx_labels(G, pos, font_size=8)
+    if labelSegment:
+        #create a new label dictionary with keys of the original name and values of the new parsed one
+        newLabelDict=dict([(title,formatStringWithSeperators(title,insertionChar=labelSegment)) for title in verticalNodeOrder.keys()])
+
+        #if label segment is not none, then add extra labels
+        nx.draw_networkx_labels(G, pos, labels= newLabelDict, font_size=8)
+    else:
+        nx.draw_networkx_labels(G, pos, font_size=8)
 
     # Draw the edge labels
     nx.draw_networkx_edge_labels(G, pos, edge_labels=connectionLabelDisplay, font_color='red', font_size=8,verticalalignment='center',rotate=False)
@@ -436,7 +697,10 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
             connectionstyle='arc3,rad=0.2'
         )
 
-    plt.title(parameterFilePath)
+    if isinstance(title,str):
+        plt.title(title)
+    elif title==True:
+        plt.title(parameterFilePath)
     plt.axis('off')
     #plt.legend()
     plt.show()

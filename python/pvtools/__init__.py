@@ -5,7 +5,7 @@ import importlib
 # for the purpose of trying to run by the command line in some use cases where python package installation is repeat and onerous,
 # import and install of all required packages is done automatically
 
-externalPackageList=['numpy','scipy','matplotlib','networkx']
+externalPackageList=['numpy','scipy','matplotlib','networkx','ipython']
 # import knownPackages
 
 for packageName in externalPackageList:
