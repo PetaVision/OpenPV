@@ -117,11 +117,33 @@ InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> messa
 }
 
 void InitWeights::calcWeights() {
-   int numArbors  = mWeights->getNumArbors();
-   int numPatches = mWeights->getNumDataPatches();
-   for (int arbor = 0; arbor < numArbors; arbor++) {
-      for (int dataPatchIndex = 0; dataPatchIndex < numPatches; dataPatchIndex++) {
-         calcWeights(dataPatchIndex, arbor);
+   int numArbors     = mWeights->getNumArbors();
+   int numPatches    = mWeights->getNumDataPatches();
+   auto mpiBlock     = getCommunicator()->getGlobalMPIBlock();
+   int rowIndex      = mpiBlock->getRowIndex();
+   int columnIndex   = mpiBlock->getColumnIndex();
+   int mpiBatchIndex = mpiBlock->getBatchIndex();
+   int mpiBatchDim   = mpiBlock->getBatchDimension();
+   if (mpiBatchIndex == 0) {
+      for (int arbor = 0; arbor < numArbors; arbor++) {
+         for (int dataPatchIndex = 0; dataPatchIndex < numPatches; dataPatchIndex++) {
+               calcWeights(dataPatchIndex, arbor);
+         }
+         for (int b = 1; b < mpiBatchDim; ++b) {
+            int rank = mpiBlock->calcRankFromRowColBatch(rowIndex, columnIndex, b);
+            float const *values = mWeights->getData()->getData(arbor);
+            int count = static_cast<int>(mWeights->getData()->getNumValuesPerArbor());
+            MPI_Send(values, count, MPI_FLOAT, rank, 1234 + arbor /*tag*/, mpiBlock->getComm());
+         }
+      }
+   }
+   else {
+      for (int arbor = 0; arbor < numArbors; arbor++) {
+         float *values = mWeights->getData()->getData(arbor);
+         int count = static_cast<int>(mWeights->getData()->getNumValuesPerArbor());
+         int rank  = mpiBlock->calcRankFromRowColBatch(rowIndex, columnIndex, 0);
+         auto comm = mpiBlock->getComm();
+         MPI_Recv(values, count, MPI_FLOAT, rank, 1234 + arbor /*tag*/, comm, MPI_STATUS_IGNORE);
       }
    }
 }
