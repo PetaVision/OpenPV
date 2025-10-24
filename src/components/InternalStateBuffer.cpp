@@ -99,7 +99,7 @@ InternalStateBuffer::initializeState(std::shared_ptr<InitializeStateMessage cons
             int(mBufferData.size()),
             MPI_FLOAT,
             0 /*root*/,
-            getCommunicator()->ioCommunicator());
+            getCommunicator()->communicator());
    }
    return Response::SUCCESS;
 }
