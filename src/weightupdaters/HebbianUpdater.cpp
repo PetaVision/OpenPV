@@ -785,11 +785,24 @@ void HebbianUpdater::reduceAcrossBatch(int arborID) {
       MPI_Iallreduce(
             MPI_IN_PLACE,
             mDeltaWeights->getData(arborID),
-            arborSize,
+            localSize,
             MPI_FLOAT,
             MPI_SUM,
             batchComm,
             &(mDeltaWeightsReduceRequests.data())[sz]);
+      if (mNormalizeDw) {
+         auto sz = mDeltaWeightsReduceRequests.size();
+         mDeltaWeightsReduceRequests.resize(sz + 1);
+         pvAssert(int(mNumPatchActivations.at(arborID).size()) == numPatches);
+         MPI_Iallreduce(
+               MPI_IN_PLACE,
+               mNumPatchActivations[arborID].data(),
+               numPatches,
+               MPI_LONG,
+               MPI_SUM,
+               batchComm,
+               &(mDeltaWeightsReduceRequests.data())[sz]);
+      }
    }
 }
 
