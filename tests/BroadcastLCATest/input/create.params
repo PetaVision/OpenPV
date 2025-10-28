@@ -226,6 +226,4 @@ FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
     triggerLayerName                    = NULL;
     energyProbe                         = "TotalEnergyProbe";
     maskLayerName                       = NULL;
-    VThresh                             = 0.025;
-    VWidth                              = 0.025;
 };

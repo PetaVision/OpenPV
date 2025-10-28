@@ -199,7 +199,7 @@ int testAggregateStoredValues(std::shared_ptr<MPIBlock const> mpiBlock, int nbat
 
    // Aggregate the values. Note that NormProbeAggregator does not read any params
    NormProbeAggregator normAggregator("NormProbeAggregator", nullptr /*params*/, mpiBlock);
-   normAggregator.aggregateStoredValues(partialStore);
+   normAggregator.aggregateStoredValues(partialStore, false /*layerIsBroadcastFlag*/);
    ProbeDataBuffer<double> aggregatedStore = normAggregator.getStoredValues();
 
    int status = checkAggregatedNorms(mpiBlock, allPartialNorms, aggregatedStore);
