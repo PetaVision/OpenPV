@@ -23,8 +23,8 @@ macro(pv_config_project)
   set(ICC_CPP_11X_FLAGS "")
 
   # Intel LLVM-based Compiler defaults
-  set(INTELLLVM_DEBUG_FLAGS -g;-O2;-Winline)
-  set(INTELLLVM_RELEASE_FLAGS -O3;-DNDEBUG;-Winline)
+  set(INTELLLVM_DEBUG_FLAGS -g;-O2)
+  set(INTELLLVM_RELEASE_FLAGS -O3;-DNDEBUG)
   set(INTELLLVM_OPENMP_FLAG "-qopenmp")
   set(INTELLLVM_SANITIZE_ADDRESS_CXX_FLAGS "")
   set(INTELLLVM_SANITIZE_ADDRESS_EXE_LINKER_FLAGS "")
