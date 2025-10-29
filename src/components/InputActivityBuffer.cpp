@@ -582,9 +582,6 @@ Response::Status InputActivityBuffer::registerData(
    }
 
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      if (mJitterChangeIntervalInTimesteps > 0) {
-         mRNG.seed(mRandomSeed);
-      }
       int numBatch = getLayerLoc()->nbatch;
       int nBatch   = getCommunicator()->getIOMPIBlock()->getBatchDimension() * numBatch;
       mRandomShiftX.resize(nBatch);
@@ -633,6 +630,15 @@ InputActivityBuffer::getCurrentFilename(int localBatchIndex, int mpiBatchIndex) 
 
 Response::Status
 InputActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   Response::Status status = ActivityBuffer::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      if (mJitterChangeIntervalInTimesteps > 0) {
+         mRNG.seed(mRandomSeed);
+      }
+   }
    retrieveInput(0.0 /*simulationTime*/, message->mDeltaTime);
    return Response::SUCCESS;
 }
