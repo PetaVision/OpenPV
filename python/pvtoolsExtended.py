@@ -17,6 +17,9 @@ from matplotlib.animation import FuncAnimation
 from IPython.display import HTML
 import argparse
 import sys
+import itertools
+import math
+import os
 
 def makeListFromFile(path):
     tempFile=open(path,'r')
@@ -477,7 +480,6 @@ def vertical_layout(G, node_order, layer_spacing=1.5, horizontal_spacing=2.0):
     Returns:
         dict: Node positions for drawing.
     """
-    # from collections import defaultdict
 
     # Group nodes by layer
     layers = defaultdict(list)
@@ -495,11 +497,168 @@ def vertical_layout(G, node_order, layer_spacing=1.5, horizontal_spacing=2.0):
             pos[node] = (x, y)
     return pos
 
+def draw_edge_labels_no_overlap(
+    G,
+    pos,
+    edge_labels=None,
+    ax=None,
+    label_pos=0.5,
+    base_offset_px=6,
+    repel_step_px=4,
+    max_iter=40,
+    pad_box=True,
+    text_kw=None,
+):
+    """
+    Draw edge labels for a NetworkX graph and automatically nudge them so they don't overlap.
+
+    Parameters
+    ----------
+    G : nx.Graph / nx.DiGraph / nx.MultiGraph / nx.MultiDiGraph
+    pos : dict node -> (x, y)
+    edge_labels : dict with keys (u, v) or (u, v, k), values are strings
+                  If None, uses edge attribute 'label' else 'weight' (if present).
+    ax : matplotlib Axes
+    label_pos : position along edge in [0, 1]
+    base_offset_px : perpendicular offset (pixels) for parallel edges
+    repel_step_px : pixel shove per iteration when labels overlap
+    max_iter : max repel iterations
+    pad_box : draw a white bbox behind text for legibility
+    text_kw : kwargs forwarded to ax.text (e.g., fontsize=9)
+
+    Returns
+    -------
+    dict: {(u, v[, k]): matplotlib.text.Text}
+    """
+    if ax is None:
+        ax = plt.gca()
+    text_kw = dict(text_kw or {})
+
+    # --- helpers -------------------------------------------------------------
+    def _unit_perp(u, v):
+        x1, y1 = pos[u]; x2, y2 = pos[v]
+        dx, dy = (x2 - x1), (y2 - y1)
+        L = math.hypot(dx, dy)
+        if L == 0:
+            return (0.0, 0.0)
+        return (-dy / L, dx / L)  # perpendicular
+
+    def _edge_point(u, v, t):
+        x1, y1 = pos[u]; x2, y2 = pos[v]
+        return (x1*(1-t) + x2*t, y1*(1-t) + y2*t)
+
+    def _pixels_to_data(dx_px, dy_px):
+        inv = ax.transData.inverted()
+        x0, y0 = ax.transData.transform((0, 0))
+        x1, y1 = x0 + dx_px, y0 + dy_px
+        (xd0, yd0) = inv.transform((x0, y0))
+        (xd1, yd1) = inv.transform((x1, y1))
+        return (xd1 - xd0, yd1 - yd0)
+
+    def _group_parallel_edges():
+        buckets = {}
+        if G.is_multigraph():
+            for u, v, k in G.edges(keys=True):
+                buckets.setdefault(frozenset((u, v)), []).append((u, v, k))
+        else:
+            for u, v in G.edges():
+                buckets.setdefault(frozenset((u, v)), []).append((u, v, None))
+        for key in buckets:
+            buckets[key].sort()
+        return buckets
+
+    def _iter_edges_with_keys():
+        if G.is_multigraph():
+            yield from G.edges(keys=True)
+        else:
+            for u, v in G.edges():
+                yield (u, v, None)
+
+    def _lookup_label(u, v, k):
+        # user can pass (u, v), (v, u) for undirected, or (u, v, k)
+        if edge_labels is None:
+            d = G[u][v] if not G.is_multigraph() else G[u][v][k]
+            return d.get("label", d.get("weight", None))
+        # try the common keys
+        if (u, v, k) in edge_labels: return edge_labels[(u, v, k)]
+        if (u, v) in edge_labels:     return edge_labels[(u, v)]
+        if not G.is_directed():
+            if (v, u, k) in edge_labels: return edge_labels[(v, u, k)]
+            if (v, u) in edge_labels:     return edge_labels[(v, u)]
+        return None
+
+    # --- place texts initially ----------------------------------------------
+    parallel_groups = _group_parallel_edges()
+    default_bbox = dict(facecolor="white", edgecolor="none", alpha=0.8, pad=0.2) if pad_box else None
+    texts, positions = {}, {}
+
+    for (u, v, k) in _iter_edges_with_keys():
+        label = _lookup_label(u, v, k)
+        if label is None or label == "":
+            continue
+
+        # midpoint + perpendicular offset for parallel edges
+        x0, y0 = _edge_point(u, v, label_pos)
+        nxp, nyp = _unit_perp(u, v)
+
+        siblings = parallel_groups[frozenset((u, v))]
+        idx = siblings.index((u, v, k))
+        centered = idx - (len(siblings) - 1) / 2.0
+        offx_data, offy_data = _pixels_to_data(base_offset_px * centered * nxp,
+                                               base_offset_px * centered * nyp)
+        px, py = x0 + offx_data, y0 + offy_data
+        positions[(u, v, k)] = [px, py]
+
+        t = ax.text(px, py, str(label), ha="center", va="center", bbox=default_bbox, **text_kw)
+        texts[(u, v, k)] = t
+
+    if not texts:
+        return {}
+
+    # render once to get bboxes
+    fig = ax.figure
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+
+    def _bbox(edge_key):
+        return texts[edge_key].get_window_extent(renderer=renderer).expanded(1.0, 1.05)
+
+    # --- repel overlaps iteratively -----------------------------------------
+    for _ in range(max_iter):
+        moved = False
+        for a, b in itertools.combinations(list(texts.keys()), 2):
+            ba, bb = _bbox(a), _bbox(b)
+            if not ba.overlaps(bb):
+                continue
+
+            # move apart along line connecting centers (in pixel space)
+            ax_a = (ba.x0 + ba.x1) / 2.0; ay_a = (ba.y0 + ba.y1) / 2.0
+            ax_b = (bb.x0 + bb.x1) / 2.0; ay_b = (bb.y0 + bb.y1) / 2.0
+            vx, vy = (ax_a - ax_b), (ay_a - ay_b)
+            dist = math.hypot(vx, vy)
+            if dist < 1e-6:
+                vx, vy, dist = 1.0, 0.0, 1.0
+            ux, uy = vx / dist, vy / dist
+
+            dx_data, dy_data = _pixels_to_data(repel_step_px * ux, repel_step_px * uy)
+            positions[a][0] += dx_data; positions[a][1] += dy_data
+            positions[b][0] -= dx_data; positions[b][1] -= dy_data
+            texts[a].set_position(positions[a])
+            texts[b].set_position(positions[b])
+            moved = True
+
+        if moved:
+            fig.canvas.draw()
+        else:
+            break
+
+    return texts
+
 #draw a network diagram given a parameter path
 #Author: Nick Bruns
 #Created: 5/9/2025
 #draw a network diagram given a parameter path
-def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalConnectionName:bool=True,KKRedraw:bool=True,title:str=True,labelSegment:str=None):
+def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalConnectionName:bool=True,KKRedraw:bool=True,title:str=True,labelSegment:str=None,drawLegend:bool=True,saveToPath=None):
 
     validStyles = {'terse', 'verbose'}
     if connectionLabelStyle not in validStyles:
@@ -514,17 +673,42 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
     else:
         raise ValueError(f"Argument 1 / parameterFilepath must be a path to a parameter file or parameter dictionary itself, not {type(parameterFilePath)}")
 
-    #definition of some various formating keywords
-    momentumConnLineStyle='dashed'
-    defaultLineStyle='solid'
-    defaultNodeColor='lightgreen'
-    cloneConnLineStyle=':'
-    arrowShape='-|>'
-    shortHandCloneSymbol="W (clone)"
-    shortHandMommentumSymbol="W"
-    shortHandIdentSymbol="A"
-    shortHandTransposeSymbol="T"
+    #define constants for necessary values
+    INHIBITORY_CHANNEL_CODE = 1
+    EXCITATORY_CHANNEL_CODE = 0
+    INACTIVE_CHANNEL_CODE = -1
+    INHIBITORY_CHANNEL_CONNECTION_COLOR = 'red'
+    EXCITATORY_CHANNEL_CONNECTION_COLOR = 'green'
+    INACTIVE_CHANNEL_CONNECTION_COLOR = 'blue'
+    NEUTRAL_CONNECTION_COLOR = 'black'
 
+    MOMENTUM_CONNECTION_NAME='MomentumConn'
+    IDENTITY_CONNECTION_NAME='IdentConn'
+    CLONE_CONNECTION_NAME='CloneConn'
+    TRANSPOSE_CONNECTION_NAME='TransposeConn'
+    RESCALE_CONNECTION_NAME='RescaleConn'
+
+    #clone type connections have a similar inherited type
+    CLONE_TYPE_CONNECTION_SET=[CLONE_CONNECTION_NAME,TRANSPOSE_CONNECTION_NAME]
+    IDENTITY_TYPE_CONNECTION_SET=[IDENTITY_CONNECTION_NAME,RESCALE_CONNECTION_NAME]
+
+    IDENTITY_TYPE_LINE_STYLE='dotted'
+    CLONE_TYPE_LINE_STYLE='solid'
+    MOMENTUM_CONNECTION_LINE_STYLE='dashed'
+    EDGE_LABEL_DEFAULT_COLOR='black'
+
+    #definition of some various formating keywords
+    DEFAULT_LINE_STYLE='solid'
+    DEFAULT_NODE_COLOR='lightgreen'
+    ARROW_SHAPE='-|>'
+    SHORTHAND_CLONE_SYMBOL=r'$W_{Clone}$'#"W (clone)"
+    SHORTHAND_MOMENTUM_SYMBOL="W"
+    SHORTHAND_IDENT_SYMBOL=r'$A^{IdentConn}_{Identity}$'#"A"
+    SHORTHAND_TRANSPOSE_SYMBOL=r'$W_{T}$'#"T"
+    SHORTHAND_RESCALE_SYMBOL=r'$A^{RescaleConn}_{Identity}$'#"R"
+
+    NETWORK_DIAGRAM_FILE_NAME='network.png'
+    
     #determine what layers there are
     layerRequiredKey='phase'
     layerNames=[]
@@ -546,6 +730,7 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
     connectionPre=[]
     connectionPost=[]
     connectionOriginalConnName=[]
+    connectionChannelCode=[]
     for topLevelKey in parameters.keys():
         #use list comprehension to run through every key that should exist in a connection
         #then evaluate using 'in' to get a boolean for if the key is present
@@ -555,6 +740,7 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
             connectionType.append(parameters[topLevelKey]['groupType'])
             connectionPre.append(parameters[topLevelKey]['preLayerName'])
             connectionPost.append(parameters[topLevelKey]['postLayerName'])
+            connectionChannelCode.append(parameters[topLevelKey]['channelCode'])
             #the use of get here preempts any situation where there is no originalConnName key
             tempOrigConnName=parameters[topLevelKey].get('originalConnName')
             #if the value is none then replace with noncharacter space
@@ -562,7 +748,6 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
                 tempOrigConnName = ''
             connectionOriginalConnName.append(tempOrigConnName)  
             print(f"{topLevelKey}\t\t{(parameters[topLevelKey]['preLayerName'])}\t{(parameters[topLevelKey]['postLayerName'])}")
-    #somewhat vestigial operation to calculate horizontal offsets of network layers
 
     #set removes duplicates
     uniquePhases=list(set(layerPhase))
@@ -580,15 +765,14 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
         #finally, add the offset to the position at that location
         relativeHorizontalPosition[i]=relativeHorizontalPosition[i]+phaseCountOffsetBuffer[bufferPosition]
 
-    ## End vestigial operation
-
     verboseConnectionEdgeLabels=dict()
     connectionStyleDict=dict()
     terseConnectionEdgeLabels=dict()
     copiedConnectionDict=dict()
+    connectionColorDict=dict()
 
     #loop through connections, updating various style dictionaries as needed
-    for name,pre,post,connType,origConnName in zip(connectionNames,connectionPre,connectionPost,connectionType,connectionOriginalConnName):
+    for name,pre,post,connType,origConnName,channelCode in zip(connectionNames,connectionPre,connectionPost,connectionType,connectionOriginalConnName,connectionChannelCode):
         #add to the connection label dictionary
         verboseConnectionEdgeLabels.update({(pre,post):f"{name}\n{connType}"})
 
@@ -596,25 +780,39 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
         copiedConnectionDict.update({(pre,post):origConnName})
 
         #update style dictionary for setting connection properties
-        if connType == 'MomentumConn':
+        if connType == MOMENTUM_CONNECTION_NAME:
             # a dict has to store this data to work
-            connectionStyleDict.update({(pre,post):momentumConnLineStyle})
-        elif connType == 'CloneConn':
-            connectionStyleDict.update({(pre,post):cloneConnLineStyle})
+            connectionStyleDict.update({(pre,post):MOMENTUM_CONNECTION_LINE_STYLE})
+        elif connType in CLONE_TYPE_CONNECTION_SET:
+            connectionStyleDict.update({(pre,post):CLONE_TYPE_LINE_STYLE})
+        elif connType in IDENTITY_TYPE_CONNECTION_SET:
+            connectionStyleDict.update({(pre,post):IDENTITY_TYPE_LINE_STYLE})
         else:
-            connectionStyleDict.update({(pre,post):defaultLineStyle})
+            connectionStyleDict.update({(pre,post):DEFAULT_LINE_STYLE})
         
         #update dictionary of shorthand names
-        if connType == 'MomentumConn':
-            terseConnectionEdgeLabels.update({(pre,post):shortHandMommentumSymbol})
-        elif connType == 'CloneConn':
-            terseConnectionEdgeLabels.update({(pre,post):shortHandCloneSymbol})
-        elif connType == 'IdentConn':
-            terseConnectionEdgeLabels.update({(pre,post):shortHandIdentSymbol})
-        elif connType == 'TransposeConn':
-            terseConnectionEdgeLabels.update({(pre,post):shortHandTransposeSymbol})
+        if connType == MOMENTUM_CONNECTION_NAME:
+            terseConnectionEdgeLabels.update({(pre,post):SHORTHAND_MOMENTUM_SYMBOL})
+        elif connType == CLONE_CONNECTION_NAME:
+            terseConnectionEdgeLabels.update({(pre,post):SHORTHAND_CLONE_SYMBOL})
+        elif connType == IDENTITY_CONNECTION_NAME:
+            terseConnectionEdgeLabels.update({(pre,post):SHORTHAND_IDENT_SYMBOL})
+        elif connType == TRANSPOSE_CONNECTION_NAME:
+            terseConnectionEdgeLabels.update({(pre,post):SHORTHAND_TRANSPOSE_SYMBOL})
+        elif connType == RESCALE_CONNECTION_NAME:
+            terseConnectionEdgeLabels.update({(pre,post):SHORTHAND_RESCALE_SYMBOL})
         else:
             terseConnectionEdgeLabels.update({(pre,post):''})
+
+        #now update dictionaries of colors
+        if channelCode == EXCITATORY_CHANNEL_CODE:
+            connectionColorDict.update({(pre,post):EXCITATORY_CHANNEL_CONNECTION_COLOR})
+        elif channelCode == INHIBITORY_CHANNEL_CODE:
+            connectionColorDict.update({(pre,post):INHIBITORY_CHANNEL_CONNECTION_COLOR})
+        elif channelCode == INACTIVE_CHANNEL_CODE:
+            connectionColorDict.update({(pre,post):INACTIVE_CHANNEL_CONNECTION_COLOR})
+        else:
+            connectionColorDict.update({(pre,post):NEUTRAL_CONNECTION_COLOR})
 
     #initialize a vertical and horizontal positioning dict, and various style tracking dicts such as for color or label
     verticalNodeOrder={}
@@ -650,7 +848,6 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
     else:
         pass
 
-    #NOTE: plotting section
     # Create a directed graph
     G = nx.DiGraph()
 
@@ -668,9 +865,10 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
         #after computing a vertical layout, then process through a Kamada Kawai model to attempt reduction in overlap
         pos=nx.kamada_kawai_layout(G,pos=pos)
 
+    fig,ax=plt.subplots(figsize=(10, 8))
+    
     # Draw square-shaped nodes
-    plt.figure(figsize=(10, 8))
-    nx.draw_networkx_nodes(G, pos, node_color=defaultNodeColor, node_size=1000, node_shape='s')
+    nx.draw_networkx_nodes(G, pos, node_color=DEFAULT_NODE_COLOR, node_size=1000, node_shape='s')
 
     # Draw labels on nodes
     if labelSegment:
@@ -682,9 +880,6 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
     else:
         nx.draw_networkx_labels(G, pos, font_size=8)
 
-    # Draw the edge labels
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=connectionLabelDisplay, font_color='red', font_size=8,verticalalignment='center',rotate=False)
-
     # Draw curved edges with arrows
     for i,edge in enumerate(G.edges()):
         nx.draw_networkx_edges(
@@ -692,17 +887,53 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
             style=connectionStyleDict[edge],    #drawing does not happen sequentially so a dict has to store everything
             edgelist=[edge],
             width=3,
-            arrowstyle=arrowShape,
+            arrowstyle=ARROW_SHAPE,
             arrowsize=30,
-            connectionstyle='arc3,rad=0.2'
+            connectionstyle='arc3,rad=0.2',
+            edge_color=connectionColorDict[edge]
         )
+    # Draw the edge labels
+    draw_edge_labels_no_overlap(G, pos, ax=ax,edge_labels=connectionLabelDisplay,label_pos=0.3,base_offset_px=1,max_iter=100,text_kw=dict(fontsize=8,color=EDGE_LABEL_DEFAULT_COLOR,verticalalignment='center'))
 
     if isinstance(title,str):
         plt.title(title)
     elif title==True:
         plt.title(parameterFilePath)
     plt.axis('off')
-    #plt.legend()
+
+    if drawLegend is True:
+        # Define colors and labels for legend
+        color_map = {
+            'Inhibitory Connection': INHIBITORY_CHANNEL_CONNECTION_COLOR,
+            'Excitatory Connection': EXCITATORY_CHANNEL_CONNECTION_COLOR,
+            'Inactive or Learning Connection': INACTIVE_CHANNEL_CONNECTION_COLOR,
+        }
+
+        custom_lines = [
+            matplotlib.lines.Line2D([0], [0], color='gray', linestyle=CLONE_TYPE_LINE_STYLE, lw=2, label='Weight Clone Type Connections (TransposeConn or CloneConn)'),
+            matplotlib.lines.Line2D([0], [0], color='gray', linestyle=MOMENTUM_CONNECTION_LINE_STYLE, lw=2, label='MomentumConn Connections (Learning)'),
+            matplotlib.lines.Line2D([0], [0], color='gray', linestyle=IDENTITY_TYPE_LINE_STYLE, lw=2, label='Identity Type Connections (IdentConn or RescaleConn)')
+        ]
+
+        # Create custom legend handles
+        legend_handles = [matplotlib.lines.Line2D([0], [0], marker='o', color='w', label=label,
+                                markerfacecolor=color, markersize=10)
+                        for label, color in color_map.items()]
+        
+        legend_handles.extend(custom_lines)
+
+        plt.legend(handles=legend_handles, title="Legend")
+    
+    #if a none type, treat that as a request to save the figure to the folder where the python file is called
+    if isinstance(saveToPath,type(None)):
+        plt.savefig(NETWORK_DIAGRAM_FILE_NAME)
+    #if a string, save there
+    elif isinstance(saveToPath,str):
+        plt.savefig(os.path.abspath(saveToPath))
+    #if true, treat that as a resquest to save to the folder where the parameter file exists
+    elif saveToPath is True:
+        plt.savefig(os.path.join(os.path.dirname(os.path.abspath(parameterFilePath)),NETWORK_DIAGRAM_FILE_NAME))
+
     plt.show()
 
 #to use commands from the command line, just type in the path to your python interpretter, the path of this .py file, the function name and then the arugments to give it
