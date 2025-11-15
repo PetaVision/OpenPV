@@ -925,7 +925,7 @@ def drawNetwork(parameterFilePath,connectionLabelStyle='terse',includeOriginalCo
         plt.legend(handles=legend_handles, title="Legend")
     
     #if a none type, treat that as a request to save the figure to the folder where the python file is called
-    if isinstance(saveToPath,type(None)):
+    if saveToPath is None:
         plt.savefig(NETWORK_DIAGRAM_FILE_NAME)
     #if a string, save there
     elif isinstance(saveToPath,str):
