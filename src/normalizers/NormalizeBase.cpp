@@ -10,6 +10,7 @@
 #include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "structures/Weights.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV {
 
@@ -68,12 +69,24 @@ void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "mirrorBCflag"));
    parameters()->ioParamValue(
          ioFlag,
          getName(),
          "normalizeOnWeightUpdate",
          &mNormalizeOnWeightUpdate,
          mNormalizeOnWeightUpdate);
+   FatalIf(
+         mNormalizeOnInitialize == false and mNormalizeOnWeightUpdate == true,
+         "Connection \"%s\": normalizeOnInitialize cannot be false if "
+         "normalizeOnWeightUpdate is true.\n",
+         getName());
+   if (mNormalizeOnInitialize == false and mNormalizeOnWeightUpdate == false) {
+      WarnLog().printf(
+            "Connection \"%s\" has both normalizationOnInitialize and normalizeOnWeightUpdate"
+            "set to false. No normalization will take place.\n",
+            getName());
+   }
 }
 
 Response::Status NormalizeBase::respondConnectionNormalize(
