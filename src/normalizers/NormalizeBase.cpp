@@ -6,7 +6,6 @@
  */
 
 #include "NormalizeBase.hpp"
-#include "components/StrengthParam.hpp"
 #include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "structures/Weights.hpp"
@@ -113,6 +112,11 @@ Response::Status NormalizeBase::respondConnectionNormalize(
    }
 }
 
+StrengthParam *NormalizeBase::retrieveStrengthParamIfNeeded(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return nullptr;
+}
+
 Response::Status
 NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto *weightsPair = message->mObjectTable->findObject<WeightsPair>(getName());
@@ -127,12 +131,16 @@ NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       return Response::POSTPONE;
    }
 
-   auto *strengthParam = message->mObjectTable->findObject<StrengthParam>(getName());
-   pvAssert(strengthParam);
-   if (!strengthParam->getInitInfoCommunicatedFlag()) {
-      return Response::POSTPONE;
+   auto *strengthParam = retrieveStrengthParamIfNeeded(message);
+   // retrieveStrengthParamIfNeeded() is a virtual function member that returns nullptr
+   // for derived classes that do not use the strength parameter, and a valid pointer
+   // for derived classes that do.
+   if (strengthParam) {
+      if (!strengthParam->getInitInfoCommunicatedFlag()) {
+         return Response::POSTPONE;
+      }
+      mStrength = strengthParam->getStrength();
    }
-   mStrength = strengthParam->getStrength();
 
    auto status = BaseObject::communicateInitInfo(message);
    if (status != Response::SUCCESS) {

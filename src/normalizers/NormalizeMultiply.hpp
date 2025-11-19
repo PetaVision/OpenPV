@@ -9,7 +9,10 @@
 #define NORMALIZEMULTIPLY_HPP_
 
 #include "NormalizeBase.hpp"
+#include "components/StrengthParam.hpp"
 #include "structures/Weights.hpp"
+
+#include <memory>
 
 namespace PV {
 
@@ -104,6 +107,9 @@ class NormalizeMultiply : public NormalizeBase {
          int yPatchStride);
 
    static void normalizePatch(float *patchData, int weightsPerPatch, float multiplier);
+
+   virtual StrengthParam *retrieveStrengthParamIfNeeded(
+         std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    // Member variables
   protected:

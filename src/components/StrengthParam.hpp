@@ -40,6 +40,24 @@ class StrengthParam : public BaseObject {
 
    float getStrength() const { return mStrength; }
 
+   /**
+    * Finds the connection with the given name, and checks whether the connection has a
+    * StrengthParam component. If it does, it returns the existing component. If it doesn't,
+    * it creates a StrengthParam object and adds it to the connection, and returns the new object.
+    * Note that the returned object belongs to the connection and should not be freed except by
+    * the connection's destructor.
+    *
+    * It is a fatal error if there is no connection with the given name in the
+    * CommunicateInitInfoMessage object. Intended to be called during the CommunicateInitInfo stage,
+    * by components that need a StrengthParam object, without requiring those that do not need
+    * a strength parameter to read it.
+    */
+   static StrengthParam *ensureExists(
+         std::shared_ptr<CommunicateInitInfoMessage const> message,
+         char const *name,
+         PVParams *params,
+         Communicator const *comm);
+
   protected:
    StrengthParam() {}
 
