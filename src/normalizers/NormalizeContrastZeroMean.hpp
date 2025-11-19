@@ -28,6 +28,9 @@ class NormalizeContrastZeroMean : public NormalizeBase {
    virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
+   virtual StrengthParam *retrieveStrengthParamIfNeeded(
+         std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
    static void subtractOffsetAndNormalize(
          float *dataStartPatch,
          int weightsPerPatch,

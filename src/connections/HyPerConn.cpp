@@ -7,7 +7,6 @@
 
 #include "HyPerConn.hpp"
 #include "columns/Factory.hpp"
-#include "components/StrengthParam.hpp"
 #include "delivery/HyPerDelivery.hpp"
 #include "delivery/HyPerDeliveryCreator.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
@@ -151,10 +150,6 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    if (!strcmp(normalizeMethod, "")) {
       free(normalizeMethod);
       normalizeMethod = strdup("none");
-   }
-   if (strcmp(normalizeMethod, "none")) {
-      auto strengthParam = new StrengthParam(getName(), parameters(), mCommunicator);
-      addUniqueComponent(strengthParam);
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, this);
    normalizer          = dynamic_cast<NormalizeBase *>(baseObj);

@@ -75,6 +75,9 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
+   if (!mGroupHead->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
 
    WeightsPair *weightsPair = objectTable->findObject<WeightsPair>(getName());
    pvAssert(weightsPair); // NormalizeBase::communicateInitInfo should have checked for this.
@@ -89,16 +92,73 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (!headConnectionData->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
+
+   bool paramMismatch = false;
    if (thisConnectionData->getPreIsBroadcast() != headConnectionData->getPreIsBroadcast()) {
       ErrorLog().printf(
-            "broadcast flag for %s does not match that of normalizeGroupName \"%s\".\n",
+            "broadcast flag for %s does not match that for normalizeGroupName \"%s\".\n",
             getDescription_c(), mNormalizeGroupName);
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      exit(EXIT_FAILURE);
+      paramMismatch = true;
    }
+
+   int checkParam = PV_SUCCESS;
+   checkParam = checkCompatibilityWithGroupHead(
+         "normalizeArborsIndividually", mGroupHead->getNormalizeArborsIndividuallyFlag());
+   if (checkParam != PV_SUCCESS) { paramMismatch = true; }
+   checkParam = checkCompatibilityWithGroupHead(
+         "normalizeOnInitialize", mGroupHead->getNormalizeOnInitialize());
+   if (checkParam != PV_SUCCESS) { paramMismatch = true; }
+   checkParam = checkCompatibilityWithGroupHead(
+         "normalizeOnWeightUpdate", mGroupHead->getNormalizeOnWeightUpdate());
+   if (checkParam != PV_SUCCESS) { paramMismatch = true; }
+
+   float groupHeadStrength = mGroupHead->getStrength();
+   if (mParams->present(getName(), "strength")) {
+      float thisStrength;
+      mParams->ioParamValueRequired<float>(PARAMS_IO_READ, getName(), "strength", &thisStrength);
+      if (thisStrength != groupHeadStrength) {
+         ErrorLog().printf(
+               "strength value for \"%s\" does not match "
+               "that for normalization group head \"%s\" (%f versus %f).\n",
+               getName(),
+               mNormalizeGroupName,
+               double(thisStrength),
+               double(groupHeadStrength));
+         paramMismatch = true;
+      }
+   }
+
+   FatalIf(
+         paramMismatch == true,
+         "Normalization parameters for %s incompatible with group head \"%s\"\n",
+         getDescription_c(), mNormalizeGroupName);
 
    mGroupHead->addWeightsToList(preWeights);
    return Response::SUCCESS;
+}
+
+int NormalizeGroup::checkCompatibilityWithGroupHead(char const *paramName, bool groupHeadValue) {
+   int status = PV_SUCCESS;
+   if (mParams->present(getName(), paramName)) {
+      bool thisParamValue;
+      // We're calling ioParamValueRequired() because we know the param is present and this way
+      // we don't have to set up the defaultValue argument. The param isn't required; in fact, we
+      // only use this function member when the param is not required and must match the
+      // corresponding value in the normalization group head.
+      mParams->ioParamValueRequired<bool>(PARAMS_IO_READ, getName(), paramName, &thisParamValue);
+      if (thisParamValue != groupHeadValue) {
+         ErrorLog().printf(
+               "%s flag for connection \"%s\" does not match "
+               "that for normalization group head \"%s\" (%s versus %s).\n",
+               paramName,
+               getName(),
+               mNormalizeGroupName,
+               thisParamValue ? "true" : "false",
+               groupHeadValue ? "true" : "false");
+         status = PV_FAILURE;
+      }
+   }
+   return status;
 }
 
 int NormalizeGroup::normalizeWeights() { return PV_SUCCESS; }

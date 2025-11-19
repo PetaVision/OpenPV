@@ -56,6 +56,13 @@ void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum Params
    }
 }
 
+StrengthParam *NormalizeContrastZeroMean::retrieveStrengthParamIfNeeded(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto *strengthParam = StrengthParam::ensureExists(
+         message, getName(), parameters(), mCommunicator);
+   return strengthParam;
+}
+
 int NormalizeContrastZeroMean::normalizeWeights() {
    int status = PV_SUCCESS;
 
