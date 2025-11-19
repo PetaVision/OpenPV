@@ -13,19 +13,7 @@
 namespace PV {
 
 class NormalizeGroup : public NormalizeBase {
-  public:
-   NormalizeGroup(char const *name, PVParams *params, Communicator const *comm);
-   virtual ~NormalizeGroup();
-
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
   protected:
-   NormalizeGroup();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-
    /**
     * NormalizeGroup does not read the normalizeArborsIndividually parameter, but inherits it from
     * its group head.
@@ -49,6 +37,22 @@ class NormalizeGroup : public NormalizeBase {
     * The group head cannot itself be a NormalizeGroup.
     */
    virtual void ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag);
+
+  public:
+   NormalizeGroup(char const *name, PVParams *params, Communicator const *comm);
+   virtual ~NormalizeGroup();
+
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+  protected:
+   NormalizeGroup();
+
+   int checkCompatibilityWithGroupHead(char const *paramName, bool groupHeadValue); 
+
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    /**
     * Overrides normalizeWeights to do nothing.

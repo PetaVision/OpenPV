@@ -22,8 +22,8 @@
 //  Therefore, output from the 5x5x8 connection should have a constant value of
 //                5*5*3*(1/sqrt(236)) = 4.8820844,
 //
-//  and output from the 5x5x8 connection should have a constant value of
-//                3*3*4*(1/sqrt(236)) = 1.7575502
+//  and output from the 3x3x4 connection should have a constant value of
+//                3*3*3*(1/sqrt(236)) = 1.7575502
 //
 //  The custom group AllConstantValueProbe compares the activity of the output
 //  layer to the correct value, and exits with an error if either fMin or fMax
@@ -70,10 +70,10 @@ PvpLayer "input" = {
     offsetX = 0;
     offsetY = 0;
     padValue = 0.0;
-	displayPeriod                       = 0;
+    displayPeriod = 0;
 };
 
-ANNLayer "output1" = {
+HyPerLayer "output1" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 8;
@@ -85,15 +85,9 @@ ANNLayer "output1" = {
     sparseLayer = false;
 
     InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
-ANNLayer "output2" = {
+HyPerLayer "output2" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 4;
@@ -105,12 +99,6 @@ ANNLayer "output2" = {
     sparseLayer = false;
 
     InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
 //
