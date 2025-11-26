@@ -43,6 +43,9 @@ class BaseDelivery : public LayerInputDelivery {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
 #ifdef PV_USE_OPENMP_THREADS
    /**
     * If called, allocates one buffer per openmp thread, where each buffer is the

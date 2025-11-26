@@ -6,6 +6,7 @@
  */
 
 #include "LayerInputBuffer.hpp"
+#include <vector>
 
 namespace PV {
 
@@ -227,9 +228,19 @@ void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
    // non-GPU sources must go before GPU sources to avoid a race condition.
    for (auto &d : mDeliverySources) {
       pvAssert(d != nullptr);
-      std::ptrdiff_t channelOffset = getChannelData(d->getChannelCode()) - getBufferData();
+      auto channelOffset = getChannelData(d->getChannelCode()) - getBufferData();
       float *channelBuffer         = &mBufferData[channelOffset];
-      d->deliver(channelBuffer);
+      float reductionMultiplier = d->getReductionMultiplier();
+      if (reductionMultiplier == 1.0f) {
+         d->deliver(channelBuffer);
+      }
+      else {
+         std::vector<float> buffer(getBufferSizeAcrossBatch());
+         d->deliver(buffer.data());
+         for (int k = 0; k < getBufferSizeAcrossBatch(); ++k) {
+            channelBuffer[k] += reductionMultiplier * buffer[k];
+         }
+      }
    }
 
 #ifdef PV_USE_CUDA
@@ -239,9 +250,19 @@ void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
 
       for (auto &d : mGPUDeliverySources) {
          pvAssert(d != nullptr);
-         std::ptrdiff_t channelOffset = getChannelData(d->getChannelCode()) - getBufferData();
+         auto channelOffset = getChannelData(d->getChannelCode()) - getBufferData();
          float *channelBuffer         = &mBufferData[channelOffset];
-         d->deliver(channelBuffer);
+         float reductionMultiplier = d->getReductionMultiplier();
+         if (reductionMultiplier == 1.0f) {
+            d->deliver(channelBuffer);
+         }
+         else {
+            std::vector<float> buffer(getBufferSizeAcrossBatch());
+            d->deliver(buffer.data());
+            for (int k = 0; k < getBufferSizeAcrossBatch(); ++k) {
+               channelBuffer[k] += reductionMultiplier * buffer[k];
+            }
+         }
       }
 
       mReceiveInputCudaTimer->stop();
