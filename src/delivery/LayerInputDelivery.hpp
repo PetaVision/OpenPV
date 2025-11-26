@@ -68,6 +68,7 @@ class LayerInputDelivery : public BaseObject {
    ChannelType getChannelCode() const { return mChannelCode; }
    bool getReceiveGpu() const { return mReceiveGpu; }
    MPI_Op getMPIReductionOp() const { return mMPIReductionOp; }
+   float getReductionMultiplier() const { return mReductionMultiplier; }
 
   protected:
    LayerInputDelivery() {}
@@ -82,6 +83,30 @@ class LayerInputDelivery : public BaseObject {
    ChannelType mChannelCode = CHANNEL_EXC;
    bool mReceiveGpu         = false;
    MPI_Op mMPIReductionOp;
+
+   // ReductionMultiplier is a hack to work around a subtle problem:
+   // If a connection's pre and post are both broadcast layers, there should
+   // not be any MPI reduction when delivering to the post synaptic layer.
+   // If a connection has nonbroadcast pre and broadcastpost, we do need to
+   // do an MPI reduction. However, there is the possibility that a
+   // broadcast pre and nonbroadcast pre could accumulate to the same channel
+   // of the same post layer, and we need to add them properly.
+   // The post layer does not have direct access to whether its pre layers
+   // are broadcast layers or not, but it's the post layer's input buffer
+   // component that loops over the connections that connect to it.
+   // In order not to require additional MPI reductions, or to further
+   // complicate the accumulation of multiple connections, or to further
+   // complicate the class dependencies, we have each connection indicate
+   // a multiplier to be applied before being added into the post layer's
+   // GSyn. For most connections, this multiplier will be one. However,
+   // for a connection whose pre- and post- are both broadcast layers,
+   // the multiplier is 1/(Nrows*Ncols), where Nrows and Ncols are
+   // the numbers of rows and columns of the MPI configuration.
+   // The ReductionMultiplier is defined in LayerInputDelivery, where
+   // it is accessible by the layer input buffer component. It is
+   // set, however, by the derived classes once the broadcast-ness
+   // of the pre- and post- layers are determined.
+   float mReductionMultiplier = 1.0f;
 };
 
 } // namespace PV
