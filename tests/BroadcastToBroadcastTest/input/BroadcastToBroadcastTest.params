@@ -1,0 +1,147 @@
+//
+// BasicSystemTest.params
+//
+// created by peteschultz: Nov 10, 2011
+//
+
+//  A params file for a simple simulation: two layers, one connection.
+//  It serves as the basic template for systems tests, and tests the
+//  basic functionality
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 8;
+   ny = 8;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "BroadcastToBroadcastTest.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+PvpLayer "NonbroadcastInput" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 0;
+
+    inputPath = "input/NonbroadcastInput.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+ConstantLayer "BroadcastInput" = {
+    broadcastFlag = true;
+    nf = 8;
+    phase = 0;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+HyPerLayer "Output" = {
+    broadcastFlag = true;
+    nf = 1;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+HyPerConn "NonbroadcastInputToOutput" = {
+    preLayerName = "NonbroadcastInput";
+    postLayerName = "Output";
+    channelCode = 0;
+
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    sharedWeights = false;
+    writeStep = -1;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    connectOnlySameFeatures = false;
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "BroadcastInputToOutput" = {
+    preLayerName = "BroadcastInput";
+    postLayerName = "Output";
+    channelCode = 0;
+
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    sharedWeights = false;
+    writeStep = -1;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    connectOnlySameFeatures = false;
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    updateGSynFromPostPerspective = false;
+};
