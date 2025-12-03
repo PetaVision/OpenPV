@@ -35,6 +35,13 @@ void NormalizeContrastZeroMean::ioParam_minSumTolerated(ParamsIOSwitch ioSwitch)
    mParamsIO->ioParam(ioSwitch, "minSumTolerated", &minSumTolerated);
 }
 
+StrengthParam *NormalizeContrastZeroMean::retrieveStrengthParamIfNeeded(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto *strengthParam = StrengthParam::ensureExists(
+         message, getParamsIO(), mCommunicator);
+   return strengthParam;
+}
+
 int NormalizeContrastZeroMean::normalizeWeights() {
    int status = PV_SUCCESS;
 

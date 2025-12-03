@@ -21,6 +21,7 @@ class BatchIndexer : public CheckpointerDataInterface {
          bool initializeFromCheckpointFlag);
    int nextIndex(int localBatchIndex);
    int getIndex(int localBatchIndex);
+   unsigned int getRandomSeed() const { return mRandomSeed; }
    void specifyBatching(int localBatchIndex, int startIndex, int skipAmount);
    void initializeBatch(int localBatchIndex);
    void shuffleLookupTable();

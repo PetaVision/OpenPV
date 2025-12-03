@@ -78,6 +78,23 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    return Response::SUCCESS;
 }
 
+Response::Status
+BaseDelivery::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   if (getChannelCode() == CHANNEL_NOUPDATE) {
+      return Response::NO_ACTION;
+   }
+   int postBroadcastFlag = mPostGSyn->getLayerLoc()->bcast;
+   int preBroadcastFlag = mPreData->getLayerLoc()->bcast;
+   if (preBroadcastFlag != 0 and postBroadcastFlag != 0) {
+      int numProcs = mCommunicator->numCommRows() * mCommunicator->numCommColumns();
+      mReductionMultiplier = 1.0f / static_cast<float>(numProcs);
+   }
+   else {
+      mReductionMultiplier = 1.0f;
+   }
+   return Response::SUCCESS;
+}
+
 #ifdef PV_USE_OPENMP_THREADS
 void BaseDelivery::allocateThreadGSyn() {
    if (getChannelCode() >= 0) {

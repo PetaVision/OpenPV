@@ -1,0 +1,47 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 20;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 4;
+    ny                                  = 4;
+    nbatch                              = 2;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output0/";
+    verifyWrites                        = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "output0/Checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 1;
+    checkpointIndexWidth                = -1;
+    suppressNonplasticCheckpoints       = false;
+    deleteOlderCheckpoints              = false;
+    initializeFromCheckpointDir         = "";
+};
+
+PvpLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 2;
+    inputPath                           = "input/Input.pvp";
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    batchMethod                         = "random";
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};

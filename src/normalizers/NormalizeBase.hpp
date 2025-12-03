@@ -10,7 +10,10 @@
 
 #include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
+#include "components/StrengthParam.hpp"
 #include "structures/Weights.hpp"
+
+#include <memory>
 
 namespace PV {
 
@@ -70,6 +73,9 @@ class NormalizeBase : public BaseObject {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual StrengthParam *retrieveStrengthParamIfNeeded(
+         std::shared_ptr<CommunicateInitInfoMessage const> message);
 
    bool weightsHaveUpdated() const;
 

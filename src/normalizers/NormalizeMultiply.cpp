@@ -6,6 +6,7 @@
  */
 
 #include "NormalizeMultiply.hpp"
+#include "components/StrengthParam.hpp"
 #include "structures/Weights.hpp"
 
 namespace PV {
@@ -50,6 +51,13 @@ void NormalizeMultiply::ioParam_normalize_cutoff(ParamsIOSwitch ioSwitch) {
 
 void NormalizeMultiply::ioParam_normalizeFromPostPerspective(ParamsIOSwitch ioSwitch) {
    mParamsIO->ioParam(ioSwitch, "normalizeFromPostPerspective", &mNormalizeFromPostPerspective);
+}
+
+StrengthParam *NormalizeMultiply::retrieveStrengthParamIfNeeded(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto *strengthParam = StrengthParam::ensureExists(
+         message, getParamsIO(), mCommunicator);
+   return strengthParam;
 }
 
 int NormalizeMultiply::normalizeWeights() {

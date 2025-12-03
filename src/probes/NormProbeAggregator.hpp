@@ -14,7 +14,8 @@ class NormProbeAggregator : public ProbeComponent {
    NormProbeAggregator(std::shared_ptr<ParamsIO> paramsIO, std::shared_ptr<MPIBlock const> mpiBlock);
    virtual ~NormProbeAggregator() {}
 
-   void aggregateStoredValues(ProbeDataBuffer<double> const &partialStore);
+   void aggregateStoredValues(
+         ProbeDataBuffer<double> const &partialStore, bool layerIsBroadcastFlag);
    void clearStoredValues();
    virtual void ioParamsFillGroup(ParamsIOSwitch ioSwitch);
 

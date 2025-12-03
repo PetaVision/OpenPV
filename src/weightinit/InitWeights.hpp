@@ -85,10 +85,10 @@ class InitWeights : public BaseObject {
 
    /**
     * Called by initializeWeights, to calculate the weights in all arbors and all patches.
-    * The base implementation callse calcWeights(int, int) in a loop over arbors and
+    * The base implementation calls calcWeights(int, int) in a loop over arbors and
     * patches
     */
-   virtual void calcWeights();
+   void calcWeights();
 
    /**
     * Called by calcWeights(void), to calculate the weights in the given arbor and patch.

@@ -23,15 +23,15 @@ Response::Status AbstractNormProbe::allocateDataStructures() {
 void AbstractNormProbe::calcValues(double timestamp) {
    mProbeLocal->storeValues(timestamp);
 
-   mProbeAggregator->aggregateStoredValues(mProbeLocal->getStoredValues());
-   mProbeLocal->clearStoredValues();
-
-   auto const &storedValues = mProbeAggregator->getStoredValues();
-   auto bufferSize          = storedValues.size();
+   bool layerIsBroadcast = getTargetLayer()->getLayerLoc()->bcast;
+   mProbeAggregator->aggregateStoredValues(mProbeLocal->getStoredValues(), layerIsBroadcast);
+   ProbeDataBuffer<double> const *storedValues = &mProbeAggregator->getStoredValues();
+   auto bufferSize          = storedValues->size();
    pvAssert(bufferSize > static_cast<batchwidth_type>(0));
    auto lastDataIndex             = bufferSize - static_cast<batchwidth_type>(1);
-   LayerProbeData const &lastData = storedValues.getData(lastDataIndex);
+   LayerProbeData const &lastData = storedValues->getData(lastDataIndex);
    setValues(lastData);
+   mProbeLocal->clearStoredValues();
 }
 
 Response::Status

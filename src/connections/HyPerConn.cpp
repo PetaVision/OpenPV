@@ -7,7 +7,6 @@
 
 #include "HyPerConn.hpp"
 #include "columns/Factory.hpp"
-#include "components/StrengthParam.hpp"
 #include "delivery/HyPerDelivery.hpp"
 #include "delivery/HyPerDeliveryCreator.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"

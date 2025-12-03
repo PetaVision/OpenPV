@@ -128,7 +128,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    // So that HyPerConn does not need to know any details of the InitWeights subclasses,
    // IntGauss2DWeights creates a StrengthParam object if one doesn't exist.
    // It can be added to the connection, but not to the AllObjects data member in the
-   // CommunicateInitInfoMessage. So we need to get the StrenghtParam component from the
+   // CommunicateInitInfoMessage. So we need to get the StrengthParam component from the
    // connection, instead of from AllObjects, as we usually would.
    auto objectTable           = message->mObjectTable;
    BaseConnection *parentConn = objectTable->findObject<BaseConnection>(getName());
@@ -137,7 +137,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          "%s could not find a connection named \"%s\".\n",
          getDescription_c(),
          getName());
-   auto *strengthParam = parentConn->getComponentByType<StrengthParam>();
+   auto *strengthParam = StrengthParam::ensureExists(message, getParamsIO(), mCommunicator);
    if (strengthParam) {
       if (strengthParam->getInitInfoCommunicatedFlag()) {
          mStrength = strengthParam->getStrength();
@@ -229,7 +229,7 @@ void InitGauss2DWeights::calculateThetas(int kfPre_tmp, int patchIndex) {
    const float dthPre = PI * mThetaMax / (float)mNumOrientationsPre;
    const float th0Pre = mRotate * dthPre / 2.0f;
    mFeaturePre        = patchIndex % mWeights->getGeometry()->getPreLoc().nf;
-   assert(mFeaturePre == kfPre_tmp);
+   pvAssert(mFeaturePre == kfPre_tmp);
    const int iThPre = patchIndex % mNumOrientationsPre;
    mThetaPre        = th0Pre + iThPre * dthPre;
 }

@@ -25,16 +25,22 @@ void NormProbeAggregator::aggregateNormsBatch(
 #endif // PV_USE_MPI
 }
 
-void NormProbeAggregator::aggregateStoredValues(ProbeDataBuffer<double> const &partialStore) {
+void NormProbeAggregator::aggregateStoredValues(
+      ProbeDataBuffer<double> const &partialStore, bool layerIsBroadcastFlag) {
    int storeSize = static_cast<int>(partialStore.size());
    for (int n = 0; n < storeSize; ++n) {
       auto &partialNorms = partialStore.getData(n);
       double timestamp   = partialNorms.getTimestamp();
       auto batchSize     = partialNorms.size();
 
-      ProbeData<double> aggregateNorms(timestamp, batchSize);
-      aggregateNormsBatch(aggregateNorms, partialNorms);
-      mStoredValues.store(aggregateNorms);
+      if (layerIsBroadcastFlag) {
+         mStoredValues.store(partialNorms);
+      }
+      else {
+         ProbeData<double> aggregateNorms(timestamp, batchSize);
+         aggregateNormsBatch(aggregateNorms, partialNorms);
+         mStoredValues.store(aggregateNorms);
+      }
    }
 }
 

@@ -220,9 +220,9 @@ int testAggregateStoredValues(std::shared_ptr<MPIBlock const> mpiBlock, int nbat
    MPI_Comm comm         = mpiBlock->getGlobalComm();
    double exponent       = 1.0;
    PVParams params       = generateProbeParams(std::string(probeName), comm, exponent);
-   auto paramsIO       = params.makeParamsIO(probeName);
+   auto paramsIO         = params.makeParamsIO(probeName);
    L2NormProbeAggregator normAggregator(paramsIO, mpiBlock);
-   normAggregator.aggregateStoredValues(partialStore);
+   normAggregator.aggregateStoredValues(partialStore, false /*layerIsBroadcastFlag*/);
    ProbeDataBuffer<double> aggregatedStore = normAggregator.getStoredValues();
 
    int status = checkAggregatedNorms(mpiBlock, allPartialNorms, aggregatedStore, exponent);

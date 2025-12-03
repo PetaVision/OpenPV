@@ -6,6 +6,7 @@
  */
 
 #include "StrengthParam.hpp"
+#include "connections/BaseConnection.hpp"
 
 namespace PV {
 
@@ -28,6 +29,28 @@ int StrengthParam::ioParamsFillGroup(ParamsIOSwitch ioSwitch) {
 
 void StrengthParam::ioParam_strength(ParamsIOSwitch ioSwitch) {
    mParamsIO->ioParam(ioSwitch, "strength", &mStrength);
+}
+
+StrengthParam *StrengthParam::ensureExists(
+         std::shared_ptr<CommunicateInitInfoMessage const> message,
+         std::shared_ptr<ParamsIO> paramsIO,
+         Communicator const *comm) {
+   Response::Status status    = Response::NO_ACTION;
+   auto objectTable           = message->mObjectTable;
+   BaseConnection *parentConn = objectTable->findObject<BaseConnection>(paramsIO->getName());
+   FatalIf(                                                                                      
+         parentConn == nullptr,    
+         "StrengthParam::create() could not find a connection named \"%s\".\n",
+         paramsIO->getName().c_str());
+   auto *strengthParam = parentConn->getComponentByType<StrengthParam>();
+   if (strengthParam) {
+      return strengthParam;
+   }
+   else {                                  
+      strengthParam = new StrengthParam(paramsIO, comm);
+      parentConn->addUniqueComponent(strengthParam);
+   }
+   return strengthParam;
 }
 
 } // namespace PV

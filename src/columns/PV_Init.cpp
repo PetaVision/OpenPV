@@ -154,7 +154,7 @@ int PV_Init::setParams(char const *params_file) {
       return PV_FAILURE;
    }
    mArguments->setStringArgument("ParamsFile", std::string{params_file});
-   initialize();
+   InfoLog() << "ParamsFile set to " << params_file << "\n";
    return createParams();
 }
 

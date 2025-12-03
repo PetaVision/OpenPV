@@ -8,6 +8,7 @@ cmake_install.cmake
 Gemfile
 Gemfile.lock
 _site/
+.venv
 lib
 *.pyc
 src/include/cMakeHeader.h

@@ -25,7 +25,6 @@ BatchIndexer::BatchIndexer(
    mIndices.resize(mBatchWidth, 0);
    mStartIndices.resize(mBatchWidth, 0);
    mSkipAmounts.resize(mBatchWidth, 0);
-   shuffleLookupTable();
    setDescription(std::string("BatchIndexer \"") + mObjName + "\"");
    CheckpointerDataInterface::initialize();
 }
@@ -134,6 +133,9 @@ BatchIndexer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> con
 
 Response::Status BatchIndexer::processCheckpointRead(double simTime) {
    checkIndices();
+   mRandomSeed--; // Needed because shuffleLookupTable increments, and therefore
+                  // the checkpointed value is one greater than what got used.
+   shuffleLookupTable();
    return Response::SUCCESS;
 }
 

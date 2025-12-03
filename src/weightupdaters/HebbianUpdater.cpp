@@ -533,6 +533,9 @@ int HebbianUpdater::update_dW(int arborID) {
       }
    }
    else {
+      if (mNormalizeDw) {
+         for (long int &a : mNumPatchActivations[arborID]) { a = 0.0f; }
+      }
       for (int b = 0; b < nbatch; b++) {
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
@@ -738,11 +741,24 @@ void HebbianUpdater::reduceAcrossBatch(int arborID) {
       MPI_Iallreduce(
             MPI_IN_PLACE,
             mDeltaWeights->getData(arborID),
-            arborSize,
+            localSize,
             MPI_FLOAT,
             MPI_SUM,
             batchComm,
             &(mDeltaWeightsReduceRequests.data())[sz]);
+      if (mNormalizeDw) {
+         auto sz = mDeltaWeightsReduceRequests.size();
+         mDeltaWeightsReduceRequests.resize(sz + 1);
+         pvAssert(int(mNumPatchActivations.at(arborID).size()) == numPatches);
+         MPI_Iallreduce(
+               MPI_IN_PLACE,
+               mNumPatchActivations[arborID].data(),
+               numPatches,
+               MPI_LONG,
+               MPI_SUM,
+               batchComm,
+               &(mDeltaWeightsReduceRequests.data())[sz]);
+      }
    }
 }
 

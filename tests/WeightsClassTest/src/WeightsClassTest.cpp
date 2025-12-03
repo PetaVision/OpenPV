@@ -172,6 +172,7 @@ void testOneToOneLocalPatch() {
    preLoc.nx       = 8;
    preLoc.ny       = 8;
    preLoc.nf       = 3;
+   preLoc.bcast    = 0;
    preLoc.halo.lt  = 2;
    preLoc.halo.rt  = 2;
    preLoc.halo.dn  = 2;
@@ -179,6 +180,7 @@ void testOneToOneLocalPatch() {
    postLoc.nx      = 8;
    postLoc.ny      = 8;
    postLoc.nf      = 10;
+   postLoc.bcast   = 0;
    postLoc.halo.lt = 0;
    postLoc.halo.rt = 0;
    postLoc.halo.dn = 0;
@@ -204,10 +206,12 @@ void testOneToManyShared() {
    preLoc.nx       = 4;
    preLoc.ny       = 4;
    preLoc.nf       = 3;
+   preLoc.bcast    = 0;
    preLoc.halo.lt  = 1;
    preLoc.halo.rt  = 1;
    preLoc.halo.dn  = 1;
    preLoc.halo.up  = 1;
+   postLoc.bcast   = 0;
    postLoc.nx      = 16;
    postLoc.ny      = 16;
    postLoc.nf      = 10;
@@ -234,6 +238,7 @@ void testOneToManyLocalPatch() {
    preLoc.nx       = 4;
    preLoc.ny       = 4;
    preLoc.nf       = 3;
+   preLoc.bcast    = 0;
    preLoc.halo.lt  = 1;
    preLoc.halo.rt  = 1;
    preLoc.halo.dn  = 1;
@@ -241,6 +246,7 @@ void testOneToManyLocalPatch() {
    postLoc.nx      = 16;
    postLoc.ny      = 16;
    postLoc.nf      = 10;
+   postLoc.bcast   = 0;
    postLoc.halo.lt = 0;
    postLoc.halo.rt = 0;
    postLoc.halo.dn = 0;
@@ -266,6 +272,7 @@ void testManyToOneShared() {
    preLoc.nx       = 16;
    preLoc.ny       = 16;
    preLoc.nf       = 3;
+   preLoc.bcast    = 0;
    preLoc.halo.lt  = 4;
    preLoc.halo.rt  = 4;
    preLoc.halo.dn  = 4;
@@ -273,6 +280,7 @@ void testManyToOneShared() {
    postLoc.nx      = 4;
    postLoc.ny      = 4;
    postLoc.nf      = 10;
+   postLoc.bcast   = 0;
    postLoc.halo.lt = 0;
    postLoc.halo.rt = 0;
    postLoc.halo.dn = 0;
@@ -299,6 +307,7 @@ void testManyToOneLocalPatch() {
    preLoc.nx       = 16;
    preLoc.ny       = 16;
    preLoc.nf       = 3;
+   preLoc.bcast    = 0;
    preLoc.halo.lt  = 4;
    preLoc.halo.rt  = 4;
    preLoc.halo.dn  = 4;
@@ -306,6 +315,7 @@ void testManyToOneLocalPatch() {
    postLoc.nx      = 4;
    postLoc.ny      = 4;
    postLoc.nf      = 10;
+   postLoc.bcast   = 0;
    postLoc.halo.lt = 0;
    postLoc.halo.rt = 0;
    postLoc.halo.dn = 0;
