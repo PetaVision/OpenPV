@@ -22,6 +22,8 @@ Image::Image(const std::vector<float> &data, int width, int height, int channels
    set(data, width, height, channels);
 }
 
+Image::Image() : Buffer<float>() {}
+
 void Image::setPixel(int x, int y, float r, float g, float b) {
    if (getFeatures() > mRPos) {
       set(x, y, mRPos, r);

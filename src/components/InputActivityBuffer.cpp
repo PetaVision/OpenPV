@@ -69,48 +69,6 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_resetToStartOnLoop(ioFlag);
    ioParam_writeFrameToTimestamp(ioFlag);
 
-   // Jul 20, 2022 - Changed default of jitterChangeInterval from 1 (jitter every timestep)
-   // to 0 (never jitter). If jitterChangeInterval is not present but any of
-   // maxShift{X,Y}, {x,y}FlipEnabled, {x,y}FlipToggle is present, flag as an error.
-   // Delete this if-statement after a reasonable fade-time
-   if (ioFlag == PARAMS_IO_READ and !parameters()->present(getName(), "jitterChangeInterval")) {
-      bool fatal = false;
-      if (parameters()->present(getName(), "maxShiftX")) {
-         ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftX\n", getName());
-         fatal = true;
-      }
-      if (parameters()->present(getName(), "maxShiftY")) {
-         ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftY\n", getName());
-         fatal = true;
-      }
-      if (parameters()->present(getName(), "xFlipEnabled")) {
-         ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipEnabled\n",
-               getName());
-         fatal = true;
-      }
-      if (parameters()->present(getName(), "yFlipEnabled")) {
-         ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipEnabled\n",
-               getName());
-         fatal = true;
-      }
-      if (parameters()->present(getName(), "xFlipToggle")) {
-         ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipToggle\n",
-               getName());
-         fatal = true;
-      }
-      if (parameters()->present(getName(), "yFlipToggle")) {
-         ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipToggle\n",
-               getName());
-         fatal = true;
-      }
-      FatalIf(fatal, "Set jitterChangeInterval explicitly in layer \"%s\"\n", getName());
-   }
    return status;
 }
 
@@ -212,11 +170,11 @@ void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       char *offsetAnchor = nullptr;
       parameters()->ioParamString(ioFlag, getName(), "offsetAnchor", &offsetAnchor, "tl");
-      offsetAnchor[0] = (char)std::tolower((int)offsetAnchor[0]);
-      offsetAnchor[1] = (char)std::tolower((int)offsetAnchor[1]);
       if (offsetAnchor == nullptr or strlen(offsetAnchor) != (size_t)2) {
          badOffsetAnchorString(offsetAnchor);
       }
+      offsetAnchor[0] = (char)std::tolower((int)offsetAnchor[0]);
+      offsetAnchor[1] = (char)std::tolower((int)offsetAnchor[1]);
       if (strcmp(offsetAnchor, "tl") == 0 or strcmp(offsetAnchor, "lt") == 0) {
          mAnchor = Buffer<float>::NORTHWEST;
       }
@@ -269,8 +227,8 @@ void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
 
 void InputActivityBuffer::badOffsetAnchorString(char const *offsetAnchor) {
    Fatal().printf(
-         "%s: offsetAnchor %s is not recognized. The offsetAnchor parameter must be a two-letter"
-         "string.  One character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and"
+         "%s: offsetAnchor %s is not recognized. The offsetAnchor parameter must be a two-letter "
+         "string.  One character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and "
          "the other character must be \"l\", \"c\", or \"r\" (for left, center or right).\n",
          getDescription_c(),
          offsetAnchor ? offsetAnchor : "NULL");
@@ -422,7 +380,7 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    }
    else {
       Fatal() << "Input layer " << getName() << " batchMethod not recognized. "
-                 "Options are \"byFile\", \"byList\", bySpecified, and random.\n";
+                 "Options are \"byFile\", \"byList\", \"bySpecified\", and \"random\".\n";
    }
    free(batchMethod);
 }

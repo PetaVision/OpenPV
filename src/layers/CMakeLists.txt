@@ -53,8 +53,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/ImageLayer.hpp
-   ${SUBDIR}/InputLayer.cpp
-   ${SUBDIR}/InputRegionLayer.cpp
+   ${SUBDIR}/InputLayer.hpp
+   ${SUBDIR}/InputRegionLayer.hpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp

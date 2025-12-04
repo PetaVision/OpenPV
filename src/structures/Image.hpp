@@ -15,6 +15,7 @@ class Image : public Buffer<float> {
   public:
    Image(std::string filename);
    Image(const std::vector<float> &data, int width, int height, int channels);
+   Image();
 
    void setPixel(int x, int y, float r, float g, float b);
    void setPixel(int x, int y, float r, float g, float b, float a);
