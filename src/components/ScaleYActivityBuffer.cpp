@@ -1,5 +1,6 @@
 #include "ScaleYActivityBuffer.hpp"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
+#include "columns/RandomSeed.hpp"
 #include "io/FileManager.hpp"
 #include "io/FileStreamBuilder.hpp"
 #include "utils/BufferUtilsMPI.hpp"
@@ -92,6 +93,10 @@ Response::Status ScaleYActivityBuffer::allocateDataStructures() {
       else {
          mRandStateCheckpointData.resize(4 * getLayerLoc()->nbatch);
       }
+   }
+   else {
+      // Allocate seeds to keep RandomSeed instances in sync across MPI
+      RandomSeed::instance()->allocate(getLayerLoc()->nbatchGlobal);
    }
    return Response::Status::SUCCESS;
 }
