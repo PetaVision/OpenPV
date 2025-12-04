@@ -117,8 +117,8 @@ BatchIndexer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> con
          std::string("FrameNumbers"),
          mIndices.data(),
          mIndices.size(),
-         false /*do not broadcast*/,
-         false /*not constant*/);
+         false /*broadcastFlag*/,
+         false /*constantEntireRunFlag*/);
    if (mBatchMethod == RANDOM) {
       checkpointer->registerCheckpointData<unsigned int>(
             mObjName,

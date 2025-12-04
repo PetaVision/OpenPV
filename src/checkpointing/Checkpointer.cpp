@@ -404,8 +404,8 @@ void Checkpointer::provideFinalStep(long int finalStep) {
 
 bool Checkpointer::registerCheckpointEntry(
       std::shared_ptr<CheckpointEntry> checkpointEntry,
-      bool constantEntireRun) {
-   if (mSuppressNonplasticCheckpoints && constantEntireRun) {
+      bool constantEntireRunFlag) {
+   if (mSuppressNonplasticCheckpoints && constantEntireRunFlag) {
       return true;
    }
    std::string const &name = checkpointEntry->getName();
@@ -423,19 +423,19 @@ void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer);
 void Checkpointer::readNamedCheckpointEntry(
       std::string const &objName,
       std::string const &dataName,
-      bool constantEntireRun) {
+      bool constantEntireRunFlag) {
    std::string checkpointEntryName(objName);
    if (!(objName.empty() || dataName.empty())) {
       checkpointEntryName.append("_");
    }
    checkpointEntryName.append(dataName);
-   readNamedCheckpointEntry(checkpointEntryName, constantEntireRun);
+   readNamedCheckpointEntry(checkpointEntryName, constantEntireRunFlag);
 }
 
 void Checkpointer::readNamedCheckpointEntry(
       std::string const &checkpointEntryName,
-      bool constantEntireRun) {
-   if (mSuppressNonplasticCheckpoints and constantEntireRun) {
+      bool constantEntireRunFlag) {
+   if (mSuppressNonplasticCheckpoints and constantEntireRunFlag) {
       return;
    }
    for (auto &c : mCheckpointRegistry) {
