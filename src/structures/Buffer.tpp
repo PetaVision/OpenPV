@@ -125,6 +125,32 @@ Buffer<T> Buffer<T>::extract(int xStart, int yStart, int width, int height) cons
    return result;
 }
 
+template <class T>
+Buffer<T> Buffer<T>::extractFeatures(int firstFeature, int lastFeature) const {
+   FatalIf(
+         firstFeature < 0 or firstFeature >= getFeatures(),
+         "Buffer::extractFeatures() called with bad firstFeature %d (number of features = %d)\n",
+         firstFeature, getFeatures());
+   FatalIf(
+         lastFeature < 0 or lastFeature >= getFeatures(),
+         "Buffer::extractFeatures() called with bad lastFeature %d (number of features = %d)\n",
+         lastFeature, getFeatures());
+   FatalIf(
+         firstFeature > lastFeature,
+         "Buffer::extractFeatures() called with bad firstFeature %d but lastFeature %d\n",
+         firstFeature, lastFeature);
+   Buffer<T> result(getWidth(), getHeight(), lastFeature - firstFeature + 1);
+   for (int y = 0; y < getHeight(); ++y) {
+      for (int x = 0; x < getWidth(); ++x) {
+         for (int f = firstFeature; f <= lastFeature; ++f) {
+            T value = at(x, y, f);
+            result.set(x, y, f - firstFeature, value);
+         }
+      }
+   }
+   return result;
+}
+
 // Resizing a Buffer will clear its contents. Use rescale, crop, or grow to preserve values.
 template <class T>
 void Buffer<T>::resize(int width, int height, int features) {

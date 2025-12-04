@@ -26,6 +26,7 @@ class Buffer {
 
    void insert(Buffer<T> const &insertion, int xStart, int yStart);
    Buffer<T> extract(int xStart, int yStart, int width, int height) const;
+   Buffer<T> extractFeatures(int firstFeature, int lastFeature) const;
    void resize(int width, int height, int features);
    void crop(int newWidth, int newHeight, enum Anchor anchor);
    void grow(int newWidth, int newHeight, enum Anchor anchor);
