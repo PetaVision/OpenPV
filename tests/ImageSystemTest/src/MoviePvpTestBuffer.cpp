@@ -1,5 +1,5 @@
 #include "MoviePvpTestBuffer.hpp"
-#include <components/BatchIndexer.hpp>
+#include <structures/BatchIndexer.hpp>
 
 namespace PV {
 
@@ -25,10 +25,10 @@ void MoviePvpTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    for (int b = 0; b < nbatch; b++) {
       float *dataBatch = mBufferData.data() + b * getBufferSize();
       int frameIdx     = 0;
-      if (mBatchMethod == BatchIndexer::BYFILE || mBatchMethod == BatchIndexer::BYSPECIFIED) {
+      if (mBatchMethod == BYFILE || mBatchMethod == BYSPECIFIED) {
          frameIdx = (simTime - 1) * nbatchGlobal + commBatch * numBatchPerProc + b;
       }
-      else if (mBatchMethod == BatchIndexer::BYLIST) {
+      else if (mBatchMethod == BYLIST) {
          frameIdx = b * 2 + (simTime - 1);
       }
       for (int nkRes = 0; nkRes < numNeurons; nkRes++) {

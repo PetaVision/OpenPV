@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
    if (status == PV_SUCCESS) {
       pv_initObj.setParams("input/CheckpointBroadcastTest2.params");
       pv_initObj.setLogFile(logFile.c_str(), true /*appendFlag*/);
-      pv_initObj.setStringArgument("CheckpointReadDirectory", "output1/checkpoints/Checkpoint10");
+      pv_initObj.setStringArgument("CheckpointReadDirectory", "output1/checkpoints/Checkpoint050");
       status = buildandrun(&pv_initObj);
    }
 
@@ -74,8 +74,8 @@ int checkOutput(PV_Init &pv_initObj) {
    }
 
    int status = PV_SUCCESS;
-   std::string path0 = "output0/checkpoints/Checkpoint20/V1_V.pvp";
-   std::string path1 = "output1/checkpoints/Checkpoint20/V1_V.pvp";
+   std::string path0 = "output0/checkpoints/Checkpoint100/V1_V.pvp";
+   std::string path1 = "output1/checkpoints/Checkpoint100/V1_V.pvp";
    Buffer<float> buffer0, buffer1;
    for (int b = 0; b < 4/*nbatch*/; ++b) {
       BufferUtils::readActivityFromPvp(path0.c_str(), &buffer0, b, nullptr /*sparseFileTable*/);

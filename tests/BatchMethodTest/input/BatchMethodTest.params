@@ -200,7 +200,7 @@ ImageLayer "InputByList" = {
     useInputBCflag                      = false;
     padValue                            = 0;
     batchMethod                         = "byList";
-    start_frame_index                   = [0.0,0.000000,0.000000,0.000000];
+    start_frame_index                   = [0,0,0,0];
     writeFrameToTimestamp               = true;
 };
 

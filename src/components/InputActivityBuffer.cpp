@@ -9,14 +9,16 @@
 #include "arch/mpi/mpi.h"
 #include "cMakeHeader.h"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
-#include "columns/RandomSeed.hpp"
+#include "columns/Random.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "io/FileStreamBuilder.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/cl_random.h"
 #include "utils/conversions.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cmath>
@@ -63,7 +65,6 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_useInputBCflag(ioFlag);
    ioParam_padValue(ioFlag);
    ioParam_batchMethod(ioFlag);
-   ioParam_randomSeed(ioFlag);
    ioParam_start_frame_index(ioFlag);
    ioParam_skip_frame_index(ioFlag);
    ioParam_resetToStartOnLoop(ioFlag);
@@ -156,13 +157,6 @@ void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
    if (mJitterChangeInterval > 0) {
       parameters()->ioParamValue(ioFlag, getName(), "xFlipToggle", &mXFlipToggle, mXFlipToggle);
       parameters()->ioParamValue(ioFlag, getName(), "yFlipToggle", &mYFlipToggle, mYFlipToggle);
-   }
-}
-
-void InputActivityBuffer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "jitterChangeInterval"));
-   if (mJitterChangeInterval > 0) {
-      parameters()->ioParamValue(ioFlag, getName(), "randomSeed", &mRandomSeed, mRandomSeed);
    }
 }
 
@@ -359,24 +353,24 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    char *batchMethod = nullptr;
    if (ioFlag == PARAMS_IO_WRITE) {
       switch (mBatchMethod) {
-         case BatchIndexer::BYFILE: batchMethod = strdup("byFile"); break;
-         case BatchIndexer::BYLIST: batchMethod = strdup("byList"); break;
-         case BatchIndexer::BYSPECIFIED: batchMethod = strdup("bySpecified"); break;
-         case BatchIndexer::RANDOM: batchMethod = strdup("random"); break;
+         case BYFILE: batchMethod = strdup("byFile"); break;
+         case BYLIST: batchMethod = strdup("byList"); break;
+         case BYSPECIFIED: batchMethod = strdup("bySpecified"); break;
+         case RANDOM: batchMethod = strdup("random"); break;
       }
    }
    parameters()->ioParamString(ioFlag, getName(), "batchMethod", &batchMethod, "byFile");
    if (strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
-      mBatchMethod = BatchIndexer::BYFILE;
+      mBatchMethod = BYFILE;
    }
    else if (strcmp(batchMethod, "byMovie") == 0 || strcmp(batchMethod, "byList") == 0) {
-      mBatchMethod = BatchIndexer::BYLIST;
+      mBatchMethod = BYLIST;
    }
    else if (strcmp(batchMethod, "bySpecified") == 0) {
-      mBatchMethod = BatchIndexer::BYSPECIFIED;
+      mBatchMethod = BYSPECIFIED;
    }
    else if (strcmp(batchMethod, "random") == 0) {
-      mBatchMethod = BatchIndexer::RANDOM;
+      mBatchMethod = RANDOM;
    }
    else {
       Fatal() << "Input layer " << getName() << " batchMethod not recognized. "
@@ -386,6 +380,12 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
+   FatalIf(
+         mBatchMethod == RANDOM and this->parameters()->present(getName(), "start_frame_index"),
+         "Input layer \"%s\": start_frame_index cannot be used with batchMethod = random\n",
+         getName());
+      
    int *paramsStartFrameIndex;
    int length = 0;
    if (ioFlag == PARAMS_IO_WRITE) {
@@ -407,7 +407,7 @@ void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
 
 void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
-   if (mBatchMethod != BatchIndexer::BYSPECIFIED) {
+   if (mBatchMethod != BYSPECIFIED) {
       // bySpecified is the only batchMethod that uses skip_frame_index.
       return;
    }
@@ -425,14 +425,14 @@ void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    mSkipFrameIndex.clear();
    mSkipFrameIndex.resize(length);
    for (int i = 0; i < length; ++i) {
-      mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
+      mSkipFrameIndex.at(i) = std::max(paramsSkipFrameIndex[i], 1);
    }
    free(paramsSkipFrameIndex);
 }
 
 void InputActivityBuffer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
    assert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
-   if (mBatchMethod == BatchIndexer::BYSPECIFIED) {
+   if (mBatchMethod == BYSPECIFIED) {
       parameters()->ioParamValue(
             ioFlag, getName(), "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
    }
@@ -539,6 +539,18 @@ Response::Status InputActivityBuffer::registerData(
             checkpointEntry->getName().c_str());
    }
 
+   // Need to create Random object in all processes, to keep RandomSeed in sync,
+   // even though only the root process will use it.
+   taus_uint4 batchIndexRNG;
+   if (mBatchMethod == RANDOM) {
+      Random batchIndexRandomObj(1);
+      batchIndexRNG = *batchIndexRandomObj.getRNG(0);
+      mBatchIndexRandomState.resize(4);
+      mBatchIndexRandomState[0] = batchIndexRNG.s0;
+      mBatchIndexRandomState[1] = batchIndexRNG.state.s1;
+      mBatchIndexRandomState[2] = batchIndexRNG.state.s2;
+      mBatchIndexRandomState[3] = batchIndexRNG.state.s3;
+   }
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       int numBatch = getLayerLoc()->nbatch;
       int nBatch   = getCommunicator()->getIOMPIBlock()->getBatchDimension() * numBatch;
@@ -548,15 +560,32 @@ Response::Status InputActivityBuffer::registerData(
       mMirrorFlipY.resize(nBatch);
       mInputData.resize(numBatch);
       mInputRegion.resize(numBatch);
-      initializeBatchIndexer();
+      initializeBatchIndexer(&batchIndexRNG);
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
-      mBatchIndexer->registerData(message);
+
+      mFrameNumbers = mBatchIndexer->getIndices();
+      auto *checkpointer = message->mDataRegistry;
+      checkpointer->registerCheckpointData<int>(
+            getName(),
+            std::string("FrameNumbers"),
+            mFrameNumbers.data(),
+            mFrameNumbers.size(),
+            false /*broadcastFlag*/,
+            false /*constantEntireRunFlag*/);
+   }
+   if (mBatchMethod == RANDOM) {
+      checkpointer->registerCheckpointData<unsigned int>(
+            getName(),
+            std::string("RandomState"),
+            mBatchIndexRandomState.data(),
+            mBatchIndexRandomState.size(),
+            true /*broadcastFlag*/,
+            false /*constantEntireRunFlag*/);
    }
    return Response::SUCCESS;
 }
 
-void InputActivityBuffer::initializeBatchIndexer() {
-   // TODO: move check of size of mStartFrameIndex and mSkipFrameIndex here.
+void InputActivityBuffer::initializeBatchIndexer(taus_uint4 *state) {
    auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
    pvAssert(ioMPIBlock and ioMPIBlock->getRank() == 0);
    int localBatchCount  = getLayerLoc()->nbatch;
@@ -565,20 +594,67 @@ void InputActivityBuffer::initializeBatchIndexer() {
    int batchOffset      = localBatchCount * ioMPIBlock->getStartBatch();
    int blockBatchCount  = localBatchCount * ioMPIBlock->getBatchDimension();
    int fileCount        = countInputImages();
-   mBatchIndexer        = std::unique_ptr<BatchIndexer>(new BatchIndexer(
-         std::string(getName()),
-         globalBatchCount,
-         batchOffset,
-         blockBatchCount,
-         fileCount,
-         mBatchMethod,
-         mInitializeFromCheckpointFlag));
-   for (int b = 0; b < blockBatchCount; ++b) {
-      mBatchIndexer->specifyBatching(
-            b, mStartFrameIndex.at(batchOffset + b), mSkipFrameIndex.at(batchOffset + b));
-      mBatchIndexer->initializeBatch(b);
+   if (fileCount == 0) { fileCount = 1; }
+   std::vector<int> startIndices;
+   std::vector<int> skipAmounts;
+   switch (mBatchMethod) {
+      case BYFILE:
+         startIndices.resize(blockBatchCount);
+         skipAmounts.resize(blockBatchCount, globalBatchCount);
+         for (int b = 0; b < blockBatchCount; ++b) {
+            startIndices[b] = (mStartFrameIndex[b] + batchOffset + b) % fileCount;
+         }
+         mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+               std::string(getName()),
+               globalBatchCount,
+               batchOffset,
+               blockBatchCount,
+               fileCount,
+               startIndices,
+               skipAmounts));
+         break;
+      case BYLIST:
+         startIndices.resize(blockBatchCount);
+         skipAmounts.resize(blockBatchCount, 1);
+         for (int b = 0; b < blockBatchCount; ++b) {
+            startIndices[b] =
+                  (mStartFrameIndex[b] + (batchOffset + b) * (fileCount / globalBatchCount) ) %
+                  fileCount;
+         }
+         mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+               std::string(getName()),
+               globalBatchCount,
+               batchOffset,
+               blockBatchCount,
+               fileCount,
+               startIndices,
+               skipAmounts));
+         break;
+      case BYSPECIFIED:
+         mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+               std::string(getName()),
+               globalBatchCount,
+               batchOffset,
+               blockBatchCount,
+               fileCount,
+               mStartFrameIndex,
+               mSkipFrameIndex));
+         break;
+      case RANDOM:
+         mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+               std::string(getName()),
+               globalBatchCount,
+               batchOffset,
+               blockBatchCount,
+               fileCount,
+               *state));
+         break;
+      default:
+         Fatal().printf(
+               "InputActivityBuffer::initializeBatchIndexer called with bad BatchMethod %d\n",
+               mBatchMethod);
+         break;
    }
-   mBatchIndexer->setRandomSeed(RandomSeed::instance()->getInitialSeed() + mRandomSeed);
 }
 
 std::string const &
@@ -592,12 +668,62 @@ InputActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage cons
    if (!Response::completed(status)) {
       return status;
    }
-   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      if (mJitterChangeIntervalInTimesteps > 0) {
-         mRNG.seed(mRandomSeed);
-      }
+   if (mJitterChangeIntervalInTimesteps > 0) {
+      mJitterRNG = std::make_shared<Random>(1);
+      // All process must create the Random object to keep RandomSeed in sync
    }
    retrieveInput(0.0 /*simulationTime*/, message->mDeltaTime);
+   return Response::SUCCESS;
+}
+
+Response::Status InputActivityBuffer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      pvAssert(mInitializeFromCheckpointFlag);
+      checkpointer->readNamedCheckpointEntry(getName(), "FrameNumbers", false /*not constant*/);
+      mBatchIndexer->setIndices(mFrameNumbers);
+      if (mBatchMethod == RANDOM) {
+         taus_uint4 batchRNG;
+         batchRNG.s0 = mBatchIndexRandomState[0];
+         batchRNG.state.s1 = mBatchIndexRandomState[1];
+         batchRNG.state.s2 = mBatchIndexRandomState[2];
+         batchRNG.state.s3 = mBatchIndexRandomState[3];
+         mBatchIndexer->setRandomState(batchRNG);
+      }
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status InputActivityBuffer::processCheckpointRead(double simTime) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      mBatchIndexer->setIndices(mFrameNumbers);
+      if (mBatchMethod == RANDOM) {
+         taus_uint4 batchRNG;
+         batchRNG.s0 = mBatchIndexRandomState[0];
+         batchRNG.state.s1 = mBatchIndexRandomState[1];
+         batchRNG.state.s2 = mBatchIndexRandomState[2];
+         batchRNG.state.s3 = mBatchIndexRandomState[3];
+         mBatchIndexer->setRandomState(batchRNG);
+      }
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status InputActivityBuffer::prepareCheckpointWrite(double simTime) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      auto &frameNumbers = mBatchIndexer->getIndices();
+      unsigned int N = frameNumbers.size();
+      assert(static_cast<unsigned int>(mFrameNumbers.size()) == N);
+      for (unsigned int n = 0; n < N; ++n) {
+         mFrameNumbers[n] = frameNumbers[n];
+      }
+      if (mBatchMethod == RANDOM) {
+         taus_uint4 const &batchRNG = mBatchIndexer->getRandomState();
+         mBatchIndexRandomState[0] = batchRNG.s0;
+         mBatchIndexRandomState[1] = batchRNG.state.s1;
+         mBatchIndexRandomState[2] = batchRNG.state.s2;
+         mBatchIndexRandomState[3] = batchRNG.state.s3;
+      }
+   }
    return Response::SUCCESS;
 }
 
@@ -638,9 +764,7 @@ void InputActivityBuffer::retrieveInputAndAdvanceIndex(double timef, double dt) 
    if (mBatchIndexer) {
       int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
       int blockBatchCount     = getLayerLoc()->nbatch * blockBatchDimension;
-      for (int b = 0; b < blockBatchCount; b++) {
-         mBatchIndexer->nextIndex(b);
-      }
+      mBatchIndexer->advanceIndices();
    }
 }
 
@@ -658,13 +782,15 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
       long timestep = std::nearbyint(simTime / deltaTime);
       if (timestep % mJitterChangeIntervalInTimesteps == 0) {
          for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
-            mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
-            mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
+            mRandomShiftX[b] = -mMaxShiftX + (mJitterRNG->randomUInt() % (2 * mMaxShiftX + 1));
+            mRandomShiftY[b] = -mMaxShiftY + (mJitterRNG->randomUInt() % (2 * mMaxShiftY + 1));
             if (mXFlipEnabled) {
-               mMirrorFlipX[b] = mXFlipToggle ? !mMirrorFlipX[b] : (mRNG() % 100) > 50;
+               mMirrorFlipX[b] =
+                     mXFlipToggle ? !mMirrorFlipX[b] : (mJitterRNG->randomUInt() % 256U) >= 128U;
             }
             if (mYFlipEnabled) {
-               mMirrorFlipY[b] = mYFlipToggle ? !mMirrorFlipY[b] : (mRNG() % 100) > 50;
+               mMirrorFlipY[b] =
+                     mYFlipToggle ? !mMirrorFlipY[b] : (mJitterRNG->randomUInt() % 256U) >= 128U;
             }
          }
       }

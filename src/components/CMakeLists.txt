@@ -8,7 +8,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ArborList.cpp
    ${SUBDIR}/BackgroundActivityBuffer.cpp
    ${SUBDIR}/BasePublisherComponent.cpp
-   ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/BinningActivityBuffer.cpp
    ${SUBDIR}/BoundaryConditions.cpp
    ${SUBDIR}/CloneInternalStateBuffer.cpp
@@ -98,7 +97,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BackgroundActivityBuffer.hpp
    ${SUBDIR}/BasePublisherComponent.hpp
-   ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/BinningActivityBuffer.hpp
    ${SUBDIR}/BoundaryConditions.hpp
    ${SUBDIR}/CloneActivityComponent.hpp

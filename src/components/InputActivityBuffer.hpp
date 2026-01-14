@@ -12,15 +12,16 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
+#include "columns/Random.hpp"
 #include "components/ActivityBuffer.hpp"
-#include "components/BatchIndexer.hpp"
 #include "io/FileStream.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
+#include "structures/BatchIndexer.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
+#include "utils/cl_random.h"
 #include <memory>
-#include <random>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,9 @@ namespace PV {
  * A component for the activity updater for BinningLayer.
  */
 class InputActivityBuffer : public ActivityBuffer {
+  public:
+   enum BatchMethod { BYFILE, BYLIST, BYSPECIFIED, RANDOM };
+
   protected:
    /**
     * List of parameters used by the InputActivityBuffer class
@@ -163,9 +167,9 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
 
    /**
-    * resetToStartOnLoop: If false, then when the end of file for the inputPath file is reached,
-    * it rewinds to index 0. Otherwise, it rewinds to the index it began at (possibly
-    * start_frame_index).
+    * resetToStartOnLoop: Used when batchMethod=bySpecified.
+    * If false, then when the end of file for the inputPath file is reached, it rewinds to index 0.
+    * Otherwise, it rewinds to the index it began at (possibly start_frame_index).
     */
    virtual void ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag);
 
@@ -177,11 +181,6 @@ class InputActivityBuffer : public ActivityBuffer {
     * random: Randomizes the order of the given file. Does not duplicate indices until all are used
     */
    virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
-
-   /**
-    * Random seed used when batchMethod == random.
-    */
-   virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
 
    /**
     * useInputBCFlag: Specifies if the input should be scaled to fill margins
@@ -223,7 +222,7 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   void initializeBatchIndexer();
+   void initializeBatchIndexer(taus_uint4 *state);
 
    /**
     * This virtual function gets called by initializeBatchIndexer in order
@@ -233,6 +232,11 @@ class InputActivityBuffer : public ActivityBuffer {
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+   virtual Response::Status processCheckpointRead(double simTime) override;
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
@@ -372,7 +376,7 @@ class InputActivityBuffer : public ActivityBuffer {
    bool mNormalizeLuminanceFlag = false;
 
    // If true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
-   // If false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
+   // If false and normalizeLuminanceFlag == true, normalize max = 1, min = 0
    bool mNormalizeStdDev = true;
 
    // Flag that enables scaling input buffer to extended region instead of restricted region
@@ -383,15 +387,14 @@ class InputActivityBuffer : public ActivityBuffer {
 
    // Object to handle assigning file indices to batch element
    std::unique_ptr<BatchIndexer> mBatchIndexer;
-   BatchIndexer::BatchMethod mBatchMethod;
+   BatchMethod mBatchMethod;
 
-   // Random seed used when batchMethod == random
-   int mRandomSeed = 123456789;
-
-   // An array of starting file list indices, one per batch
+   // An array of starting file list indices, one per batch element,
+   // used by non-random batch methods
    std::vector<int> mStartFrameIndex;
 
-   // An array indicating how far to advance each index, one per batch
+   // An array indicating how far to advance each index, one per batch element,
+   // used by batchMethod=bySpecified
    std::vector<int> mSkipFrameIndex;
 
    // When reaching the end of the file list, do we reset to 0 or to start_index?
@@ -422,10 +425,17 @@ class InputActivityBuffer : public ActivityBuffer {
    std::vector<bool> mMirrorFlipY;
 
    // Random number generator for jitter
-   std::mt19937 mRNG;
+   std::shared_ptr<Random> mJitterRNG;
 
   private:
    bool mNeedInputRegionsPointer = false;
+
+   // A copy of the batch indexer's frame numbers, used in checkpointing
+   // (so that BatchIndexer doesn't need to implement any checkpointing functionality itself)
+   std::vector<int> mFrameNumbers;
+
+   // A copy of the batch indexer's RNG state, packed as a vector for use in checkpointing
+   std::vector<unsigned int> mBatchIndexRandomState;
 
    // A vector containing the contents of the mInputRegion buffers, allocated as a single array
    // of size getNumExtendedAllBatches.
