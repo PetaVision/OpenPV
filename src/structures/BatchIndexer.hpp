@@ -15,7 +15,6 @@ class BatchIndexer {
    BatchIndexer(
          std::string const &objName,
          int globalBatchCount,
-         int batchOffset, // The global batch index of the zero-th batch element in this IO block
          int batchWidth,
          int fileCount,
          std::vector<int> const &start_indices,
@@ -23,15 +22,14 @@ class BatchIndexer {
    BatchIndexer(
          std::string const &objName,
          int globalBatchCount,
-         int batchOffset, // The global batch index of the zero-th batch element in this IO block
          int batchWidth,
          int fileCount,
+         int batchOffset, // The global batch index of the zero-th batch element in this IO block
          taus_uint4 const &rng);
    void advanceIndices();
    int getIndex(int localBatchIndex);
    taus_uint4 const &getRandomState() const { return mOldRNG; }
    taus_uint4 &getRandomState() { return mOldRNG; }
-   void specifyBatching(int localBatchIndex, int startIndex, int skipAmount);
    void setRandomState(taus_uint4 const &rng);
    void setIndices(const std::vector<int> &indices);
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
@@ -55,13 +53,21 @@ class BatchIndexer {
    int mBatchWidth          = 0;
    int mBatchOffset         = 0;
    taus_uint4 mRNG;
-   taus_uint4 mOldRNG; // This is what gets checkpointed, because generating the lookup table changes the RNG's state.
+   taus_uint4 mOldRNG;
+   // OldRNG is what gets checkpointed, because generating the lookup table changes the RNG's state.
    bool mWrapToStartIndex = true;
+   int mGlobalBatchStartIndex; // Used if batchMethod=Random to manage reshuffling
 
    // A vector whose length is the number of images, used with batchMethod=random.
    // A permutation of the integers {1,...,numImages}, reshuffled every time the end
    // of the images is reached
    std::vector<int> mIndexLookupTable;
+
+   // A vector whose length is the local batch width, used with batchMethod=random.
+   // It is generally a slice of mIndexLookupTable, advancing through the table when
+   // advanceIndices() is called. If the glboal batch count does not evenly divide the
+   // file count, this vector may have slices from two different shuffles.
+   std::vector<int> mIndexLookups;
 
    // A vector whose length is mBatchWidth, used with batchMethod=random.
    // It holds the section of mIndexLookupTable corresponding to the current set of images.

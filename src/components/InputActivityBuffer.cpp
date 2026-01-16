@@ -607,7 +607,6 @@ void InputActivityBuffer::initializeBatchIndexer(taus_uint4 *state) {
          mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
                std::string(getName()),
                globalBatchCount,
-               batchOffset,
                blockBatchCount,
                fileCount,
                startIndices,
@@ -624,7 +623,6 @@ void InputActivityBuffer::initializeBatchIndexer(taus_uint4 *state) {
          mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
                std::string(getName()),
                globalBatchCount,
-               batchOffset,
                blockBatchCount,
                fileCount,
                startIndices,
@@ -634,7 +632,6 @@ void InputActivityBuffer::initializeBatchIndexer(taus_uint4 *state) {
          mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
                std::string(getName()),
                globalBatchCount,
-               batchOffset,
                blockBatchCount,
                fileCount,
                mStartFrameIndex,
@@ -644,9 +641,9 @@ void InputActivityBuffer::initializeBatchIndexer(taus_uint4 *state) {
          mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
                std::string(getName()),
                globalBatchCount,
-               batchOffset,
                blockBatchCount,
                fileCount,
+               batchOffset,
                *state));
          break;
       default:

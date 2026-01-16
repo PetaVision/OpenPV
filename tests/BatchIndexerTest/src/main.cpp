@@ -13,12 +13,13 @@ void testByFile() {
    std::vector<int> skipAmounts;
 
    // Test MPI batch dimension == 1
+   // Set start_indices and skip_amounts to the byFile values for global batch size 2,
+   // file count 4, and a single MPI process.
    startIndices = std::vector<int>{0, 1};
    skipAmounts  = std::vector<int>{2, 2};
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
          std::string("ByFile1"),
          2, // Global batch size 2
-         0, // This MPI block starts at batch element 0.
          2, // 2 batch elements in MPI block (therefore, 1 MPI block).
          4, // 4 files to batch across
          startIndices,
@@ -60,12 +61,13 @@ void testByFile() {
          value);
 
    // Test multiple MPI blocks in batch dimension
+   // Set start_indices and skip_amounts to the byFile values for global batch size 4,
+   // file count 8, two MPI processes, and running on the MPI process starting at batch index 2.
    startIndices = std::vector<int>{2, 3};
    skipAmounts  = std::vector<int>{4, 4};
    batchIndexer = std::make_shared<BatchIndexer>(
          std::string("ByFile2"),
          4, // Global batch size 4
-         2, // This MPI block starts at batch element 2.
          2, // 2 batch elements in MPI block (therefore, 2 MPI blocks and this is the second one)
          8, // 8 files to batch across
          startIndices,
@@ -111,12 +113,13 @@ void testByList() {
    std::vector<int> skipAmounts;
 
    // Test MPI batch dimension == 1
+   // Set start_indices and skip_amounts to the byList values for global batch size 2,
+   // file count 4, and a single MPI process.
    startIndices = std::vector<int>{0, 2};
    skipAmounts  = std::vector<int>{1, 1};
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
          std::string("ByList1"),
          2, // Global batch size 2
-         0, // This MPI block starts at batch element 0.
          2, // 2 batch elements in MPI block (therefore, 1 MPI block).
          4, // 4 files to batch across
          startIndices,
@@ -185,12 +188,13 @@ void testByList() {
          value);
 
    // Test MPI batch dimension > 1
+   // Set start_indices and skip_amounts to the byList values for global batch size 4,
+   // file count 8, two MPI processes, and running on the MPI process starting at batch index 2.
    startIndices = std::vector<int>{4, 6};
    skipAmounts  = std::vector<int>{1, 1};
    batchIndexer = std::make_shared<BatchIndexer>(
          std::string("ByList2"),
          4, // Global batch size 4
-         2, // This MPI block starts at batch element 2
          2, // 2 batch elements in MPI block (therefore, 2 MPI blocks).
          8, // 8 files to batch across
          startIndices,
@@ -269,7 +273,6 @@ void testBySpecified() {
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
          std::string("BySpecified"),
          2, // Global batch size 2
-         0, // This MPI block starts at batch element 0
          2, // 2 batch elements in MPI block (therefore, 1 MPI block)
          4, // 4 files to batch across
          startIndices,
@@ -352,11 +355,11 @@ void testRandom() {
    seed = 1439876414U;
    cl_random_init(&rng, 1, seed);
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
-         std::string("ByFile1"),
+         std::string("Random1"),
          4, // Global batch size 4
-         0, // This MPI block starts at batch element 0.
          4, // 4 batch elements in MPI block (therefore, 1 MPI block).
          8, // 8 files to batch across
+         0, // This MPI block starts at batch element 0.
          rng);
    batchIndexer->setWrapToStartIndex(false);
 
@@ -385,33 +388,33 @@ void testRandom() {
 
    // Test advanceIndices() when wrapping around the last index.
    batchIndexer->advanceIndices();
-   // Reshuffled index lookup table is now {1, 4, 6, 5, 3, 7, 0, 2}.
+   // Reshuffled index lookup table is now {3, 5, 4, 7, 1, 2, 0, 6}
    FatalIf(
-         (value = batchIndexer->getIndex(0)) != 1,
-         "Failed. Expected 1, found %d instead.\n",
+         (value = batchIndexer->getIndex(0)) != 3,
+         "Failed. Expected 3, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->getIndex(1)) != 4,
+         (value = batchIndexer->getIndex(1)) != 5,
+         "Failed. Expected 5, found %d instead.\n",
+         value);
+   FatalIf(
+         (value = batchIndexer->getIndex(2)) != 4,
          "Failed. Expected 4, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->getIndex(2)) != 6,
-         "Failed. Expected 6, found %d instead.\n",
-         value);
-   FatalIf(
-         (value = batchIndexer->getIndex(3)) != 5,
-         "Failed. Expected 5, found %d instead.\n",
+         (value = batchIndexer->getIndex(3)) != 7,
+         "Failed. Expected 7, found %d instead.\n",
          value);
 
    // // Test multiple MPI blocks in batch dimension
    seed = 1439876417U;
    cl_random_init(&rng, 1, seed);
    batchIndexer = std::make_shared<BatchIndexer>(
-         std::string("ByFile2"),
+         std::string("Random2"),
          4, // Global batch size 4
-         2, // This MPI block starts at batch element 2.
          2, // 2 batch elements in MPI block (therefore, 2 MPI blocks and this is the second one)
          8, // 8 files to batch across
+         2, // This MPI block starts at batch element 2.
          rng);
    batchIndexer->setWrapToStartIndex(false);
 
@@ -438,14 +441,14 @@ void testRandom() {
 
    // Test advanceIndices() when wrapping around the last index
    batchIndexer->advanceIndices();
-   // Reshuffled index lookup table is now {3, 2, 7, 6, 0, 5, 1, 4}.
+   // Reshuffled index lookup table is now {7, 1, 2, 5, 3, 0, 4, 6}
    FatalIf(
-         (value = batchIndexer->getIndex(0)) != 7,
-         "Failed. Expected 6, found %d instead.\n",
+         (value = batchIndexer->getIndex(0)) != 2,
+         "Failed. Expected 2, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->getIndex(1)) != 6,
-         "Failed. Expected 6, found %d instead.\n",
+         (value = batchIndexer->getIndex(1)) != 5,
+         "Failed. Expected 5, found %d instead.\n",
          value);
 }
 
@@ -458,11 +461,11 @@ void testGetSetRandomState() {
    seed = 1439876414U;
    cl_random_init(&rng, 1, seed);
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
-         std::string("ByFile1"),
+         std::string("Random1"),
          4, // Global batch size 4
-         0, // This MPI block starts at batch element 0.
          4, // 4 batch elements in MPI block (therefore, 1 MPI block).
          8, // 8 files to batch across
+         0, // This MPI block starts at batch element 0.
          rng);
    batchIndexer->setWrapToStartIndex(false);
 
@@ -486,22 +489,22 @@ void testGetSetRandomState() {
 
    batchIndexer->advanceIndices();
    batchIndexer->advanceIndices();
-   // Reshuffled index lookup table is now {1, 4, 6, 5, 3, 7, 0, 2}.
+   // Reshuffled index lookup table is now {3, 5, 4, 7, 1, 2, 0, 6}.
    FatalIf(
-         (value = batchIndexer->getIndex(0)) != 1,
-         "Failed. Expected 1, found %d instead.\n",
+         (value = batchIndexer->getIndex(0)) != 3,
+         "Failed. Expected 3, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->getIndex(1)) != 4,
+         (value = batchIndexer->getIndex(1)) != 5,
+         "Failed. Expected 5, found %d instead.\n",
+         value);
+   FatalIf(
+         (value = batchIndexer->getIndex(2)) != 4,
          "Failed. Expected 4, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->getIndex(2)) != 6,
-         "Failed. Expected 6, found %d instead.\n",
-         value);
-   FatalIf(
-         (value = batchIndexer->getIndex(3)) != 5,
-         "Failed. Expected 5, found %d instead.\n",
+         (value = batchIndexer->getIndex(3)) != 7,
+         "Failed. Expected 7, found %d instead.\n",
          value);
 
    batchIndexer->setRandomState(rng);

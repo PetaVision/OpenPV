@@ -8,7 +8,6 @@ namespace PV {
 BatchIndexer::BatchIndexer(
       std::string const &objName,
       int globalBatchCount,
-      int batchOffset,
       int batchWidth,
       int fileCount,
       std::vector<int> const &start_indices,
@@ -23,44 +22,58 @@ BatchIndexer::BatchIndexer(
          "BatchIndexer for \"%s\": skip_indices vector size %zu does not match batchWidth %d\n",
          std::size_t(skip_amounts.size()),
          batchWidth);
-   mRandomFlag                   = false;
-   mObjName                      = objName;
-   mGlobalBatchCount             = globalBatchCount;
-   mFileCount                    = fileCount ? fileCount : 1;
-   mBatchWidth                   = batchWidth;
-   mBatchOffset                  = batchOffset;
-   mIndices                      = start_indices;
-   mStartIndices                 = start_indices;
-   mSkipAmounts                  = skip_amounts;
+   mRandomFlag       = false;
+   mObjName          = objName;
+   mGlobalBatchCount = globalBatchCount;
+   mFileCount        = fileCount ? fileCount : 1;
+   mBatchWidth       = batchWidth;
+   mIndices          = start_indices;
+   mStartIndices     = start_indices;
+   mSkipAmounts      = skip_amounts;
 }
 
 BatchIndexer::BatchIndexer(
       std::string const &objName,
       int globalBatchCount,
-      int batchOffset,
       int batchWidth,
       int fileCount,
+      int batchOffset,
       taus_uint4 const &rng) {
-   mRandomFlag                   = true;
-   mObjName                      = objName;
-   mGlobalBatchCount             = globalBatchCount;
-   mFileCount                    = fileCount ? fileCount : 1;
-   mBatchWidth                   = batchWidth;
-   mBatchOffset                  = batchOffset;
+   FatalIf(
+         fileCount < globalBatchCount,
+         "BatchIndexer with batchMethod=random requires FileCount >= GlobalBatchCount "
+         "(FileCount=%d, GlobalBatchCount=%d).\n",
+         fileCount, globalBatchCount);
+   mRandomFlag       = true;
+   mObjName          = objName;
+   mGlobalBatchCount = globalBatchCount;
+   mFileCount        = fileCount ? fileCount : 1;
+   mBatchWidth       = batchWidth;
+   mBatchOffset      = batchOffset;
    mStartIndices.resize(batchWidth);
-   mSkipAmounts.resize(batchWidth);
    for (int b =  0; b < batchWidth; ++b) {
       mStartIndices[b] = (batchOffset + b) % mFileCount;
-      mSkipAmounts[b] = globalBatchCount;
    }
+   mGlobalBatchStartIndex = 0;
    mIndices = mStartIndices;
    mIndexLookupTable.resize(mFileCount);
+   mIndexLookups.resize(mBatchWidth);
    setRandomState(rng);
+   for (int b = 0; b < mBatchWidth; ++b) {
+      mIndexLookups[b] = mIndexLookupTable.at(batchOffset + b);
+   }
 }
 
 void BatchIndexer::setRandomState(taus_uint4 const &rng) {
    mRNG = rng;
    generateIndexLookupTable();
+   mGlobalBatchStartIndex = (mIndices[0] - mBatchOffset) % mFileCount;
+   if (mGlobalBatchStartIndex < 0) {
+      mGlobalBatchStartIndex += mFileCount;
+   }
+   for (int b = 0; b < mBatchWidth; ++b) {
+      mIndexLookups[b] = mIndexLookupTable.at(mIndices[b]);
+   }
 }
 
 void BatchIndexer::generateIndexLookupTable() {
@@ -92,11 +105,21 @@ void BatchIndexer::advanceIndices() {
    else {
       // mRandomFlag == true
 
+      // Use global condition for reshuffling, to keep all processes in sync
+      mGlobalBatchStartIndex += mGlobalBatchCount;
+      if (mGlobalBatchStartIndex >= mFileCount) {
+         generateIndexLookupTable();
+         if (mWrapToStartIndex) {
+            mGlobalBatchStartIndex = 0;
+         }
+         else {
+            mGlobalBatchStartIndex %= mFileCount;
+         }
+      }
 
       for (int b = 0; b < mBatchWidth; ++b) {
-         int newIndex = mIndices.at(b) + mSkipAmounts.at(b);
+         int newIndex = mIndices.at(b) + mGlobalBatchCount;
          if (newIndex >= mFileCount) {
-            generateIndexLookupTable();
             if (mWrapToStartIndex) {
                newIndex = mStartIndices.at(b);
             }
@@ -104,23 +127,17 @@ void BatchIndexer::advanceIndices() {
                newIndex %= mFileCount;
             }
          }
+         mIndexLookups[b] = mIndexLookupTable[newIndex];
          mIndices.at(b) = newIndex;
       }
-
-
    }
 }
 
 int BatchIndexer::getIndex(int localBatchIndex) {
    if (mRandomFlag) {
-      return mIndexLookupTable.at(mIndices.at(localBatchIndex));
+      return mIndexLookups.at(localBatchIndex);
    }
    return mIndices.at(localBatchIndex);
-}
-
-void BatchIndexer::specifyBatching(int localBatchIndex, int startIndex, int skipAmount) {
-   mStartIndices.at(localBatchIndex) = startIndex % mFileCount;
-   mSkipAmounts.at(localBatchIndex)  = skipAmount < 1 ? 1 : skipAmount;
 }
 
 void BatchIndexer::checkIndices() {
