@@ -139,6 +139,15 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual void ioParam_padValue(enum ParamsIOFlag ioFlag);
 
    /**
+    * syncLayer: If set to another input layer, the layer will not use its own display period,
+    * batch method, start indices, or skip indices. Instead, it will use the values from the
+    * synced layer. The number of input images must be the same between the two layers.
+    * If the batch method is random, the two synced layers will use the same random shuffling.
+    * The layers each have their own inputPath parameter, but the number of images must be equal.
+    */
+   virtual void ioParam_syncLayer(enum ParamsIOFlag ioFlag);
+
+   /**
     * displayPeriod: the number of timesteps each input is displayed before switching to the next.
     * If this is <= 0 or inputPath does not end in .txt, assumes the input is a single file and will
     * not change.
@@ -205,6 +214,8 @@ class InputActivityBuffer : public ActivityBuffer {
 
    int getDisplayPeriod() const { return mDisplayPeriod; }
 
+   int getInputCount() const { return mInputCount; }
+
   protected:
    InputActivityBuffer() {}
 
@@ -216,6 +227,12 @@ class InputActivityBuffer : public ActivityBuffer {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   // If empty, resizes array to correctLength and returns true
+   // Otherwise, returns true if array size is correct length and false if not.
+   // Called during the CommunicateInitInfo stage to check whether start_frame_index
+   // and skip_frame_index, if used, have the correct size (global batch width).
+   bool checkArrayLength(std::vector<int> &array, int correctLength);
 
    virtual Response::Status allocateDataStructures() override;
 
@@ -324,6 +341,14 @@ class InputActivityBuffer : public ActivityBuffer {
    void scatterInput(int localBatchIndex, int mpiBatchIndex);
 
   protected:
+   // If set to another input layer, use that layer's frame indices. The two layers may have
+   // different inputPath parameters, but the number of images in the two layers must be the
+   // same.
+   char *mSyncLayer = nullptr;
+
+   // If syncLayer is used, this points to the activity buffer of the synced layer
+   InputActivityBuffer *mSyncActivityBuffer = nullptr;
+
    // Number of timesteps an input file is displayed before advancing the file list. If <= 0, the
    // input never changes.
    int mDisplayPeriod = 0;
@@ -426,6 +451,9 @@ class InputActivityBuffer : public ActivityBuffer {
 
    // Random number generator for jitter
    std::shared_ptr<Random> mJitterRNG;
+
+   // The number of input images (perhaps number of files; perhaps number of frames in a file)
+   int mInputCount;
 
   private:
    bool mNeedInputRegionsPointer = false;
