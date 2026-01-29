@@ -23,6 +23,7 @@ class FileStream : public PrintStream {
    void open();
    void write(void const *data, long length);
    void read(void *data, long length);
+   std::string readLine();
    void close();
    void setOutPos(long pos, std::ios_base::seekdir seekAnchor);
    void setOutPos(long pos, bool fromBeginning);
