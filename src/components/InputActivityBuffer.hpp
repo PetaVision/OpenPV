@@ -305,8 +305,8 @@ class InputActivityBuffer : public ActivityBuffer {
    /**
     * Resizes a buffer from the image size to the global layer size. If autoResizeFlag is true,
     * it calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
-    * translate, and crop. This method is called only by the MPI block root process,
-    * during retrieveInput().
+    * translate, and crop. It also applies shifts and flips.
+    * This method is called only by the MPI block root process, during retrieveInput().
     */
    void fitBufferToGlobalLayer(Buffer<float> &buffer, int blockBatchElement);
 

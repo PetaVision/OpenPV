@@ -892,6 +892,12 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
             int width             = mInputData.at(b).getWidth();
             int height            = mInputData.at(b).getHeight();
             int features          = mInputData.at(b).getFeatures();
+            FatalIf(
+                  features != getLayerLoc()->nf,
+                  "ERROR: Input data for layer \"%s\" has nf=%d features, but layer has nf=%d.\n",
+                  getName(),
+                  features,
+                  getLayerLoc()->nf);
             mInputRegion.at(b)    = Buffer<float>(width, height, features);
             int const N           = mInputRegion.at(b).getTotalElements();
 #ifdef PV_USE_OPENMP_THREADS
@@ -941,13 +947,6 @@ void InputActivityBuffer::fitBufferToGlobalLayer(Buffer<float> &buffer, int bloc
       targetWidth        = loc->nxGlobal + xMargins;
       targetHeight       = loc->nyGlobal + yMargins;
    }
-
-   FatalIf(
-         buffer.getFeatures() != loc->nf,
-         "ERROR: Input data for layer \"%s\" has nf=%d features, but layer has nf=%d.\n",
-         getName(),
-         buffer.getFeatures(),
-         loc->nf);
 
    if (mAutoResizeFlag) {
       bool sameDims = (buffer.getWidth() == targetWidth and buffer.getHeight() == targetHeight);

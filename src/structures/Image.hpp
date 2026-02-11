@@ -23,8 +23,8 @@ class Image : public Buffer<float> {
    float getPixelG(int x, int y);
    float getPixelB(int x, int y);
    float getPixelA(int x, int y);
-   void convertToColor(bool alphaChannel);
-   void convertToGray(bool alphaChannel);
+   void convertToColor(bool alphaChannelFlag);
+   void convertToGray(bool alphaChannelFlag);
    void read(std::string filename);
    void write(std::string filename);
    static constexpr const float mRToGray = 0.30f;
