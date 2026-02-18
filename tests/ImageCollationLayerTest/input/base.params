@@ -1,0 +1,501 @@
+//
+// base.params
+//
+//  A params file to test ImageCollationLayer.
+//  There are several subtests that test different parameter settings.
+//  The basic idea behind each is as follows:
+//    An ImageCollationLayer reads grayscale image files into a 32x32x3 layer,
+//    combining three grayscale images into a single RGB layer.
+//    An ImageLayer reads color image files into a 32x32x3 layer, reading the
+//    file as is. The files that the ImageCollationLayer reads combine into the
+//    files that ImageLayer reads, so that the two layers should contain the
+//    same values. A RequireAllZeroActivityProbe checks this.
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   dt = 1.0;
+   stopTime = 30.0;  
+   progressInterval = 30.0;
+   writeProgressToErr = false;
+   printParamsFilename = "base.params";
+   randomSeed = 3724297235;
+   nx = 32;
+   ny = 32;
+   nbatch = 2;
+   errorOnNotANumber = true;
+   outputPath = "output/base";
+   verifyWrites = false;
+   checkpointWrite = false;
+   lastCheckpointDir = "output/base/Last";
+   initializeFromCheckpointDir = "";
+};
+
+//
+// Test batchMethod = "byFile"
+//
+
+ImageCollationLayer "Collation_byFile" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_byFile" = {
+    #include "Collation_byFile";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_byFile" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+
+};
+
+IdentConn "Collation_byFileToComparison_byFile" = {
+    preLayerName = "Collation_byFile";
+    postLayerName = "Comparison_byFile";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_byFileToComparison_byFile" = {
+    preLayerName = "Combined_byFile";
+    postLayerName = "Comparison_byFile";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_byFile" = {
+    targetLayer = "Comparison_byFile";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
+
+//
+// Test batchMethod = "byList"
+//
+
+ImageCollationLayer "Collation_byList" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byList";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_byList" = {
+    #include "Collation_byList";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_byList" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+
+};
+
+IdentConn "Collation_byListToComparison_byList" = {
+    preLayerName = "Collation_byList";
+    postLayerName = "Comparison_byList";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_byListToComparison_byList" = {
+    preLayerName = "Combined_byList";
+    postLayerName = "Comparison_byList";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_byList" = {
+    targetLayer = "Comparison_byList";
+    textOutputFlag = true;
+    probeOutputList = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
+
+//
+// Test batchMethod = "bySpecified"
+//
+
+ImageCollationLayer "Collation_bySpecified" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "bySpecified";
+    start_frame_index = [0, 1];
+    skip_frame_index = [2, 1];
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_bySpecified" = {
+    #include "Collation_bySpecified";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_bySpecified" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+
+};
+
+IdentConn "Collation_bySpecifiedToComparison_bySpecified" = {
+    preLayerName = "Collation_bySpecified";
+    postLayerName = "Comparison_bySpecified";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_bySpecifiedToComparison_bySpecified" = {
+    preLayerName = "Combined_bySpecified";
+    postLayerName = "Comparison_bySpecified";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_bySpecified" = {
+    targetLayer = "Comparison_bySpecified";
+    textOutputFlag = true;
+    probeOutputList = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
+
+//
+// Test batchMethod = "random"
+//
+
+ImageCollationLayer "Collation_random" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "random";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+// We don't #include the Collation layer because we need to use syncLayer to keep the
+// random selection in sync between the two layers, and the syncLayer causes many
+// parameters to be copied from the synched layer.
+ImageLayer "Combined_random" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    syncLayer = "Collation_random";
+
+    inputPath = "input/CombinedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+HyPerLayer "Comparison_random" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+
+};
+
+IdentConn "Collation_randomToComparison_random" = {
+    preLayerName = "Collation_random";
+    postLayerName = "Comparison_random";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_randomToComparison_random" = {
+    preLayerName = "Combined_random";
+    postLayerName = "Comparison_random";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_random" = {
+    targetLayer = "Comparison_random";
+    textOutputFlag = true;
+    probeOutputList = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
+
+//
+// Test inverseFlag
+//
+
+ImageCollationLayer "Collation_inverseFlag" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = true; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_inverseFlag" = {
+    #include "Collation_inverseFlag";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_inverseFlag" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+
+};
+
+IdentConn "Collation_inverseFlagToComparison_inverseFlag" = {
+    preLayerName = "Collation_inverseFlag";
+    postLayerName = "Comparison_inverseFlag";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_inverseFlagToComparison_inverseFlag" = {
+    preLayerName = "Combined_inverseFlag";
+    postLayerName = "Comparison_inverseFlag";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_inverseFlag" = {
+    targetLayer = "Comparison_inverseFlag";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
+
+//
+// Test normalizeLuminance
+//
+
+ImageCollationLayer "Collation_normalizeLuminance" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = true;
+    normalizeStdDev = true;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_normalizeLuminance" = {
+    #include "Collation_normalizeLuminance";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_normalizeLuminance" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+
+};
+
+IdentConn "Collation_normalizeLuminanceToComparison_normalizeLuminance" = {
+    preLayerName = "Collation_normalizeLuminance";
+    postLayerName = "Comparison_normalizeLuminance";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_normalizeLuminanceToComparison_normalizeLuminance" = {
+    preLayerName = "Combined_normalizeLuminance";
+    postLayerName = "Comparison_normalizeLuminance";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_normalizeLuminance" = {
+    targetLayer = "Comparison_normalizeLuminance";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};

@@ -164,7 +164,7 @@ void Image::convertToColor(bool alphaChannelFlag) {
    }
 }
 
-void Image::read(std::string filename) {
+void Image::read(std::string const &filename) {
    int width = 0, height = 0, channels = 0;
    stbi_us *data = stbi_load_16(filename.c_str(), &width, &height, &channels, 0);
    if (data == nullptr) {
@@ -194,7 +194,7 @@ void Image::read(std::string filename) {
    stbi_image_free(data);
 }
 
-void Image::write(std::string filename) {
+void Image::write(std::string const &filename) {
    std::vector<uint16_t> byteData(getWidth() * getHeight() * getFeatures());
    int byteIndex  = 0;
    float imageMin = 0.0f;

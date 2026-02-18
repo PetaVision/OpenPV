@@ -1,0 +1,256 @@
+//
+// resize.params
+//
+//  A params file to test ImageCollationLayer when the image size is
+//  not the same as the layer size. There are several subtests that test
+//  different parameter settings. The basic idea behind each is as follows:
+//    An ImageCollationLayer reads 32x32 grayscale image files into a
+//    24x40 layer, combining three grayscale images into a single RGB layer.
+//    An ImageLayer reads 32x32x3 color image files into a 24x24x3 layer,
+//    reading the file as is. The files that the ImageCollationLayer reads
+//    combine into the files that ImageLayer reads, so that the two layers
+//    should contain the same values. A RequireAllZeroActivityProbe checks this.
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   dt = 1.0;
+   stopTime = 30.0;  
+   progressInterval = 30.0;
+   writeProgressToErr = false;
+   printParamsFilename = "resize.params";
+   randomSeed = 1234567890;
+   nx = 24;
+   ny = 40;
+   nbatch = 2;
+   errorOnNotANumber = true;
+   outputPath = "output/resize";
+   verifyWrites = false;
+   checkpointWrite = false;
+   lastCheckpointDir = "output/resize/Last";
+   initializeFromCheckpointDir = "";
+};
+
+//
+// Test autoResizeFlag = false
+//
+
+ImageCollationLayer "Collation_autoResizeFalse" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_autoResizeFalse" = {
+    #include "Collation_autoResizeFalse";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_autoResizeFalse" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+};
+
+IdentConn "Collation_autoResizeFalseToComparison_autoResizeFalse" = {
+    preLayerName = "Collation_autoResizeFalse";
+    postLayerName = "Comparison_autoResizeFalse";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_autoResizeFalseToComparison_autoResizeFalse" = {
+    preLayerName = "Combined_autoResizeFalse";
+    postLayerName = "Comparison_autoResizeFalse";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_autoResizeFalse" = {
+    targetLayer = "Comparison_autoResizeFalse";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
+
+//
+// Test autoResizeFlag = true, aspectRatioAdjustment = "crop"
+//
+
+ImageCollationLayer "Collation_autoResizeCrop" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = true;
+    aspectRatioAdjustment = "pad";
+    interpolationMethod = "bicubic";
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_autoResizeCrop" = {
+    #include "Collation_autoResizeCrop";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_autoResizeCrop" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+};
+
+IdentConn "Collation_autoResizeCropToComparison_autoResizeCrop" = {
+    preLayerName = "Collation_autoResizeCrop";
+    postLayerName = "Comparison_autoResizeCrop";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_autoResizeCropToComparison_autoResizeCrop" = {
+    preLayerName = "Combined_autoResizeCrop";
+    postLayerName = "Comparison_autoResizeCrop";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_autoResizeCrop" = {
+    targetLayer = "Comparison_autoResizeCrop";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
+
+//
+// Test autoResizeFlag = true, aspectRatioAdjustment = "pad"
+//
+
+ImageCollationLayer "Collation_autoResizePad" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SeparatedImages.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = true;
+    aspectRatioAdjustment = "pad";
+    interpolationMethod = "bicubic";
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+ImageLayer "Combined_autoResizePad" = {
+    #include "Collation_autoResizePad";
+    @inputPath = "input/CombinedImages.txt";
+};
+
+HyPerLayer "Comparison_autoResizePad" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+};
+
+IdentConn "Collation_autoResizePadToComparison_autoResizeCrop" = {
+    preLayerName = "Collation_autoResizePad";
+    postLayerName = "Comparison_autoResizePad";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "Combined_autoResizePadToComparison_autoResizeCrop" = {
+    preLayerName = "Combined_autoResizePad";
+    postLayerName = "Comparison_autoResizePad";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_autoResizePad" = {
+    targetLayer = "Comparison_autoResizePad";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
