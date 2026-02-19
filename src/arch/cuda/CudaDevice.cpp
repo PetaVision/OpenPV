@@ -132,12 +132,15 @@ void CudaDevice::query_device(int id) {
    else {
       handleError(cudaGetDeviceProperties(&props, id), "Getting device properties");
    }
+   int clockRateInKHz;
+   cudaDeviceGetAttribute(&clockRateInKHz, cudaDevAttrClockRate, id);
+
    InfoLog().printf("device: %d\n", id);
    InfoLog().printf("CUDA Device # %d == %s\n", id, props.name);
 
    InfoLog().printf("with %d units/cores", props.multiProcessorCount);
 
-   InfoLog().printf(" at %f MHz\n", (double)props.clockRate * 0.001);
+   InfoLog().printf(" at %f MHz\n", static_cast<double>(clockRateInKHz) * 0.001);
 
    InfoLog().printf("\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
 
