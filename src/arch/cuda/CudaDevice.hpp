@@ -21,12 +21,11 @@ namespace PVCuda {
  */
 class CudaDevice {
   protected:
-   int device_id; // device id (normally 0 for GPU, 1 for CPU)
 
   public:
    void incrementConvKernels();
-   size_t getMemory() { return deviceMem; }
-   size_t getNumConvKernels() { return numConvKernels; }
+   size_t getMemory() { return mDeviceMem; }
+   size_t getNumConvKernels() { return mNumConvKernels; }
 
    static int getNumDevices();
 
@@ -47,7 +46,7 @@ class CudaDevice {
     * A getter function to return what device is being used
     * @return The device number of the device being used
     */
-   int id() { return device_id; }
+   int getDeviceID() { return mDeviceID; }
 
    /**
     * A function to create a buffer from the given stream
@@ -61,7 +60,7 @@ class CudaDevice {
     * A function to return the cuda stream the device is using
     * @return The stream the device is using
     */
-   cudaStream_t getStream() { return stream; }
+   cudaStream_t getStream() { return mStream; }
 
    /**
     * A synchronization barrier to block the cpu from running until the gpu stream has finished
@@ -113,25 +112,28 @@ class CudaDevice {
    size_t get_local_mem();
 
 #ifdef PV_USE_CUDNN
-   void *getCudnnHandle() { return handle; }
+   void *getCudnnHandle() { return mHandle; }
 #endif
 
   private:
    /**
-    * Decrements deviceMem by the given number of bytes, and exits with an error if deviceMem drops
+    * Decrements DeviceMem by the given number of bytes, and exits with an error if DeviceMem drops
     * below zero.
     * Called by createBuffer.
     */
    long reserveMem(size_t size);
 
   protected:
-   int num_devices; // number of computing devices
-   struct cudaDeviceProp device_props;
-   cudaStream_t stream;
-   long deviceMem;
-   size_t numConvKernels = (size_t)0;
+   int mDeviceID; // device id (normally 0 for GPU, 1 for CPU)
+   int mNumDevices; // number of computing devices
+   struct cudaDeviceProp mDeviceProps;
+   cudaStream_t mStream;
+   long mDeviceMem;
+   size_t mNumConvKernels = std::size_t(0);
 
-   void *handle;
+#ifdef PV_USE_CUDNN
+   void *mHandle = nullptr;
+#endif
 };
 
 } // namespace PV
