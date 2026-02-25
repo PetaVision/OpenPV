@@ -648,7 +648,7 @@ void LocalPatchWeightsIO::initializeMargins() {
       }
       if (getNyRestrictedPost() > 1) {
          mYMargin = requiredConvolveMargin(
-               getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY(), 'x', fileName.c_str());
+               getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY(), 'y', fileName.c_str());
       }
       else {
           mYMargin = 0;
