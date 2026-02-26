@@ -8,7 +8,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ArborList.cpp
    ${SUBDIR}/BackgroundActivityBuffer.cpp
    ${SUBDIR}/BasePublisherComponent.cpp
-   ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/BinningActivityBuffer.cpp
    ${SUBDIR}/BoundaryConditions.cpp
    ${SUBDIR}/CloneInternalStateBuffer.cpp
@@ -37,6 +36,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerInternalStateBuffer.cpp
    ${SUBDIR}/HyPerLCAInternalStateBuffer.cpp
    ${SUBDIR}/ImageActivityBuffer.cpp
+   ${SUBDIR}/ImageCollationActivityBuffer.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
    ${SUBDIR}/InputActivityBuffer.cpp
    ${SUBDIR}/InputLayerNameParam.cpp
@@ -98,7 +98,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BackgroundActivityBuffer.hpp
    ${SUBDIR}/BasePublisherComponent.hpp
-   ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/BinningActivityBuffer.hpp
    ${SUBDIR}/BoundaryConditions.hpp
    ${SUBDIR}/CloneActivityComponent.hpp
@@ -129,6 +128,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerInternalStateBuffer.hpp
    ${SUBDIR}/HyPerLCAInternalStateBuffer.hpp
    ${SUBDIR}/ImageActivityBuffer.hpp
+   ${SUBDIR}/ImageCollationActivityBuffer.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
    ${SUBDIR}/InputActivityBuffer.hpp
    ${SUBDIR}/InputLayerNameParam.hpp

@@ -30,7 +30,7 @@ int PatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nxp", &mNxp, mNxp, false);
+   parameters()->ioParamValue(ioFlag, getName(), "nxp", &mNxp, mNxp, false /*warnIfAbsentFlag*/);
    if (ioFlag == PARAMS_IO_READ && mNxp < 0 && !parameters()->present(getName(), "nxp")
        && mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
@@ -39,7 +39,7 @@ void PatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
 }
 
 void PatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nyp", &mNyp, mNyp, false);
+   parameters()->ioParamValue(ioFlag, getName(), "nyp", &mNyp, mNyp, false /*warnIfAbsentFlag*/);
    if (ioFlag == PARAMS_IO_READ && mNyp < 0 && !parameters()->present(getName(), "nyp")
        && mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
@@ -48,7 +48,7 @@ void PatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
 }
 
 void PatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nfp", &mNfp, mNfp, false);
+   parameters()->ioParamValue(ioFlag, getName(), "nfp", &mNfp, mNfp, false /*warnIfAbsentFlag*/);
    if (ioFlag == PARAMS_IO_READ && mNfp < 0 && !parameters()->present(getName(), "nfp")
        && mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
@@ -155,10 +155,22 @@ void PatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
             "    (given nxp = %d; post-synaptic nx = %d)\n",
             getDescription_c(), mNxp, correctNxp);
    }
-   else { // pre-layer is not a broadcast layer
+   else if (isBroadcastPost) {
+      if (mNxp < 0) {
+         mNxp = 1;
+         InfoLog().printf(
+               "%s setting nxp to %d, the size of pre-synaptic layer \"%s\".\n",
+               getDescription_c(), 1, post->getName());
+      }
+      FatalIf(
+            mNxp != 1,
+            "%s has a post-synaptic broadcast layer, so nxp must be 1 (params has nxp = %d).\n",
+            getDescription_c(), mNxp);
+   }
+   else { // connection is non-broadcast to non-broadcast
       FatalIf(
             mNxp < 0,
-            "%s has a non-broadcast pre-synaptic layer, but param nxp was not set\n",
+            "%s has non-broadcast pre- and post-synaptic layers, but param nxp was not set\n",
             getDescription_c());
    }
    mPatchSizeX = mNxp;
@@ -175,7 +187,7 @@ void PatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
       if (mNyp < 0) {
          mNyp = correctNyp;
          InfoLog().printf(
-               "%s setting nyp to %d, the size of post-synaptic layer \"%s\".\n",
+               "%s setting nyp to %d, the size of pre-synaptic layer \"%s\".\n",
                getDescription_c(), correctNyp, post->getName());
       }
       FatalIf(
@@ -184,10 +196,22 @@ void PatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
             "    (given nyp = %d; post-synaptic ny = %d)\n",
             getDescription_c(), mNyp, correctNyp);
    }
-   else { // pre-layer is not a broadcast layer
+   else if (isBroadcastPost) {
+      if (mNyp < 0) {
+         mNyp = 1;
+         InfoLog().printf(
+               "%s setting nyp to %d, the size of post-synaptic layer \"%s\".\n",
+               getDescription_c(), 1, post->getName());
+      }
+      FatalIf(
+            mNyp != 1,
+            "%s has a post-synaptic broadcast layer, so nyp must be 1 (params has nyp = %d).\n",
+            getDescription_c(), mNxp);
+   }
+   else { // connection is non-broadcast to non-broadcast
       FatalIf(
             mNyp < 0,
-            "%s has a non-broadcast pre-synaptic layer, but param nyp was not set\n",
+            "%s has non-broadcast pre- and post-synaptic layers, but param nyp was not set\n",
             getDescription_c());
    }
    mPatchSizeY = mNyp;

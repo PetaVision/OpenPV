@@ -25,6 +25,7 @@ class Buffer {
    void set(Buffer<T> other);
 
    void insert(Buffer<T> const &insertion, int xStart, int yStart);
+   void insertFeatures(Buffer<T> const &insertion, int fStart);
    Buffer<T> extract(int xStart, int yStart, int width, int height) const;
    Buffer<T> extractFeatures(int firstFeature, int lastFeature) const;
    void resize(int width, int height, int features);

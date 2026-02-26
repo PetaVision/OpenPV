@@ -134,6 +134,12 @@ void FileStream::read(void *data, long length) {
    verifyFlags("read");
 }
 
+std::string FileStream::readLine() {
+   std::string line;
+   std::getline(mFStream, line);
+   return line;
+}
+
 void FileStream::close() {
    if (!isOpen()) { return; }
    mFStream.close();

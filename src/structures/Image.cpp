@@ -69,24 +69,24 @@ float Image::getPixelA(int x, int y) {
    return at(x, y, mAPos);
 }
 
-void Image::convertToGray(bool alphaChannel) {
+void Image::convertToGray(bool alphaChannelFlag) {
    if (getFeatures() < 3) {
-      if ((getFeatures() == 1 && !alphaChannel) || (getFeatures() == 2 && alphaChannel)) {
+      if ((getFeatures() == 1 && !alphaChannelFlag) || (getFeatures() == 2 && alphaChannelFlag)) {
          // Do nothing if we are already in the correct format
          return;
       }
       else {
          // We are already grayscale, but we're adding or removing an alpha channel
-         Buffer<float> grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
+         Buffer<float> grayScale(getWidth(), getHeight(), alphaChannelFlag ? 2 : 1);
          for (int y = 0; y < getHeight(); ++y) {
             for (int x = 0; x < getWidth(); ++x) {
                grayScale.set(x, y, 0, at(x, y, 0));
-               if (alphaChannel) {
+               if (alphaChannelFlag) {
                   grayScale.set(x, y, 1, 1.0f);
                }
             }
          }
-         set(grayScale.asVector(), getWidth(), getHeight(), alphaChannel ? 2 : 1);
+         set(grayScale.asVector(), getWidth(), getHeight(), alphaChannelFlag ? 2 : 1);
          return;
       }
    }
@@ -95,7 +95,7 @@ void Image::convertToGray(bool alphaChannel) {
       // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image
       // Processing
       const float rgbWeights[3] = {mRToGray, mGToGray, mBToGray}; //{0.30f, 0.59f, 0.11f};
-      Buffer<float> grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
+      Buffer<float> grayScale(getWidth(), getHeight(), alphaChannelFlag ? 2 : 1);
 
       for (int y = 0; y < getHeight(); ++y) {
          for (int x = 0; x < getWidth(); ++x) {
@@ -104,7 +104,7 @@ void Image::convertToGray(bool alphaChannel) {
                sum += at(x, y, f) * rgbWeights[f];
             }
             grayScale.set(x, y, 0, sum);
-            if (alphaChannel) {
+            if (alphaChannelFlag) {
                if (getFeatures() > 3) {
                   grayScale.set(x, y, 1, at(x, y, 3));
                }
@@ -114,43 +114,43 @@ void Image::convertToGray(bool alphaChannel) {
             }
          }
       }
-      set(grayScale.asVector(), getWidth(), getHeight(), alphaChannel ? 2 : 1);
+      set(grayScale.asVector(), getWidth(), getHeight(), alphaChannelFlag ? 2 : 1);
    }
 }
 
-void Image::convertToColor(bool alphaChannel) {
+void Image::convertToColor(bool alphaChannelFlag) {
    // Are we already color? If so, do we need to add or remove an alpha channel?
    if (getFeatures() > 2) {
-      if ((getFeatures() == 3 && !alphaChannel) || (getFeatures() == 4 && alphaChannel)) {
+      if ((getFeatures() == 3 && !alphaChannelFlag) || (getFeatures() == 4 && alphaChannelFlag)) {
          // This is the correct format already, nothing to be done
          return;
       }
       else {
          // We're already color, but we're adding or removing an alpha channel
-         Buffer<float> color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
+         Buffer<float> color(getWidth(), getHeight(), alphaChannelFlag ? 4 : 3);
          for (int y = 0; y < getHeight(); ++y) {
             for (int x = 0; x < getWidth(); ++x) {
                color.set(x, y, mRPos, at(x, y, mRPos));
                color.set(x, y, mGPos, at(x, y, mGPos));
                color.set(x, y, mBPos, at(x, y, mBPos));
-               if (alphaChannel) {
+               if (alphaChannelFlag) {
                   color.set(x, y, mAPos, 1.0f);
                }
             }
          }
-         set(color.asVector(), getWidth(), getHeight(), alphaChannel ? 4 : 3);
+         set(color.asVector(), getWidth(), getHeight(), alphaChannelFlag ? 4 : 3);
       }
    }
    else {
       // We're converting a grayscale image to color
-      Buffer<float> color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
+      Buffer<float> color(getWidth(), getHeight(), alphaChannelFlag ? 4 : 3);
       for (int y = 0; y < getHeight(); ++y) {
          for (int x = 0; x < getWidth(); ++x) {
             float val = at(x, y, 0);
             color.set(x, y, mRPos, val);
             color.set(x, y, mGPos, val);
             color.set(x, y, mBPos, val);
-            if (alphaChannel) {
+            if (alphaChannelFlag) {
                if (getFeatures() == 2) {
                   color.set(x, y, mAPos, at(x, y, 1));
                }
@@ -160,11 +160,11 @@ void Image::convertToColor(bool alphaChannel) {
             }
          }
       }
-      set(color.asVector(), getWidth(), getHeight(), alphaChannel ? 4 : 3);
+      set(color.asVector(), getWidth(), getHeight(), alphaChannelFlag ? 4 : 3);
    }
 }
 
-void Image::read(std::string filename) {
+void Image::read(std::string const &filename) {
    int width = 0, height = 0, channels = 0;
    stbi_us *data = stbi_load_16(filename.c_str(), &width, &height, &channels, 0);
    if (data == nullptr) {
@@ -194,7 +194,7 @@ void Image::read(std::string filename) {
    stbi_image_free(data);
 }
 
-void Image::write(std::string filename) {
+void Image::write(std::string const &filename) {
    std::vector<uint16_t> byteData(getWidth() * getHeight() * getFeatures());
    int byteIndex  = 0;
    float imageMin = 0.0f;

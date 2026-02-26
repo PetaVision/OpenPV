@@ -27,6 +27,7 @@
 #include "layers/HyPerLCALayer.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/ISTALayer.hpp"
+#include "layers/ImageCollationLayer.hpp"
 #include "layers/ImageLayer.hpp"
 #include "layers/InputRegionLayer.hpp"
 #include "layers/LIF.hpp"
@@ -147,6 +148,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    factory->registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
    factory->registerKeyword("ISTALayer", Factory::create<ISTALayer>);
+   factory->registerKeyword("ImageCollationLayer", Factory::create<ImageCollationLayer>);
    factory->registerKeyword("ImageLayer", Factory::create<ImageLayer>);
    factory->registerKeyword("InputRegionLayer", Factory::create<InputRegionLayer>);
    factory->registerKeyword("LIF", Factory::create<LIF>);

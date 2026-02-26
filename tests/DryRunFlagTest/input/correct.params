@@ -32,6 +32,7 @@ PvpLayer "Input" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
+    syncLayer                           = NULL;
     displayPeriod                       = 0;
     inputPath                           = "input/petavisionLogo32x32.pvp";
     offsetAnchor                        = "tl";

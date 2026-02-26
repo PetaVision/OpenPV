@@ -9,8 +9,8 @@ debugParsing = false;
 
 HyPerCol "column" = {
     dt                                  = 1;
-    stopTime                            = 20;
-    progressInterval                    = 20;
+    stopTime                            = 100;
+    progressInterval                    = 100;
     writeProgressToErr                  = false;
     verifyWrites                        = true;
     outputPath                          = "output0/";
@@ -26,7 +26,7 @@ HyPerCol "column" = {
     checkpointWriteStepInterval         = 10;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
-    checkpointIndexWidth                = -1;
+    checkpointIndexWidth                = 3;
     errorOnNotANumber                   = false;
 };
 
@@ -73,6 +73,10 @@ ANNErrorLayer "Residual" = {
     sparseLayer                         = false;
     updateGpu                           = false;
     VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AMax                                = infinity;
+    AShift                              = 0.0;
+    VWidth                              = 0.0;
     errScale                            = 1;
 };
 
@@ -170,7 +174,6 @@ TransposeConn "ResidualToV1" = {
     updateGSynFromPostPerspective       = true;
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
-    writeCompressedCheckpoints          = false;
     originalConnName                    = "V1ToResidual";
 };
 
@@ -199,7 +202,6 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
     probeOutputFile                     = "AdaptiveTimeScales.txt";
     triggerLayerName                    = "Input";
     triggerOffset                       = 0;
-    energyProbe                         = NULL;
     baseMax                             = 0.55;
     baseMin                             = 0.5;
     tauFactor                           = 0.1;
@@ -212,7 +214,6 @@ ColumnEnergyProbe "TotalEnergyProbe" = {
     textOutputFlag                      = true;
     probeOutputFile                     = "total_energy.txt";
     triggerLayerName                    = NULL;
-    energyProbe                         = NULL;
 };
 
 L2NormProbe "ReconstructionErrorProbe" = {
@@ -235,6 +236,4 @@ FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
     triggerLayerName                    = NULL;
     energyProbe                         = "TotalEnergyProbe";
     maskLayerName                       = NULL;
-    VThresh                             = 0.025;
-    VWidth                              = 0.025;
 };

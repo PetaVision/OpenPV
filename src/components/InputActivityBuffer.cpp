@@ -9,14 +9,17 @@
 #include "arch/mpi/mpi.h"
 #include "cMakeHeader.h"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
-#include "columns/RandomSeed.hpp"
+#include "columns/Random.hpp"
+#include "layers/HyPerLayer.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "io/FileStreamBuilder.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/cl_random.h"
 #include "utils/conversions.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cmath>
@@ -45,6 +48,7 @@ void InputActivityBuffer::setObjectType() { mObjectType = "InputActivityBuffer";
 
 int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ActivityBuffer::ioParamsFillGroup(ioFlag);
+   ioParam_syncLayer(ioFlag);
    ioParam_displayPeriod(ioFlag);
    ioParam_inputPath(ioFlag);
    ioParam_offsetAnchor(ioFlag);
@@ -63,7 +67,6 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_useInputBCflag(ioFlag);
    ioParam_padValue(ioFlag);
    ioParam_batchMethod(ioFlag);
-   ioParam_randomSeed(ioFlag);
    ioParam_start_frame_index(ioFlag);
    ioParam_skip_frame_index(ioFlag);
    ioParam_resetToStartOnLoop(ioFlag);
@@ -72,8 +75,18 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+void InputActivityBuffer::ioParam_syncLayer(enum ParamsIOFlag ioFlag) {
+   bool warnIfAbsentFlag = false;
+   parameters()->ioParamString(
+         ioFlag, getName(), "syncLayer", &mSyncLayer, nullptr /*default*/, warnIfAbsentFlag);
+   // The communicate stage will check that this is a valid input layer.
+}
+
 void InputActivityBuffer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
+   assert(!parameters()->presentAndNotBeenRead(getName(), "syncLayer"));
+   if (mSyncLayer == nullptr or mSyncLayer[0] == '\0') {
+      parameters()->ioParamValue(ioFlag, getName(), "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
+   }
 }
 
 void InputActivityBuffer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
@@ -156,13 +169,6 @@ void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
    if (mJitterChangeInterval > 0) {
       parameters()->ioParamValue(ioFlag, getName(), "xFlipToggle", &mXFlipToggle, mXFlipToggle);
       parameters()->ioParamValue(ioFlag, getName(), "yFlipToggle", &mYFlipToggle, mYFlipToggle);
-   }
-}
-
-void InputActivityBuffer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "jitterChangeInterval"));
-   if (mJitterChangeInterval > 0) {
-      parameters()->ioParamValue(ioFlag, getName(), "randomSeed", &mRandomSeed, mRandomSeed);
    }
 }
 
@@ -356,27 +362,31 @@ void InputActivityBuffer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "syncLayer"));
+   if (mSyncLayer != nullptr and mSyncLayer[0] != '\0') {
+      return;
+   }
    char *batchMethod = nullptr;
    if (ioFlag == PARAMS_IO_WRITE) {
       switch (mBatchMethod) {
-         case BatchIndexer::BYFILE: batchMethod = strdup("byFile"); break;
-         case BatchIndexer::BYLIST: batchMethod = strdup("byList"); break;
-         case BatchIndexer::BYSPECIFIED: batchMethod = strdup("bySpecified"); break;
-         case BatchIndexer::RANDOM: batchMethod = strdup("random"); break;
+         case BYFILE: batchMethod = strdup("byFile"); break;
+         case BYLIST: batchMethod = strdup("byList"); break;
+         case BYSPECIFIED: batchMethod = strdup("bySpecified"); break;
+         case RANDOM: batchMethod = strdup("random"); break;
       }
    }
    parameters()->ioParamString(ioFlag, getName(), "batchMethod", &batchMethod, "byFile");
    if (strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
-      mBatchMethod = BatchIndexer::BYFILE;
+      mBatchMethod = BYFILE;
    }
    else if (strcmp(batchMethod, "byMovie") == 0 || strcmp(batchMethod, "byList") == 0) {
-      mBatchMethod = BatchIndexer::BYLIST;
+      mBatchMethod = BYLIST;
    }
    else if (strcmp(batchMethod, "bySpecified") == 0) {
-      mBatchMethod = BatchIndexer::BYSPECIFIED;
+      mBatchMethod = BYSPECIFIED;
    }
    else if (strcmp(batchMethod, "random") == 0) {
-      mBatchMethod = BatchIndexer::RANDOM;
+      mBatchMethod = RANDOM;
    }
    else {
       Fatal() << "Input layer " << getName() << " batchMethod not recognized. "
@@ -386,6 +396,16 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "syncLayer"));
+   if (mSyncLayer != nullptr and mSyncLayer[0] != '\0') {
+      return;
+   }
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
+   FatalIf(
+         mBatchMethod == RANDOM and this->parameters()->present(getName(), "start_frame_index"),
+         "Input layer \"%s\": start_frame_index cannot be used with batchMethod = random\n",
+         getName());
+      
    int *paramsStartFrameIndex;
    int length = 0;
    if (ioFlag == PARAMS_IO_WRITE) {
@@ -406,8 +426,12 @@ void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "syncLayer"));
+   if (mSyncLayer != nullptr and mSyncLayer[0] != '\0') {
+      return;
+   }
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
-   if (mBatchMethod != BatchIndexer::BYSPECIFIED) {
+   if (mBatchMethod != BYSPECIFIED) {
       // bySpecified is the only batchMethod that uses skip_frame_index.
       return;
    }
@@ -425,14 +449,18 @@ void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    mSkipFrameIndex.clear();
    mSkipFrameIndex.resize(length);
    for (int i = 0; i < length; ++i) {
-      mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
+      mSkipFrameIndex.at(i) = std::max(paramsSkipFrameIndex[i], 1);
    }
    free(paramsSkipFrameIndex);
 }
 
 void InputActivityBuffer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "syncLayer"));
+   if (mSyncLayer != nullptr and mSyncLayer[0] != '\0') {
+      return;
+   }
    assert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
-   if (mBatchMethod == BatchIndexer::BYSPECIFIED) {
+   if (mBatchMethod == BYSPECIFIED) {
       parameters()->ioParamValue(
             ioFlag, getName(), "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
    }
@@ -442,6 +470,10 @@ void InputActivityBuffer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "syncLayer"));
+   if (mSyncLayer != nullptr and mSyncLayer[0] != '\0') {
+      return;
+   }
    assert(!parameters()->presentAndNotBeenRead(getName(), "displayPeriod"));
    if (mDisplayPeriod > 0) {
       parameters()->ioParamValue(
@@ -462,32 +494,80 @@ Response::Status InputActivityBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   bool sizeMismatch = false;
-   int startLength   = (int)mStartFrameIndex.size();
-   if (startLength == 0) {
-      mStartFrameIndex.resize(message->mNBatchGlobal);
+   auto *objectTable = message->mObjectTable;
+   int inputCount        = countInputImages();
+   mInputCount = inputCount ? inputCount : 1;
+   if (mSyncLayer != nullptr and mSyncLayer[0] != '\0' and mSyncActivityBuffer == nullptr) {
+      // check that parameter string matches an input layer
+      auto syncedLayer = objectTable->findObject<HyPerLayer>(mSyncLayer);
+      FatalIf(
+            syncedLayer == nullptr,
+            "Input layer \"%s\" set syncLayer to \"%s\" but this is not a layer in the column.\n",
+            getName(),
+            mSyncLayer);
+      auto *syncedActivity = syncedLayer->getComponentByType<ActivityComponent>();
+      pvAssert(syncedActivity != nullptr); // All layers should have an activity component
+      mSyncActivityBuffer = syncedActivity->getComponentByType<InputActivityBuffer>();
+      FatalIf(
+            mSyncActivityBuffer == nullptr,
+            "Input layer \"%s\" set syncLayer to \"%s\" but this is not an input layer.\n",
+            getName(),
+            mSyncLayer);
+      // check that the synced layer has finished its communicate phase
+      if (!mSyncActivityBuffer->getInitInfoCommunicatedFlag()) {
+         WarnLog().printf(
+               "Input layer \"%s\" must postpone until syncLayer \"%s\" finishes its "
+               "Communicate stage.\n",
+               getName(),
+               mSyncLayer);
+         status = status + Response::POSTPONE;
+         return status;
+      }
+      // check that the synced layer and this layer have the same number of input images.
+      FatalIf(
+            mInputCount != mSyncActivityBuffer->getInputCount(),
+            "Input layer \"%s\" and its syncLayer \"%s\" have different input counts "
+            "(%d versus %d)\n",
+            getName(),
+            mSyncLayer,
+            mInputCount,
+            mSyncActivityBuffer->getInputCount());
+      mDisplayPeriod = mSyncActivityBuffer->getDisplayPeriod();
+      mBatchMethod = mSyncActivityBuffer->mBatchMethod;
+      mStartFrameIndex = mSyncActivityBuffer->mStartFrameIndex;
+      mSkipFrameIndex = mSyncActivityBuffer->mSkipFrameIndex;
+      mResetToStartOnLoop = mSyncActivityBuffer->mResetToStartOnLoop;
+      mWriteFrameToTimestamp = mSyncActivityBuffer->mWriteFrameToTimestamp;
    }
-   else if (startLength != message->mNBatchGlobal) {
-      ErrorLog().printf(
-            "%s: start_frame_index requires either 0 or nbatch=%d values.\n",
-            getDescription_c(),
+   else {
+      FatalIf(
+            !checkArrayLength(mStartFrameIndex, message->mNBatchGlobal),
+            "Input layer %s: start_frame_index requires either 0 or nbatch=%d values.\n",
+            getName(),
             message->mNBatchGlobal);
-      sizeMismatch = true;
-   }
-   int skipLength = (int)mSkipFrameIndex.size();
-   if (skipLength == 0) {
-      mSkipFrameIndex.resize(message->mNBatchGlobal);
-   }
-   else if (skipLength != message->mNBatchGlobal) {
-      ErrorLog().printf(
-            "%s: start_frame_index requires either 0 or nbatch=%d values.\n",
-            getDescription_c(),
+      FatalIf(
+            !checkArrayLength(mSkipFrameIndex, message->mNBatchGlobal),
+            "Input layer %s: skip_frame_index requires either 0 or nbatch=%d values.\n",
+            getName(),
             message->mNBatchGlobal);
-      sizeMismatch = true;
    }
-   FatalIf(sizeMismatch, "Unable to initialize %s\n", getDescription_c());
-
    return Response::SUCCESS;
+}
+
+bool InputActivityBuffer::checkArrayLength(std::vector<int> &array, int correctLength) {
+   bool correctSizeFlag;
+   int length = static_cast<int>(array.size());
+   if (length == 0) {
+      array.resize(correctLength);
+      correctSizeFlag = true;
+   }
+   else if (array.size() != correctLength) {
+      correctSizeFlag = false;
+   }
+   else {
+      correctSizeFlag = true;
+   }
+   return correctSizeFlag;
 }
 
 void InputActivityBuffer::makeInputRegionsPointer(ActivityBuffer *activityBuffer) {
@@ -502,6 +582,34 @@ Response::Status InputActivityBuffer::allocateDataStructures() {
    }
    if (mNeedInputRegionsPointer) {
       mInputRegionsAllBatchElements.resize(getBufferSizeAcrossBatch());
+   }
+   if (mBatchMethod == RANDOM) {
+      // Need to create Random object in all processes, to keep RandomSeed in sync,
+      // even though only the root process will use it.
+      taus_uint4 batchIndexRNG;
+      if (mSyncActivityBuffer == nullptr) {
+         Random batchIndexRandomObj(1);
+         batchIndexRNG = *batchIndexRandomObj.getRNG(0);
+         mBatchIndexRandomState.resize(4);
+         mBatchIndexRandomState[0] = batchIndexRNG.s0;
+         mBatchIndexRandomState[1] = batchIndexRNG.state.s1;
+         mBatchIndexRandomState[2] = batchIndexRNG.state.s2;
+         mBatchIndexRandomState[3] = batchIndexRNG.state.s3;
+      }
+      else {
+         if (!mSyncActivityBuffer->getDataStructuresAllocatedFlag()) {
+            return Response::POSTPONE;
+         }
+         mBatchIndexRandomState = mSyncActivityBuffer->mBatchIndexRandomState;
+         batchIndexRNG.s0       = mBatchIndexRandomState[0];
+         batchIndexRNG.state.s1 = mBatchIndexRandomState[1];
+         batchIndexRNG.state.s2 = mBatchIndexRandomState[2];
+         batchIndexRNG.state.s3 = mBatchIndexRandomState[3];
+      }
+      initializeBatchIndexer(&batchIndexRNG);
+   }
+   else {
+      initializeBatchIndexer(nullptr);
    }
    return Response::SUCCESS;
 }
@@ -548,37 +656,91 @@ Response::Status InputActivityBuffer::registerData(
       mMirrorFlipY.resize(nBatch);
       mInputData.resize(numBatch);
       mInputRegion.resize(numBatch);
-      initializeBatchIndexer();
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
-      mBatchIndexer->registerData(message);
+
+      mFrameNumbers = mBatchIndexer->getIndices();
+      auto *checkpointer = message->mDataRegistry;
+      checkpointer->registerCheckpointData<int>(
+            getName(),
+            std::string("FrameNumbers"),
+            mFrameNumbers.data(),
+            mFrameNumbers.size(),
+            false /*broadcastFlag*/,
+            false /*constantEntireRunFlag*/);
+   }
+   if (mBatchMethod == RANDOM) {
+      checkpointer->registerCheckpointData<unsigned int>(
+            getName(),
+            std::string("RandomState"),
+            mBatchIndexRandomState.data(),
+            mBatchIndexRandomState.size(),
+            true /*broadcastFlag*/,
+            false /*constantEntireRunFlag*/);
    }
    return Response::SUCCESS;
 }
 
-void InputActivityBuffer::initializeBatchIndexer() {
-   // TODO: move check of size of mStartFrameIndex and mSkipFrameIndex here.
+void InputActivityBuffer::initializeBatchIndexer(taus_uint4 *state) {
    auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
-   pvAssert(ioMPIBlock and ioMPIBlock->getRank() == 0);
+   pvAssert(ioMPIBlock);
+   if (ioMPIBlock->getRank() != 0) {
+      return;
+   }
    int localBatchCount  = getLayerLoc()->nbatch;
    int mpiGlobalCount   = ioMPIBlock->getGlobalBatchDimension();
    int globalBatchCount = localBatchCount * mpiGlobalCount;
    int batchOffset      = localBatchCount * ioMPIBlock->getStartBatch();
    int blockBatchCount  = localBatchCount * ioMPIBlock->getBatchDimension();
-   int fileCount        = countInputImages();
-   mBatchIndexer        = std::unique_ptr<BatchIndexer>(new BatchIndexer(
-         std::string(getName()),
-         globalBatchCount,
-         batchOffset,
-         blockBatchCount,
-         fileCount,
-         mBatchMethod,
-         mInitializeFromCheckpointFlag));
-   for (int b = 0; b < blockBatchCount; ++b) {
-      mBatchIndexer->specifyBatching(
-            b, mStartFrameIndex.at(batchOffset + b), mSkipFrameIndex.at(batchOffset + b));
-      mBatchIndexer->initializeBatch(b);
+   std::vector<int> startIndices;
+   std::vector<int> skipAmounts;
+   switch (mBatchMethod) {
+      case BYFILE:
+         startIndices.resize(blockBatchCount);
+         skipAmounts.resize(blockBatchCount, globalBatchCount);
+         for (int b = 0; b < blockBatchCount; ++b) {
+            startIndices[b] = (mStartFrameIndex[b] + batchOffset + b) % mInputCount;
+         }
+         break;
+      case BYLIST:
+         startIndices.resize(blockBatchCount);
+         skipAmounts.resize(blockBatchCount, 1);
+         for (int b = 0; b < blockBatchCount; ++b) {
+            startIndices[b] =
+                  (mStartFrameIndex[b] + (batchOffset + b) * (mInputCount / globalBatchCount) ) %
+                  mInputCount;
+         }
+         break;
+      case BYSPECIFIED:
+         startIndices = mStartFrameIndex;
+         skipAmounts = mSkipFrameIndex;
+         break;
+      case RANDOM:
+         // batchMethod=random does not use startIndices or skipAmounts
+         break;
+      default:
+         Fatal().printf(
+               "InputActivityBuffer::initializeBatchIndexer called with bad BatchMethod %d\n",
+               mBatchMethod);
+         break;
    }
-   mBatchIndexer->setRandomSeed(RandomSeed::instance()->getInitialSeed() + mRandomSeed);
+   if (mBatchMethod != RANDOM) {
+      mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+            std::string(getName()),
+            globalBatchCount,
+            blockBatchCount,
+            mInputCount,
+            startIndices,
+            skipAmounts));
+   }
+   else {
+      mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+            std::string(getName()),
+            globalBatchCount,
+            blockBatchCount,
+            mInputCount,
+            batchOffset,
+            *state));
+   }
 }
 
 std::string const &
@@ -592,12 +754,62 @@ InputActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage cons
    if (!Response::completed(status)) {
       return status;
    }
-   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      if (mJitterChangeIntervalInTimesteps > 0) {
-         mRNG.seed(mRandomSeed);
-      }
+   if (mJitterChangeIntervalInTimesteps > 0) {
+      mJitterRNG = std::make_shared<Random>(1);
+      // All process must create the Random object to keep RandomSeed in sync
    }
    retrieveInput(0.0 /*simulationTime*/, message->mDeltaTime);
+   return Response::SUCCESS;
+}
+
+Response::Status InputActivityBuffer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      pvAssert(mInitializeFromCheckpointFlag);
+      checkpointer->readNamedCheckpointEntry(getName(), "FrameNumbers", false /*not constant*/);
+      mBatchIndexer->setIndices(mFrameNumbers);
+      if (mBatchMethod == RANDOM) {
+         taus_uint4 batchRNG;
+         batchRNG.s0 = mBatchIndexRandomState[0];
+         batchRNG.state.s1 = mBatchIndexRandomState[1];
+         batchRNG.state.s2 = mBatchIndexRandomState[2];
+         batchRNG.state.s3 = mBatchIndexRandomState[3];
+         mBatchIndexer->setRandomState(batchRNG);
+      }
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status InputActivityBuffer::processCheckpointRead(double simTime) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      mBatchIndexer->setIndices(mFrameNumbers);
+      if (mBatchMethod == RANDOM) {
+         taus_uint4 batchRNG;
+         batchRNG.s0 = mBatchIndexRandomState[0];
+         batchRNG.state.s1 = mBatchIndexRandomState[1];
+         batchRNG.state.s2 = mBatchIndexRandomState[2];
+         batchRNG.state.s3 = mBatchIndexRandomState[3];
+         mBatchIndexer->setRandomState(batchRNG);
+      }
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status InputActivityBuffer::prepareCheckpointWrite(double simTime) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      auto &frameNumbers = mBatchIndexer->getIndices();
+      unsigned int N = frameNumbers.size();
+      assert(static_cast<unsigned int>(mFrameNumbers.size()) == N);
+      for (unsigned int n = 0; n < N; ++n) {
+         mFrameNumbers[n] = frameNumbers[n];
+      }
+      if (mBatchMethod == RANDOM) {
+         taus_uint4 const &batchRNG = mBatchIndexer->getRandomState();
+         mBatchIndexRandomState[0] = batchRNG.s0;
+         mBatchIndexRandomState[1] = batchRNG.state.s1;
+         mBatchIndexRandomState[2] = batchRNG.state.s2;
+         mBatchIndexRandomState[3] = batchRNG.state.s3;
+      }
+   }
    return Response::SUCCESS;
 }
 
@@ -638,9 +850,7 @@ void InputActivityBuffer::retrieveInputAndAdvanceIndex(double timef, double dt) 
    if (mBatchIndexer) {
       int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
       int blockBatchCount     = getLayerLoc()->nbatch * blockBatchDimension;
-      for (int b = 0; b < blockBatchCount; b++) {
-         mBatchIndexer->nextIndex(b);
-      }
+      mBatchIndexer->advanceIndices();
    }
 }
 
@@ -658,13 +868,15 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
       long timestep = std::nearbyint(simTime / deltaTime);
       if (timestep % mJitterChangeIntervalInTimesteps == 0) {
          for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
-            mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
-            mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
+            mRandomShiftX[b] = -mMaxShiftX + (mJitterRNG->randomUInt() % (2 * mMaxShiftX + 1));
+            mRandomShiftY[b] = -mMaxShiftY + (mJitterRNG->randomUInt() % (2 * mMaxShiftY + 1));
             if (mXFlipEnabled) {
-               mMirrorFlipX[b] = mXFlipToggle ? !mMirrorFlipX[b] : (mRNG() % 100) > 50;
+               mMirrorFlipX[b] =
+                     mXFlipToggle ? !mMirrorFlipX[b] : (mJitterRNG->randomUInt() % 256U) >= 128U;
             }
             if (mYFlipEnabled) {
-               mMirrorFlipY[b] = mYFlipToggle ? !mMirrorFlipY[b] : (mRNG() % 100) > 50;
+               mMirrorFlipY[b] =
+                     mYFlipToggle ? !mMirrorFlipY[b] : (mJitterRNG->randomUInt() % 256U) >= 128U;
             }
          }
       }
@@ -680,6 +892,12 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
             int width             = mInputData.at(b).getWidth();
             int height            = mInputData.at(b).getHeight();
             int features          = mInputData.at(b).getFeatures();
+            FatalIf(
+                  features != getLayerLoc()->nf,
+                  "ERROR: Input data for layer \"%s\" has nf=%d features, but layer has nf=%d.\n",
+                  getName(),
+                  features,
+                  getLayerLoc()->nf);
             mInputRegion.at(b)    = Buffer<float>(width, height, features);
             int const N           = mInputRegion.at(b).getTotalElements();
 #ifdef PV_USE_OPENMP_THREADS
@@ -729,13 +947,6 @@ void InputActivityBuffer::fitBufferToGlobalLayer(Buffer<float> &buffer, int bloc
       targetWidth        = loc->nxGlobal + xMargins;
       targetHeight       = loc->nyGlobal + yMargins;
    }
-
-   FatalIf(
-         buffer.getFeatures() != loc->nf,
-         "ERROR: Input for layer %s has %d features, but layer has %d.\n",
-         getName(),
-         buffer.getFeatures(),
-         loc->nf);
 
    if (mAutoResizeFlag) {
       bool sameDims = (buffer.getWidth() == targetWidth and buffer.getHeight() == targetHeight);

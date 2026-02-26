@@ -1,6 +1,7 @@
 #include "utils/PVLog.hpp"
 //#include "utils/conversions.hpp"
 
+#include <cassert>
 #include <cmath>
 #include <cstring>
 
@@ -99,6 +100,39 @@ void Buffer<T>::insert(Buffer<T> const &insertion, int xStart, int yStart) {
          for (int f = 0; f < insertion.getFeatures(); ++f) {
             T value = insertion.at(x, y, f);
             set(x + xStart, y + yStart, f, value);
+         }
+      }
+   }
+}
+
+template <class T>
+void Buffer<T>::insertFeatures(Buffer<T> const &insertion, int fStart) {
+   FatalIf(
+         insertion.getWidth() != getWidth(),
+         "Buffer::insertFeatures() has incompatible number width: %d versus %d\n",
+         getWidth(), insertion.getWidth());
+   FatalIf(
+         insertion.getHeight() != getHeight(),
+         "Buffer::insertFeatures() has incompatible number height: %d versus %d\n",
+         getHeight(), insertion.getHeight());
+   int fEnd = fStart + insertion.getFeatures();
+   FatalIf(
+         fStart < 0 or fStart >= getFeatures(),
+         "Buffer::insertFeatures() called with bad fStart = %d (NumFeatures = %d)\n",
+         fStart, getFeatures());
+   assert(fEnd > 0); // fStart>=0 checked above, and insertion.getFeatures() must be pos.
+   FatalIf(
+         fEnd > getFeatures(),
+         "Buffer::insertFeatures() inserting %d features starting at %d but NumFeatures is %d\n",
+         insertion.getWidth(), fStart, getFeatures());
+   int width = getWidth();
+   int height = getHeight();
+   int insertedFeatures = insertion.getFeatures();
+   for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+         for (int f = 0; f < insertedFeatures; ++f) {
+            T value = insertion.at(x, y, f);
+            set(x, y, f + fStart, value);
          }
       }
    }

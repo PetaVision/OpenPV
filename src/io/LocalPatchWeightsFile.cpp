@@ -25,8 +25,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
         mPatchSizeY(weightData->getPatchSizeY()),
         mPatchSizeF(weightData->getPatchSizeF()),
         mPreLayerLoc(*preLayerLoc),
-        mNxRestrictedPost(postLayerLoc->nx),
-        mNyRestrictedPost(postLayerLoc->ny),
+        mPostLayerLoc(*postLayerLoc),
         mNumArbors(weightData->getNumArbors()),
         mFileExtendedFlag(fileExtendedFlag),
         mCompressedFlag(compressedFlag),
@@ -308,8 +307,15 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
    auto mpiBlock             = mFileManager->getMPIBlock();
    int nxRestrictedPreBlock  = getNxRestrictedPre() * mpiBlock->getNumColumns();
    int nyRestrictedPreBlock  = getNyRestrictedPre() * mpiBlock->getNumRows();
-   int nxRestrictedPostBlock = getNxRestrictedPost() * mpiBlock->getNumColumns();
-   int nyRestrictedPostBlock = getNyRestrictedPost() * mpiBlock->getNumRows();
+   int nxRestrictedPostBlock, nyRestrictedPostBlock;
+   if (mPostLayerLoc.bcast) {
+      nxRestrictedPostBlock = 1;
+      nyRestrictedPostBlock = 1;
+   }
+   else {
+      nxRestrictedPostBlock = getNxRestrictedPost() * mpiBlock->getNumColumns();
+      nyRestrictedPostBlock = getNyRestrictedPost() * mpiBlock->getNumRows();
+   }
 
    mLocalPatchWeightsIO = std::unique_ptr<LocalPatchWeightsIO>(new LocalPatchWeightsIO(
          fileStream,

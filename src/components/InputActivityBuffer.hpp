@@ -12,15 +12,16 @@
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
+#include "columns/Random.hpp"
 #include "components/ActivityBuffer.hpp"
-#include "components/BatchIndexer.hpp"
 #include "io/FileStream.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
+#include "structures/BatchIndexer.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
+#include "utils/cl_random.h"
 #include <memory>
-#include <random>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,9 @@ namespace PV {
  * A component for the activity updater for BinningLayer.
  */
 class InputActivityBuffer : public ActivityBuffer {
+  public:
+   enum BatchMethod { BYFILE, BYLIST, BYSPECIFIED, RANDOM };
+
   protected:
    /**
     * List of parameters used by the InputActivityBuffer class
@@ -135,6 +139,15 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual void ioParam_padValue(enum ParamsIOFlag ioFlag);
 
    /**
+    * syncLayer: If set to another input layer, the layer will not use its own display period,
+    * batch method, start indices, or skip indices. Instead, it will use the values from the
+    * synced layer. The number of input images must be the same between the two layers.
+    * If the batch method is random, the two synced layers will use the same random shuffling.
+    * The layers each have their own inputPath parameter, but the number of images must be equal.
+    */
+   virtual void ioParam_syncLayer(enum ParamsIOFlag ioFlag);
+
+   /**
     * displayPeriod: the number of timesteps each input is displayed before switching to the next.
     * If this is <= 0 or inputPath does not end in .txt, assumes the input is a single file and will
     * not change.
@@ -163,9 +176,9 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
 
    /**
-    * resetToStartOnLoop: If false, then when the end of file for the inputPath file is reached,
-    * it rewinds to index 0. Otherwise, it rewinds to the index it began at (possibly
-    * start_frame_index).
+    * resetToStartOnLoop: Used when batchMethod=bySpecified.
+    * If false, then when the end of file for the inputPath file is reached, it rewinds to index 0.
+    * Otherwise, it rewinds to the index it began at (possibly start_frame_index).
     */
    virtual void ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag);
 
@@ -177,11 +190,6 @@ class InputActivityBuffer : public ActivityBuffer {
     * random: Randomizes the order of the given file. Does not duplicate indices until all are used
     */
    virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
-
-   /**
-    * Random seed used when batchMethod == random.
-    */
-   virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
 
    /**
     * useInputBCFlag: Specifies if the input should be scaled to fill margins
@@ -206,6 +214,8 @@ class InputActivityBuffer : public ActivityBuffer {
 
    int getDisplayPeriod() const { return mDisplayPeriod; }
 
+   int getInputCount() const { return mInputCount; }
+
   protected:
    InputActivityBuffer() {}
 
@@ -218,12 +228,18 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   // If empty, resizes array to correctLength and returns true
+   // Otherwise, returns true if array size is correct length and false if not.
+   // Called during the CommunicateInitInfo stage to check whether start_frame_index
+   // and skip_frame_index, if used, have the correct size (global batch width).
+   bool checkArrayLength(std::vector<int> &array, int correctLength);
+
    virtual Response::Status allocateDataStructures() override;
 
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   void initializeBatchIndexer();
+   void initializeBatchIndexer(taus_uint4 *state);
 
    /**
     * This virtual function gets called by initializeBatchIndexer in order
@@ -233,6 +249,11 @@ class InputActivityBuffer : public ActivityBuffer {
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+   virtual Response::Status processCheckpointRead(double simTime) override;
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
@@ -284,8 +305,8 @@ class InputActivityBuffer : public ActivityBuffer {
    /**
     * Resizes a buffer from the image size to the global layer size. If autoResizeFlag is true,
     * it calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
-    * translate, and crop. This method is called only by the MPI block root process,
-    * during retrieveInput().
+    * translate, and crop. It also applies shifts and flips.
+    * This method is called only by the MPI block root process, during retrieveInput().
     */
    void fitBufferToGlobalLayer(Buffer<float> &buffer, int blockBatchElement);
 
@@ -320,6 +341,14 @@ class InputActivityBuffer : public ActivityBuffer {
    void scatterInput(int localBatchIndex, int mpiBatchIndex);
 
   protected:
+   // If set to another input layer, use that layer's frame indices. The two layers may have
+   // different inputPath parameters, but the number of images in the two layers must be the
+   // same.
+   char *mSyncLayer = nullptr;
+
+   // If syncLayer is used, this points to the activity buffer of the synced layer
+   InputActivityBuffer *mSyncActivityBuffer = nullptr;
+
    // Number of timesteps an input file is displayed before advancing the file list. If <= 0, the
    // input never changes.
    int mDisplayPeriod = 0;
@@ -372,7 +401,7 @@ class InputActivityBuffer : public ActivityBuffer {
    bool mNormalizeLuminanceFlag = false;
 
    // If true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
-   // If false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
+   // If false and normalizeLuminanceFlag == true, normalize max = 1, min = 0
    bool mNormalizeStdDev = true;
 
    // Flag that enables scaling input buffer to extended region instead of restricted region
@@ -383,15 +412,14 @@ class InputActivityBuffer : public ActivityBuffer {
 
    // Object to handle assigning file indices to batch element
    std::unique_ptr<BatchIndexer> mBatchIndexer;
-   BatchIndexer::BatchMethod mBatchMethod;
+   BatchMethod mBatchMethod;
 
-   // Random seed used when batchMethod == random
-   int mRandomSeed = 123456789;
-
-   // An array of starting file list indices, one per batch
+   // An array of starting file list indices, one per batch element,
+   // used by non-random batch methods
    std::vector<int> mStartFrameIndex;
 
-   // An array indicating how far to advance each index, one per batch
+   // An array indicating how far to advance each index, one per batch element,
+   // used by batchMethod=bySpecified
    std::vector<int> mSkipFrameIndex;
 
    // When reaching the end of the file list, do we reset to 0 or to start_index?
@@ -422,10 +450,20 @@ class InputActivityBuffer : public ActivityBuffer {
    std::vector<bool> mMirrorFlipY;
 
    // Random number generator for jitter
-   std::mt19937 mRNG;
+   std::shared_ptr<Random> mJitterRNG;
+
+   // The number of input images (perhaps number of files; perhaps number of frames in a file)
+   int mInputCount;
 
   private:
    bool mNeedInputRegionsPointer = false;
+
+   // A copy of the batch indexer's frame numbers, used in checkpointing
+   // (so that BatchIndexer doesn't need to implement any checkpointing functionality itself)
+   std::vector<int> mFrameNumbers;
+
+   // A copy of the batch indexer's RNG state, packed as a vector for use in checkpointing
+   std::vector<unsigned int> mBatchIndexRandomState;
 
    // A vector containing the contents of the mInputRegion buffers, allocated as a single array
    // of size getNumExtendedAllBatches.

@@ -51,8 +51,8 @@ MaskLayer "maskOut" = {
     // 
     phase = 1; 
     triggerLayerName = NULL;
-    maskMethod = "noMaskFeatures";
-    featureIdxs = [0, 2];
+    maskMethod = "noMaskFeatures"; // Feature indices NOT listed in featureIdxs will be masked to zero
+    featureIdxs = [0, 2];          // Features 0 and 2 are computed as usual; feature 1 is set to zero
 };
 
 MaskTestLayer "test" = {
