@@ -507,14 +507,14 @@ Response::Status InputActivityBuffer::communicateInitInfo(
             mSyncLayer);
       auto *syncedActivity = syncedLayer->getComponentByType<ActivityComponent>();
       pvAssert(syncedActivity != nullptr); // All layers should have an activity component
-      mSyncActivityBuffer = syncedActivity->getComponentByType<InputActivityBuffer>();
+      auto syncActivityBuffer = syncedActivity->getComponentByType<InputActivityBuffer>();
       FatalIf(
-            mSyncActivityBuffer == nullptr,
+            syncActivityBuffer == nullptr,
             "Input layer \"%s\" set syncLayer to \"%s\" but this is not an input layer.\n",
             getName(),
             mSyncLayer);
       // check that the synced layer has finished its communicate phase
-      if (!mSyncActivityBuffer->getInitInfoCommunicatedFlag()) {
+      if (!syncActivityBuffer->getInitInfoCommunicatedFlag()) {
          WarnLog().printf(
                "Input layer \"%s\" must postpone until syncLayer \"%s\" finishes its "
                "Communicate stage.\n",
@@ -525,19 +525,20 @@ Response::Status InputActivityBuffer::communicateInitInfo(
       }
       // check that the synced layer and this layer have the same number of input images.
       FatalIf(
-            mInputCount != mSyncActivityBuffer->getInputCount(),
+            mInputCount != syncActivityBuffer->getInputCount(),
             "Input layer \"%s\" and its syncLayer \"%s\" have different input counts "
             "(%d versus %d)\n",
             getName(),
             mSyncLayer,
             mInputCount,
-            mSyncActivityBuffer->getInputCount());
-      mDisplayPeriod = mSyncActivityBuffer->getDisplayPeriod();
-      mBatchMethod = mSyncActivityBuffer->mBatchMethod;
-      mStartFrameIndex = mSyncActivityBuffer->mStartFrameIndex;
-      mSkipFrameIndex = mSyncActivityBuffer->mSkipFrameIndex;
-      mResetToStartOnLoop = mSyncActivityBuffer->mResetToStartOnLoop;
-      mWriteFrameToTimestamp = mSyncActivityBuffer->mWriteFrameToTimestamp;
+            syncActivityBuffer->getInputCount());
+      mSyncActivityBuffer = syncActivityBuffer;
+      mDisplayPeriod = syncActivityBuffer->getDisplayPeriod();
+      mBatchMethod = syncActivityBuffer->mBatchMethod;
+      mStartFrameIndex = syncActivityBuffer->mStartFrameIndex;
+      mSkipFrameIndex = syncActivityBuffer->mSkipFrameIndex;
+      mResetToStartOnLoop = syncActivityBuffer->mResetToStartOnLoop;
+      mWriteFrameToTimestamp = syncActivityBuffer->mWriteFrameToTimestamp;
    }
    else {
       FatalIf(
