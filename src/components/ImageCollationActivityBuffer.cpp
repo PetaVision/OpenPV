@@ -109,7 +109,7 @@ Buffer<float> ImageCollationActivityBuffer::retrieveData(int inputIndex) {
                oneFeature->getWidth() != imageWidth or oneFeature->getHeight() != imageHeight,
                "ImageCollationLayer \"%s\": files \"%s\" and \"%s\" do not have the same "
                "dimensions (%d-by-%d versus %d-by-%d)\n",
-               getName(), firstFilename, filename,
+               getName(), firstFilename.c_str(), filename.c_str(),
                imageWidth, imageHeight, oneFeature->getWidth(), oneFeature->getHeight());
 
       }
@@ -146,7 +146,7 @@ std::string ImageCollationActivityBuffer::downloadURL(std::string const &url) {
          tempFileID < 0,
          "Input layer \"%s\" cannot create temporary image file to download \"%s\".\n",
          getName(),
-         url);
+         url.c_str());
 
    std::string systemstring;
    if (url.find("s3://") != std::string::npos) {
