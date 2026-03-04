@@ -63,7 +63,7 @@ void NormalizeBase::ioParam_normalizeOnInitialize(ParamsIOSwitch ioSwitch) {
 }
 
 void NormalizeBase::ioParam_normalizeOnWeightUpdate(ParamsIOSwitch ioSwitch) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "normalizeOnInitialize"));
+   pvAssert(!mParamsIO->presentAndNotBeenRead("normalizeOnInitialize"));
    mParamsIO->ioParam(ioSwitch, "normalizeOnWeightUpdate", &mNormalizeOnWeightUpdate);
    FatalIf(
          mNormalizeOnInitialize == false and mNormalizeOnWeightUpdate == true,

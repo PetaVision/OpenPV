@@ -310,6 +310,7 @@ Defaults "ImageLayer" = {
     phase                               = 0;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
+    syncLayer                           = NULL;
     displayPeriod                       = 0;
     // inputPath filepath parameter is required
     useInputBCflag                      = false;
@@ -323,7 +324,6 @@ Defaults "ImageLayer" = {
     yFlipEnabled                        = false;
     xFlipToggle                         = false;
     yFlipToggle                         = false;
-    randomSeed                          = 123456789;
     offsetAnchor                        = "tl";
     autoResizeFlag                      = false;
     aspectRatioAdjustment               = "crop";
@@ -341,6 +341,10 @@ Defaults "ImageLayer" = {
     sparseLayer                         = false;
     writeStep                           = 0.0;
     initialWriteTime                    = 0.0;
+};
+
+Defaults "ImageCollationLayer" = {
+    #include "ImageLayer";
 };
 
 Defaults "PvpLayer" = {

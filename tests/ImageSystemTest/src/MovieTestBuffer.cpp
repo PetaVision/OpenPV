@@ -1,5 +1,5 @@
 #include "MovieTestBuffer.hpp"
-#include <components/BatchIndexer.hpp>
+#include <structures/BatchIndexer.hpp>
 
 namespace PV {
 
@@ -9,7 +9,7 @@ MovieTestBuffer::MovieTestBuffer(std::shared_ptr<ParamsIO> paramsIO, Communicato
 
 void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    FatalIf(
-         mBatchMethod == BatchIndexer::RANDOM,
+         mBatchMethod == RANDOM,
          "%s has BatchMethod = random. This test does not check that case.\n");
    ImageActivityBuffer::updateBufferCPU(simTime, deltaTime);
    const PVLayerLoc *loc = getLayerLoc();
@@ -33,7 +33,7 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
       int skipAmount         = batchIndexerData[b + nbatch];
       int t                  = (int)std::nearbyint(simTime);
       int frameIdx           = (t - 1) * skipAmount + startIndex;
-      if (mBatchMethod == BatchIndexer::BYFILE) {
+      if (mBatchMethod == BYFILE) {
          FatalIf(
                skipAmount != nbatch,
                "%s has BatchMethod = byFile, but SkipAmounts[%d] is %d instead of nbatch=%d\n",
@@ -49,7 +49,7 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
                startIndex,
                b);
       }
-      if (mBatchMethod == BatchIndexer::BYLIST) {
+      if (mBatchMethod == BYLIST) {
          FatalIf(
                skipAmount != 1,
                "%s has BatchMethod = byList, but SkipAmounts[%d] is %d instead of 1\n",

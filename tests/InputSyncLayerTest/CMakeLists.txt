@@ -1,0 +1,21 @@
+set(SRC_CPP
+  src/main.cpp
+)
+
+pv_add_test(SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
+
+# Add tests for M-to-N functionality, one with two processes and one with four processes
+get_filename_component(BASE_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(TEST_BINARY "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${BASE_NAME}")
+add_test(
+  NAME "${BASE_NAME}_2MtoN"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 2 ${PV_MPI_OPTIONS_EXTRA} ${MPIEXEC_PREFLAGS}
+      ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} "input/config_2MtoN.txt"
+)
+add_test(
+  NAME "${BASE_NAME}_4MtoN"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4 ${PV_MPI_OPTIONS_EXTRA} ${MPIEXEC_PREFLAGS}
+      ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} "input/config_4MtoN.txt"
+)

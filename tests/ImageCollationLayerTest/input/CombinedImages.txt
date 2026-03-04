@@ -1,0 +1,8 @@
+input/cifar/CIFAR_14194.png
+input/cifar/CIFAR_12645.png
+input/cifar/CIFAR_55057.png
+input/cifar/CIFAR_46929.png
+input/cifar/CIFAR_48190.png
+input/cifar/CIFAR_33758.png
+input/cifar/CIFAR_25944.png
+input/cifar/CIFAR_51759.png

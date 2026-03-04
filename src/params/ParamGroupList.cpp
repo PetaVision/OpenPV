@@ -298,14 +298,11 @@ void ParamGroupList::action_include_directive(const char *stringval) {
    FatalIf(
          includeGroup == nullptr,
          "Include: include group %s is not defined.\n", include_name.c_str());
-   // Check keyword of group
+   // The include directive must be the first parameter in the group
    FatalIf(
-         mActiveGroup->getKeyword() != includeGroup->getKeyword(),
-         "Include: Cannot include group %s \"%s\" into %s \"%s\". Group types must be the same.\n",
-            includeGroup->getKeyword().c_str(),
-            include_name.c_str(),
-            mActiveGroup->getKeyword().c_str(),
-            mActiveGroup->getName().c_str());
+         !mActiveGroup->empty(),
+         "Parameter group %s: include directive must precede any parameter definitions.\n",
+         stringval);
    // Load all parameters from include group into current parameter group
    for (auto &p : *includeGroup) {
       switch (p.second.getType()) {

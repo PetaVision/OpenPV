@@ -73,8 +73,8 @@ class LocalPatchWeightsFile : public WeightsFile {
       return mPreLayerLoc.ny + mPreLayerLoc.halo.dn + mPreLayerLoc.halo.up;
    }
    int getNfPre() const { return mPreLayerLoc.nf; }
-   int getNxRestrictedPost() const { return mNxRestrictedPost; }
-   int getNyRestrictedPost() const { return mNyRestrictedPost; }
+   int getNxRestrictedPost() const { return mPostLayerLoc.nx; }
+   int getNyRestrictedPost() const { return mPostLayerLoc.ny; }
    // nfRestrictedPost would be the same as patchSizeF
    int getNumArbors() const { return mNumArbors; }
    bool getFileExtendedFlag() const { return mFileExtendedFlag; }
@@ -117,9 +117,7 @@ class LocalPatchWeightsFile : public WeightsFile {
    int mPatchSizeY;
    int mPatchSizeF;
    PVLayerLoc mPreLayerLoc;
-   int mNxRestrictedPost;
-   int mNyRestrictedPost;
-   // mNfRestrictedPost would be the same as patchSizeF
+   PVLayerLoc mPostLayerLoc;
    int mNumArbors;
    bool mFileExtendedFlag;
    bool mCompressedFlag;

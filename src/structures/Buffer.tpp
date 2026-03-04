@@ -1,6 +1,7 @@
 #include "utils/PVLog.hpp"
 //#include "utils/conversions.hpp"
 
+#include <cassert>
 #include <cmath>
 #include <cstring>
 
@@ -105,6 +106,39 @@ void Buffer<T>::insert(Buffer<T> const &insertion, int xStart, int yStart) {
 }
 
 template <class T>
+void Buffer<T>::insertFeatures(Buffer<T> const &insertion, int fStart) {
+   FatalIf(
+         insertion.getWidth() != getWidth(),
+         "Buffer::insertFeatures() has incompatible number width: %d versus %d\n",
+         getWidth(), insertion.getWidth());
+   FatalIf(
+         insertion.getHeight() != getHeight(),
+         "Buffer::insertFeatures() has incompatible number height: %d versus %d\n",
+         getHeight(), insertion.getHeight());
+   int fEnd = fStart + insertion.getFeatures();
+   FatalIf(
+         fStart < 0 or fStart >= getFeatures(),
+         "Buffer::insertFeatures() called with bad fStart = %d (NumFeatures = %d)\n",
+         fStart, getFeatures());
+   assert(fEnd > 0); // fStart>=0 checked above, and insertion.getFeatures() must be pos.
+   FatalIf(
+         fEnd > getFeatures(),
+         "Buffer::insertFeatures() inserting %d features starting at %d but NumFeatures is %d\n",
+         insertion.getWidth(), fStart, getFeatures());
+   int width = getWidth();
+   int height = getHeight();
+   int insertedFeatures = insertion.getFeatures();
+   for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+         for (int f = 0; f < insertedFeatures; ++f) {
+            T value = insertion.at(x, y, f);
+            set(x, y, f + fStart, value);
+         }
+      }
+   }
+}
+
+template <class T>
 Buffer<T> Buffer<T>::extract(int xStart, int yStart, int width, int height) const {
    FatalIf(xStart < 0 or xStart >= getWidth(), "Buffer::extract() has bad xStart %d (Width = %d)\n", xStart, getWidth());
    FatalIf(xStart + width < 0 or xStart + width > getWidth(),
@@ -119,6 +153,32 @@ Buffer<T> Buffer<T>::extract(int xStart, int yStart, int width, int height) cons
          for (int f = 0; f < getFeatures(); ++f) {
             T value = at(x + xStart, y + yStart, f);
             result.set(x, y, f, value);
+         }
+      }
+   }
+   return result;
+}
+
+template <class T>
+Buffer<T> Buffer<T>::extractFeatures(int firstFeature, int lastFeature) const {
+   FatalIf(
+         firstFeature < 0 or firstFeature >= getFeatures(),
+         "Buffer::extractFeatures() called with bad firstFeature %d (number of features = %d)\n",
+         firstFeature, getFeatures());
+   FatalIf(
+         lastFeature < 0 or lastFeature >= getFeatures(),
+         "Buffer::extractFeatures() called with bad lastFeature %d (number of features = %d)\n",
+         lastFeature, getFeatures());
+   FatalIf(
+         firstFeature > lastFeature,
+         "Buffer::extractFeatures() called with bad firstFeature %d but lastFeature %d\n",
+         firstFeature, lastFeature);
+   Buffer<T> result(getWidth(), getHeight(), lastFeature - firstFeature + 1);
+   for (int y = 0; y < getHeight(); ++y) {
+      for (int x = 0; x < getWidth(); ++x) {
+         for (int f = firstFeature; f <= lastFeature; ++f) {
+            T value = at(x, y, f);
+            result.set(x, y, f - firstFeature, value);
          }
       }
    }

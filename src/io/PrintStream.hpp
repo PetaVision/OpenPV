@@ -10,6 +10,7 @@ extern "C" {
 #include <cstring>
 
 #include "utils/PVAssert.hpp"
+#include "utils/cl_random.h"
 
 namespace PV {
 
@@ -63,6 +64,20 @@ class PrintStream {
    PrintStream &operator<<(bool x) { (*mOutStream) << x; return *this; }
    PrintStream &operator<<(void const *x) { (*mOutStream) << x; return *this; }
    PrintStream &operator<<(std::string const &s) { (*mOutStream) << s; return *this; }
+
+   PrintStream &operator<<(taus_uint4 x) {
+         (*mOutStream) << "(";
+         (*mOutStream) << x.s0;
+         (*mOutStream) << ",";
+         (*mOutStream) << x.state.s1;
+         (*mOutStream) << ",";
+         (*mOutStream) << x.state.s2;
+         (*mOutStream) << ",";
+         (*mOutStream) << x.state.s3;
+         (*mOutStream) << ")";
+         return *this;
+   }
+
    PrintStream &operator<<(std::streambuf *x) { (*mOutStream) << x; return *this; }
    PrintStream &operator<<(std::ostream &(*f)(std::ostream &)) {
       f(*mOutStream);

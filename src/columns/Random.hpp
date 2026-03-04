@@ -4,7 +4,7 @@
  *  Created on: Aug 23, 2013
  *      Author: pschultz
  *
- *  A class to manage Tausworth random number generators so that
+ *  A class to manage Tausworthe random number generators so that
  *  random number generation is not affected by details of the
  *  MPI configuration.
  *

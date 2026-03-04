@@ -15,6 +15,7 @@ class Image : public Buffer<float> {
   public:
    Image(std::string filename);
    Image(const std::vector<float> &data, int width, int height, int channels);
+   Image();
 
    void setPixel(int x, int y, float r, float g, float b);
    void setPixel(int x, int y, float r, float g, float b, float a);
@@ -22,10 +23,10 @@ class Image : public Buffer<float> {
    float getPixelG(int x, int y);
    float getPixelB(int x, int y);
    float getPixelA(int x, int y);
-   void convertToColor(bool alphaChannel);
-   void convertToGray(bool alphaChannel);
-   void read(std::string filename);
-   void write(std::string filename);
+   void convertToColor(bool alphaChannelFlag);
+   void convertToGray(bool alphaChannelFlag);
+   void read(std::string const &filename);
+   void write(std::string const &filename);
    static constexpr const float mRToGray = 0.30f;
    static constexpr const float mGToGray = 0.59f;
    static constexpr const float mBToGray = 0.11f;

@@ -14,6 +14,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/GaussianNoiseLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
+   ${SUBDIR}/ImageCollationLayer.cpp
    ${SUBDIR}/ImageLayer.cpp
    ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/InputRegionLayer.cpp
@@ -52,9 +53,10 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/GaussianNoiseLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
+   ${SUBDIR}/ImageCollationLayer.hpp
    ${SUBDIR}/ImageLayer.hpp
-   ${SUBDIR}/InputLayer.cpp
-   ${SUBDIR}/InputRegionLayer.cpp
+   ${SUBDIR}/InputLayer.hpp
+   ${SUBDIR}/InputRegionLayer.hpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp

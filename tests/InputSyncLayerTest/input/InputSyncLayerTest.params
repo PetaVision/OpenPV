@@ -1,0 +1,79 @@
+//
+// InputSyncLayerTest.params
+//
+
+//  A params file for two input layers where one of them 
+//  Uses the syncLayer param to sync its output with the other.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   nbatch = 2;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 20.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "InputSyncLayerTest.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+PvpLayer "BaseInput" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    	      	
+    displayPeriod = 2;
+    inputPath = "input/baseinputs.pvp";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "random";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};
+
+PvpLayer "SyncedInput" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    	      	
+    syncLayer = "BaseInput";
+    // displayPeriod is set equal to syncLayer's displayPeriod
+    inputPath = "input/syncedinputs.pvp";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    // batchMethod is set equal to syncLayer's batchMethod
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = -1;
+};

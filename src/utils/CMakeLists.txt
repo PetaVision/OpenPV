@@ -12,6 +12,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
    ${SUBDIR}/requiredConvolveMargin.cpp
+   ${SUBDIR}/TauswortheURBG.cpp
    ${SUBDIR}/Timer.cpp
    ${SUBDIR}/TransposeWeights.cpp
    ${SUBDIR}/WaitForReturn.cpp
@@ -33,6 +34,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
    ${SUBDIR}/requiredConvolveMargin.hpp
+   ${SUBDIR}/TauswortheURBG.hpp
    ${SUBDIR}/Timer.hpp
    ${SUBDIR}/TransposeWeights.hpp
    ${SUBDIR}/WaitForReturn.hpp

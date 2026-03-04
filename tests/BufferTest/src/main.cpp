@@ -392,6 +392,49 @@ void testExtract() {
    FatalIf(status != PV_SUCCESS, "Buffer::extract() failed.\n");
 }
 
+void testExtractFeatures() {
+   // Create a 4x4x8 buffer and then extract a 4x4x2 buffer from it.
+   int const nf = 8;
+
+   int const nxMain = 4;
+   int const nyMain = 4;
+
+   int const firstFeature = 2;
+   int const lastFeature  = 3;
+   int const nfExtracted  = lastFeature - firstFeature + 1;
+
+   int const numExtracted = (lastFeature - firstFeature + 1) * nxMain * nyMain;
+
+   Buffer<float> mainBuffer(nxMain, nyMain, nf);
+   for (int k = 0; k < mainBuffer.getTotalElements(); ++k) {
+      mainBuffer.set(k, static_cast<float>(k));
+   }
+
+   Buffer<float> extractedBuffer = mainBuffer.extractFeatures(firstFeature, lastFeature);
+
+   std::vector<float>correctValues(numExtracted);
+   for (int k = 0; k < numExtracted; ++k) {
+      int f = k % nfExtracted;
+      int x = ((k / nfExtracted)) % nxMain;
+      int y = (k / (nfExtracted * nxMain)) % nyMain;
+      int value = f + firstFeature + nf * (x + nxMain * y);
+      correctValues[k] = static_cast<float>(value);
+   }
+
+   int status = PV_SUCCESS;
+   for (int k = 0; k < numExtracted; ++k) {
+      if (extractedBuffer.at(k) != correctValues[k]) {
+         ErrorLog().printf("Buffer::extractFeatures() failed: entry %d should be %f but is %f.\n",
+               k,
+               static_cast<double>(correctValues[k]),
+               static_cast<double>(extractedBuffer.at(k)));
+         status = PV_FAILURE;
+      }
+   }
+   if (status == PV_SUCCESS) { InfoLog() << "\n"; }
+   FatalIf(status != PV_SUCCESS, "Buffer::extract() failed.\n");
+}
+
 void testInsert() {
    // Create an 8x8x3 buffer and then insert a 2x2x3 buffer into it.
    int const nf = 3;
@@ -468,6 +511,10 @@ int main(int argc, char **argv) {
 
    InfoLog() << "Testing Buffer::extract(): ";
    testExtract();
+   InfoLog() << "Completed.\n";
+
+   InfoLog() << "Testing Buffer::extractFeatures(): ";
+   testExtractFeatures();
    InfoLog() << "Completed.\n";
 
    InfoLog() << "Testing Buffer::insert(): ";
