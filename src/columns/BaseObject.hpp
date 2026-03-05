@@ -125,6 +125,7 @@ class BaseObject : public ParamsInterface {
    Communicator const *mCommunicator = nullptr;
    bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
+   long int mMemAllocated            = 0L;
    bool mInitialValuesSetFlag        = false;
 #ifdef PV_USE_CUDA
    bool mUsingGPUFlag              = false;

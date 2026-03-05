@@ -7,6 +7,7 @@
 
 #include "BaseObject.hpp"
 #include "columns/Communicator.hpp"
+#include "utils/findMemoryUsed.hpp"
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
@@ -100,8 +101,15 @@ Response::Status BaseObject::respondAllocateDataStructures(
    if (getDataStructuresAllocatedFlag()) {
       return status;
    }
+
+   long int memAtStart = findMemoryUsed();
    status = allocateDataStructures();
+   long int memAtEnd = findMemoryUsed();
+   mMemAllocated += (memAtEnd - memAtStart) * 1024L;
+
    if (Response::completed(status)) {
+      InfoLog().printf(
+            "%s allocated %d kB during AllocateDataStructures\n", getDescription_c(), mMemAllocated);
       setDataStructuresAllocatedFlag();
    }
    return status;
