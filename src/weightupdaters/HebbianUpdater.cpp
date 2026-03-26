@@ -35,14 +35,12 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_immediateWeightUpdate(ioFlag);
-   ioParam_momentumDecay(ioFlag); // marked obsolete Aug 13, 2025.
    ioParam_weightL1Decay(ioFlag);
    ioParam_weightL2Decay(ioFlag);
    ioParam_dWMax(ioFlag);
    ioParam_dWMaxDecayInterval(ioFlag);
    ioParam_dWMaxDecayFactor(ioFlag);
    ioParam_normalizeDw(ioFlag);
-   ioParam_useMask(ioFlag);
    ioParam_combine_dW_with_W_flag(ioFlag);
    return status;
 }
@@ -124,23 +122,9 @@ void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
    }
 }
 
-// momentumDecay was marked obsolete on Aug 13, 2025.
-void HebbianUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-   if (mPlasticityFlag) {
-      FatalIf(
-            ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "momentumDecay"),
-            "%s sets momentumDecay parameter, which is obsolete. Use weightL2Decay instead.\n",
-            getDescription_c());
-   }
-}
-
 void HebbianUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      if (ioFlag == PARAMS_IO_READ) { // Remove this once ioParam_momentumDecay() is removed
-         pvAssert(!parameters()->present(getName(), "momentumDecay"));
-      }
       parameters()->ioParamValue(
             ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
       FatalIf(
@@ -198,24 +182,6 @@ void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    if (mPlasticityFlag) {
       parameters()->ioParamValue(
             ioFlag, getName(), "normalizeDw", &mNormalizeDw, mNormalizeDw, false /*warnIfAbsent*/);
-   }
-}
-
-void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-      if (mPlasticityFlag) {
-         bool useMask = false;
-         parameters()->ioParamValue(
-               ioFlag, getName(), "useMask", &useMask, useMask, false /*warnIfAbsent*/);
-         if (useMask) {
-            if (mCommunicator->globalCommRank() == 0) {
-               ErrorLog().printf("%s has useMask set to true. This parameter is obsolete.\n");
-            }
-            MPI_Barrier(mCommunicator->globalCommunicator());
-            exit(EXIT_FAILURE);
-         }
-      }
    }
 }
 

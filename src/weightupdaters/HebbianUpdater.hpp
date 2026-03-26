@@ -28,11 +28,6 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual void ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag);
 
    /**
-    * momentumDecay is an obsolete synonym for weightL2Decay: Use weightL2Decay instead.
-    */
-   virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
-
-   /**
     * weightL1Decay: The L1-driven decay rate on the weights, applied after the momentum updates.
     * @details The contribution to dW from L1-driven decay is:
     *
@@ -55,7 +50,6 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual void ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
 
    /** @} */ // end of HebbianUpdater parameters
