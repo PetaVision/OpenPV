@@ -32,6 +32,7 @@ void PatchGeometry::initialize(
       int patchSizeF,
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc) {
+   mName = name;
    mPatchSizeX = patchSizeX;
    mPatchSizeY = patchSizeY;
    mPatchSizeF = patchSizeF;
@@ -86,7 +87,10 @@ void PatchGeometry::allocateDataStructures() {
       return;
    }
    setPatchGeometry();
-   setTransposeItemIndices();
+   if (!(mPreLoc.bcast or mPostLoc.bcast)) {
+      setTransposeItemIndices();
+   }
+
 }
 
 int PatchGeometry::verifyPatchSize(int numPreRestricted, int numPostRestricted, int patchSize) {

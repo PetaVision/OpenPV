@@ -89,6 +89,11 @@ class PatchGeometry {
    void allocateDataStructures();
 
    /**
+    * Returns the name of the PatchGeometry object, as set by the constructor
+    */
+   std::string const &getName() const { return mName; }
+
+   /**
     * get-method for PatchSizeX, the size in the x-direction of the patch from one pre-synaptic
     * neuron into post-synaptic space.
     */
@@ -178,6 +183,8 @@ class PatchGeometry {
 
    /** Returns the item index of the postsynaptic-perspective patch corresponding to the
      * the given item index of the presynaptic-perspective patch with the given kernel index.
+     * Note: the indices are not created if either the pre- or post-synaptic layer is
+     * a broadcast layer, and therefore this function cannot be used.
      */
    std::size_t getTransposeItemIndex(int kernelIndex, int itemInPatch) const {
       return mTransposeItemIndex[kernelIndex][itemInPatch];
@@ -265,6 +272,7 @@ class PatchGeometry {
    void setTransposeItemIndices();
 
   private:
+   std::string mName;
    int mPatchSizeX;
    int mPatchSizeY;
    int mPatchSizeF;

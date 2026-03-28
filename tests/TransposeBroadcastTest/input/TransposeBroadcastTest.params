@@ -1,0 +1,175 @@
+// TransposeHyPerConnTest.params
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx                                  = 32;
+    ny                                  = 32;
+    stopTime                            = 1.0;
+    dt                                  = 1.0;
+    randomSeed                          = 712627073;
+    progressInterval                    = 1.0;
+    writeProgressToErr                  = false;
+    verifyWrites                        = true;
+    outputPath                          = "output/";
+    printParamsFilename                 = "pv.params";
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = false;
+    // checkpointWriteDir;
+    // checkpointWriteStepInterval;
+    // checkpointWriteTimeInterval;
+    // deleteOlderCheckpoints;
+    // suppressNonplasticCheckpoints;
+    lastCheckpointDir                   = "output/Last";
+    errorOnNotANumber                   = false;
+};
+
+ConstantLayer "LayerA" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "UniformRandomV";
+    
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
+    VWidth                              = 0.0;
+};
+
+HyPerLayer "BroadcastLayerB" = {
+    broadcastFlag                       = true;
+    nf                                  = 4096;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+};
+
+HyPerLayer "BroadcastLayerC" = {
+    broadcastFlag                       = true;
+    nf                                  = 4096;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+};
+
+HyPerLayer "CompareBAndC" = {
+    broadcastFlag                       = true;
+    nf                                  = 4096;
+    phase                               = 2;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+};
+
+HyPerConn "LayerAToBroadcastLayerB" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "BroadcastLayerB";
+    channelCode                         = 0;
+    sharedWeights                       = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 4096;
+    numAxonalArbors                     = 1;
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = 1.0;
+    wMaxInit                            = 2.0;
+    sparseFraction                      = 0.0;
+    
+    normalizeMethod                     = "none";
+};
+
+TransposeConn "BroadcastLayerBToLayerA" = {
+    preLayerName                        = "BroadcastLayerB";
+    postLayerName                       = "LayerA";
+    channelCode                         = -1;
+    originalConnName                    = "LayerAToBroadcastLayerB";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+};
+
+TransposeConn "LayerAToBroadcastLayerC" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "BroadcastLayerC";
+    channelCode                         = 0;
+    originalConnName                    = "BroadcastLayerBToLayerA";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+};
+
+IdentConn "BroadcastLayerCToCompareBAndC" = {
+    preLayerName                        = "BroadcastLayerC";
+    postLayerName                       = "CompareBAndC";
+    channelCode                         = 0;
+    delay                               = 0;
+};
+
+IdentConn "BroadcastLayerBToCompareBAndC" = {
+    preLayerName                        = "BroadcastLayerB";
+    postLayerName                       = "CompareBAndC";
+    channelCode                         = 1;
+    delay                               = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual_normalizeLuminance" = {
+    targetLayer = "CompareBAndC";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-1; // B and C should have values of approx. 3072; this is a relative error of ~ 0.0003%.
+    exitOnFailure = false;
+    immediateExitOnFailure = false;
+};

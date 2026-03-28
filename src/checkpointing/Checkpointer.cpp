@@ -921,7 +921,7 @@ void Checkpointer::verifyCheckpointDirectory(
                     << " is not a checkpoint directory\n";
          status = PV_FAILURE;
       }
-      if (status) {
+      if (status != PV_SUCCESS) {
          exit(EXIT_FAILURE);
       }
    }
