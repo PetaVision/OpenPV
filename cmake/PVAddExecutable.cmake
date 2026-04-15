@@ -77,14 +77,6 @@ macro(pv_add_executable TARGET)
     target_link_libraries(${TARGET} ${MPI_CXX_LIBRARIES})
   endif()
 
-  if (MPI_FOUND AND PV_USE_MPI)
-    target_link_libraries(${TARGET} ${MPI_CXX_LIBRARIES})
-  endif()
-
-  if (PV_USE_OPENMP)
-    target_link_libraries(${TARGET} ${PV_OPENMP_LIBRARIES})
-  endif()
-
   # This looks redundant, but linking order of cuda libraries can make a difference. Including
   # these a second time is a bit of a hack, but it can fix things in some cases
   if (PV_USE_CUDA)
