@@ -10,6 +10,7 @@
 #include "utils/PVAlloc.hpp"
 #include <algorithm> // shuffle, used in shuffleGroups()
 #include <assert.h>
+#include <cctype> // isprint(), isspace
 #include <climits> // INT_MIN
 #include <cmath> // nearbyint()
 #include <cstdio>
@@ -790,7 +791,8 @@ const char *ParameterSweep::getStringValue(int n) {
 PVParams::PVParams(const char *filename, size_t initialSize, MPI_Comm mpiComm) {
    mMPIComm = mpiComm;
    initialize(initialSize);
-   parseFile(filename);
+   int status = parseFile(filename);
+   FatalIf(status != PV_SUCCESS, "Parsing params file \"%s\" failed.\n", filename);
 }
 
 /*
@@ -815,7 +817,8 @@ PVParams::PVParams(
       MPI_Comm mpiComm) {
    mMPIComm = mpiComm;
    initialize(initialSize);
-   parseBuffer(buffer, bufferLength);
+   int status = parseBuffer(buffer, bufferLength);
+   FatalIf(status != PV_SUCCESS, "Parsing params buffer failed.\n");
 }
 
 PVParams::~PVParams() {
@@ -1012,6 +1015,16 @@ bool PVParams::hasSweepValue(const char *inParamName) {
 int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
    // Assumes that each MPI process has the same contents in buffer.
 
+   // Check that this is a 7-bit ascii text file
+   // (if we ever need utf-8 or extended ascii, we'll deal with it then)
+   for (long int k = 0L; k < bufferLength; ++k) {
+      unsigned char uc = static_cast<unsigned char>(buffer[k]);
+      if (!std::isprint(uc) and !std::isspace(uc)) {
+         ErrorLog().printf(
+               "Params buffer is not a text file (character %d is 0x%02x=%u)\n", k, uc, uc);
+         return PV_FAILURE;
+      }
+   }
    // This is where it calls the scanner and parser
    mParseStatus = pv_parseParameters(this, buffer, bufferLength);
    if (mParseStatus != 0) {
