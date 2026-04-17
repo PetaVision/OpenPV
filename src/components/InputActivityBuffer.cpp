@@ -524,14 +524,18 @@ Response::Status InputActivityBuffer::communicateInitInfo(
          return status;
       }
       // check that the synced layer and this layer have the same number of input images.
-      FatalIf(
-            mInputCount != syncActivityBuffer->getInputCount(),
-            "Input layer \"%s\" and its syncLayer \"%s\" have different input counts "
-            "(%d versus %d)\n",
-            getName(),
-            mSyncLayer,
-            mInputCount,
-            syncActivityBuffer->getInputCount());
+      // Since only the root process of the I/O MPIBlock needs to use mInputCount, only
+      // the root process checks
+      if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+         FatalIf(
+               mInputCount != syncActivityBuffer->getInputCount(),
+               "Input layer \"%s\" and its syncLayer \"%s\" have different input counts "
+               "(%d versus %d)\n",
+               getName(),
+               mSyncLayer,
+               mInputCount,
+               syncActivityBuffer->getInputCount());
+      }
       mSyncActivityBuffer = syncActivityBuffer;
       mDisplayPeriod = syncActivityBuffer->getDisplayPeriod();
       mBatchMethod = syncActivityBuffer->mBatchMethod;
