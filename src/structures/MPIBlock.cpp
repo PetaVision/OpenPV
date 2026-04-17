@@ -43,24 +43,24 @@ void MPIBlock::initGlobalDimensions(
    bool numColumnsDefined = globalNumColumns > 0;
    mGlobalBatchDimension  = globalBatchDimension > 0 ? globalBatchDimension : 1;
 
-   int procsLeft = numProcsAvailable / mGlobalBatchDimension;
+   double procsLeft = double(numProcsAvailable / mGlobalBatchDimension);
    if (numRowsDefined && numColumnsDefined) {
       mGlobalNumRows    = globalNumRows;
       mGlobalNumColumns = globalNumColumns;
    }
    if (numRowsDefined && !numColumnsDefined) {
       mGlobalNumRows    = globalNumRows;
-      mGlobalNumColumns = (int)ceil(procsLeft / globalNumRows);
+      mGlobalNumColumns = static_cast<int>(std::ceil(procsLeft / globalNumRows));
    }
    if (!numRowsDefined && numColumnsDefined) {
-      mGlobalNumRows    = (int)ceil(procsLeft / globalNumColumns);
-      mGlobalNumColumns = globalNumRows;
+      mGlobalNumRows    = static_cast<int>(std::ceil(procsLeft / globalNumColumns));
+      mGlobalNumColumns = globalNumColumns;
    }
    if (!numRowsDefined && !numColumnsDefined) {
       double r       = std::sqrt(procsLeft);
-      mGlobalNumRows = (int)r;
+      mGlobalNumRows = static_cast<int>(r);
       FatalIf(mGlobalNumRows == 0, "Not enough processes left\n");
-      mGlobalNumColumns = (int)ceil(procsLeft / mGlobalNumRows);
+      mGlobalNumColumns = static_cast<int>(std::ceil(procsLeft / mGlobalNumRows));
    }
 
    int numProcsNeeded = mGlobalBatchDimension * mGlobalNumRows * mGlobalNumColumns;
