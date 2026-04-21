@@ -1,0 +1,137 @@
+//
+// PvpListLayerTest.params
+//
+// A params file for testing PvpListLayer
+//
+// A params file for testing PvpListLayer
+// A PvpLayer reads an input .pvp file with 10 frames, and a PvpListLayer reads an input .txt file
+// containing 10 .pvp files, each with one frame. The frames of the file read by the PvpListLayer
+// correspond to the .pvp files read by the PvpFile. The layer Comparison takes the difference
+// between these two layers, which should always be zero. the ComparisonProbe exits with failure
+// if this is not the case.
+//
+// The PvpLayer uses batchMethod "random" and the PvpListLayer sets its syncLayer to the PvpLayer.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt = 1;
+    stopTime = 100;
+    progressInterval = 25;
+    writeProgressToErr = false;
+    printParamsFilename = "SyncLayer.params";
+    randomSeed = 1234567890;
+    nx = 64;
+    ny = 64;
+    nbatch = 2;
+    errorOnUnusedParam = false;
+    errorOnNotANumber = true;
+    outputPath = "output/SyncLayer";
+    verifyWrites = false;
+    checkpointWrite = false;
+    lastCheckpointDir = "output/SyncLayer/Last";
+    initializeFromCheckpointDir = "";
+};
+
+PvpLayer "PvpLayer" = {
+    initializeFromCheckpointFlag = false;
+    broadcastFlag = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
+    syncLayer = NULL;
+    displayPeriod = 5;
+    inputPath = "input/pvp_all.pvp";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    jitterChangeInterval = 0;
+    autoResizeFlag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0;
+    batchMethod = "random";
+    start_frame_index = [0, 0];
+    writeFrameToTimestamp = true;
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+};
+
+PvpListLayer "PvpListLayer" = {
+    initializeFromCheckpointFlag = false;
+    broadcastFlag = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
+    syncLayer = "PvpLayer";
+    displayPeriod = 5;
+    inputPath = "input/pvplist.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    jitterChangeInterval = 0;
+    autoResizeFlag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0;
+    batchMethod = "random";
+    start_frame_index = [0, 0];
+    writeFrameToTimestamp = true;
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag = false;
+    broadcastFlag = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+};
+
+IdentConn "PvpListLayerToComparison" = {
+    initializeFromCheckpointFlag = false;
+    preLayerName = "PvpListLayer";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "PvpLayerToComparison" = {
+    initializeFromCheckpointFlag = false;
+    preLayerName = "PvpLayer";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonProbe.txt";
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
