@@ -105,7 +105,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    char const *group0Name = mParams->groupNameFromIndex(0);
    ParamsInterface::initialize(group0Name, mParams);
 
-   char const *programName = mPVInitObj->getProgramName();
+   std::string programName = mPVInitObj->returnProgramName();
 
    std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
    working_dir             = expandLeadingTilde(working_dir);
@@ -114,7 +114,8 @@ int HyPerCol::initialize(PV_Init *initObj) {
       if (status) {
          Fatal(chdirMessage);
          chdirMessage.printf(
-               "%s unable to switch directory to \"%s\"\n", programName, working_dir.c_str());
+               "%s unable to switch directory to \"%s\"\n",
+               programName.c_str(), working_dir.c_str());
          chdirMessage.printf("chdir error: %s\n", strerror(errno));
       }
    }
@@ -531,7 +532,7 @@ int HyPerCol::setNumThreads() {
       if (globalRank() == 0) {
          ErrorLog().printf(
                "%s: number of threads must be positive (was set to zero)\n",
-               mPVInitObj->getProgramName());
+               mPVInitObj->returnProgramName().c_str());
       }
    }
    else {
@@ -541,7 +542,7 @@ int HyPerCol::setNumThreads() {
          ErrorLog().printf(
                "%s was compiled with PV_USE_OPENMP_THREADS; "
                "therefore the \"-t\" argument is required.\n",
-               mPVInitObj->getProgramName());
+               mPVInitObj->returnProgramName().c_str());
       }
    }
 #else // PV_USE_OPENMP_THREADS
@@ -564,7 +565,7 @@ int HyPerCol::setNumThreads() {
       if (threadStatus != PV_SUCCESS) {
          ErrorLog().printf(
                "%s error: PetaVision must be compiled with OpenMP to run with threads.\n",
-               mPVInitObj->getProgramName());
+               mPVInitObj->returnProgramName());
       }
    }
 #endif // PV_USE_OPENMP_THREADS

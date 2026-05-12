@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
          ErrorLog().printf(
                "%s does not take -p as an option.  Instead the necessary params file is "
                "hard-coded.\n",
-               initObj->getProgramName());
+               initObj->returnProgramName().c_str());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);

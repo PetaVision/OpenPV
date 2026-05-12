@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
       if (generate(initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: generate failed.\n", initObj->getProgramName());
+            ErrorLog().printf("%s: generate failed.\n", initObj->returnProgramName().c_str());
          }
       }
    }
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
       if (testrun(initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: testrun failed.\n", initObj->getProgramName());
+            ErrorLog().printf("%s: testrun failed.\n", initObj->returnProgramName().c_str());
          }
       }
    }
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
       if (testcheckpoint(initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: testcheckpoint failed.\n", initObj->getProgramName());
+            ErrorLog().printf("%s: testcheckpoint failed.\n", initObj->returnProgramName().c_str());
          }
       }
    }
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
       if (testioparams(initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: testioparams failed.\n", initObj->getProgramName());
+            ErrorLog().printf("%s: testioparams failed.\n", initObj->returnProgramName().c_str());
          }
       }
    }
@@ -146,7 +146,8 @@ int generate(PV_Init *initObj, int rank) {
    initObj->setStringArgument("CheckpointReadDirectory", "");
    if (rank == 0) {
       InfoLog().printf(
-            "Running --generate with effective command line\n", initObj->getProgramName());
+            "Running --generate with effective command line\n",
+            initObj->returnProgramName().c_str());
       initObj->printState();
    }
    if (rank == 0) {
@@ -236,7 +237,8 @@ int testrun(PV_Init *initObj, int rank) {
    initObj->setStringArgument("CheckpointReadDirectory", "");
    if (rank == 0) {
       InfoLog().printf(
-            "Running --testrun with effective command line\n", initObj->getProgramName());
+            "Running --testrun with effective command line\n",
+            initObj->returnProgramName().c_str());
       initObj->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeros);
@@ -254,14 +256,15 @@ int testcheckpoint(PV_Init *initObj, int rank) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s: --testcheckpoint requires either the -r or the -c option.\n",
-               initObj->getProgramName());
+               initObj->returnProgramName().c_str());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
    if (rank == 0) {
       InfoLog().printf(
-            "Running --testcheckpoint with effective command line\n", initObj->getProgramName());
+            "Running --testcheckpoint with effective command line\n",
+            initObj->returnProgramName().c_str());
       initObj->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeros);

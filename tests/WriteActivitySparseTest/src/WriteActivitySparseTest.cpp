@@ -27,7 +27,8 @@ int main(int argc, char *argv[]) {
       if (rank == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
-               "%s should be run without the params file argument.\n", initObj.getProgramName());
+               "%s should be run without the params file argument.\n",
+               initObj.returnProgramName().c_str());
          errorMessage.printf(
                "This test uses two hard-coded params files, %s and %s. The first generates an "
                "output pvp file, and the second checks whether the output is consistent with the "
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             rank,
             paramFile1,
             status);
@@ -68,7 +69,7 @@ int main(int argc, char *argv[]) {
    if (status != PV_SUCCESS) {
       ErrorLog().printf(
             "%s: rank %d running with params file %s returned status %d.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             rank,
             paramFile2,
             status);

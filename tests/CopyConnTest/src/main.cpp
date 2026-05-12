@@ -64,7 +64,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
          if (rank == 0) {
             ErrorLog().printf(
                   "%s: running with params file %s returned status code %d.\n",
-                  initObj->getProgramName(),
+                  initObj->returnProgramName().c_str(),
                   paramsfile,
                   status);
          }

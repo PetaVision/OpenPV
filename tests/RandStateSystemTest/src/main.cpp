@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
          ErrorLog().printf(
                "%s does not take -p as an option.  Instead the necessary params files are "
                "hard-coded.\n",
-               initObj.getProgramName());
+               initObj.returnProgramName().c_str());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
    if (status1 != PV_SUCCESS) {
       Fatal().printf(
             "%s failed to run on param file %s with return code %d.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             paramfile1,
             status1);
    }
@@ -49,7 +49,8 @@ int main(int argc, char *argv[]) {
    int status2   = hc2->run();
    if (status2 != PV_SUCCESS) {
       ErrorLog().printf(
-            "%s failed to run on param file %s.\n", initObj.getProgramName(), paramfile2);
+            "%s failed to run on param file %s.\n",
+            initObj.returnProgramName().c_str(), paramfile2);
    }
    ColumnArchive columnArchive2(hc1, tolerance, tolerance);
 
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
    if (status3 != PV_SUCCESS) {
       ErrorLog().printf(
             "%s failed comparing params files %s and %s.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             paramfile1,
             paramfile2);
    }
@@ -68,18 +69,20 @@ int main(int argc, char *argv[]) {
 #ifdef PV_USE_MPI
    if (status == EXIT_SUCCESS) {
       InfoLog().printf(
-            "Test complete.  %s passed on process rank %d.\n", initObj.getProgramName(), rank);
+            "Test complete.  %s passed on process rank %d.\n",
+            initObj.returnProgramName().c_str(), rank);
    }
    else {
       ErrorLog().printf(
-            "Test complete.  %s FAILED on process rank %d.\n", initObj.getProgramName(), rank);
+            "Test complete.  %s FAILED on process rank %d.\n",
+            initObj.returnProgramName().c_str(), rank);
    }
 #else
    if (status == EXIT_SUCCESS) {
-      InfoLog().printf("Test complete.  %s passed.\n", initObj.getProgramName());
+      InfoLog().printf("Test complete.  %s passed.\n", initObj.returnProgramName().c_str());
    }
    else {
-      ErrorLog().printf("Test complete.  %s FAILED.\n", initObj.getProgramName());
+      ErrorLog().printf("Test complete.  %s FAILED.\n", initObj.returnProgramName().c_str());
    }
 #endif // PV_USE_MPI
 

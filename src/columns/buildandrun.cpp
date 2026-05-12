@@ -51,11 +51,11 @@ int buildandrun(
    PVParams *params = initObj->getParams();
    if (params == NULL) {
       if (initObj->getWorldRank() == 0) {
-         char const *progName = initObj->getProgramName();
-         if (progName == NULL) {
+         std::string progName = initObj->returnProgramName();
+         if (progName.empty()) {
             progName = "PetaVision";
          }
-         ErrorLog().printf("%s was called without having set a params file\n", progName);
+         ErrorLog().printf("%s was called without having set a params file\n", progName.c_str());
       }
       MPI_Barrier(initObj->getCommunicator()->communicator());
       exit(EXIT_FAILURE);

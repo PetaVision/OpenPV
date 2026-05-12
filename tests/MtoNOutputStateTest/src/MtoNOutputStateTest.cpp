@@ -33,11 +33,11 @@ int main(int argc, char *argv[]) {
    PV_Init pv_init(&argc, &argv, false /*no unrecognized arguments*/);
    if (pv_init.getParams() == nullptr) {
       if (pv_init.getWorldRank() == 0) {
-         char const *progName = pv_init.getProgramName();
-         if (progName == nullptr) {
+         std::string progName = pv_init.returnProgramName();
+         if (progName.empty()) {
             progName = "PetaVision";
          }
-         ErrorLog().printf("%s was called without having set a params file\n", progName);
+         ErrorLog().printf("%s was called without having set a params file\n", progName.c_str());
       }
       MPI_Barrier(pv_init.getCommunicator()->communicator());
       exit(EXIT_FAILURE);
