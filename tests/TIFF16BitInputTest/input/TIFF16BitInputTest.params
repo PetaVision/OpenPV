@@ -1,11 +1,11 @@
-// A params file to test whether the Image class can read a TIFF at (8-bit precision)
+// A params file to test whether the Image class can read a TIFF at 16-bit precision
 //
-// An ImageLayer reads the file input/PetaVisionLogo.tif, and a PVPLayer reads the file
-// input/PetaVisionLogo.pvp. Pixel-per-pixel, the .pvp file is the same as the .tif file,
-// except divided by 255. This is the normalization Image does, so the two layers should
+// An ImageLayer reads the file input/PetaVisionLogo16bit.tif, and a PVPLayer reads the file
+// input/PetaVisionLogo16bit.pvp. Pixel-per-pixel, the .pvp file is the same as the .tif file,
+// except divided by 65535. This is the normalization Image should do, so the two layers should
 // be the same. The layer "Comparison" holds the difference, and a RequireAllZeroActivityProbe
 // verifies that the difference is zero, allowing a small tolerance because of the potential for
-// floating-point discrepancy when dividing by 255.
+// floating-point discrepancy when dividing by 65535.
 
 debugParsing = false;
 
@@ -33,7 +33,7 @@ ImageLayer "TIFF" = {
     	      	
     displayPeriod = 0;
 
-    inputPath = "input/PetaVisionLogo.tif";
+    inputPath = "input/PetaVisionLogo16bit.tif";
     nf = 3;
     phase = 0;
     writeStep = 1.0;
@@ -58,7 +58,7 @@ PvpLayer "PVPCheck" = {
     	      	
     displayPeriod = 0;
 
-    inputPath = "input/PetaVisionLogo.pvp";
+    inputPath = "input/PetaVisionLogo16bit.pvp";
     nf = 3;
     phase = 0;
     writeStep = 1.0;
@@ -111,5 +111,5 @@ RequireAllZeroActivityProbe "ComparisonProbe" = {
     message = "comparison                    ";
     probeOutputFile = "Comparison.txt";
     triggerLayerName = NULL;
-    nnzThreshold = 1.0e-4;
+    nnzThreshold = 1.0e-6;
 };
