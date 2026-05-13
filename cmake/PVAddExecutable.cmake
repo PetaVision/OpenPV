@@ -37,6 +37,10 @@ macro(pv_add_executable TARGET)
     include_directories(${MPI_CXX_INCLUDE_PATH})
   endif()
 
+  if (PV_USE_TIFF AND TIFF_FOUND)
+    include_directories(${TIFF_INCLUDE_DIR})
+  endif()
+
   if (PV_USE_LUA AND LUA_FOUND)
     include_directories(${LUA_INCLUDE_DIR})
   endif()
@@ -82,6 +86,12 @@ macro(pv_add_executable TARGET)
   if (PV_USE_CUDA)
     target_link_libraries(${TARGET} ${CUDA_LIBRARIES})
     target_link_libraries(${TARGET} ${CUDNN_LIBRARY})
+  endif()
+
+  if (PV_USE_TIFF)
+    # FindTIFF module has different variables for the release and debug versions of the tiff library
+    # We use the release version of the tiff library, even if using the debug version of PetaVision
+    target_link_libraries(${TARGET} ${TIFF_LIBRARY_RELEASE})
   endif()
 
   if (PV_USE_LUA)

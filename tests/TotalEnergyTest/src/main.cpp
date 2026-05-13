@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
       if (generate(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: generate failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: generate failed.\n", initObj.returnProgramName().c_str());
          }
       }
    }
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
       if (testrun(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: testrun failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: testrun failed.\n", initObj.returnProgramName().c_str());
          }
       }
    }
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
       if (testcheckpoint(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: testcheckpoint failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: testcheckpoint failed.\n", initObj.returnProgramName().c_str());
          }
       }
    }
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
       if (testioparams(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            ErrorLog().printf("%s: testioparams failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: testioparams failed.\n", initObj.returnProgramName().c_str());
          }
       }
    }
@@ -252,7 +252,7 @@ int testcheckpoint(PV_Init *initObj, int rank) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s error: --testcheckpoint requires either the -r or the -c option.\n",
-               initObj->getProgramName());
+               initObj->returnProgramName().c_str());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);

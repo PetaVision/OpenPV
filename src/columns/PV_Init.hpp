@@ -79,9 +79,14 @@ class PV_Init {
    int getNumArgs() const { return mArgC; }
 
    /**
-    * Returns true if the require-return flag was set.
+    * Returns the path used to run the program
     */
-   char const *getProgramName() const { return mArgV[0]; }
+   char const *getProgramPath() const { return mArgV[0]; }
+
+   /**
+    * Returns the basename of the program path
+    */
+   std::string returnProgramName() const;
 
    /**
     * Returns a pointer to the Arguments. Declared const, so the arguments

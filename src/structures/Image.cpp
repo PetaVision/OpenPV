@@ -1,5 +1,7 @@
+#include "cMakeHeader.h"
 #include "Image.hpp"
 #include "Buffer.hpp"
+#include "include/pv_common.h"
 #include "utils/PVLog.hpp"
 
 // These defines are required by the stb headers
@@ -13,6 +15,12 @@
 #endif
 
 #include <cstring>
+#include <fstream>
+
+#ifdef PV_USE_TIFF
+#include <cstdint>
+#include <tiffio.h>
+#endif // PV_USE_TIFF
 
 namespace PV {
 
@@ -165,6 +173,26 @@ void Image::convertToColor(bool alphaChannelFlag) {
 }
 
 void Image::read(std::string const &filename) {
+   // Test if file is a TIFF
+   std::ifstream filestream(filename);
+   FatalIf(!filestream, "Image::read() Unable to open %s\n", filename.c_str());
+   char fh[4];
+   filestream.read(fh, 4);
+   FatalIf(!filestream, "Unable to read %s\n", filename.c_str());
+   filestream.close();
+   // Test if fileheader corresponds to TIFF
+   bool tiffLittleEndian = (fh[0] == 0x49 and fh[1] == 0x49 and fh[2] == 0x2a and fh[3] == 0x00);
+   bool tiffBigEndian = (fh[0] == 0x4d and fh[1] == 0x4d and fh[2] == 0x00 and fh[3] == 0x2a);
+   if (tiffBigEndian or tiffLittleEndian) {
+      readTIFF(filename);
+   }
+   else {
+      // Try stb_image
+      readSTB(filename);
+   }
+}
+
+void Image::readSTB(std::string const &filename) {
    int width = 0, height = 0, channels = 0;
    stbi_us *data = stbi_load_16(filename.c_str(), &width, &height, &channels, 0);
    if (data == nullptr) {
@@ -192,6 +220,85 @@ void Image::read(std::string const &filename) {
    }
 
    stbi_image_free(data);
+}
+
+void Image::readTIFF(std::string const &filename) {
+#ifdef PV_USE_TIFF
+   // Load a tiff file
+   TIFF *tiff = TIFFOpen(filename.c_str(), "r");
+   FatalIf(tiff == nullptr, "Unable to open TIFF \"%s\"\n", filename.c_str());
+   std::uint32_t width, height;
+   std::uint16_t features;
+   int status = PV_SUCCESS;
+   if (TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH, &width) == 0) {
+      ErrorLog().printf("Unable to read image width of \"%s\"\n", filename.c_str());
+      status = PV_FAILURE;
+   };
+   if (TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, &height) == 0) {
+      ErrorLog().printf("Unable to read image height of \"%s\"\n", filename.c_str());
+      status = PV_FAILURE;
+   };
+   if (TIFFGetField(tiff, TIFFTAG_SAMPLESPERPIXEL, &features) == 0) {
+      ErrorLog().printf("Unable to read image height of \"%s\"\n", filename.c_str());
+      status = PV_FAILURE;
+   };
+   if (status != PV_SUCCESS) {
+      exit(EXIT_FAILURE);
+   }
+   resize(width, height, features);
+   int h = static_cast<int>(height);
+   int w = static_cast<int>(width);
+   int area = width * height;
+   std::vector<uint32_t> raster(area);
+   status = TIFFReadRGBAImage(tiff, width, height, raster.data(), 0);
+   status = status ? PV_SUCCESS : PV_FAILURE; // In libtiff, 1 is success and 0 is an error
+   FatalIf(
+         status != PV_SUCCESS,
+         "TIFFReadRGBAImage() was unable to read \"%s\".\n",
+         filename.c_str());
+   switch (features) {
+      case 1:
+         for (int k = 0; k < area; ++k) {
+            int y = h - 1 - (k / w);
+            int x = k % w;
+            uint32_t v = raster[k];
+            float vf = static_cast<float>(TIFFGetR(v)) / 255.0f;
+            set(x, y, 0, vf);
+         }
+         break;
+      case 3:
+         for (int k = 0; k < area; ++k) {
+            int y = h - 1 - (k / w);
+            int x = k % w;
+            uint32_t v = raster[k];
+            set(x, y, 0, static_cast<float>(TIFFGetR(v)) / 255.0f);
+            set(x, y, 1, static_cast<float>(TIFFGetG(v)) / 255.0f);
+            set(x, y, 2, static_cast<float>(TIFFGetB(v)) / 255.0f);
+         }
+         break;
+      case 4:
+         for (int k = 0; k < area; ++k) {
+            int y = h - 1 - (k / w);
+            int x = k % w;
+            uint32_t v = raster[k];
+            set(x, y, 0, static_cast<float>(TIFFGetR(v)) / 255.0f);
+            set(x, y, 1, static_cast<float>(TIFFGetG(v)) / 255.0f);
+            set(x, y, 2, static_cast<float>(TIFFGetB(v)) / 255.0f);
+            set(x, y, 3, static_cast<float>(TIFFGetA(v)) / 255.0f);
+         }
+         break;
+      default:
+         Fatal().printf(
+               "Currently unable to read TIFF \"%s\" with %" PRIu16 " samples per pixel\n",
+               filename.c_str(), features);
+         break;
+   }
+#else // PV_USE_TIFF
+   Fatal().printf(
+         "PetaVision was compiled with the PV_USE_TIFF option off; unable to read TIFF \"%s\".\n",
+         filename.c_str());
+#endif // PV_USE_TIFF
+
 }
 
 void Image::write(std::string const &filename) {

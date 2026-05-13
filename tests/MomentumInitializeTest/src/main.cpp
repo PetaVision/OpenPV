@@ -73,7 +73,8 @@ int main(int argc, char *argv[]) {
    if (!pv_init->getStringArgument("ParamsFile").empty()) {
       if (pv_init->getWorldRank() == 0) {
          ErrorLog().printf(
-               "%s should be run without the params file argument.\n", pv_init->getProgramName());
+               "%s should be run without the params file argument.\n",
+               pv_init->returnProgramName().c_str());
       }
       status = PV_FAILURE;
    }

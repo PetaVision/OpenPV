@@ -55,7 +55,8 @@ int main(int argc, char *argv[]) {
       char const *checkParamsFile = "input/LayerRestartTest-Check.params";
       if (rank == 0) {
          InfoLog().printf(
-               "*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
+               "*** %s: running params file %s\n",
+               initObj.returnProgramName().c_str(), checkParamsFile);
       }
       initObj.setParams("input/LayerRestartTest-Check.params");
       status = rebuildandrun(&initObj, NULL, &checkComparisonNonzero);
@@ -63,7 +64,8 @@ int main(int argc, char *argv[]) {
          char const *readParamsFile = "input/LayerRestartTest-Read.params";
          if (rank == 0) {
             InfoLog().printf(
-                  "*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
+                  "*** %s: running params file %s\n",
+                  initObj.returnProgramName().c_str(), checkParamsFile);
          }
          initObj.setParams(readParamsFile);
          status = rebuildandrun(&initObj, NULL, &checkComparisonZero);

@@ -49,21 +49,24 @@ int main(int argc, char *argv[]) {
    if (initObj->getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
-               "%s should be run without the params file argument.\n", initObj->getProgramName());
+               "%s should be run without the params file argument.\n",
+               initObj->returnProgramName().c_str());
       }
       status = PV_FAILURE;
    }
    if (initObj->getIntegerArgument("NumRows") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
-               "%s should be run without the rows argument.\n", initObj->getProgramName());
+               "%s should be run without the rows argument.\n",
+               initObj->returnProgramName().c_str());
       }
       status = PV_FAILURE;
    }
    if (initObj->getIntegerArgument("NumColumns") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
-               "%s should be run without the columns argument.\n", initObj->getProgramName());
+               "%s should be run without the columns argument.\n",
+               initObj->returnProgramName().c_str());
       }
       status = PV_FAILURE;
    }

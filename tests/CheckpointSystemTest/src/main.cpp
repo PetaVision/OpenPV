@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             rank,
             paramFile1,
             status);
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "%s: rank %d running with params file %s returned status code %d.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             rank,
             paramFile2,
             status);

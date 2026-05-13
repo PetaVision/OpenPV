@@ -16,6 +16,7 @@ std::string dirName(std::string const &path) {
 }
 
 std::string dirName(char const *path) {
+   if (!path) { throw std::invalid_argument("dirName() was passed a null pointer"); }
    std::string pathCopy(path);
    char *directoryPart = dirname(&pathCopy.at(0));
    std::string result(directoryPart);
@@ -31,6 +32,7 @@ std::string baseName(std::string const &path) {
 }
 
 std::string baseName(char const *path) {
+   if (!path) { throw std::invalid_argument("baseName() was passed a null pointer"); }
    std::string pathCopy(path);
    char *basenamePart = basename(&pathCopy.at(0));
    std::string result(basenamePart);

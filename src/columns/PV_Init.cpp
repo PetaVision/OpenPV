@@ -149,6 +149,10 @@ void PV_Init::initLogFile(bool appendFlag) {
    }
 }
 
+std::string PV_Init::returnProgramName() const {
+   return baseName(mArgV[0]);
+}
+
 int PV_Init::setParams(char const *params_file) {
    if (params_file == nullptr) {
       return PV_FAILURE;

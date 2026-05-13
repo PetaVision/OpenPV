@@ -49,6 +49,10 @@ macro(pv_add_library TARGET)
     include_directories(${MPI_CXX_INCLUDE_PATH})
   endif()
 
+  if (PV_USE_TIFF AND TIFF_FOUND)
+    include_directories(${TIFF_INCLUDE_DIR})
+  endif()
+
   if (PV_USE_LUA AND LUA_FOUND)
     include_directories(${LUA_INCLUDE_DIR})
   endif()

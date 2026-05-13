@@ -32,12 +32,15 @@ class Image : public Buffer<float> {
    static constexpr const float mBToGray = 0.11f;
 
   protected:
+   void readSTB(std::string const &filename);
+   void readTIFF(std::string const &filename);
+
    // These only line up for RGB and RGBA. Should that change?
    const int mRPos = 0;
    const int mGPos = 1;
    const int mBPos = 2;
    const int mAPos = 3;
-};
-}
+}; // class Image
+} // namespace PV
 
 #endif // IMAGE_HPP_

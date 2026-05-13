@@ -21,7 +21,8 @@ int main(int argc, char *argv[]) {
    if (initObj.getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
-               "%s should be run without the params file argument.\n", initObj.getProgramName());
+               "%s should be run without the params file argument.\n",
+               initObj.returnProgramName().c_str());
       }
       status = PV_FAILURE;
    }
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             rank,
             paramFile1,
             status);
@@ -86,7 +87,7 @@ int main(int argc, char *argv[]) {
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
-            initObj.getProgramName(),
+            initObj.returnProgramName().c_str(),
             rank,
             paramFile2,
             status);
