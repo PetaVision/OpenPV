@@ -18,7 +18,7 @@
 #include <fstream>
 
 #ifdef PV_USE_TIFF
-#include <cstdint>
+#include <cinttypes>
 #include <tiffio.h>
 #endif // PV_USE_TIFF
 
@@ -256,6 +256,7 @@ void Image::readTIFF(std::string const &filename) {
          status != PV_SUCCESS,
          "TIFFReadRGBAImage() was unable to read \"%s\".\n",
          filename.c_str());
+   TIFFClose(tiff);
    switch (features) {
       case 1:
          for (int k = 0; k < area; ++k) {
