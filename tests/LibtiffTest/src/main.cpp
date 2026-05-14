@@ -10,6 +10,7 @@
 
 #ifdef PV_USE_TIFF
 
+#include <cinttypes>
 #include <cstdlib>
 #include <string>
 #include <tiffio.h>
@@ -65,6 +66,7 @@ int main(int argc, char *argv[]) {
       }
    }
    _TIFFfree(imageBuffer);
+   TIFFClose(tiff);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
