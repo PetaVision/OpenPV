@@ -1,0 +1,171 @@
+//
+// BroadcastConnectedToOdd.params
+
+//  A params file to test whether a broadcast layer and a layer with odd dimensions can be
+//  connected (there should be no restrictions on what size layer can be connected to a layer).
+//
+//  The input and output layers are 10x10; if there are two mpi processes in one of the
+//  dimensions, the local layer will be 5 pixels in that direction.
+//
+//  The input layer is connected to a 1x1x100 broadcast layer, using a connection that acts as
+//  the identity matrix when pre- and post-synaptic layers are treated as 100-vectors.
+//
+//  The broadcast layer is connected to the output layer using the transpose of the preceding
+//  connection. Therefore the output layer and input layer should have the same values.
+//  A RequireAllZeroActivityProbe verifies that this is the case.
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 1;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "BroadcastConnectedToOdd.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 10;
+    ny                                  = 10;
+    nbatch                              = 1;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+};
+
+// Layers
+
+ConstantLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "UniformRandomV";
+    minV                                = 0;
+    maxV                                = 1;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+HyPerLayer "Broadcast" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = true;
+    nf                                  = 100;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+HyPerLayer "Output" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 3;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+HyPerConn "InputToBroadcast" = {
+    initializeFromCheckpointFlag        = false;   
+    preLayerName                        = "Input";
+    postLayerName                       = "Broadcast"; 
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = 0;
+    nxp                                 = 1;    
+    nyp                                 = 1;
+    nfp                                 = 100;
+    sharedWeights                       = false;
+    writeStep                           = 1; 
+    initialWriteTime                    = 1;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/weights10x10x1to1x1x100.pvp"; 
+    normalizeMethod                     = "none";
+    plasticityFlag                      = false;
+};
+
+TransposeConn "BroadcastToOutput" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Broadcast";
+    postLayerName                       = "Output";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 0.0;   
+    writeCompressedWeights              = false;
+    originalConnName                    = "InputToBroadcast";
+};
+
+IdentConn "OutputToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Output";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = 0;
+};
+
+IdentConn "InputToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer                         = "Comparison";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonProbe.txt";
+    message                             = NULL;
+    triggerLayerName                    = NULL;
+    nnzThreshold                        = 0.0;
+    exitOnFailure                       = false;
+};
