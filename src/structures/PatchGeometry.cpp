@@ -343,7 +343,15 @@ int PatchGeometry::calcPatchStartInPost(
       int numNeuronsPre,
       int numNeuronsPost) {
    int patchStartInPost;
-   if (numNeuronsPre == numNeuronsPost) {
+   if (patchSize == numNeuronsPost and numNeuronsPre == 1 and indexRestrictedPre == 0) {
+      // handles case of broadcast pre-synaptic layer
+      patchStartInPost = 0;
+   }
+   else if (patchSize == 1 and numNeuronsPost == 1) {
+      // handles case of broadcast post-synaptic layer
+      patchStartInPost = 0;
+   }
+   else if (numNeuronsPre == numNeuronsPost) {
       int extentOneSide = (patchSize - 1) / 2;
       FatalIf(
             extentOneSide * 2 + 1 != patchSize,
