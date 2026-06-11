@@ -139,7 +139,13 @@ else()
 endif()
 
 add_custom_target(pvgitrevision ALL)
-add_custom_command(TARGET pvgitrevision COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${PV_SOURCE_DIR}/.. -DPV_CONFIG_FILE_DIR=${PV_CONFIG_FILE_DIR} -P ${PV_SOURCE_DIR}/../cmake/PVGitRevision.cmake)
+add_custom_command(
+  TARGET pvgitrevision
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND}
+    -DSOURCE_DIR=${PV_SOURCE_DIR}/..
+    -DPV_CONFIG_FILE_DIR=${PV_CONFIG_FILE_DIR}
+    -P ${PV_SOURCE_DIR}/../cmake/PVGitRevision.cmake)
 add_dependencies(${PV_LIBRARY_NAME} pvgitrevision)
 
 if (PV_TIMER_VERBOSE)
