@@ -20,7 +20,8 @@ function writepvplocalpatchweightfile(filename, data, nxRestricted, nyRestricted
     %     nxExtended and nyExtended are the dimensions of the presynaptic
     %         extended layer.
     
-    if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
+    filename = matlabstringtochararray(filename); % hack for compatibility with matlab double-quoted strings
+    if isempty(filename) || ~isrow(filename)
         error('writepvpweightfile:filenamenotstring', 'filename must be a string');
     end%if
     

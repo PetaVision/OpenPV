@@ -14,7 +14,8 @@ function writepvpactivityfile(filename, data, show_progress = false)
    % data{k}.values is a double array.
    % data{k}.values(x,y,f) is the activity of the neuron at location (x,y,f)
    
-   if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
+   filename = matlabstringtochararray(filename) % hack for compatibility with matlab double-quoted strings
+   if isempty(filename) || ~isrow(filename)
        error('writepvpactivityfile:filenamenotstring', 'filename must be a string');
    end%if
    

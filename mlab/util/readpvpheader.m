@@ -58,6 +58,10 @@ if ischar(file)
     fid = fopen(file, 'r');
     if fid < 0, error('readpvpheader:openerror', 'readpvpheader error: unable to open %s', file); end
     openedfile = true;
+elseif isstring(file)
+    fid = fopen(matlabstringtochararray(file), 'r'); % hack for compatibility with matlab double-quoted strings
+    if fid < 0, error('readpvpheader:openerror', 'readpvpheader error: unable to open %s', file); end
+    openedfile = true;
 elseif isnumeric(file) && isscalar(file) && round(file)==file
     fid = double(file);
     if isempty(fopen(fid)), error('readpvpheader:badfid', 'readpvpheader error: bad file id.'); end;

@@ -26,7 +26,8 @@ function writepvpsparseactivityfile(filename, data, nx, ny, nf)
        error('writepvpsparseactivityfile:missingargs', 'writepvpsparseactivityfile requires 5 arguments');
    end%if
    
-   if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
+   filename = matlabstringtochararray(filename); % hack for compatibility with matlab double-quoted strings
+   if isempty(filename) || ~isrow(filename)
        error('writepvpsparseactivityfile:filenamenotstring', 'filename must be a string');
    end%if
    

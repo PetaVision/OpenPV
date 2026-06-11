@@ -19,7 +19,8 @@ function writepvpsharedweightfile(filename, data)
    % data{k}.values{j}(x,y,f,k) is the weight at location (x,y,f)
    % of data patch k.
    
-   if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
+   filename = matlabstringtochararray(filename); % hack for compatibility with matlab double-quoted strings
+   if isempty(filename) || ~isrow(filename)
        error('writepvpsharedweightfile:filenamenotstring', 'filename must be a string');
    end%if
    

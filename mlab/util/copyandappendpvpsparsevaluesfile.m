@@ -14,11 +14,14 @@ function copyandappendpvpsparsevaluesfile(originalfilename, newfilename, newdata
        error('copyandappendpvpsparsevaluesfile:missingargs', 'copyandappendpvpsparsevaluesfile requires 6 arguments');
    end
 
-   if ~ischar(originalfilename) || ~isvector(originalfilename) || size(originalfilename,1)~=1
+   orig_filename = matlabstringtochararray(originalfilename); % hack for compatibility with matlab double-quoted strings
+   new_filename = matlabstringtochararray(newfilename);
+
+   if isempty(orig_filename) || ~isrow(orig_filename)
        error('copyandappendpvpsparsevaluesfile:filenamenotstring', 'originalfilename must be a string');
    end
 
-   if ~ischar(newfilename) || ~isvector(newfilename) || size(newfilename,1)~=1
+   if isempty(new_filename) || ~isrow(new_filename)
        error('copyandappendpvpsparsevaluesfile:filenamenotstring', 'newfilename must be a string');
    end
 
@@ -63,7 +66,7 @@ function copyandappendpvpsparsevaluesfile(originalfilename, newfilename, newdata
    end
    
    errorpresent = 0;
-   system(['cp ' originalfilename ' ' newfilename]); % Copy originalfilename, name it newfilename
+   system(['cp ' orig_filename ' ' new_filename]); % Copy originalfilename, name it newfilename
    fid=fopen(newfilename,'rb+');
    fseek(fid,4*17,'bof'); % Fseek to header.nbands (number of data frames)
    originalNumBands = fread(fid,1,'int32');

@@ -52,11 +52,19 @@ if isempty(wfolder)
     error('Error: checkpoint folder does not exist.')
 end
 
-if ~iscell(weights_files) && ischar(weights_files)
+% If only a single weights file is given, convert to a cell array of size 1
+if ~iscell(weights_files)
     weights_files_tmp=weights_files;
     weights_files=cell(1,1);
     weights_files{1}=weights_files_tmp;
-end
+    clear weights_files_tmp
+end%if
+
+for index = 1:numel(weights_files)
+    wf = matlabstringtochararray(weights_files(index));
+    if isempty(wf)
+       error('weightsplot:bad_weights_file', 'weights_files must be either a string or a cell array of strings');
+end%for
 
 
 for checkpoint_i=3:length(wfolder)

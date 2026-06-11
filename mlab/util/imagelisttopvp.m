@@ -16,7 +16,7 @@ function pvpdata = imagelisttopvp(infile, outfile)
 
 fid = fopen(infile);
 N = 0;
-status = "";
+status = '';
 while(~isequal(status, -1))
    status = fgets(fid, 256);
    if (ischar(status) && status(end)=="\n"), N = N+1; end
