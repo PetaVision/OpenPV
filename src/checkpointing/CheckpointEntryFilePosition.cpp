@@ -9,6 +9,8 @@ void CheckpointEntryFilePosition::write(
       std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag) const {
    if (!fileManager->isRoot()) { return; }
 
+   mFileStream->flush();
+
    writeValueToBinAndTxt(
          fileManager,
          std::string("FileStreamRead"),
