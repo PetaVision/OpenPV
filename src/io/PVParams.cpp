@@ -18,6 +18,7 @@
 #include <cstring> // strcmp(), strcpy()
 #include <iostream>
 #include <random> // mt19937, used in shuffleGroups()
+#include <string>
 #ifdef PV_USE_LUA
 #include <lua.hpp>
 #endif // PV_USE_LUA
@@ -1713,42 +1714,20 @@ void PVParams::handleUnnecessaryStringParameter(
       // marks param as read so that presentAndNotBeenRead doesn't trip up
 
       // Check against correct value.
-      if (params_value != nullptr && correct_value != nullptr) {
-         char *correct_value_i =
-               strdup(correct_value); // need mutable strings for case-insensitive comparison
-         char *params_value_i =
-               strdup(params_value); // need mutable strings for case-insensitive comparison
-         if (correct_value_i == nullptr) {
-            status = PV_FAILURE;
-            if (mWorldRank == 0) {
-               ErrorLog().printf(
-                     "%s \"%s\": Rank %d process unable to copy correct string value: %s.\n",
-                     class_name,
-                     group_name,
-                     mWorldRank,
-                     strerror(errno));
-            }
-         }
-         if (params_value_i == nullptr) {
-            status = PV_FAILURE;
-            if (mWorldRank == 0) {
-               ErrorLog().printf(
-                     "%s \"%s\": Rank %d process unable to copy parameter string value: %s.\n",
-                     class_name,
-                     group_name,
-                     mWorldRank,
-                     strerror(errno));
-            }
-         }
+      bool params_is_empty = params_value == nullptr or params_value[0] == '\0';
+      bool correct_is_empty = correct_value == nullptr or correct_value[0] == '\0';
+      if (!params_is_empty && !correct_is_empty) {
+         std::string correct_value_i(correct_value); // use for case-insensitive comparison
+         std::string params_value_i(correct_value); // use for case-insensitive comparison
          if (case_insensitive_flag) {
-            for (char *c = params_value_i; *c != '\0'; c++) {
-               *c = (char)tolower((int)*c);
+            for (auto &c : params_value_i) {
+               c = static_cast<char>(tolower(static_cast<int>(c)));
             }
-            for (char *c = correct_value_i; *c != '\0'; c++) {
-               *c = (char)tolower((int)*c);
+            for (auto &c : correct_value_i) {
+               c = static_cast<char>(tolower(static_cast<int>(c)));
             }
          }
-         if (std::strcmp(params_value_i, correct_value_i) != 0) {
+         if (params_value_i != correct_value_i) {
             status = PV_FAILURE;
             if (mWorldRank == 0) {
                ErrorLog().printf(
@@ -1761,10 +1740,8 @@ void PVParams::handleUnnecessaryStringParameter(
                      correct_value);
             }
          }
-         free(correct_value_i);
-         free(params_value_i);
       }
-      else if (params_value == nullptr && correct_value != nullptr) {
+      else if (params_is_empty && !correct_is_empty) {
          status = PV_FAILURE;
          if (mWorldRank == 0) {
             ErrorLog().printf(
@@ -1776,7 +1753,7 @@ void PVParams::handleUnnecessaryStringParameter(
                   correct_value);
          }
       }
-      else if (params_value != nullptr && correct_value == nullptr) {
+      else if (!params_is_empty && correct_is_empty) {
          status = PV_FAILURE;
          if (mWorldRank == 0) {
             ErrorLog().printf(
@@ -1789,7 +1766,7 @@ void PVParams::handleUnnecessaryStringParameter(
          }
       }
       else {
-         pvAssert(params_value == nullptr && correct_value == nullptr);
+         pvAssert(params_is_empty && correct_is_empty);
          pvAssert(status == PV_SUCCESS);
       }
    }
