@@ -96,12 +96,17 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    auto *preGeom = objectTable->findObject<LayerGeometry>(getPreLayerName());
-   pvAssert(preGeom);
+   FatalIf(
+         preGeom == nullptr,
+         "Layer \"%s\" does not have layer geometry and cannot be used as a pre-synaptic layer.\n",
+         getPreLayerName());
    mPreIsBroadcast = preGeom->getBroadcastFlag();
 
-   auto *postGeom = objectTable->findObject<LayerGeometry>(getPreLayerName());
-   pvAssert(postGeom);
-   mPostIsBroadcast = postGeom->getBroadcastFlag();
+   auto *postGeom = objectTable->findObject<LayerGeometry>(getPostLayerName());
+   FatalIf(
+         postGeom == nullptr,
+         "Layer \"%s\" does not have layer geometry and cannot be used as a post-synaptic layer.\n",
+         getPostLayerName());
 
    return Response::SUCCESS;
 }

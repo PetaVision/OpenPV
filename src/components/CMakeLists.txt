@@ -80,6 +80,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/SingleChannelGSynAccumulator.cpp
    ${SUBDIR}/SquaredGSynAccumulator.cpp
    ${SUBDIR}/StrengthParam.cpp
+   ${SUBDIR}/TimerLayerUpdateController.cpp
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
    ${SUBDIR}/VInputActivityBuffer.cpp
@@ -173,6 +174,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SpecifiedSharedWeights.hpp
    ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
+   ${SUBDIR}/TimerLayerUpdateController.hpp
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
    ${SUBDIR}/VInputActivityBuffer.hpp
