@@ -44,6 +44,7 @@
 #include "layers/RescaleLayer.hpp"
 #include "layers/Retina.hpp"
 #include "layers/SigmoidLayer.hpp"
+#include "layers/TimerLayer.hpp"
 
 #include "connections/CloneConn.hpp"
 #include "connections/CopyConn.hpp"
@@ -167,6 +168,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("ScaleXLayer", Factory::create<LinearTransformLayer>);
    factory->registerKeyword("ScaleYLayer", Factory::create<LinearTransformLayer>);
    factory->registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
+   factory->registerKeyword("TimerLayer", Factory::create<TimerLayer>);
 
    // Connections
    factory->registerKeyword("HyPerConn", Factory::create<HyPerConn>);

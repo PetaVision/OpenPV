@@ -212,7 +212,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 
    // Here, the connection tells all participating recv layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
-   if (mActivityComponent->getUpdateGpu()) {
+   if (mActivityComponent and mActivityComponent->getUpdateGpu()) {
       if (mLayerInput) {
          mLayerInput->useCuda();
       }
@@ -257,6 +257,7 @@ Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage 
 Response::Status HyPerLayer::allocateDataStructures() {
    // If not mirroring, fill the boundaries with the value in the valueBC param
    Response::Status status = ComponentBasedObject::allocateDataStructures();
+   if (!mBoundaryConditions) { return status; }
    if (!mBoundaryConditions->getMirrorBCflag() && mBoundaryConditions->getValueBC() != 0.0f) {
       auto *activityBuffer = mActivityComponent->getComponentByType<ActivityBuffer>();
       auto *activityData   = activityBuffer->getReadWritePointer();
@@ -297,6 +298,7 @@ HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> messag
    }
    return Response::SUCCESS;
 }
+
 Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
    if (mLayerUpdateController) {
@@ -322,7 +324,12 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
 }
 
 Response::Status HyPerLayer::copyInitialStateToGPU() {
-   return mActivityComponent->respond(std::make_shared<CopyInitialStateToGPUMessage>());
+   if (mActivityComponent) {
+      return mActivityComponent->respond(std::make_shared<CopyInitialStateToGPUMessage>());
+   }
+   else {
+      return Response::NO_ACTION;
+   }
 }
 #endif // PV_USE_CUDA
 

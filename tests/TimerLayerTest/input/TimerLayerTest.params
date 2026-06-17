@@ -1,0 +1,123 @@
+// TimerLayerTest.params
+// A test of TimerLayer
+// A ConstantLayer is connected to a LeakyIntegrator with infinite decay time,
+// where the LeakyIntegrator is triggered by a TimerLayer with timerPeriod = 5.
+// Therefore the LeakyIntegrator increments by the contents of the
+// ConstantLayer every 5 timesteps. The test runs until t=100, and therefore
+// at the end of the run the LeakyIntegrator's contents should be 20 times
+// that of the ConstantLayer. There is a PtwiseProductLayer that multiplies
+// the input by 20. The TimerLayer executable uses the exit hook of buildandrun
+// to check equality of the LeakyIntegrator and PtwiseProductLayer buffers.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 8;
+   ny = 8;
+   nbatch = 2;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 100.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+TimerLayer "Trigger" = {
+    timerPeriod = 5; // The only parameter that TimerLayer uses.
+};
+
+ConstantLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+
+    InitVType = "InitVFromFile";
+    Vfilename = "input/Input.pvp";
+    minV = 1.0;
+    maxV = 2.0;
+};
+
+ConstantLayer "Multiplier" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+
+    InitVType = "ConstantV";
+    valueV = 20.0;
+};
+
+LeakyIntegrator "Output" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    phase = 1;
+    triggerLayerName = "Trigger";
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+PtwiseProductLayer "CheckOutput" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    phase = 1;
+};
+
+//
+// connections
+//
+
+IdentConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "InputToCheckOutput" = {
+    preLayerName = "Input";
+    postLayerName = "CheckOutput";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "MultiplierToCheckOutput" = {
+    preLayerName = "Multiplier";
+    postLayerName = "CheckOutput";
+    channelCode = 1;
+    delay = 0;
+};

@@ -59,7 +59,6 @@ class ConnectionData : public BaseObject {
    HyPerLayer *getPost() { return mPost; }
 
    bool getPreIsBroadcast() const { return mPreIsBroadcast; }
-   bool getPostIsBroadcast() const { return mPostIsBroadcast; }
 
   protected:
    ConnectionData();
@@ -92,7 +91,6 @@ class ConnectionData : public BaseObject {
    HyPerLayer *mPre      = nullptr;
    HyPerLayer *mPost     = nullptr;
    bool mPreIsBroadcast  = false;
-   bool mPostIsBroadcast = false;
 
 }; // class ConnectionData
 
