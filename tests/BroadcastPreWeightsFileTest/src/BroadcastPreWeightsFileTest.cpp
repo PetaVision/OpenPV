@@ -349,6 +349,7 @@ int checkReadMultiple(
 int checkWrite(std::shared_ptr<FileManager const> fileManager, Dimensions const &dimensions) {
    std::string filename("checkWrite_W.pvp");
    auto writeData = std::make_shared<WeightData>(
+         "Test Writing Weights",
          1 /*numArbors*/,
          dimensions.nxPost, dimensions.nyPost, dimensions.nfPost,
          1 /*numDataPatchesX*/, 1 /*numDataPatchesY*/, dimensions.nfPre);
@@ -379,6 +380,7 @@ int checkWriteMultiple(
    int status = PV_SUCCESS;
    std::string filename("checkWriteMultiple_W.pvp");
    auto writeData = std::make_shared<WeightData>(
+         "Test Writing Multiple Weights",
          1 /*numArbors*/,
          dimensions.nxPost, dimensions.nyPost, dimensions.nfPost,
          1 /*numDataPatchesX*/, 1 /*numDataPatchesY*/, dimensions.nfPre);
@@ -475,6 +477,7 @@ int checkTruncate(std::shared_ptr<FileManager const> fileManager, Dimensions con
    int status = PV_SUCCESS;
    std::string filename("checkTruncate_W.pvp");
    auto writeData = std::make_shared<WeightData>(
+         "Test Truncating Weights",
          1 /*numArbors*/,
          dimensions.nxPost, dimensions.nyPost, dimensions.nfPost,
          1 /*numDataPatchesX*/, 1 /*numDataPatchesY*/, dimensions.nfPre);
@@ -640,6 +643,7 @@ std::shared_ptr<WeightData> gatherWeightsByBlock(
    std::shared_ptr<WeightData> result;
    if (mpiBlock->getRank() == 0) {
       result = std::make_shared<WeightData>(
+            "Temporary weights for test",
             weightData->getNumArbors(),
             weightData->getPatchSizeX() * mpiBlock->getNumColumns(),
             weightData->getPatchSizeY() * mpiBlock->getNumRows(),
@@ -672,6 +676,7 @@ std::shared_ptr<WeightData> makeWeightData(
       float start,
       float step) {
    auto weightData = std::make_shared<WeightData>(
+         "Weights for testing",
          1 /*numArbors*/,
          dimensions.nxPost, dimensions.nyPost, dimensions.nfPost,
          1 /*nxPre*/, 1 /*nyPre*/, dimensions.nfPre);
@@ -753,6 +758,7 @@ std::shared_ptr<WeightData> readUsingFileStreamPrimitives(
       int frameNumber,
       double &timestamp) {
    auto weightData = std::make_shared<WeightData>(
+      "Temporary weights for test",
       1 /*numArbors*/,
       dimensions.nxPost, dimensions.nyPost, dimensions.nfPost,
       1 /*numDataPatchesX*/, 1 /*numDataPatchesY*/, dimensions.nfPre);
@@ -771,7 +777,7 @@ std::shared_ptr<WeightData> readUsingFileStreamPrimitives(
       int nypBlock = weightData->getPatchSizeY() * mpiBlock->getNumRows();
       int nfp      = weightData->getPatchSizeF();
       gatheredWeightData = std::make_shared<WeightData>(
-            1 /*numArbors*/, nxpBlock, nypBlock, nfp, 1, 1, numPatches);
+            "Test Reading Weights", 1 /*numArbors*/, nxpBlock, nypBlock, nfp, 1, 1, numPatches);
       int frameSize = calcFrameSize(weightData, mpiBlock);
       long int filePosition = static_cast<long int>(frameSize) * static_cast<long int>(frameNumber);
       fileStream->setInPos(filePosition, std::ios_base::beg);

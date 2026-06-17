@@ -69,6 +69,7 @@ void LocalPatchWeightsFile::write(double timestamp) {
             createHeader(timestamp, extremeValues[0], extremeValues[1]);
       mLocalPatchWeightsIO->writeHeader(header);
       WeightData tempWeightData(
+            mPath,
             mWeightData->getNumArbors(),
             mWeightData->getPatchSizeX(),
             mWeightData->getPatchSizeY(),
@@ -421,6 +422,7 @@ void LocalPatchWeightsFile::readLocalPatchWeights(double &timestamp) {
 
 void LocalPatchWeightsFile::readSharedWeights(double &timestamp) {
    WeightData sharedWeightData(
+         mPath,
          mNumArbors, mPatchSizeX, mPatchSizeY, mPatchSizeF,
          mSharedWeightsIO->getNumPatchesX(),
          mSharedWeightsIO->getNumPatchesY(),

@@ -19,6 +19,12 @@ ComponentBuffer::~ComponentBuffer() {
 #ifdef PV_USE_CUDA
    delete mCudaBuffer;
 #endif // PV_USE_CUDA
+   std::size_t bufferSize = mBufferData.size();
+   std::size_t bytesPerValue = sizeof(*mBufferData.data());
+   std::size_t allocated = bufferSize * bytesPerValue;
+   InfoLog().printf(
+           "Deallocation %zu bytes: %s buffer of %zu values of size %zu deleted.\n",
+            allocated, getDescription_c(), bufferSize, bytesPerValue);
 }
 
 void ComponentBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
@@ -86,8 +92,14 @@ void ComponentBuffer::setBufferSize() {
 }
 
 void ComponentBuffer::setReadOnlyPointer() {
+   long int oldSize = mBufferData.size();
    mBufferData.resize(mBufferSizeAcrossChannels);
-
+   long int newSize = mBufferData.size();
+   long int bytesPerValue = sizeof(*mBufferData.data());
+   long int allocated = (newSize - oldSize) * bytesPerValue;
+   InfoLog().printf(
+           "Allocation %ld bytes: %s buffer resized from %ld to %ld values of size %zu.\n",
+            allocated, getDescription_c(), oldSize, newSize, bytesPerValue);
    mReadOnlyPointer = mBufferData.data();
 }
 

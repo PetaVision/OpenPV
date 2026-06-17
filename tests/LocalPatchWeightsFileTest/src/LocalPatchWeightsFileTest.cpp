@@ -17,14 +17,16 @@
 #include <utils/requiredConvolveMargin.hpp>
 
 #include <algorithm> // used by calcMinVal and calcMaxVal
-#include <memory>
 #include <limits> // used by calcMinVal and calcMaxVal
+#include <memory>
+#include <string>
 
 using namespace PV;
 
 const float tolerance = 2.5e-7f; // relative error tolerance in comparing weights 
 
 std::shared_ptr<WeightData> allocateWeights(
+      std::string const &name,
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc);
 
@@ -151,7 +153,7 @@ int run(
    double timestamp;
 
    std::shared_ptr<WeightData> writeWeights =
-         allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+         allocateWeights("writeWeights", numArbors, nxp, nyp, nfp, preLoc, postLoc);
 
    std::unique_ptr<LocalPatchWeightsFile> wgtFile(new LocalPatchWeightsFile(
       fileManager,
@@ -213,7 +215,7 @@ int run(
 
    // Now read the weights using the LocalPatchWeightsFile class, and compare the results
    std::shared_ptr<WeightData> readWeights =
-         allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+         allocateWeights("readWeights", numArbors, nxp, nyp, nfp, preLoc, postLoc);
    wgtFile = std::unique_ptr<LocalPatchWeightsFile>(new LocalPatchWeightsFile(
       fileManager,
       testReadPath,
@@ -264,6 +266,7 @@ int run(
 }
 
 std::shared_ptr<WeightData> allocateWeights(
+      std::string const &name,
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
    int nxPreRestricted = preLoc.nx;
@@ -275,7 +278,7 @@ std::shared_ptr<WeightData> allocateWeights(
    int yMargin         = requiredConvolveMargin(nyPreRestricted, nyPost, nyp, 'y', "Connection");
    int nyPreExtended   = nyPreRestricted + 2 * yMargin;
    auto weightData     = std::make_shared<WeightData>(
-         numArbors, nxp, nyp, nfp, nxPreExtended, nyPreExtended, preLoc.nf);
+         name, numArbors, nxp, nyp, nfp, nxPreExtended, nyPreExtended, preLoc.nf);
    return weightData;
 }
 
@@ -502,7 +505,7 @@ PVLayerLoc createLayerLoc(
 std::shared_ptr<WeightData> createWgts3(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
-   auto weightData       = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+   auto weightData       = allocateWeights("createWgts3", numArbors, nxp, nyp, nfp, preLoc, postLoc);
    int nxLocalExt        = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyLocalExt        = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
    int nf                = preLoc.nf;
@@ -534,7 +537,8 @@ std::shared_ptr<WeightData> createWgts3(
 std::shared_ptr<WeightData> createWgts4(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
-   auto weightData       = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+   auto weightData = allocateWeights("createWgts4", numArbors, nxp, nyp, nfp, preLoc, postLoc);
+
    int nxLocalExt        = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyLocalExt        = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
    int nf                = preLoc.nf;
@@ -602,6 +606,7 @@ std::shared_ptr<WeightData> readFromFileStream(
    long patchSizeBytes  = static_cast<long>(patchSize * header.baseHeader.dataSize);
    long numPatches      = static_cast<long>(blockNxExt * blockNyExt * nfPre);
    auto blockWeightData = std::make_shared<WeightData>(
+         "blockWeightData",
          numArbors, header.nxp, header.nyp, header.nfp, blockNxExt, blockNyExt, nfPre);
 
    int marginLeft       = (blockNxExt - header.baseHeader.nx) / 2;
@@ -613,6 +618,7 @@ std::shared_ptr<WeightData> readFromFileStream(
    int localNxExt       = localNx + marginLeft + marginRight;
    int localNyExt       = localNy + marginDown + marginUp;
    auto localWeightData = std::make_shared<WeightData>(
+         "localWeightData",
          numArbors, header.nxp, header.nyp, header.nfp, localNxExt, localNyExt, nfPre);
    for (int a = 0; a < numArbors; ++a) {
       if (fileManager->isRoot()) {

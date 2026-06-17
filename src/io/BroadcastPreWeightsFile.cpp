@@ -86,6 +86,7 @@ void BroadcastPreWeightsFile::writePostIsNotBroadcast(double timestamp) {
       mBroadcastPreWeightsIO->setHeaderExtremeVals(extremeValues[0], extremeValues[1]);
       mBroadcastPreWeightsIO->writeHeader();
       WeightData tempWeightData(
+            mPath,
             mWeightData->getNumArbors(),
             mWeightData->getPatchSizeX(),
             mWeightData->getPatchSizeY(),

@@ -69,7 +69,8 @@ int main(int argc, char *argv[]) {
    // Write a shared weights PVP file using the SharedWeightsFile class, and then read it back
    // using primitive FileStream functions, and compare the result. 
    std::string testWritePath("testWeightsWrite.pvp");
-   auto weights = std::make_shared<WeightData>(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   auto weights = std::make_shared<WeightData>(
+         "TestWeights", numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
 
    std::unique_ptr<SharedWeightsFile> wgtFile(new SharedWeightsFile(
       fileManager,
@@ -139,6 +140,7 @@ int main(int argc, char *argv[]) {
       false /*clobberFlag*/,
       false /*verifyWrites*/));
    auto readWeights3 = std::make_shared<WeightData>(
+      "readWeights3",
       numArbors,
       nxp, nyp, nfp,
       nxPre, nyPre, nfPre);
@@ -327,7 +329,8 @@ int copyWeights(
 
 std::shared_ptr<WeightData> createWgts1(
       int numArbors, int nxp, int nyp, int nfp, int nxPre, int nyPre, int nfPre) {
-   auto weightData = std::make_shared<WeightData>(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   auto weightData = std::make_shared<WeightData>(
+         "createWgts1", numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
    long elemsPerArbor = weightData->getPatchSizeOverall() * weightData->getNumDataPatchesOverall();
    pvAssert(elemsPerArbor == static_cast<long>(nxp * nyp * nfp * nxPre * nyPre * nfPre));
    for (int a = 0; a < numArbors; ++a) {
@@ -342,7 +345,8 @@ std::shared_ptr<WeightData> createWgts1(
 
 std::shared_ptr<WeightData> createWgts2(
       int numArbors, int nxp, int nyp, int nfp, int nxPre, int nyPre, int nfPre) {
-   auto weightData = std::make_shared<WeightData>(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   auto weightData = std::make_shared<WeightData>(
+         "createWgts2", numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
    long elemsPerArbor = weightData->getPatchSizeOverall() * weightData->getNumDataPatchesOverall();
    pvAssert(elemsPerArbor == static_cast<long>(nxp * nyp * nfp * nxPre * nyPre * nfPre));
    for (int a = 0; a < numArbors; ++a) {
@@ -357,7 +361,8 @@ std::shared_ptr<WeightData> createWgts2(
 
 std::shared_ptr<WeightData> createWgts3(
       int numArbors, int nxp, int nyp, int nfp, int nxPre, int nyPre, int nfPre) {
-   auto weightData = std::make_shared<WeightData>(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   auto weightData = std::make_shared<WeightData>(
+         "createWgts3", numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
    long elemsPerArbor = weightData->getPatchSizeOverall() * weightData->getNumDataPatchesOverall();
    pvAssert(elemsPerArbor == static_cast<long>(nxp * nyp * nfp * nxPre * nyPre * nfPre));
    for (int a = 0; a < numArbors; ++a) {
@@ -372,7 +377,8 @@ std::shared_ptr<WeightData> createWgts3(
 
 std::shared_ptr<WeightData> createWgts4(
       int numArbors, int nxp, int nyp, int nfp, int nxPre, int nyPre, int nfPre) {
-   auto weightData = std::make_shared<WeightData>(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
+   auto weightData = std::make_shared<WeightData>(
+         "createWgts4", numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
    long elemsPerArbor = weightData->getPatchSizeOverall() * weightData->getNumDataPatchesOverall();
    pvAssert(elemsPerArbor == static_cast<long>(nxp * nyp * nfp * nxPre * nyPre * nfPre));
    for (int a = 0; a < numArbors; ++a) {
@@ -423,6 +429,7 @@ std::shared_ptr<WeightData> readFromFileStream(
    long numPatches = static_cast<long>(numPatchesX * numPatchesY * numPatchesF);
    std::vector<float> weightsVector(numPatches * patchSize);
    auto weightData = std::make_shared<WeightData>(
+         "ReadWeights",
          numArbors, header.nxp, header.nyp, header.nfp, numPatchesX, numPatchesY, numPatchesF);
    for (int a = 0; a < numArbors; ++a) {
       if (fileManager->isRoot()) {

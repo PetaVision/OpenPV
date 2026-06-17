@@ -7,19 +7,31 @@
 namespace PV {
 
 WeightData::WeightData(
+      std::string const &allocationMessage,
       int numArbors,
       int patchSizeX, int patchSizeY, int patchSizeF,
       int numDataPatchesX, int numDataPatchesY, int numDataPatchesF) {
-   mNumArbors = numArbors;
-   mPatchSizeX = patchSizeX;
-   mPatchSizeY = patchSizeY;
-   mPatchSizeF = patchSizeF;
-   mPatchSizeOverall = static_cast<long>(patchSizeX * patchSizeY * patchSizeF);
-   mNumDataPatchesX = numDataPatchesX;
-   mNumDataPatchesY = numDataPatchesY;
-   mNumDataPatchesF = numDataPatchesF;
+   mAllocationMessage = allocationMessage;
+   mNumArbors         = numArbors;
+   mPatchSizeX        = patchSizeX;
+   mPatchSizeY        = patchSizeY;
+   mPatchSizeF        = patchSizeF;
+   mPatchSizeOverall  = static_cast<long>(patchSizeX * patchSizeY * patchSizeF);
+   mNumDataPatchesX   = numDataPatchesX;
+   mNumDataPatchesY   = numDataPatchesY;
+   mNumDataPatchesF   = numDataPatchesF;
 
-   initializeData();
+   initializeData(allocationMessage);
+}
+
+WeightData::~WeightData() {
+   long int numArborsL    = getNumArbors();
+   long int patchSizeL    = getPatchSizeOverall();
+   long int numPatchesL   = getNumDataPatchesOverall();
+   long int bytesPerValue = sizeof(float);
+   long int allocated     = numArborsL * patchSizeL * numPatchesL * bytesPerValue;
+   InfoLog().printf(
+           "Deallocation %ld bytes: \"%s\"\n", allocated, mAllocationMessage.c_str());
 }
 
 void WeightData::calcExtremeWeights(float &minWeight, float &maxWeight) const {
@@ -63,11 +75,25 @@ float const *WeightData::getDataFromXYF(int arbor, int indexX, int indexY, int i
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
-void WeightData::initializeData() {
+void WeightData::initializeData(std::string const &allocationMessage) {
    mData.resize(getNumArbors());
    for (auto &a : mData) {
       a.resize(getPatchSizeOverall() * getNumDataPatchesOverall());
    }
+   long int numArborsL    = getNumArbors();
+   long int patchSizeL    = getPatchSizeOverall();
+   long int numPatchesL   = getNumDataPatchesOverall();
+   long int bytesPerValue = sizeof(float);
+   long int allocated     = numArborsL * patchSizeL * numPatchesL * bytesPerValue;
+   InfoLog().printf(
+           "Allocation %ld bytes: "
+           "\"%s\", %ld arbors, %ld patches, patch size %ld, %ld-byte values.\n",
+           allocated,
+           mAllocationMessage.c_str(),
+           numArborsL,
+           numPatchesL,
+           patchSizeL,
+           bytesPerValue);
 }
 
 } // namespace PV

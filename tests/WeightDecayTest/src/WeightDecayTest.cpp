@@ -75,6 +75,7 @@ std::shared_ptr<WeightData const> getCorrectWeightData(HyPerCol *hc) {
    std::string paramsName = stripExtension(paramsFilename);
    std::string correctWeightsFilename = paramsName + "_correct.pvp";
    auto correctWeightData = std::make_shared<WeightData>(
+         "correctWeightData",
          1 /*numAxonalArbors*/,
          1 /*patchSizeX*/, 1 /*patchSizeY*/, 3 /*patchSizeF*/,
          1 /*numDataPatchesX*/, 1 /*numDataPatchesY*/, 1 /*numDataPatchesF*/);

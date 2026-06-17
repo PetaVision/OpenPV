@@ -1,7 +1,9 @@
 #ifndef WEIGHTDATA_HPP_
 #define WEIGHTDATA_HPP_
 
+#include <string>
 #include <vector>
+#include "utils/PVLog.hpp"
 
 namespace PV {
 
@@ -9,11 +11,12 @@ class WeightData {
 
   public:
    WeightData(
+         std::string const &allocationMessage,
          int numArbors,
          int patchSizeX, int patchSizeY, int patchSizeF,
          int numDataPatchesX, int numDataPatchesY, int numDataPatchesF);
    WeightData() = delete;
-   ~WeightData() {};
+   ~WeightData();
 
    void calcExtremeWeights(float &minWeight, float &maxWeight) const;
 
@@ -41,7 +44,7 @@ class WeightData {
    long getNumValuesPerArbor() const { return getPatchSizeOverall() * getNumDataPatchesOverall(); }
 
   private:
-   void initializeData();
+   void initializeData(std::string const &allocationMessage);
 
   private:
    int mNumArbors;
@@ -54,6 +57,7 @@ class WeightData {
    int mNumDataPatchesF;
 
    std::vector<std::vector<float>> mData;
+   std::string mAllocationMessage;
 
 }; // class WeightData
 

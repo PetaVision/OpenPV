@@ -23,7 +23,7 @@ struct Dimensions {
 
 WeightData makeTestWeights(Dimensions const &dimensions) {
    WeightData weightData(
-         1 /*numArbors*/,
+         "TestWeights", 1 /*numArbors*/,
          dimensions.patchSizeX, dimensions.patchSizeY, dimensions.patchSizeF,
          dimensions.numPatchesX, dimensions.numPatchesY, dimensions.numPatchesF);
    return weightData;
