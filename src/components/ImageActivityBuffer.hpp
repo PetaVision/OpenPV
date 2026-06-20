@@ -64,7 +64,7 @@ class ImageActivityBuffer : public InputActivityBuffer {
     */
    virtual Buffer<float> retrieveData(int inputIndex) override;
 
-   virtual void readImage(std::string filename);
+   virtual void readImage(std::string const &filename);
 
   protected:
    std::unique_ptr<Image> mImage = nullptr;

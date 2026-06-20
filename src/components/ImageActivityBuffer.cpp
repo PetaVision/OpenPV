@@ -5,8 +5,9 @@
  *      Author: Sheng Lundquist
  */
 
-#include "ImageActivityBuffer.hpp"
 #include <algorithm>
+#include "ImageActivityBuffer.hpp"
+#include "utils/PathComponents.hpp"
 
 namespace PV {
 
@@ -144,21 +145,18 @@ Buffer<float> ImageActivityBuffer::retrieveData(int inputIndex) {
    return result;
 }
 
-void ImageActivityBuffer::readImage(std::string filename) {
-   bool usingTempFile = false;
-
+void ImageActivityBuffer::readImage(std::string const &filename) {
    // Attempt to download our input file if we've been passed a URL or AWS path
    if (filename.find("://") != std::string::npos) {
-      usingTempFile          = true;
-      std::string extension  = filename.substr(filename.find_last_of("."));
+      std::string extension = PV::extension(filename);
+      // if filename has no extension, the extension string will be empty
       std::string pathstring = mURLDownloadTemplate + extension;
-      char tempStr[256];
-      strcpy(tempStr, pathstring.c_str());
-      int tempFileID = mkstemps(tempStr, extension.size());
-      pathstring     = std::string(tempStr);
-      FatalIf(tempFileID < 0, "Cannot create temp image file.\n");
-      std::string systemstring;
+      int extsize = static_cast<int>(extension.size());
+      int tempFileID = mkstemps(&pathstring[0], extsize);
+      FatalIf(
+            tempFileID < 0, "Cannot create temp image file to download \%s\".\n", filename.c_str());
 
+      std::string systemstring;
       if (filename.find("s3://") != std::string::npos) {
          systemstring = std::string("aws s3 cp \'") + filename + std::string("\' ") + pathstring;
       }
@@ -167,7 +165,6 @@ void ImageActivityBuffer::readImage(std::string filename) {
                         + std::string("\'");
       }
 
-      filename              = pathstring;
       const int numAttempts = 5;
       for (int attemptNum = 0; attemptNum < numAttempts; attemptNum++) {
          if (system(systemstring.c_str()) == 0) {
@@ -180,14 +177,15 @@ void ImageActivityBuffer::readImage(std::string filename) {
                systemstring.c_str(),
                strerror(errno));
       }
+      mImage = std::unique_ptr<Image>(new Image(std::string(pathstring)));
+      FatalIf(
+            ::remove(pathstring.c_str()),
+            "remove(\"%s\") failed.  Exiting.\n",
+            pathstring.c_str());
    }
-
-   mImage = std::unique_ptr<Image>(new Image(std::string(filename)));
-
-   FatalIf(
-         usingTempFile && remove(filename.c_str()),
-         "remove(\"%s\") failed.  Exiting.\n",
-         filename.c_str());
+   else {
+      mImage = std::unique_ptr<Image>(new Image(std::string(filename)));
+   }
 }
 
 } // namespace PV
