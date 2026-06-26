@@ -248,8 +248,8 @@ yPosGlobal(int kGlobal, int yScaleLog2, int nxGlobal, int nyGlobal, int nf) {
  *      k = ky * (nf*nx) + kx * nf + kf
  *      .
  */
-CONVERSIONS_SPECIFIER inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf) {
-   return kf + (kx + ky * nx) * nf;
+CONVERSIONS_SPECIFIER inline long int kIndex(int kx, int ky, int kf, int nx, int ny, int nf) {
+   return kf + (kx + ky * (long)nx) * (long)nf;
 }
 
 //! RETURNS LINEAR INDEX FROM Batch, X,Y, AND FEATURE INDEXES
@@ -398,7 +398,7 @@ CONVERSIONS_SPECIFIER inline float deltaPosLayers(int kPre, int scale) {
  *   - ky is the Y direction index in restricted space
  *   .
  */
-CONVERSIONS_SPECIFIER inline int
+CONVERSIONS_SPECIFIER inline long int
 kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    const int kx_ex = lt + kxPos(k, nx, ny, nf);
    const int ky_ex = up + kyPos(k, nx, ny, nf);
@@ -457,7 +457,7 @@ kIndexExtendedBatch(int k, int nb, int nx, int ny, int nf, int lt, int rt, int d
  *   - ky is the Y direction index in restricted space
  *   .
  */
-CONVERSIONS_SPECIFIER inline int
+CONVERSIONS_SPECIFIER inline long int
 kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int kx, ky, kf;
 
@@ -487,7 +487,7 @@ kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int u
 //           tests/test_extend_border.c files. These tests run a
 //           function equivalent to the mpi version of
 //           globalIndexFromLocal but without using MPI.
-CONVERSIONS_SPECIFIER inline int globalIndexFromLocal(int kl, const PVLayerLoc loc) {
+CONVERSIONS_SPECIFIER inline long int globalIndexFromLocal(int kl, const PVLayerLoc loc) {
 #ifdef PV_USE_MPI
    int kxg = (loc.bcast ? 0 : loc.kx0) + kxPos(kl, loc.nx, loc.ny, loc.nf);
    int kyg = (loc.bcast ? 0 : loc.ky0) + kyPos(kl, loc.nx, loc.ny, loc.nf);
@@ -498,7 +498,7 @@ CONVERSIONS_SPECIFIER inline int globalIndexFromLocal(int kl, const PVLayerLoc l
 #endif // PV_USE_MPI
 }
 
-CONVERSIONS_SPECIFIER inline int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc) {
+CONVERSIONS_SPECIFIER inline long int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc) {
 #ifdef PV_USE_MPI
    int kxGlobal = kxPos(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
    int kyGlobal = kyPos(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
@@ -556,7 +556,7 @@ CONVERSIONS_SPECIFIER inline float deltaWithPBC(float x1, float x2, float max) {
  * @nf
  */
 //#pragma FTT elemental, vectorize
-CONVERSIONS_SPECIFIER inline int globalIndex(
+CONVERSIONS_SPECIFIER inline long int globalIndex(
       int kf,
       float x,
       float y,
@@ -576,7 +576,7 @@ CONVERSIONS_SPECIFIER inline int globalIndex(
 // Warning: function will return center point in a one to many conversion
 // Conversion in feature space does not exist, output will be first feature
 // If outside the area of out layer, will move to the clostest avaliable position in out layer
-CONVERSIONS_SPECIFIER inline int
+CONVERSIONS_SPECIFIER inline long int
 layerIndexExt(int kPreExt, const PVLayerLoc *inLoc, const PVLayerLoc *outLoc) {
    // Calculate scale factor based on restricted
    float scaleFactorX = (float)outLoc->nxGlobal / inLoc->nxGlobal;
@@ -647,7 +647,7 @@ layerIndexExt(int kPreExt, const PVLayerLoc *inLoc, const PVLayerLoc *outLoc) {
 // Converts an index from one layer to the other in the restricted space
 // Warning: function will return center point in a one to many conversion
 // Conversion in feature space does not exist, output will be first feature
-CONVERSIONS_SPECIFIER inline int
+CONVERSIONS_SPECIFIER inline long int
 layerIndexRes(int kPreRes, const PVLayerLoc *inLoc, const PVLayerLoc *outLoc) {
    // Call with extended index
    int kPreExt = kIndexExtended(
@@ -704,9 +704,8 @@ CONVERSIONS_SPECIFIER inline int localExtToGlobalRes(int localExtK, const PVLaye
    int globalResX = localExtX - loc->halo.lt + loc->kx0;
    int globalResY = localExtY - loc->halo.up + loc->ky0;
 
-   // Get final globalResK
-   int globalResK = kIndex(globalResX, globalResY, localF, loc->nxGlobal, loc->nyGlobal, loc->nf);
-   return globalResK;
+   // Get final global restricted index
+   return kIndex(globalResX, globalResY, localF, loc->nxGlobal, loc->nyGlobal, loc->nf);
 }
 
 /**

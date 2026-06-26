@@ -23,8 +23,8 @@ class WeightData {
    float *getData(int arbor) { return mData.at(arbor).data(); }
    float const *getData(int arbor) const { return mData.at(arbor).data(); }
 
-   float *getDataFromDataIndex(int arbor, int dataIndex);
-   float const *getDataFromDataIndex(int arbor, int dataIndex) const;
+   float *getDataFromDataIndex(int arbor, long int dataIndex);
+   float const *getDataFromDataIndex(int arbor, long int dataIndex) const;
 
    float *getDataFromXYF(int arbor, int indexX, int indexY, int indexF);
    float const *getDataFromXYF(int arbor, int indexX, int indexY, int indexF) const;
@@ -38,9 +38,7 @@ class WeightData {
    int getNumDataPatchesX() const { return mNumDataPatchesX; }
    int getNumDataPatchesY() const { return mNumDataPatchesY; }
    int getNumDataPatchesF() const { return mNumDataPatchesF; }
-   long getNumDataPatchesOverall() const {
-      return static_cast<long>(getNumDataPatchesX() * getNumDataPatchesY() * getNumDataPatchesF());
-   }
+   long getNumDataPatchesOverall() const { return mNumDataPatchesOverall; }
    long getNumValuesPerArbor() const { return getPatchSizeOverall() * getNumDataPatchesOverall(); }
 
   private:
@@ -55,6 +53,7 @@ class WeightData {
    int mNumDataPatchesX;
    int mNumDataPatchesY;
    int mNumDataPatchesF;
+   long mNumDataPatchesOverall;
 
    std::vector<std::vector<float>> mData;
    std::string mAllocationMessage;
