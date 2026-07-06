@@ -32,6 +32,13 @@
 namespace PV {
 
 void pv_terminate(void) {
+   std::exception_ptr const currentException = std::current_exception();
+   try {
+      std::rethrow_exception(currentException);
+   }
+   catch (std::exception const &e) {
+      ErrorLog() << e.what() << "\n";
+   }
    int tracedepth = 25;
    ErrorLog().printf("Terminating exception. Stacktrace:\n");
    std::vector<void*> backtraces(tracedepth);
