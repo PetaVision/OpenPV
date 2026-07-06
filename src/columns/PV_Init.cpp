@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <execinfo.h>
 #include <ios>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -30,10 +31,24 @@
 
 namespace PV {
 
+void pv_terminate(void) {
+   int tracedepth = 25;
+   ErrorLog().printf("Terminating exception. Stacktrace:\n");
+   std::vector<void*> backtraces(tracedepth);
+   ::backtrace(&backtraces[0], tracedepth);
+   char **backtraceSymbols = backtrace_symbols(&backtraces[0], tracedepth);
+   for (int k = 0; k < tracedepth; ++k) {
+      if (backtraces[k]) {
+         ErrorLog().printf("[%d] %s\n", k, backtraceSymbols[k]);
+      }
+   }
+   ErrorLog().printf("Run failed.\n");
+   std::exit(EXIT_FAILURE);
+}
+
 PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArgumentsFlag) {
-   // Initialize MPI
    initSignalHandler();
-   commInit(argc, argv);
+   commInit(argc, argv); // Initializes MPI
    initMaxThreads();
    mArgC = *argc;
    mArgV.resize(mArgC + 1);
@@ -43,6 +58,7 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArgumentsFlag) 
 
    mArguments = parse_arguments(*argc, *argv, allowUnrecognizedArgumentsFlag);
    initLogFile(false /*appendFlag*/);
+   std::set_terminate(PV::pv_terminate);
    initFactory();
    initialize(); // must be called after initialization of Arguments data member.
 }

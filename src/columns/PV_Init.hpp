@@ -8,6 +8,10 @@
 #ifndef PV_INIT_HPP_
 #define PV_INIT_HPP_
 
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "arch/mpi/mpi.h"
 #include "columns/Arguments.hpp"
 #include "columns/Communicator.hpp"
@@ -15,11 +19,11 @@
 #include "io/Configuration.hpp"
 #include "io/PVParams.hpp"
 
-#include <memory>
-#include <string>
-#include <vector>
-
 namespace PV {
+
+// PV_Init constructor calls std::set_terminate() with this function.
+// It sends a stack trace to ErrorLog().
+void pv_terminate(void);
 
 /**
  * PV_Init is an object that initializes MPI and parameters to pass to the
