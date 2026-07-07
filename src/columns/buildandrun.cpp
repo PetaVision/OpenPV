@@ -22,6 +22,7 @@
  *      Author: peteschultz
  */
 
+#include <execinfo.h>
 #include "buildandrun.hpp"
 
 using namespace PV;
@@ -117,12 +118,7 @@ int buildandrun1paramset(
    }
 
    if (status == PV_SUCCESS && hc->getFinalStep() > 0L) {
-      try {
-         status = hc->run();
-      } catch (std::exception const &e) {
-         ErrorLog() << e.what() << "\n";
-         status = PV_FAILURE;
-      }
+      status = hc->run();
       if (status != PV_SUCCESS) {
          ErrorLog().printf("HyPerCol::run() returned with error code %d\n", status);
       }
