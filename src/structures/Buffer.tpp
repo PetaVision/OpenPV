@@ -36,7 +36,7 @@ T const Buffer<T>::at(int x, int y, int feature) const {
 }
 
 template <class T>
-T const Buffer<T>::at(int k) const {
+T const Buffer<T>::at(long k) const {
    return mData.at(k);
 }
 
@@ -46,16 +46,16 @@ void Buffer<T>::set(int x, int y, int feature, T value) {
 }
 
 template <class T>
-void Buffer<T>::set(int k, T value) {
+void Buffer<T>::set(long k, T value) {
    mData.at(k) = value;
 }
 
 template <class T>
 void Buffer<T>::set(const std::vector<T> &vector, int width, int height, int features) {
    FatalIf(
-         (int)vector.size() != width * height * features,
-         "Invalid vector size: Expected %d elements, vector contained %d elements.\n",
-         width * height * features,
+         (long)vector.size() != (long)width * (long)height * (long)features,
+         "Invalid vector size: Expected %ld elements, vector contained %zu elements.\n",
+         (long)width * (long)height * (long)features,
          vector.size());
    mData     = vector;
    mWidth    = width;
@@ -65,7 +65,7 @@ void Buffer<T>::set(const std::vector<T> &vector, int width, int height, int fea
 
 template <class T>
 void Buffer<T>::set(const T *data, int width, int height, int features) {
-   std::vector<T> tempVector(width * height * features);
+   std::vector<T> tempVector((long)width * (long)height * (long)features);
    for (size_t i = 0; i < tempVector.size(); ++i) {
       tempVector.at(i) = data[i];
    }
@@ -189,7 +189,12 @@ Buffer<T> Buffer<T>::extractFeatures(int firstFeature, int lastFeature) const {
 template <class T>
 void Buffer<T>::resize(int width, int height, int features) {
    mData.clear();
-   mData.resize(height * width * features);
+   // Cast dimensions as size_t to avoid integer overflow
+   // (doesn't avoid size_t overflow, but that shouldn't be an issue yet)
+   std::size_t nxSize = static_cast<std::size_t>(width);
+   std::size_t nySize = static_cast<std::size_t>(height);
+   std::size_t nfSize = static_cast<std::size_t>(features);
+   mData.resize(nxSize * nySize * nfSize);
    mWidth    = width;
    mHeight   = height;
    mFeatures = features;
@@ -324,6 +329,12 @@ int Buffer<T>::getAnchorY(enum Anchor anchor, int smallerHeight, int biggerHeigh
       default: resultY        = 0; break;
    }
    return resultY;
+}
+
+template <class T>
+long Buffer<T>::index(int x, int y, int f) const {
+   long xyPos = (long)x + (long)y * (long)mWidth;
+   return (long)f + xyPos * (long)mFeatures;
 }
 
 } // end namespace PV
