@@ -63,8 +63,8 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
          conn->getDescription_c());
    auto *preWeights = weightsPair->getPreWeights();
    FatalIf(
-         preWeights->getNumDataPatches() != N,
-         "connection InputToOutput and layer SumInputs have different sizes.\n");
+         preWeights->getNumDataPatchesOverall() != (long)N,
+         "Connection InputToOutput and layer SumInputs have different sizes.\n");
    float const *weights       = preWeights->getData(0);
    float const *correctValues = correctValuesPublisher->getLayerData(0);
    int status                 = PV_SUCCESS;

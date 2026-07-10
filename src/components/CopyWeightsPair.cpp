@@ -185,10 +185,10 @@ void CopyWeightsPair::copy() {
 
       int const numArbors        = mPreWeights->getNumArbors();
       int const patchSizeOverall = mPreWeights->getPatchSizeOverall();
-      int const numDataPatches   = mPreWeights->getNumDataPatches();
+      long const numDataPatches  = mPreWeights->getNumDataPatchesOverall();
       pvAssert(numArbors == originalPreWeights->getNumArbors());
       pvAssert(patchSizeOverall == originalPreWeights->getPatchSizeOverall());
-      pvAssert(numDataPatches == originalPreWeights->getNumDataPatches());
+      pvAssert(numDataPatches == originalPreWeights->getNumDataPatchesOverall());
 
       auto arborSize = (std::size_t)(patchSizeOverall * numDataPatches) * sizeof(float);
       for (int arbor = 0; arbor < numArbors; arbor++) {
@@ -202,10 +202,10 @@ void CopyWeightsPair::copy() {
 
       int const numArbors        = mPostWeights->getNumArbors();
       int const patchSizeOverall = mPostWeights->getPatchSizeOverall();
-      int const numDataPatches   = mPostWeights->getNumDataPatches();
+      long const numDataPatches  = mPostWeights->getNumDataPatchesOverall();
       pvAssert(numArbors == originalPostWeights->getNumArbors());
       pvAssert(patchSizeOverall == originalPostWeights->getPatchSizeOverall());
-      pvAssert(numDataPatches == originalPostWeights->getNumDataPatches());
+      pvAssert(numDataPatches == originalPostWeights->getNumDataPatchesOverall());
 
       auto arborSize = (std::size_t)(patchSizeOverall * numDataPatches) * sizeof(float);
       for (int arbor = 0; arbor < numArbors; arbor++) {

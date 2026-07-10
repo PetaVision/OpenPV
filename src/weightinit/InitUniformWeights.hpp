@@ -49,7 +49,7 @@ class InitUniformWeights : public InitWeights {
   protected:
    InitUniformWeights();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual void calcWeights(int patchIndex, int arborId) override;
+   virtual void calcWeights(long patchIndex, int arborId) override;
 
   private:
    void uniformWeights(float *dataStart, float weightInit, int kf, bool connectOnlySameFeatures);

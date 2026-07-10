@@ -86,7 +86,7 @@ class InitWeights : public BaseObject {
 
    /**
     * Called by initializeWeights, to calculate the weights in all arbors and all patches.
-    * The base implementation calls calcWeights(int, int) in a loop over arbors and
+    * The base implementation calls calcWeights(long, int) in a loop over arbors and
     * patches
     */
    void calcWeights();
@@ -95,15 +95,15 @@ class InitWeights : public BaseObject {
     * Called by calcWeights(void), to calculate the weights in the given arbor and patch.
     * Derived classes generally override this method.
     */
-   virtual void calcWeights(int dataPatchIndex, int arborId);
+   virtual void calcWeights(long dataPatchIndex, int arborId);
 
    virtual int readWeights(const char *path, int frameNumber, double *timestampPtr = nullptr);
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
 
    int
-   dataIndexToUnitCellIndex(int dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
-   int kernelIndexCalculations(int patchIndex);
+   dataIndexToUnitCellIndex(long dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
+   int kernelIndexCalculations(long patchIndex);
    float calcYDelta(int jPost);
    float calcXDelta(int iPost);
    float calcDelta(int post, float dPost, float distHeadPreUnits);

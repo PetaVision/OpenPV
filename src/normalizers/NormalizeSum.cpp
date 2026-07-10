@@ -61,8 +61,8 @@ int NormalizeSum::normalizeWeights() {
       }
       PVLayerLoc const &preLoc  = weights0->getGeometry()->getPreLoc();
       PVLayerLoc const &postLoc = weights0->getGeometry()->getPostLoc();
-      int numNeuronsPre         = preLoc.nx * preLoc.ny * preLoc.nf;
-      int numNeuronsPost        = postLoc.nx * postLoc.ny * postLoc.nf;
+      long numNeuronsPre         = (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf;
+      long numNeuronsPost        = (long)postLoc.nx * (long)postLoc.ny * (long)postLoc.nf;
       scaleFactor               = ((float)numNeuronsPost) / ((float)numNeuronsPre);
    }
    scaleFactor *= mStrength;
@@ -71,22 +71,19 @@ int NormalizeSum::normalizeWeights() {
    // symmetrizeWeights
 
    int nArbors        = weights0->getNumArbors();
-   int numDataPatches = weights0->getNumDataPatches();
+   long numDataPatches = weights0->getNumDataPatchesOverall();
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sum = 0.0;
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               long weightsPerPatch  = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateSum(dataStartPatch, weightsPerPatch, &sum);
             }
             if (fabsf(sum) <= mMinSumTolerated) {
                WarnLog().printf(
-                     "NormalizeSum for %s: sum of weights in patch %d of arbor %d is within "
+                     "NormalizeSum for %s: sum of weights in patch %ld of arbor %d is within "
                      "minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
                      getDescription_c(),
                      patchindex,
@@ -95,11 +92,8 @@ int NormalizeSum::normalizeWeights() {
                continue;
             }
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               long weightsPerPatch  = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
             }
          }
@@ -110,17 +104,14 @@ int NormalizeSum::normalizeWeights() {
          float sum = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               long weightsPerPatch  = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateSum(dataStartPatch, weightsPerPatch, &sum);
             }
          }
          if (fabsf(sum) <= mMinSumTolerated) {
             WarnLog().printf(
-                  "NormalizeSum for %s: sum of weights in patch %d is within minSumTolerated=%f of "
+                  "NormalizeSum for %s: sum of weights in patch %ld is within minSumTolerated=%f of "
                   "zero.  Weights in this patch unchanged.\n",
                   getDescription_c(),
                   patchindex,
@@ -129,11 +120,8 @@ int NormalizeSum::normalizeWeights() {
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               long weightsPerPatch  = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
             }
          }

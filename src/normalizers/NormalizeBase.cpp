@@ -175,7 +175,7 @@ bool NormalizeBase::weightsHaveUpdated() const {
    return haveUpdated;
 }
 
-int NormalizeBase::accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum) {
+int NormalizeBase::accumulateSum(float *dataPatchStart, long weights_in_patch, float *sum) {
    // Do not call with sum uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
@@ -209,7 +209,7 @@ int NormalizeBase::accumulateSumShrunken(
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumSquared(float *dataPatchStart, int weights_in_patch, float *sumsq) {
+int NormalizeBase::accumulateSumSquared(float *dataPatchStart, long weights_in_patch, float *sumsq) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
@@ -243,12 +243,12 @@ int NormalizeBase::accumulateSumSquaredShrunken(
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateMaxAbs(float *dataPatchStart, int weights_in_patch, float *max) {
+int NormalizeBase::accumulateMaxAbs(float *dataPatchStart, long weights_in_patch, float *max) {
    // Do not call with max uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
    float newmax = *max;
-   for (int k = 0; k < weights_in_patch; k++) {
+   for (long k = 0; k < weights_in_patch; k++) {
       float w = fabsf(dataPatchStart[k]);
       if (w > newmax)
          newmax = w;
@@ -257,12 +257,12 @@ int NormalizeBase::accumulateMaxAbs(float *dataPatchStart, int weights_in_patch,
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateMax(float *dataPatchStart, int weights_in_patch, float *max) {
+int NormalizeBase::accumulateMax(float *dataPatchStart, long weights_in_patch, float *max) {
    // Do not call with max uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
    float newmax = *max;
-   for (int k = 0; k < weights_in_patch; k++) {
+   for (long k = 0; k < weights_in_patch; k++) {
       float w = dataPatchStart[k];
       if (w > newmax)
          newmax = w;
@@ -271,7 +271,7 @@ int NormalizeBase::accumulateMax(float *dataPatchStart, int weights_in_patch, fl
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateMin(float *dataPatchStart, int weights_in_patch, float *min) {
+int NormalizeBase::accumulateMin(float *dataPatchStart, long weights_in_patch, float *min) {
    // Do not call with min uninitialized.
    // min is cleared inside this routine so that you can accumulate the stats over several patches
    // with multiple calls

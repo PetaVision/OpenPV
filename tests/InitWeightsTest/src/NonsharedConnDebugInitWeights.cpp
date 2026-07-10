@@ -63,8 +63,8 @@ Response::Status NonsharedConnDebugInitWeights::initializeState(
    FatalIf(
          mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
          "NonsharedConnDebugInitWeights did not set weightInitTypeString.\n");
-   int numPatches = preWeights->getNumDataPatches();
-   int numArbors  = preWeights->getNumArbors();
+   long numPatches = preWeights->getNumDataPatchesOverall();
+   int numArbors   = preWeights->getNumArbors();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       float *arborStart = preWeights->getData(arbor);
       if (!strcmp(mWeightInitTypeString, "CoCircWeight")) {
@@ -83,11 +83,11 @@ Response::Status NonsharedConnDebugInitWeights::initializeState(
    return Response::SUCCESS;
 }
 
-void NonsharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {
+void NonsharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, long numPatches) {
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
    int overallPatchSize = preWeights->getPatchSizeOverall();
-   for (int k = 0; k < numPatches; k++) {
+   for (long k = 0; k < numPatches; k++) {
       auto &patch = preWeights->getPatch(k);
       smartWeights(patch, dataStart + k * overallPatchSize, dataIndexToUnitCellIndex(k));
    }
@@ -115,7 +115,7 @@ void NonsharedConnDebugInitWeights::smartWeights(Patch const &wp, float *dataSta
    }
 }
 
-void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int numDataPatches) {
+void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, long numDataPatches) {
    PVParams *params = parameters();
    float aspect     = 1.0f; // circular (not line oriented)
    float sigma      = 0.8f;
@@ -174,7 +174,7 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, in
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
    int patchSizeOverall = preWeights->getPatchSizeOverall();
-   for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
+   for (long patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
       float *patchDataStart = &dataStart[patchIndex * patchSizeOverall];
       cocircCalcWeights(
             preWeights->getPatch(patchIndex),
@@ -201,7 +201,7 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, in
 void NonsharedConnDebugInitWeights::cocircCalcWeights(
       Patch const &wp,
       float *dataStart,
-      int dataPatchIndex,
+      long dataPatchIndex,
       int noPre,
       int noPost,
       float sigma_cocirc,
@@ -572,7 +572,7 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
    }
 }
 
-void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, int numPatches) {
+void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, long numPatches) {
    PVParams *params = parameters();
 
    // default values (chosen for center on cell of one pixel)
@@ -615,7 +615,7 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
    int patchSizeOverall = preWeights->getPatchSizeOverall();
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+   for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(
             preWeights->getPatch(patchIndex),
             &dataStart[patchIndex * patchSizeOverall],
@@ -812,7 +812,7 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
    }
 }
 
-void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int numPatches) {
+void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, long numPatches) {
 
    auto *preLayer   = getComponentByType<ConnectionData>()->getPre();
    auto *postLayer  = getComponentByType<ConnectionData>()->getPost();
@@ -842,7 +842,7 @@ void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
    int patchSizeOverall = preWeights->getPatchSizeOverall();
-   for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
+   for (long kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       // TODO - change parameters based on kernelIndex (i.e., change orientation)
       gaborWeights(
             preWeights->getPatch(kernelIndex),
@@ -944,7 +944,7 @@ void NonsharedConnDebugInitWeights::gaborWeights(
 }
 
 int NonsharedConnDebugInitWeights::dataIndexToUnitCellIndex(
-      int dataIndex,
+      long dataIndex,
       int *kx,
       int *ky,
       int *kf) {

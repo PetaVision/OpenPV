@@ -134,12 +134,12 @@ class Weights {
    int getNumDataPatchesF() const { return mNumDataPatchesF; }
 
    /** Returns the overall number of data patches */
-   int getNumDataPatches() const {
-      return getNumDataPatchesX() * getNumDataPatchesY() * getNumDataPatchesF();
+   long getNumDataPatchesOverall() const {
+      return (long)getNumDataPatchesX() * (long)getNumDataPatchesY() * (long)getNumDataPatchesF();
    }
 
    /** Returns a nonmutable reference to the patch info for the given patch index. */
-   Patch const &getPatch(int patchIndex) const;
+   Patch const &getPatch(long patchIndex) const;
 
    /** Returns a shared pointer to the WeightData structure holding the weights */
    std::shared_ptr<WeightData> getData() { return mData; }
@@ -154,7 +154,7 @@ class Weights {
    float const *getData(int arbor) const;
 
    /** Returns a pointer to the patch data for the given data index */
-   inline float *getDataFromDataIndex(int arbor, int dataIndex) {
+   inline float *getDataFromDataIndex(int arbor, long dataIndex) {
       return mData->getDataFromDataIndex(arbor, dataIndex);
    }
 
@@ -162,7 +162,7 @@ class Weights {
     * Returns a pointer to the patch data for data index corresponding to the
     * given patch index
     */
-   float *getDataFromPatchIndex(int arbor, int patchIndex);
+   float *getDataFromPatchIndex(int arbor, long patchIndex);
 
    /**
     * Returns a pointer to the start of the active area of the patch data for
@@ -195,7 +195,7 @@ class Weights {
     * Returns getPatchSizeX() * getPatchSizeY() * getPatchSizeF(),
     * the overall number of items in a patch.
     */
-   int getPatchSizeOverall() const { return mGeometry->getPatchSizeOverall(); }
+   long getPatchSizeOverall() const { return mGeometry->getPatchSizeOverall(); }
 
    /**
     * Returns the memory stride between adjacent feature indices with the same x- and y- coordinates

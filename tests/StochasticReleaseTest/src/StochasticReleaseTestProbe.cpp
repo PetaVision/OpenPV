@@ -154,12 +154,13 @@ Response::Status StochasticReleaseTestProbe::communicateInitInfo(
          mConn->getName(),
          patchSize->getPatchSizeY());
    auto *weightsPair = mConn->getComponentByType<WeightsPair>();
+   long numDataPatchesOverall = weightsPair->getPreWeights()->getNumDataPatchesOverall();
    FatalIf(
-         weightsPair->getPreWeights()->getNumDataPatches() != patchSize->getPatchSizeF(),
-         ": %s connection %s must have number of data patches (%d) and nfp equal (%d).\n",
+         numDataPatchesOverall != (long)patchSize->getPatchSizeF(),
+         ": %s connection %s must have number of data patches (%ld) and nfp equal (%d).\n",
          getDescription_c(),
          mConn->getName(),
-         weightsPair->getPreWeights()->getNumDataPatches(),
+         numDataPatchesOverall,
          patchSize->getPatchSizeF());
    return Response::SUCCESS;
 }

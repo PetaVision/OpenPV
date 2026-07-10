@@ -177,7 +177,7 @@ std::unique_ptr<Weights> copyWeights(Weights const *inWeights) {
       float *outData      = result->getData(a);
       float const *inData = inWeights->getData(a);
       std::size_t patchSize  = static_cast<std::size_t>(inWeights->getPatchSizeOverall());
-      std::size_t numPatches = static_cast<std::size_t>(inWeights->getNumDataPatches());
+      std::size_t numPatches = static_cast<std::size_t>(inWeights->getNumDataPatchesOverall());
       memcpy(outData, inData, patchSize * numPatches * sizeof(float));
    }
    return result;

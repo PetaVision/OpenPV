@@ -104,13 +104,13 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
    float origStrength = origConn->getComponentByType<NormalizeBase>()->getStrength();
    float copyStrength = copyConn->getComponentByType<NormalizeBase>()->getStrength();
 
-   int origNumPatches =
-         origConn->getComponentByType<WeightsPair>()->getPreWeights()->getNumDataPatches();
-   int copyNumPatches =
-         copyConn->getComponentByType<WeightsPair>()->getPreWeights()->getNumDataPatches();
+   long origNumPatches =
+         origConn->getComponentByType<WeightsPair>()->getPreWeights()->getNumDataPatchesOverall();
+   long copyNumPatches =
+         copyConn->getComponentByType<WeightsPair>()->getPreWeights()->getNumDataPatchesOverall();
    FatalIf(
          origNumPatches != copyNumPatches,
-         "Test failed. OriginalConn has %d patches but CopyConn has %d.\n",
+         "Test failed. OriginalConn has %ld patches but CopyConn has %ld.\n",
          origNumPatches,
          copyNumPatches);
 
@@ -144,7 +144,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
    auto *origPreWeights = origConn->getComponentByType<WeightsPair>()->getPreWeights();
    auto *copyPreWeights = copyConn->getComponentByType<WeightsPair>()->getPreWeights();
    for (int arbor = 0; arbor < origNumArbors; arbor++) {
-      for (int patchIndex = 0; patchIndex < origNumPatches; patchIndex++) {
+      for (long patchIndex = 0L; patchIndex < origNumPatches; patchIndex++) {
          float *origWeightsData = origPreWeights->getDataFromDataIndex(arbor, patchIndex);
          float *copyWeightsData = copyPreWeights->getDataFromDataIndex(arbor, patchIndex);
          for (int y = 0; y < origNyp; y++) {
@@ -156,7 +156,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
                   float discrep    = fabsf(origWeight * copyStrength - copyWeight * origStrength);
                   if (discrep > 1e-6f) {
                      ErrorLog().printf(
-                           "Rank %d: arbor %d, patchIndex %d, x=%d, y=%d, f=%d: discrepancy of "
+                           "Rank %d: arbor %d, patchIndex %ld, x=%d, y=%d, f=%d: discrepancy of "
                            "%g\n",
                            hc->columnId(),
                            arbor,

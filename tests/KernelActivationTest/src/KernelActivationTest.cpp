@@ -93,7 +93,7 @@ int dumponeweight(ComponentBasedObject *conn) {
 
    auto *weightsPair = conn->getComponentByType<WeightsPair>();
    auto *preWeights  = weightsPair->getPreWeights();
-   for (int p = 0; p < preWeights->getNumDataPatches(); p++) {
+   for (long p = 0; p < preWeights->getNumDataPatchesOverall(); p++) {
       float *wgtData = preWeights->getDataFromDataIndex(0, p);
       for (int f = 0; f < nfp; f++) {
          for (int x = 0; x < nxp; x++) {
@@ -118,7 +118,7 @@ int dumponeweight(ComponentBasedObject *conn) {
                      errorMessage.printf("Rank %d, %s:\n", rank, conn->getDescription_c());
                   }
                   errorMessage.printf(
-                        "Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a "
+                        "Rank %d, Patch %ld, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a "
                         "factor of %f\n",
                         rank,
                         p,

@@ -72,12 +72,10 @@ void CheckpointEntryWeightPvp::read(
    // Need to clear weights before reading because reading weights is increment-add, not assignment.
    int const numArbors = mWeights->getNumArbors();
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      int const nxp        = mWeights->getPatchSizeX();
-      int const nyp        = mWeights->getPatchSizeY();
-      int const nfp        = mWeights->getPatchSizeF();
-      int const numPatches = mWeights->getNumDataPatches();
+      long const patchSize  = mWeights->getPatchSizeOverall();
+      long const numPatches = mWeights->getNumDataPatchesOverall();
 
-      std::size_t const numWeightsInArbor = (std::size_t)(numPatches * nxp * nyp * nfp);
+      std::size_t const numWeightsInArbor = (std::size_t)(numPatches * patchSize);
       float *weightData                   = mWeights->getData(arbor);
 
       memset(weightData, 0, numWeightsInArbor * sizeof(*weightData));

@@ -32,7 +32,7 @@ void RandomSeed::initialize(unsigned int initialSeed) {
    mNextSeed    = initialSeed;
 }
 
-unsigned int RandomSeed::allocate(unsigned int numRequested) {
+unsigned int RandomSeed::allocate(unsigned long numRequested) {
    if (!mInitialized) {
       Fatal() << "RandomSeed has not been initialized.\n";
    }

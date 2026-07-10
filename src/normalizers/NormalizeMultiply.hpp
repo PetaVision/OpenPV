@@ -83,7 +83,7 @@ class NormalizeMultiply : public NormalizeBase {
 
    int applyThreshold(
          float *dataPatchStart,
-         int weights_in_patch,
+         long weights_in_patch,
          float wMax); // weights less than normalize_cutoff*max(weights) are zeroed out
 
    /**
@@ -106,7 +106,7 @@ class NormalizeMultiply : public NormalizeBase {
          int xPatchStride,
          int yPatchStride);
 
-   static void normalizePatch(float *patchData, int weightsPerPatch, float multiplier);
+   static void normalizePatch(float *patchData, long weightsPerPatch, float multiplier);
 
    virtual StrengthParam *retrieveStrengthParamIfNeeded(
          std::shared_ptr<CommunicateInitInfoMessage const> message) override;

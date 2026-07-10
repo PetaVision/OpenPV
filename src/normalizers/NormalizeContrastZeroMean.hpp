@@ -33,12 +33,12 @@ class NormalizeContrastZeroMean : public NormalizeBase {
 
    static void subtractOffsetAndNormalize(
          float *dataStartPatch,
-         int weightsPerPatch,
+         long weightsPerPatch,
          float offset,
          float normalizer);
    int accumulateSumAndSumSquared(
          float *dataPatchStart,
-         int weights_in_patch,
+         long weights_in_patch,
          float *sum,
          float *sumsq);
 

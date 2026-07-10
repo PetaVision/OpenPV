@@ -22,12 +22,12 @@ void InitSmartWeights::initialize(char const *name, PVParams *params, Communicat
    InitWeights::initialize(name, params, comm);
 }
 
-void InitSmartWeights::calcWeights(int patchIndex, int arborId) {
+void InitSmartWeights::calcWeights(long patchIndex, int arborId) {
    float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    smartWeights(dataStart, patchIndex);
 }
 
-void InitSmartWeights::smartWeights(float *dataStart, int k) {
+void InitSmartWeights::smartWeights(float *dataStart, long k) {
    int const nfp = mWeights->getPatchSizeF();
    int const nyp = mWeights->getPatchSizeY();
    int const nxp = mWeights->getPatchSizeX();

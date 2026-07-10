@@ -64,8 +64,8 @@ SharedConnDebugInitWeights::initializeState(std::shared_ptr<InitializeStateMessa
    FatalIf(
          mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
          "NonsharedConnDebugInitWeights did not set weightInitTypeString.\n");
-   int numKernelPatches = preWeights->getNumDataPatches();
-   int numArbors        = preWeights->getNumArbors();
+   long numKernelPatches = preWeights->getNumDataPatchesOverall();
+   int numArbors         = preWeights->getNumArbors();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       float *arborStart = preWeights->getData(arbor);
       if (!strcmp(mWeightInitTypeString, "CoCircWeight")) {
@@ -84,7 +84,7 @@ SharedConnDebugInitWeights::initializeState(std::shared_ptr<InitializeStateMessa
    return Response::SUCCESS;
 }
 
-void SharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {
+void SharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, long numPatches) {
    auto *weightsPair    = getComponentByType<WeightsPair>();
    int overallPatchSize = weightsPair->getPreWeights()->getPatchSizeOverall();
    for (int k = 0; k < numPatches; k++) {
@@ -115,7 +115,7 @@ void SharedConnDebugInitWeights::smartWeights(float *dataStart, int k) {
    }
 }
 
-void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int numPatches) {
+void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, long numPatches) {
    PVParams *params = parameters();
    float aspect     = 1.0f; // circular (not line oriented)
    float sigma      = 0.8f;
@@ -174,7 +174,7 @@ void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int n
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
    int patchSizeOverall = preWeights->getPatchSizeOverall();
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+   for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       cocircCalcWeights(
             &dataStart[patchIndex * patchSizeOverall],
             patchIndex,
@@ -198,7 +198,7 @@ void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int n
 
 void SharedConnDebugInitWeights::cocircCalcWeights(
       float *dataStart,
-      int dataPatchIndex,
+      long dataPatchIndex,
       int noPre,
       int noPost,
       float sigma_cocirc,
@@ -563,7 +563,7 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
    }
 }
 
-void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, int numPatches) {
+void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, long numPatches) {
    PVParams *params = parameters();
 
    // default values (chosen for center on cell of one pixel)
@@ -606,7 +606,7 @@ void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, i
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
    int patchSizeOverall = preWeights->getPatchSizeOverall();
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+   for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(
             &dataStart[patchIndex * patchSizeOverall],
             patchIndex,
@@ -628,7 +628,7 @@ void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, i
 
 void SharedConnDebugInitWeights::gauss2DCalcWeights(
       float *dataStart,
-      int dataPatchIndex,
+      long dataPatchIndex,
       int no,
       int numFlanks,
       float shift,

@@ -18,13 +18,13 @@ class InitSmartWeights : public InitWeights {
    InitSmartWeights();
    virtual ~InitSmartWeights();
 
-   virtual void calcWeights(int patchIndex, int arborId) override;
+   virtual void calcWeights(long patchIndex, int arborId) override;
 
   protected:
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
   private:
-   void smartWeights(float *dataStart, int k);
+   void smartWeights(float *dataStart, long k);
 }; // class InitSmartWeights
 
 } /* namespace PV */

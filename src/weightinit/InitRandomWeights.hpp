@@ -22,8 +22,8 @@ class InitRandomWeights : public InitWeights {
    InitRandomWeights();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual int initRNGs(bool isKernel) override;
-   virtual void calcWeights(int patchIndex, int arborId) override;
-   virtual void randomWeights(float *patchDataStart, int patchIndex) = 0;
+   virtual void calcWeights(long patchIndex, int arborId) override;
+   virtual void randomWeights(float *patchDataStart, long patchIndex) = 0;
    // Subclasses must implement randomWeights.
    // patchDataStart is a pointer to the beginning of a data patch.
    // patchIndex is the index for that patch.  The RNGs are accessed by calling randState's get

@@ -120,10 +120,10 @@ void Weights::allocateDataStructures() {
             getPatchSizeX(), getPatchSizeY(), getPatchSizeF(),
             getNumDataPatchesX(), getNumDataPatchesY(), getNumDataPatchesF());
    }
-   if (getSharedWeightsFlag() and getNumDataPatches() > 0) {
-      int const numPatches = mGeometry->getNumPatches();
+   if (getSharedWeightsFlag() and getNumDataPatchesOverall() > 0L) {
+      long const numPatches = mGeometry->getNumPatches();
       dataIndexLookupTable.resize(numPatches);
-      for (int p = 0; p < numPatches; p++) {
+      for (long p = 0; p < numPatches; p++) {
          dataIndexLookupTable[p] = calcDataIndexFromPatchIndex(p);
       }
    }
@@ -213,14 +213,14 @@ void Weights::setNumDataPatches(int numDataPatchesX, int numDataPatchesY, int nu
    mNumDataPatchesF = numDataPatchesF;
 }
 
-Patch const &Weights::getPatch(int patchIndex) const { return mGeometry->getPatch(patchIndex); }
+Patch const &Weights::getPatch(long patchIndex) const { return mGeometry->getPatch(patchIndex); }
 
 float *Weights::getData(int arbor) { return mData->getData(arbor); }
 
 float const *Weights::getData(int arbor) const { return mData->getData(arbor); }
 
-float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
-   int dataIndex = getSharedWeightsFlag() ?  dataIndexLookupTable[patchIndex] : patchIndex;
+float *Weights::getDataFromPatchIndex(int arbor, long patchIndex) {
+   long dataIndex = getSharedWeightsFlag() ?  dataIndexLookupTable[patchIndex] : patchIndex;
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
@@ -271,7 +271,7 @@ float Weights::calcMinWeight(int arbor) {
    float arborMin = FLT_MAX;
    if (getSharedWeightsFlag()) {
       float *arborStart = getData(arbor);
-      float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
+      float *arborEnd = &arborStart[getNumDataPatchesOverall() * getPatchSizeOverall()];
       for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {
          float w = *wPtr;
          if (w < arborMin) {
@@ -280,8 +280,8 @@ float Weights::calcMinWeight(int arbor) {
       }
    }
    else {
-      pvAssert(getNumDataPatches() == getGeometry()->getNumPatches());
-      for (int p = 0; p < getNumDataPatches(); p++) {
+      pvAssert(getNumDataPatchesOverall() == getGeometry()->getNumPatches());
+      for (long p = 0; p < getNumDataPatchesOverall(); p++) {
          float *patchDataStart = getDataFromDataIndex(arbor, p);
          Patch const &patch = getPatch(p);
          int const nk       = patch.nx * getPatchSizeF();
@@ -314,7 +314,7 @@ float Weights::calcMaxWeight(int arbor) {
    float arborMax = -FLT_MAX;
    if (getSharedWeightsFlag()) {
       float *arborStart = getData(arbor);
-      float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
+      float *arborEnd = &arborStart[getNumDataPatchesOverall() * getPatchSizeOverall()];
       for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {
          float w = *wPtr;
          if (w > arborMax) {
@@ -323,8 +323,8 @@ float Weights::calcMaxWeight(int arbor) {
       }
    }
    else {
-      pvAssert(getNumDataPatches() == getGeometry()->getNumPatches());
-      for (int p = 0; p < getNumDataPatches(); p++) {
+      pvAssert(getNumDataPatchesOverall() == getGeometry()->getNumPatches());
+      for (long p = 0; p < getNumDataPatchesOverall(); p++) {
          float *patchDataStart = getDataFromDataIndex(arbor, p);
          Patch const &patch = getPatch(p);
          int const nk       = patch.nx * getPatchSizeF();

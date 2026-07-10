@@ -118,7 +118,7 @@ InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> messa
 
 void InitWeights::calcWeights() {
    int numArbors     = mWeights->getNumArbors();
-   int numPatches    = mWeights->getNumDataPatches();
+   long numPatches   = mWeights->getNumDataPatchesOverall();
    auto mpiBlock     = getCommunicator()->getGlobalMPIBlock();
    int rowIndex      = mpiBlock->getRowIndex();
    int columnIndex   = mpiBlock->getColumnIndex();
@@ -126,7 +126,7 @@ void InitWeights::calcWeights() {
    int mpiBatchDim   = mpiBlock->getBatchDimension();
    if (mpiBatchIndex == 0) {
       for (int arbor = 0; arbor < numArbors; arbor++) {
-         for (int dataPatchIndex = 0; dataPatchIndex < numPatches; dataPatchIndex++) {
+         for (long dataPatchIndex = 0L; dataPatchIndex < numPatches; dataPatchIndex++) {
                calcWeights(dataPatchIndex, arbor);
          }
          for (int b = 1; b < mpiBatchDim; ++b) {
@@ -150,7 +150,7 @@ void InitWeights::calcWeights() {
 
 // Override this function to calculate the weights in a single patch, given the arbor index, patch
 // index and the pointer to the data
-void InitWeights::calcWeights(int dataPatchIndex, int arborId) {}
+void InitWeights::calcWeights(long dataPatchIndex, int arborId) {}
 
 int InitWeights::readWeights(
       const char *path,
@@ -261,7 +261,7 @@ int InitWeights::readWeights(
    return PV_SUCCESS;
 }
 
-int InitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx, int *ky, int *kf) {
+int InitWeights::dataIndexToUnitCellIndex(long dataIndex, int *kx, int *ky, int *kf) {
    PVLayerLoc const &preLoc  = mWeights->getGeometry()->getPreLoc();
    PVLayerLoc const &postLoc = mWeights->getGeometry()->getPostLoc();
 
@@ -317,7 +317,7 @@ int InitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx, int *ky, int *
    return kUnitCell;
 }
 
-int InitWeights::kernelIndexCalculations(int dataPatchIndex) {
+int InitWeights::kernelIndexCalculations(long dataPatchIndex) {
    // kernel index stuff:
    int kxKernelIndex;
    int kyKernelIndex;

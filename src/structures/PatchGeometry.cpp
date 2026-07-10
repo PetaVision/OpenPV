@@ -290,7 +290,7 @@ void PatchGeometry::setTransposeItemIndices() {
    int const patchSizeXPost = patchSizeXPre * xStride / xTStride;
    int const patchSizeYPost = patchSizeYPre * yStride / yTStride;
    for (int kernelIndexPre = 0; kernelIndexPre < numKernels; kernelIndexPre++) {
-      for (int itemInPatchPre = 0; itemInPatchPre < patchSizeOverall; itemInPatchPre++) {
+      for (long itemInPatchPre = 0; itemInPatchPre < patchSizeOverall; itemInPatchPre++) {
          int const kernelIndexXPre =
                kxPos(kernelIndexPre, mNumKernelsX, mNumKernelsY, mNumKernelsF);
 
@@ -325,7 +325,7 @@ void PatchGeometry::setTransposeItemIndices() {
 
          int itemInPatchFPost = kernelIndexFPre;
          int patchSizeFPost   = mNumKernelsF;
-         int itemInPatchPost  = kIndex(
+         long itemInPatchPost = kIndex(
                itemInPatchXPost,
                itemInPatchYPost,
                itemInPatchFPost,

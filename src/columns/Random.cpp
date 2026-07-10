@@ -17,8 +17,8 @@ Random::Random() {
 }
 
 // N independent random number generators, all processes have the same N seeds.
-Random::Random(int count) {
-   initializeFromCount((unsigned int)count);
+Random::Random(long count) {
+   initializeFromCount(count);
 }
 
 // Each neuron in a layer has its own RNG.  locptr defines the geometry of the
@@ -82,7 +82,7 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
    return status;
 }
 
-int Random::initializeFromCount(int count) {
+int Random::initializeFromCount(long count) {
    int status = PV_SUCCESS;
    mRNG.resize(count);
    if (status == PV_SUCCESS) {
@@ -92,12 +92,12 @@ int Random::initializeFromCount(int count) {
    return status;
 }
 
-float Random::uniformRandom(int localIndex) {
+float Random::uniformRandom(long localIndex) {
    mRNG[localIndex] = cl_random_get(mRNG[localIndex]);
    return mRNG[localIndex].s0 / (float)randomUIntMax();
 }
 
-unsigned int Random::randomUInt(int localIndex) {
+unsigned int Random::randomUInt(long localIndex) {
    mRNG[localIndex] = cl_random_get(mRNG[localIndex]);
    return mRNG[localIndex].s0;
 }

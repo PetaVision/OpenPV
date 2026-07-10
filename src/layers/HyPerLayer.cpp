@@ -294,6 +294,7 @@ HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> messag
       mLayerUpdateController->respond(message);
    }
    if (mActivityComponent) {
+      InfoLog().printf("Initializing state of %s\n", getDescription_c());
       mActivityComponent->respond(message);
    }
    return Response::SUCCESS;

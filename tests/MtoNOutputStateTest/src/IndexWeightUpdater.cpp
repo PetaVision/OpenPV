@@ -31,13 +31,13 @@ IndexWeightUpdater::initializeState(std::shared_ptr<InitializeStateMessage const
 }
 
 void IndexWeightUpdater::updateState(double simTime, double dt) {
-   int const nPatch         = mWeights->getPatchSizeOverall();
-   int const numDataPatches = mWeights->getNumDataPatches();
+   long const nPatch         = mWeights->getPatchSizeOverall();
+   long const numDataPatches = mWeights->getNumDataPatchesOverall();
    for (int arbor = 0; arbor < mArborList->getNumAxonalArbors(); arbor++) {
-      for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
+      for (long patchIndex = 0L; patchIndex < numDataPatches; patchIndex++) {
          float *Wdata = mWeights->getDataFromDataIndex(arbor, patchIndex);
-         for (int kPatch = 0; kPatch < nPatch; kPatch++) {
-            Wdata[kPatch] = patchIndex * nPatch + kPatch + simTime;
+         for (long kPatch = 0L; kPatch < nPatch; kPatch++) {
+            Wdata[kPatch] = static_cast<long>(patchIndex * nPatch + kPatch) + simTime;
          }
       }
    }

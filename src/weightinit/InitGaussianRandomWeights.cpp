@@ -50,7 +50,7 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    pvAssert(mRandState == nullptr && mGaussianRandState == nullptr);
    int status = PV_SUCCESS;
    if (isKernel) {
-      mGaussianRandState = new GaussianRandom(mWeights->getNumDataPatches());
+      mGaussianRandState = new GaussianRandom(mWeights->getNumDataPatchesOverall());
    }
    else {
       mGaussianRandState =
@@ -71,7 +71,7 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
  * randomWeights() fills the full-size patch with random numbers, whether or not the patch is
  * shrunken.
  */
-void InitGaussianRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
+void InitGaussianRandomWeights::randomWeights(float *patchDataStart, long patchIndex) {
    const int patchSize = mWeights->getPatchSizeOverall();
    for (int n = 0; n < patchSize; n++) {
       patchDataStart[n] = mGaussianRandState->gaussianDist(patchIndex, mWGaussMean, mWGaussStdev);

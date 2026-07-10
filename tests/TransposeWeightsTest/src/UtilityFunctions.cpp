@@ -239,13 +239,13 @@ int checkTransposeOfTranspose(
    transposeOfTranspose.allocateDataStructures();
    TransposeWeights::transpose(&transposeWeights, &transposeOfTranspose, comm);
 
-   int const numDataPatchesPre = originalWeights.getNumDataPatches();
-   if (transposeOfTranspose.getNumDataPatches() != numDataPatchesPre) {
+   long const numDataPatchesPre = originalWeights.getNumDataPatchesOverall();
+   if (transposeOfTranspose.getNumDataPatchesOverall() != numDataPatchesPre) {
       ErrorLog().printf(
-            "In %s, transpose of transpose has %d data patches instead "
-            "of the expected %d.\n",
+            "In %s, transpose of transpose has %ld data patches instead "
+            "of the expected %ld.\n",
             testName.c_str(),
-            transposeOfTranspose.getNumDataPatches(),
+            transposeOfTranspose.getNumDataPatchesOverall(),
             numDataPatchesPre);
       status = PV_FAILURE;
    }

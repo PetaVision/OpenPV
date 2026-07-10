@@ -118,16 +118,16 @@ int NormalizeMultiply::normalizeWeights() {
          }
          status = PV_FAILURE;
       }
-      if (weights->getNumDataPatches() != weights0->getNumDataPatches()) {
+      if (weights->getNumDataPatchesOverall() != weights0->getNumDataPatchesOverall()) {
          if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "data patches (%s has %d; %s has %d).\n",
                   this->getDescription_c(),
                   weights0->getName().c_str(),
-                  weights0->getNumDataPatches(),
+                  weights0->getNumDataPatchesOverall(),
                   weights->getName().c_str(),
-                  weights->getNumDataPatches());
+                  weights->getNumDataPatchesOverall());
          }
          status = PV_FAILURE;
       }
@@ -141,13 +141,13 @@ int NormalizeMultiply::normalizeWeights() {
    if (mRMinX > 0.5f && mRMinY > 0.5f) {
       for (auto &weights : mWeightsList) {
          int num_arbors           = weights->getNumArbors();
-         int num_patches          = weights->getNumDataPatches();
-         int num_weights_in_patch = weights->getPatchSizeOverall();
+         long num_patches         = weights->getNumDataPatchesOverall();
+         long num_weights_in_patch = weights->getPatchSizeOverall();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
             float *dataPatchStart = weights->getData(arbor);
-            for (int patchindex = 0; patchindex < num_patches; patchindex++) {
+            for (long patchindex = 0; patchindex < num_patches; patchindex++) {
                applyRMin(
-                     dataPatchStart + patchindex * num_weights_in_patch,
+                     &dataPatchStart[patchindex * num_weights_in_patch],
                      mRMinX,
                      mRMinY,
                      weights->getPatchSizeX(),
@@ -162,13 +162,13 @@ int NormalizeMultiply::normalizeWeights() {
    // Apply nonnegativeConstraintFlag
    if (mNonnegativeConstraintFlag) {
       for (auto &weights : mWeightsList) {
-         int num_arbors           = weights->getNumArbors();
-         int num_patches          = weights->getNumDataPatches();
-         int num_weights_in_patch = weights->getPatchSizeOverall();
-         int num_weights_in_arbor = num_patches * num_weights_in_patch;
+         int num_arbors            = weights->getNumArbors();
+         long num_patches          = weights->getNumDataPatchesOverall();
+         long num_weights_in_patch = weights->getPatchSizeOverall();
+         long num_weights_in_arbor = num_patches * num_weights_in_patch;
          for (int arbor = 0; arbor < num_arbors; arbor++) {
             float *dataStart = weights->getData(arbor);
-            for (int weightindex = 0; weightindex < num_weights_in_arbor; weightindex++) {
+            for (long weightindex = 0; weightindex < num_weights_in_arbor; weightindex++) {
                float *w = &dataStart[weightindex];
                if (*w < 0) {
                   *w = 0;
@@ -182,26 +182,26 @@ int NormalizeMultiply::normalizeWeights() {
    if (mNormalizeCutoff > 0) {
       float max = 0.0f;
       for (auto &weights : mWeightsList) {
-         int num_arbors           = weights->getNumArbors();
-         int num_patches          = weights->getNumDataPatches();
-         int num_weights_in_patch = weights->getPatchSizeOverall();
+         int num_arbors            = weights->getNumArbors();
+         long num_patches          = weights->getNumDataPatchesOverall();
+         long num_weights_in_patch = weights->getPatchSizeOverall();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
             float *dataStart = weights->getData(arbor);
-            for (int patchindex = 0; patchindex < num_patches; patchindex++) {
+            for (long patchindex = 0; patchindex < num_patches; patchindex++) {
                accumulateMaxAbs(
-                     dataStart + patchindex * num_weights_in_patch, num_weights_in_patch, &max);
+                     &dataStart[patchindex * num_weights_in_patch], num_weights_in_patch, &max);
             }
          }
       }
       for (auto &weights : mWeightsList) {
-         int num_arbors           = weights->getNumArbors();
-         int num_patches          = weights->getNumDataPatches();
-         int num_weights_in_patch = weights->getPatchSizeOverall();
+         int num_arbors            = weights->getNumArbors();
+         long num_patches          = weights->getNumDataPatchesOverall();
+         long num_weights_in_patch = weights->getPatchSizeOverall();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
             float *dataStart = weights->getData(arbor);
-            for (int patchindex = 0; patchindex < num_patches; patchindex++) {
+            for (long patchindex = 0; patchindex < num_patches; patchindex++) {
                applyThreshold(
-                     dataStart + patchindex * num_weights_in_patch, num_weights_in_patch, max);
+                     &dataStart[patchindex * num_weights_in_patch], num_weights_in_patch, max);
             }
          }
       }
@@ -216,10 +216,10 @@ int NormalizeMultiply::normalizeWeights() {
  * weights_in_patch is the number of weights in the dataPatchStart buffer
  * wMax defines the threshold.  If |w| < wMax * normalize_cutoff, the weight will be zeroed.
  */
-int NormalizeMultiply::applyThreshold(float *dataPatchStart, int weights_in_patch, float wMax) {
+int NormalizeMultiply::applyThreshold(float *dataPatchStart, long weights_in_patch, float wMax) {
    assert(mNormalizeCutoff > 0); // Don't call this routine unless normalize_cutoff was set
    float threshold = wMax * mNormalizeCutoff;
-   for (int k = 0; k < weights_in_patch; k++) {
+   for (long k = 0; k < weights_in_patch; k++) {
       if (fabsf(dataPatchStart[k]) < threshold)
          dataPatchStart[k] = 0;
    }
@@ -258,8 +258,8 @@ int NormalizeMultiply::applyRMin(
    return PV_SUCCESS;
 }
 
-void NormalizeMultiply::normalizePatch(float *patchData, int weightsPerPatch, float multiplier) {
-   for (int k = 0; k < weightsPerPatch; k++)
+void NormalizeMultiply::normalizePatch(float *patchData, long weightsPerPatch, float multiplier) {
+   for (long k = 0; k < weightsPerPatch; k++)
       patchData[k] *= multiplier;
 }
 

@@ -20,26 +20,26 @@ namespace PV {
 
 class GaussianRandom : public Random {
   public:
-   GaussianRandom(int count);
+   GaussianRandom(long count);
    GaussianRandom(const PVLayerLoc *locptr, bool isExtended);
    virtual ~GaussianRandom();
 
-   float gaussianDist(int localIndex = 0);
-   float gaussianDist(int localIndex, float mean, float sigma) {
+   float gaussianDist(long localIndex = 0);
+   float gaussianDist(long localIndex, float mean, float sigma) {
       return mean + gaussianDist(localIndex) * sigma;
    }
-   void gaussianDist(float *values, int localIndex, int count = 1) {
+   void gaussianDist(float *values, long localIndex, int count = 1) {
       for (int k   = 0; k < count; k++)
          values[k] = gaussianDist(localIndex + k);
    }
-   void gaussianDist(float *values, int localIndex, int count, float mean, float sigma) {
+   void gaussianDist(float *values, long localIndex, int count, float mean, float sigma) {
       for (int k   = 0; k < count; k++)
          values[k] = gaussianDist(localIndex + k, mean, sigma);
    }
 
   protected:
    GaussianRandom();
-   int initializeFromCount(unsigned int count);
+   int initializeFromCount(long count);
    int initializeFromLoc(const PVLayerLoc *locptr, bool isExtended);
    int initializeGaussian();
 

@@ -81,7 +81,7 @@ class NormalizeBase : public BaseObject {
 
    virtual int normalizeWeights() { return PV_SUCCESS; }
 
-   static int accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum);
+   static int accumulateSum(float *dataPatchStart, long weights_in_patch, float *sum);
    static int accumulateSumShrunken(
          float *dataPatchStart,
          float *sum,
@@ -90,7 +90,7 @@ class NormalizeBase : public BaseObject {
          int offsetShrunken,
          int xPatchStride,
          int yPatchStride);
-   static int accumulateSumSquared(float *dataPatchStart, int weights_in_patch, float *sumsq);
+   static int accumulateSumSquared(float *dataPatchStart, long weights_in_patch, float *sumsq);
    static int accumulateSumSquaredShrunken(
          float *dataPatchStart,
          float *sumsq,
@@ -99,9 +99,9 @@ class NormalizeBase : public BaseObject {
          int offsetShrunken,
          int xPatchStride,
          int yPatchStride);
-   static int accumulateMaxAbs(float *dataPatchStart, int weights_in_patch, float *max);
-   static int accumulateMax(float *dataPatchStart, int weights_in_patch, float *max);
-   static int accumulateMin(float *dataPatchStart, int weights_in_patch, float *max);
+   static int accumulateMaxAbs(float *dataPatchStart, long weights_in_patch, float *max);
+   static int accumulateMax(float *dataPatchStart, long weights_in_patch, float *max);
+   static int accumulateMin(float *dataPatchStart, long weights_in_patch, float *max);
 
   protected:
    ConnectionData *mConnectionData   = nullptr;

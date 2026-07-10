@@ -30,26 +30,26 @@ namespace PV {
 
 class Random {
   public:
-   Random(int count);
+   Random(long count);
    Random(const PVLayerLoc *locptr, bool isExtended);
    virtual ~Random();
 
-   taus_uint4 *getRNG(int index) { return &mRNG[index]; }
-   float uniformRandom(int localIndex = 0);
-   float uniformRandom(int localIndex, float min, float max) {
+   taus_uint4 *getRNG(long index) { return &mRNG[index]; }
+   float uniformRandom(long localIndex = 0L);
+   float uniformRandom(long localIndex, float min, float max) {
       return min + uniformRandom(localIndex) * (max - min);
    }
-   void uniformRandom(float *values, int localIndex, int count = 1) {
+   void uniformRandom(float *values, long localIndex, int count = 1) {
       for (int k   = 0; k < count; k++)
          values[k] = uniformRandom(localIndex + k);
    }
-   void uniformRandom(float *values, int localIndex, int count, float min, float max) {
+   void uniformRandom(float *values, long localIndex, int count, float min, float max) {
       for (int k   = 0; k < count; k++)
          values[k] = uniformRandom(localIndex + k, min, max);
    }
 
-   unsigned int randomUInt(int localIndex = 0);
-   void randomUInt(unsigned int *values, int localIndex, int count = 1) {
+   unsigned int randomUInt(long localIndex = 0);
+   void randomUInt(unsigned int *values, long localIndex, int count = 1) {
       for (int k   = 0; k < count; k++)
          values[k] = randomUInt(localIndex + k);
    }
@@ -57,7 +57,7 @@ class Random {
 
   protected:
    Random();
-   int initializeFromCount(int count);
+   int initializeFromCount(long count);
    int initializeFromLoc(const PVLayerLoc *locptr, bool isExtended);
 
    // Member variables

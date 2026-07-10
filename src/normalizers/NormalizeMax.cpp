@@ -53,8 +53,8 @@ int NormalizeMax::normalizeWeights() {
       }
       PVLayerLoc const &preLoc  = weights0->getGeometry()->getPreLoc();
       PVLayerLoc const &postLoc = weights0->getGeometry()->getPostLoc();
-      int numNeuronsPre         = preLoc.nx * preLoc.ny * preLoc.nf;
-      int numNeuronsPost        = postLoc.nx * postLoc.ny * postLoc.nf;
+      long numNeuronsPre         = (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf;
+      long numNeuronsPost        = (long)postLoc.nx * (long)postLoc.ny * (long)postLoc.nf;
       scaleFactor               = ((float)numNeuronsPost) / ((float)numNeuronsPre);
    }
    scaleFactor *= mStrength;
@@ -62,23 +62,20 @@ int NormalizeMax::normalizeWeights() {
    status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and
    // symmetrizeWeights
 
-   int nArbors        = weights0->getNumArbors();
-   int numDataPatches = weights0->getNumDataPatches();
+   int nArbors         = weights0->getNumArbors();
+   long numDataPatches = weights0->getNumDataPatchesOverall();
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
-         for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+         for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float max = 0.0f;
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               int weightsPerPatch   = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateMax(dataStartPatch, weightsPerPatch, &max);
             }
             if (max <= minMaxTolerated) {
                WarnLog().printf(
-                     "for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within "
+                     "for NormalizeMax \"%s\": max of weights in patch %ld of arbor %d is within "
                      "minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n",
                      getName(),
                      patchindex,
@@ -87,26 +84,20 @@ int NormalizeMax::normalizeWeights() {
                continue;
             }
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               long weightsPerPatch  = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / max);
             }
          }
       }
    }
    else {
-      for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+      for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float max = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               long weightsPerPatch  = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateMax(dataStartPatch, weightsPerPatch, &max);
             }
          }
@@ -121,11 +112,8 @@ int NormalizeMax::normalizeWeights() {
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weightsPerPatch   = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               long weightsPerPatch  = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / max);
             }
          }

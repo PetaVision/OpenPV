@@ -28,7 +28,7 @@ class InitGaussianRandomWeights : public InitRandomWeights {
    InitGaussianRandomWeights();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual int initRNGs(bool isKernel) override;
-   virtual void randomWeights(float *patchDataStart, int patchIndex) override;
+   virtual void randomWeights(float *patchDataStart, long patchIndex) override;
 
    // Member variables
   protected:

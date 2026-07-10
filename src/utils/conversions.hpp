@@ -94,10 +94,7 @@ CONVERSIONS_SPECIFIER inline int zPatchHead(int kzPre, int nzPatch, int zLog2Sca
 }
 
 /*
- * The following functions are simple, static inline functions.  They have been given the
- * compiler directive elemental (with same semantics as in Fortran).  The elemental functions are
- * declared in terms of scalar arguments, but can take and return arrays.  Elemental functions
- * are vectorizable.
+ * The following functions are simple, static inline functions.
  *
  * Notation:
  *
@@ -106,8 +103,7 @@ CONVERSIONS_SPECIFIER inline int zPatchHead(int kzPre, int nzPatch, int zLog2Sca
  *
  */
 
-//! RETURNS FEATURE INDEX FROM LINEAR INDEX
-/**
+/** RETURNS FEATURE INDEX FROM LINEAR INDEX
  * Return the feature index for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
  * @nx the number of neurons in the x direction
@@ -119,10 +115,9 @@ CONVERSIONS_SPECIFIER inline int zPatchHead(int kzPre, int nzPatch, int zLog2Sca
  *      since kf <= nf-1.
  *      .
  */
-CONVERSIONS_SPECIFIER inline int featureIndex(int k, int nx, int ny, int nf) { return k % nf; }
+CONVERSIONS_SPECIFIER inline int featureIndex(long k, int nx, int ny, int nf) { return k % nf; }
 
-//! RETURNS X INDEX FROM LINEAR INDEX
-/*!
+/** RETURNS X INDEX FROM LINEAR INDEX
  * Return the position kx for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
  * @nx the number of neurons in the x direction
@@ -135,10 +130,9 @@ CONVERSIONS_SPECIFIER inline int featureIndex(int k, int nx, int ny, int nf) { r
  *    since kx <= nx-1.
  *    .
  */
-CONVERSIONS_SPECIFIER inline int kxPos(int k, int nx, int ny, int nf) { return (k / nf) % nx; }
+CONVERSIONS_SPECIFIER inline int kxPos(long k, int nx, int ny, int nf) { return (k / nf) % nx; }
 
-//! RETURNS Y INDEX FROM LINEAR INDEX
-/*!
+/** RETURNS Y INDEX FROM LINEAR INDEX
  * Return the position ky for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
  * @nx the number of neurons in the x direction
@@ -150,19 +144,17 @@ CONVERSIONS_SPECIFIER inline int kxPos(int k, int nx, int ny, int nf) { return (
  *    (note that kx <= nx-1 and kf <= nf-1).
  *   .
  */
-//#pragma FTT elemental, vectorize
-CONVERSIONS_SPECIFIER inline int kyPos(int k, int nx, int ny, int nf) { return k / (nx * nf) % ny; }
+CONVERSIONS_SPECIFIER inline int kyPos(long k, int nx, int ny, int nf) { return k / (nx * nf) % ny; }
 
-//! RETURNS B INDEX FROM LINEAR INDEX
-/*!
- * Return the position ky for the given k index
- * @k the k index (can be either global or local depending on if nx,ny are global or local)
+/** RETURNS B INDEX FROM LINEAR INDEX
+ * Return the position kb for the given k index into an nb-nx-by-ny-by-nf 4-D array
+ * @k the k index (can be either global or local depending on if nx,ny,nb are global or local)
+ * @nb the number of batch elements
  * @nx the number of neurons in the x direction
  * @ny the number of neurons in the y direction
  * @nf the number of neurons in the feature direction
  */
-//#pragma FTT elemental, vectorize
-CONVERSIONS_SPECIFIER inline int batchIndex(int k, int nb, int nx, int ny, int nf) {
+CONVERSIONS_SPECIFIER inline int batchIndex(long k, int nb, int nx, int ny, int nf) {
    return k / (nx * nf * ny);
 }
 
@@ -210,7 +202,7 @@ CONVERSIONS_SPECIFIER inline float yOriginGlobal(int yScaleLog2) {
  * @nf the number of features in the layer
  */
 CONVERSIONS_SPECIFIER inline float
-xPosGlobal(int kGlobal, int xScaleLog2, int nxGlobal, int nyGlobal, int nf) {
+xPosGlobal(long kGlobal, int xScaleLog2, int nxGlobal, int nyGlobal, int nf) {
    // breaking out variables removes warning from Intel compiler
    const int kxGlobal = kxPos(kGlobal, nxGlobal, nyGlobal, nf);
    const float x0     = xOriginGlobal(xScaleLog2);
@@ -228,15 +220,14 @@ xPosGlobal(int kGlobal, int xScaleLog2, int nxGlobal, int nyGlobal, int nf) {
  * @nf the number of features in the layer
  */
 CONVERSIONS_SPECIFIER inline float
-yPosGlobal(int kGlobal, int yScaleLog2, int nxGlobal, int nyGlobal, int nf) {
+yPosGlobal(long kGlobal, int yScaleLog2, int nxGlobal, int nyGlobal, int nf) {
    const int kyGlobal = kyPos(kGlobal, nxGlobal, nyGlobal, nf);
    const float y0     = yOriginGlobal(yScaleLog2);
    const float dy     = deltaY(yScaleLog2);
    return (y0 + dy * kyGlobal);
 }
 
-//! RETURNS LINEAR INDEX FROM X,Y, AND FEATURE INDEXES
-/*!
+/** RETURNS LINEAR INDEX FROM X,Y, AND FEATURE INDEXES
  * @kx
  * @ky
  * @kf
@@ -252,8 +243,8 @@ CONVERSIONS_SPECIFIER inline long int kIndex(int kx, int ky, int kf, int nx, int
    return kf + (kx + ky * (long)nx) * (long)nf;
 }
 
-//! RETURNS LINEAR INDEX FROM Batch, X,Y, AND FEATURE INDEXES
-CONVERSIONS_SPECIFIER inline int
+//! RETURNS LINEAR INDEX INTO 4-D ARRAY FROM Batch, X,Y, AND FEATURE INDEXES
+CONVERSIONS_SPECIFIER inline long
 kIndexBatch(int kb, int kx, int ky, int kf, int nb, int nx, int ny, int nf) {
    return (kb * nx * ny * nf) + (ky * nx * nf) + (kx * nf) + kf;
 }
@@ -531,7 +522,6 @@ CONVERSIONS_SPECIFIER inline float sign(float x) { return (x < 0.0f) ? -1.0f : 1
  * @x2 second number
  * @max maximum difference
  */
-//#pragma FTT elemental, vectorize
 CONVERSIONS_SPECIFIER inline float deltaWithPBC(float x1, float x2, float max) {
    float dx     = x2 - x1;
    float abs_dx = fabsf(dx);
@@ -555,7 +545,6 @@ CONVERSIONS_SPECIFIER inline float deltaWithPBC(float x1, float x2, float max) {
  * @ny
  * @nf
  */
-//#pragma FTT elemental, vectorize
 CONVERSIONS_SPECIFIER inline long int globalIndex(
       int kf,
       float x,
@@ -714,7 +703,6 @@ CONVERSIONS_SPECIFIER inline int localExtToGlobalRes(int localExtK, const PVLaye
  * @sigma
  * @max
  */
-//#pragma FTT elemental, vectorize
 CONVERSIONS_SPECIFIER inline float gaussianWeight(float x0, float x, float sigma, float max) {
    float dx = deltaWithPBC(x0, x, max);
    return expf(-0.5f * dx * dx / (sigma * sigma));

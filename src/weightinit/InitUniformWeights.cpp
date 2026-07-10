@@ -44,10 +44,10 @@ void InitUniformWeights::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFla
          mConnectOnlySameFeatures);
 }
 
-void InitUniformWeights::calcWeights(int patchIndex, int arborId) {
+void InitUniformWeights::calcWeights(long patchIndex, int arborId) {
    float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    const int nfp    = mWeights->getPatchSizeF();
-   const int kf     = patchIndex % nfp;
+   const int kf     = static_cast<int>(patchIndex % nfp);
 
    uniformWeights(dataStart, mWeightInit, kf, mConnectOnlySameFeatures);
 }

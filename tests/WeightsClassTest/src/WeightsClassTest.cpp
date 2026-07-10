@@ -63,10 +63,10 @@ void testWeights(
          weights.getNumDataPatchesX(),
          correctNumDataPatchesF);
 
-   int correctNumDataPatches =
-         correctNumDataPatchesX * correctNumDataPatchesY * correctNumDataPatchesF;
+   long correctNumDataPatches =
+         (long)correctNumDataPatchesX * (long)correctNumDataPatchesY * (long)correctNumDataPatchesF;
    FatalIf(
-         weights.getNumDataPatches() != correctNumDataPatches,
+         weights.getNumDataPatchesOverall() != correctNumDataPatches,
          "%s: number of data patches overall was %d instead of the expected %d\n",
          weights.getName().c_str(),
          weights.getNumDataPatchesX(),
@@ -94,10 +94,9 @@ void testWeights(
    // Test writing weights to the Weights object, and reading the weights back.
    weights.allocateDataStructures();
 
-   int const numDataPatches = weights.getNumDataPatches();
-   int const numItemsInPatch =
-         weights.getPatchSizeX() * weights.getPatchSizeY() * weights.getPatchSizeF();
-   int const numWeightValues = numDataPatches * numItemsInPatch;
+   long const numDataPatches = weights.getNumDataPatchesOverall();
+   long const numItemsInPatch = weights.getPatchSizeOverall();
+   long const numWeightValues = numDataPatches * numItemsInPatch;
 
    // Check that writing and reading timestamps works.
    double timestamp = weights.getTimestamp() ? 0.0 : 2.5;
@@ -111,19 +110,19 @@ void testWeights(
 
    // Write weights to the arbor as a whole
    float *dataStart = weights.getData(0);
-   for (int w = 0; w < numWeightValues; w++) {
+   for (long w = 0; w < numWeightValues; w++) {
       dataStart[w] = (float)w;
    }
 
    // Read weights back, patch by patch, and check values
-   for (int d = 0; d < numDataPatches; d++) {
+   for (long d = 0; d < numDataPatches; d++) {
       float const *dataPatchStart = weights.getDataFromDataIndex(0, d);
-      for (int p = 0; p < numItemsInPatch; p++) {
-         float correctValue  = d * numItemsInPatch + p;
+      for (long p = 0; p < numItemsInPatch; p++) {
+         float correctValue  = static_cast<float>(d * numItemsInPatch + p);
          float observedValue = dataPatchStart[p];
          FatalIf(
                observedValue != correctValue,
-               "%s: value at patch index %d, item %d, was %f instead of the expected %f\n",
+               "%s: value at patch index %ld, item %ld, was %f instead of the expected %f\n",
                weights.getName().c_str(),
                d,
                p,

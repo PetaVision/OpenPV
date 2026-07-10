@@ -147,6 +147,7 @@ BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
 
 Response::Status
 BaseConnection::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   InfoLog().printf("Initializing state of %s\n", getDescription_c());
    return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 

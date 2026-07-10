@@ -60,19 +60,16 @@ int NormalizeL3::normalizeWeights() {
    status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and
    // rMinX,rMinY
 
-   int nArbors        = weights0->getNumArbors();
-   int numDataPatches = weights0->getNumDataPatches();
+   int nArbors         = weights0->getNumArbors();
+   long numDataPatches = weights0->getNumDataPatchesOverall();
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
-         for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+         for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sumcubed = 0.0f;
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
-               for (int k = 0; k < weights_per_patch; k++) {
+               long weights_per_patch = weights->getPatchSizeOverall();
+               float *dataStartPatch  = &weights->getData(arborID)[patchindex * weights_per_patch];
+               for (long k = 0; k < weights_per_patch; k++) {
                   float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
                }
@@ -89,11 +86,8 @@ int NormalizeL3::normalizeWeights() {
                continue;
             }
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = weights0->getData(arborID) + patchindex * weights_per_patch;
+               long weights_per_patch = weights->getPatchSizeOverall();
+               float *dataStartPatch  = &weights0->getData(arborID)[patchindex * weights_per_patch];
                normalizePatch(dataStartPatch, weights_per_patch, scaleFactor / l3norm);
             }
          }
@@ -104,12 +98,9 @@ int NormalizeL3::normalizeWeights() {
          float sumcubed = 0.0f;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
-               for (int k = 0; k < weights_per_patch; k++) {
+               long weights_per_patch = weights->getPatchSizeOverall();
+               float *dataStartPatch  = &weights->getData(arborID)[patchindex * weights_per_patch];
+               for (long k = 0; k < weights_per_patch; k++) {
                   float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
                }
@@ -118,7 +109,7 @@ int NormalizeL3::normalizeWeights() {
          float l3norm = powf(sumcubed, 1.0f / 3.0f);
          if (fabsf(sumcubed) <= minL3NormTolerated) {
             WarnLog().printf(
-                  "NormalizeL3 \"%s\": sum of squares of weights in patch %d is within "
+                  "NormalizeL3 \"%s\": sum of squares of weights in patch %ld is within "
                   "minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
                   getName(),
                   patchindex,
@@ -127,11 +118,8 @@ int NormalizeL3::normalizeWeights() {
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int nxp               = weights->getPatchSizeX();
-               int nyp               = weights->getPatchSizeY();
-               int nfp               = weights->getPatchSizeF();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
+               int weights_per_patch = weights->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weights_per_patch];
                normalizePatch(dataStartPatch, weights_per_patch, scaleFactor / l3norm);
             }
          }

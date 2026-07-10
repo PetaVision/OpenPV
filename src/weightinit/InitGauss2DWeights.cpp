@@ -137,13 +137,13 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    return status;
 }
 
-void InitGauss2DWeights::calcWeights(int dataPatchIndex, int arborId) {
+void InitGauss2DWeights::calcWeights(long dataPatchIndex, int arborId) {
    calcOtherParams(dataPatchIndex);
    gauss2DCalcWeights(mWeights->getDataFromDataIndex(arborId, dataPatchIndex));
    // Weight does not depend on the arborId.
 }
 
-void InitGauss2DWeights::calcOtherParams(int patchIndex) {
+void InitGauss2DWeights::calcOtherParams(long patchIndex) {
    const int kfPre_tmp = kernelIndexCalculations(patchIndex);
    calculateThetas(kfPre_tmp, patchIndex);
 }
@@ -205,7 +205,7 @@ void InitGauss2DWeights::gauss2DCalcWeights(float *dataStart) {
    }
 }
 
-void InitGauss2DWeights::calculateThetas(int kfPre_tmp, int patchIndex) {
+void InitGauss2DWeights::calculateThetas(int kfPre_tmp, long patchIndex) {
    mDeltaThetaPost    = PI * mThetaMax / (float)mNumOrientationsPost;
    mTheta0Post        = mRotate * mDeltaThetaPost / 2.0f;
    const float dthPre = PI * mThetaMax / (float)mNumOrientationsPre;

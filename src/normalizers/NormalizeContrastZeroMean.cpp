@@ -85,16 +85,16 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          }
          status = PV_FAILURE;
       }
-      if (weights->getNumDataPatches() != weights0->getNumDataPatches()) {
+      if (weights->getNumDataPatchesOverall() != weights0->getNumDataPatchesOverall()) {
          if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
-                  "data patches (%s has %d; %s has %d).\n",
+                  "data patches (%s has %ld; %s has %ld).\n",
                   getDescription_c(),
                   weights0->getName().c_str(),
-                  weights0->getNumDataPatches(),
+                  weights0->getNumDataPatchesOverall(),
                   weights->getName().c_str(),
-                  weights->getNumDataPatches());
+                  weights->getNumDataPatchesOverall());
          }
          status = PV_FAILURE;
       }
@@ -109,25 +109,22 @@ int NormalizeContrastZeroMean::normalizeWeights() {
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and
    // symmetrizeWeights
 
-   int nArbors        = weights0->getNumArbors();
-   int numDataPatches = weights0->getNumDataPatches();
+   int nArbors         = weights0->getNumArbors();
+   long numDataPatches = weights0->getNumDataPatchesOverall();
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
-         for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+         for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sum           = 0.0f;
             float sumsq         = 0.0f;
-            int weightsPerPatch = 0;
+            long weightsPerPatch = 0;
             for (auto &weights : mWeightsList) {
-               int nxp = weights0->getPatchSizeX();
-               int nyp = weights0->getPatchSizeY();
-               int nfp = weights0->getPatchSizeF();
-               weightsPerPatch += nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               weightsPerPatch += weights0->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateSumAndSumSquared(dataStartPatch, weightsPerPatch, &sum, &sumsq);
             }
             if (fabsf(sum) <= minSumTolerated) {
                WarnLog().printf(
-                     "for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d of arbor %d "
+                     "for NormalizeContrastZeroMean \"%s\": sum of weights in patch %ld of arbor %d "
                      "is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
                      this->getName(),
                      patchindex,
@@ -138,7 +135,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
             float mean = sum / weightsPerPatch;
             float var  = sumsq / weightsPerPatch - mean * mean;
             for (auto &weights : mWeightsList) {
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                subtractOffsetAndNormalize(
                      dataStartPatch,
                      weightsPerPatch,
@@ -149,17 +146,14 @@ int NormalizeContrastZeroMean::normalizeWeights() {
       }
    }
    else {
-      for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+      for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float sum           = 0.0f;
          float sumsq         = 0.0f;
-         int weightsPerPatch = 0;
+         long weightsPerPatch = 0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int nxp = weights0->getPatchSizeX();
-               int nyp = weights0->getPatchSizeY();
-               int nfp = weights0->getPatchSizeF();
-               weightsPerPatch += nxp * nyp * nfp;
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               weightsPerPatch += weights0->getPatchSizeOverall();
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateSumAndSumSquared(dataStartPatch, weightsPerPatch, &sum, &sumsq);
             }
          }
@@ -190,10 +184,10 @@ int NormalizeContrastZeroMean::normalizeWeights() {
 
 void NormalizeContrastZeroMean::subtractOffsetAndNormalize(
       float *dataStartPatch,
-      int weightsPerPatch,
+      long weightsPerPatch,
       float offset,
       float normalizer) {
-   for (int k = 0; k < weightsPerPatch; k++) {
+   for (long k = 0; k < weightsPerPatch; k++) {
       dataStartPatch[k] -= offset;
       dataStartPatch[k] /= normalizer;
    }
@@ -201,13 +195,13 @@ void NormalizeContrastZeroMean::subtractOffsetAndNormalize(
 
 int NormalizeContrastZeroMean::accumulateSumAndSumSquared(
       float *dataPatchStart,
-      int weights_in_patch,
+      long weights_in_patch,
       float *sum,
       float *sumsq) {
    // Do not call with sum uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
-   for (int k = 0; k < weights_in_patch; k++) {
+   for (long k = 0; k < weights_in_patch; k++) {
       float w = dataPatchStart[k];
       *sum += w;
       *sumsq += w * w;

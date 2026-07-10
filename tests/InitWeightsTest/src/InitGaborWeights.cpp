@@ -42,12 +42,12 @@ void InitGaborWeights::ioParam_invert(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "invert", &mInvert, mInvert);
 }
 
-void InitGaborWeights::calcOtherParams(int patchIndex) {
+void InitGaborWeights::calcOtherParams(long patchIndex) {
    const int kfPre = kernelIndexCalculations(patchIndex);
    calculateThetas(kfPre, patchIndex);
 }
 
-void InitGaborWeights::calcWeights(int patchIndex, int arborId) {
+void InitGaborWeights::calcWeights(long patchIndex, int arborId) {
    calcOtherParams(patchIndex);
    gaborWeights(mWeights->getDataFromDataIndex(arborId, patchIndex));
 }

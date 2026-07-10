@@ -265,7 +265,7 @@ int MomentumUpdater::updateWeights(int arborId) {
    std::memcpy(
          mPrevDeltaWeights->getData(arborId),
          mDeltaWeights->getData(arborId),
-         sizeof(float) * mDeltaWeights->getPatchSizeOverall() * mDeltaWeights->getNumDataPatches());
+         sizeof(float) * mDeltaWeights->getPatchSizeOverall() * mDeltaWeights->getNumDataPatchesOverall());
 
    // add dw to w
    return HebbianUpdater::updateWeights(arborId);
@@ -285,10 +285,6 @@ void MomentumUpdater::applyMomentum(int arborId) {
 }
 
 void MomentumUpdater::applyMomentum(int arborId, float dwFactor) {
-   int const numKernels = mDeltaWeights->getNumDataPatches();
-   pvAssert(numKernels == mPrevDeltaWeights->getNumDataPatches());
-   int const patchSizeOverall = mDeltaWeights->getPatchSizeOverall();
-   pvAssert(patchSizeOverall == mPrevDeltaWeights->getPatchSizeOverall());
    auto deltaWeightData = mDeltaWeights->getData();
    auto prevDeltaWeightData = mPrevDeltaWeights->getData();
    auto weightData = mWeights->getData();
@@ -301,7 +297,7 @@ void MomentumUpdater::applyMomentum(int arborId, float dwFactor) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int k = 0; k < numValuesPerArbor; ++k) {
+   for (long k = 0L; k < numValuesPerArbor; ++k) {
       float dw = (1 - dwFactor) * dwdata_start[k] + dwFactor * prev_dw_start[k];
       dwdata_start[k] = dw;
    }

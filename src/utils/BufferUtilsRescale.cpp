@@ -87,7 +87,8 @@ void nearestNeighborInterp(
       for (int kx = 0; kx < widthOut; kx++) {
          int xfetch = xinteger[kx];
          for (int f = 0; f < numBands; f++) {
-            int fetchIdx         = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
+            long fetchIdx =
+                  yfetch * (long)yStrideIn + xfetch * (long)xStrideIn + f * (long)bandStrideIn;
             int outputIdx        = kIndex(kx, ky, f, widthOut, heightOut, numBands);
             bufferOut[outputIdx] = bufferIn[fetchIdx];
          }
@@ -160,7 +161,7 @@ void bicubicInterp(
                assert(xfetch >= 0 && xfetch < widthIn && yfetch >= 0 && yfetch < heightIn);
 
                for (int f = 0; f < numBands; f++) {
-                  int fetchIdx  = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
+                  long fetchIdx = yfetch * (long)yStrideIn + xfetch * (long)xStrideIn + f * (long)bandStrideIn;
                   float p       = bufferIn[fetchIdx];
                   int outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
                   bufferOut[outputIdx] += xcoeff * ycoeff * p;
@@ -203,7 +204,9 @@ void rescale(
    resizedHeight = static_cast<int>(std::nearbyint(resizeFactor * buffer.getHeight()));
    if (resizedWidth != buffer.getWidth() or resizedHeight != buffer.getHeight()) {
       std::vector<float> rawInput = buffer.asVector();
-      std::vector<float> scaledInput(resizedWidth * resizedHeight * buffer.getFeatures());
+      long resizedNumElements =
+            (long)resizedWidth * (long)resizedHeight * (long)buffer.getFeatures();
+      std::vector<float> scaledInput(resizedNumElements);
       switch (interpMethod) {
          case BICUBIC:
             bicubicInterp(

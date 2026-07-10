@@ -9,9 +9,9 @@
 
 namespace PV {
 
-GaussianRandom::GaussianRandom(int count) {
+GaussianRandom::GaussianRandom(long count) {
    initialize_base();
-   initializeFromCount((unsigned int)count);
+   initializeFromCount(count);
 }
 
 GaussianRandom::GaussianRandom(const PVLayerLoc *locptr, bool isExtended) {
@@ -29,7 +29,7 @@ int GaussianRandom::initializeGaussian() {
    return status;
 }
 
-int GaussianRandom::initializeFromCount(unsigned int count) {
+int GaussianRandom::initializeFromCount(long count) {
    int status = Random::initializeFromCount(count);
    if (status == PV_SUCCESS) {
       status = initializeGaussian();
@@ -45,7 +45,7 @@ int GaussianRandom::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended)
    return status;
 }
 
-float GaussianRandom::gaussianDist(int localIndex) {
+float GaussianRandom::gaussianDist(long localIndex) {
    float x1, x2, y;
    struct box_muller_data bmdata = heldValues[localIndex];
    if (bmdata.hasHeldValue) {

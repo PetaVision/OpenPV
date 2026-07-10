@@ -25,7 +25,7 @@ class InitCocircWeights : public InitGauss2DWeights {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(int patchIndex, int arborId) override;
+   virtual void calcWeights(long patchIndex, int arborId) override;
 
   protected:
    InitCocircWeights();

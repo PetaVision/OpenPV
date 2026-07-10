@@ -24,12 +24,12 @@ void IncrementingWeightUpdater::initialize(
 }
 
 int IncrementingWeightUpdater::updateWeights(int arborId) {
-   int nPatch         = mWeights->getPatchSizeOverall();
-   int numDataPatches = mWeights->getNumDataPatches();
-   for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
+   long nPatch         = mWeights->getPatchSizeOverall();
+   long numDataPatches = mWeights->getNumDataPatchesOverall();
+   for (long patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
       float *Wdata  = mWeights->getDataFromDataIndex(arborId, patchIndex);
       float *dWdata = mDeltaWeights->getDataFromDataIndex(arborId, patchIndex);
-      for (int k = 0; k < nPatch; k++) {
+      for (long k = 0; k < nPatch; k++) {
          float const dw = 1.0f;
          dWdata[k]      = dw;
          Wdata[k] += dw;

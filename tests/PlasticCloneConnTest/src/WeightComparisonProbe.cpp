@@ -63,13 +63,13 @@ Response::Status WeightComparisonProbe::communicateInitInfo(
 
 Response::Status WeightComparisonProbe::allocateDataStructures() {
    std::string firstConn;
-   int nxp, nyp, nfp, numPatches;
+   int nxp, nyp, nfp;
    bool initialized = false;
    for (auto &c : mConnectionList) {
       int const numArbors = c->getComponentByType<ArborList>()->getNumAxonalArbors();
       auto *preWeights    = c->getComponentByType<WeightsPair>()->getPreWeights();
       auto *patchSize     = c->getComponentByType<PatchSize>();
-      numPatches          = preWeights->getNumDataPatches();
+      long numPatches     = preWeights->getNumDataPatchesOverall();
       nxp                 = patchSize->getPatchSizeX();
       nyp                 = patchSize->getPatchSizeY();
       nfp                 = patchSize->getPatchSizeF();

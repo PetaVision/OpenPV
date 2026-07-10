@@ -38,7 +38,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
-   void initializeGaussian2DWeights(float *dataStart, int numPatches);
+   void initializeGaussian2DWeights(float *dataStart, long numPatches);
    void gauss2DCalcWeights(
          Patch const &wp,
          float *dataStart,
@@ -56,11 +56,11 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float thetaMax,
          float bowtieFlag,
          float bowtieAngle);
-   void initializeCocircWeights(float *dataStart, int numPatches);
+   void initializeCocircWeights(float *dataStart, long numPatches);
    void cocircCalcWeights(
          Patch const &wp,
          float *dataStart,
-         int kPre,
+         long kPre,
          int noPre,
          int noPost,
          float sigma_cocirc,
@@ -76,7 +76,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float sigma,
          float r2Max,
          float strength);
-   void initializeSmartWeights(float *dataStart, int numPatches);
+   void initializeSmartWeights(float *dataStart, long numPatches);
    void smartWeights(Patch const &wp, float *dataStart, int k);
    void gaborWeights(
          Patch const &wp,
@@ -89,10 +89,11 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float lambda,
          float strength,
          float phi);
-   void initializeGaborWeights(float *dataStart, int numPatches);
+   void initializeGaborWeights(float *dataStart, long numPatches);
 
    int
-   dataIndexToUnitCellIndex(int dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
+   dataIndexToUnitCellIndex(
+         long dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
 
   protected:
    char *mWeightInitTypeString = nullptr;

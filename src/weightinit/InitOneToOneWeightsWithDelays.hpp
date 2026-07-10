@@ -17,8 +17,8 @@ class InitOneToOneWeightsWithDelays : public InitOneToOneWeights {
    InitOneToOneWeightsWithDelays(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InitOneToOneWeightsWithDelays();
 
-   virtual void calcWeights(int patchIndex, int arborId) override;
-   void calcOtherParams(int patchIndex);
+   virtual void calcWeights(long patchIndex, int arborId) override;
+   void calcOtherParams(long patchIndex);
 
   protected:
    InitOneToOneWeightsWithDelays();

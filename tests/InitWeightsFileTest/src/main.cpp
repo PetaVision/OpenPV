@@ -26,10 +26,10 @@ int main(int argc, char *argv[]) {
    PVLayerLoc const preLoc = *pre->getLayerLoc();
    int const numExtended   = pre->getNumExtended();
    auto *preWeights        = conn->getComponentByType<WeightsPair>()->getPreWeights();
-   int const numPatches    = preWeights->getNumDataPatches();
+   long const numPatches   = preWeights->getNumDataPatchesOverall();
    FatalIf(
-         numPatches != numExtended,
-         "Presynaptic numExtended %d != number of data patches %d\n",
+         numPatches != (long)numExtended,
+         "Presynaptic numExtended %d != number of data patches %ld\n",
          numExtended,
          numPatches);
 
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
    int const nyp   = patchSize->getPatchSizeY();
    int const nfp   = patchSize->getPatchSizeF();
 
-   float const numItemsInPatch = (float)(nxp * nyp * nfp);
+   float const numItemsInPatch = (float)((long)nxp * (long)nyp * (long)nfp);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;

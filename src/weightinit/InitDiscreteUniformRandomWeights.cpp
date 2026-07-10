@@ -62,7 +62,7 @@ void InitDiscreteUniformRandomWeights::ioParam_wNumValues(enum ParamsIOFlag ioFl
  * randomWeights() fills the full-size patch with random numbers, whether or not the patch is
  * shrunken.
  */
-void InitDiscreteUniformRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
+void InitDiscreteUniformRandomWeights::randomWeights(float *patchDataStart, long patchIndex) {
    // loop over all post-synaptic cells in patch
 
    const int nxp       = mWeights->getPatchSizeX();

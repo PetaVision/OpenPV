@@ -34,14 +34,14 @@ void InitOneToOneWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
-void InitOneToOneWeights::calcWeights(int patchIndex, int arborId) {
+void InitOneToOneWeights::calcWeights(long patchIndex, int arborId) {
    float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    createOneToOneConnection(dataStart, patchIndex, mWeightInit);
 }
 
 int InitOneToOneWeights::createOneToOneConnection(
       float *dataStart,
-      int dataPatchIndex,
+      long dataPatchIndex,
       float weightInit) {
 
    int unitCellIndex = dataIndexToUnitCellIndex(dataPatchIndex);
@@ -55,12 +55,14 @@ int InitOneToOneWeights::createOneToOneConnection(
    int sfp = mWeights->getGeometry()->getPatchStrideF();
 
    // clear all weights in patch
-   memset(dataStart, 0, nxp * nyp * nfp);
+   std::size_t patchSizeOverall = static_cast<std::size_t>(mWeights->getPatchSizeOverall());
+   memset(dataStart, 0, patchSizeOverall * sizeof(*dataStart));
    // then set the center point of the patch for each feature
    int x = (int)(nxp / 2);
    int y = (int)(nyp / 2);
    for (int f = 0; f < nfp; f++) {
-      dataStart[x * sxp + y * syp + f * sfp] = f == unitCellIndex ? weightInit : 0;
+      long index = (long)x * sxp + (long)y * syp + (long)f * sfp;
+      dataStart[index] = f == unitCellIndex ? weightInit : 0;
    }
 
    return PV_SUCCESS;

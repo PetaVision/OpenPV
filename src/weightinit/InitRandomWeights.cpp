@@ -20,7 +20,7 @@ void InitRandomWeights::initialize(char const *name, PVParams *params, Communica
    InitWeights::initialize(name, params, comm);
 }
 
-void InitRandomWeights::calcWeights(int dataPatchIndex, int arborId) {
+void InitRandomWeights::calcWeights(long dataPatchIndex, int arborId) {
    randomWeights(mWeights->getDataFromDataIndex(arborId, dataPatchIndex), dataPatchIndex);
    // RNG depends on dataPatchIndex but not on arborId.
 }
@@ -40,7 +40,7 @@ int InitRandomWeights::initRNGs(bool isKernel) {
    assert(mRandState == nullptr);
    int status = PV_SUCCESS;
    if (isKernel) {
-      mRandState = new Random(mWeights->getNumDataPatches());
+      mRandState = new Random(mWeights->getNumDataPatchesOverall());
    }
    else {
       mRandState = new Random(&mWeights->getGeometry()->getPreLoc(), true /*isExtended*/);

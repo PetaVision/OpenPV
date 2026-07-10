@@ -116,7 +116,9 @@ class PatchGeometry {
     * Returns getPatchSizeX() * getPatchSizeY() * getPatchSizeF(),
     * the overall number of items in a patch.
     */
-   int getPatchSizeOverall() const { return mPatchSizeX * mPatchSizeY * mPatchSizeF; }
+   long getPatchSizeOverall() const {
+         return (long)mPatchSizeX * (long)mPatchSizeY * (long)mPatchSizeF;
+   }
 
    /** get-method to retrieve a constant reference to the pre-synaptic PVLayerLoc. */
    PVLayerLoc const &getPreLoc() const { return mPreLoc; }
@@ -143,7 +145,9 @@ class PatchGeometry {
    int getNumPatchesF() const { return mNumPatchesF; }
 
    /** Returns the overall number of patches in the patch geometry */
-   int getNumPatches() const { return getNumPatchesX() * getNumPatchesY() * getNumPatchesF(); }
+   long getNumPatches() const {
+         return (long)getNumPatchesX() * (long)getNumPatchesY() * (long)getNumPatchesF();
+   }
 
    /**
     * Returns the number of kernels in the x-direction. This quantity is equal to
@@ -167,26 +171,26 @@ class PatchGeometry {
    int getNumKernels() const { return getNumKernelsX() * getNumKernelsY() * getNumKernelsF(); }
 
    /** Returns a nonmutable reference to the patch info for the given patch index. */
-   Patch const &getPatch(int patchIndex) const { return mPatchVector[patchIndex]; }
+   Patch const &getPatch(long patchIndex) const { return mPatchVector[patchIndex]; }
 
    /** Returns the GSynPatchStart value for the indicated patch index */
-   std::size_t getGSynPatchStart(int patchIndex) const { return mGSynPatchStart[patchIndex]; }
+   std::size_t getGSynPatchStart(long patchIndex) const { return mGSynPatchStart[patchIndex]; }
 
    /** Returns a nonmutable reference to the vector of GSynPatchStart values. */
    std::vector<std::size_t> const &getGSynPatchStart() const { return mGSynPatchStart; }
 
    /** Returns the APostOffset value for the indicated patch index */
-   std::size_t getAPostOffset(int patchIndex) const { return mAPostOffset[patchIndex]; }
+   std::size_t getAPostOffset(long patchIndex) const { return mAPostOffset[patchIndex]; }
 
    /** Returns the UnshrunkenStart value for the indicated patch index */
-   long getUnshrunkenStart(int patchIndex) const { return mUnshrunkenStart[patchIndex]; }
+   long getUnshrunkenStart(long patchIndex) const { return mUnshrunkenStart[patchIndex]; }
 
    /** Returns the item index of the postsynaptic-perspective patch corresponding to the
      * the given item index of the presynaptic-perspective patch with the given kernel index.
      * Note: the indices are not created if either the pre- or post-synaptic layer is
      * a broadcast layer, and therefore this function cannot be used.
      */
-   std::size_t getTransposeItemIndex(int kernelIndex, int itemInPatch) const {
+   std::size_t getTransposeItemIndex(int kernelIndex, long itemInPatch) const {
       return mTransposeItemIndex[kernelIndex][itemInPatch];
    }
 
@@ -289,7 +293,7 @@ class PatchGeometry {
    std::vector<std::size_t> mGSynPatchStart;
    std::vector<std::size_t> mAPostOffset;
    std::vector<long> mUnshrunkenStart;
-   std::vector<std::vector<int>> mTransposeItemIndex;
+   std::vector<std::vector<long>> mTransposeItemIndex;
 
    int mPatchStrideX;
    int mPatchStrideY;

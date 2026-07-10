@@ -37,7 +37,7 @@ void InitSpreadOverArborsWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
-void InitSpreadOverArborsWeights::calcWeights(int patchIndex, int arborId) {
+void InitSpreadOverArborsWeights::calcWeights(long patchIndex, int arborId) {
    calcOtherParams(patchIndex);
    float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    spreadOverArborsWeights(dataStart, arborId);

@@ -280,7 +280,7 @@ Response::Status HebbianUpdater::allocateDataStructures() {
          if (mWeights->getSharedWeightsFlag()) {
             mNumKernelActivations.resize(numArbors);
             int const sp           = mDeltaWeights->getPatchSizeOverall();
-            int const nPatches     = mDeltaWeights->getNumDataPatches();
+            long const nPatches    = mDeltaWeights->getNumDataPatchesOverall();
             std::size_t numWeights = (std::size_t)(sp) * (std::size_t)nPatches;
             for (int arborId = 0; arborId < numArbors; arborId++) {
                mNumKernelActivations[arborId].resize(numWeights);
@@ -288,7 +288,7 @@ Response::Status HebbianUpdater::allocateDataStructures() {
          }
          else {
             mNumPatchActivations.resize(numArbors);
-            int const numPatches     = mDeltaWeights->getNumDataPatches();
+            long const numPatches = mDeltaWeights->getNumDataPatchesOverall();
             for (int arborId = 0; arborId < numArbors; arborId++) {
                mNumPatchActivations[arborId].resize(numPatches);
             } // loop over arbors
@@ -439,18 +439,18 @@ int HebbianUpdater::initialize_dW(int arborId) {
 int HebbianUpdater::clear_dW(int arborId) {
    // zero out all dW.
    // This also zeroes out the unused parts of shrunken patches
-   int const syPatch        = mWeights->getPatchStrideY();
-   int const nxp            = mWeights->getPatchSizeX();
-   int const nyp            = mWeights->getPatchSizeY();
-   int const nfp            = mWeights->getPatchSizeF();
-   int const nkPatch        = nfp * nxp;
-   int const numArbors      = mArborList->getNumAxonalArbors();
-   int const numDataPatches = mWeights->getNumDataPatches();
+   int const syPatch         = mWeights->getPatchStrideY();
+   int const nxp             = mWeights->getPatchSizeX();
+   int const nyp             = mWeights->getPatchSizeY();
+   int const nfp             = mWeights->getPatchSizeF();
+   int const nkPatch         = nfp * nxp;
+   int const numArbors       = mArborList->getNumAxonalArbors();
+   long const numDataPatches = mWeights->getNumDataPatchesOverall();
    for (int kArbor = 0; kArbor < numArbors; kArbor++) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int kKernel = 0; kKernel < numDataPatches; kKernel++) {
+      for (long kKernel = 0; kKernel < numDataPatches; kKernel++) {
          float *dWeights = mDeltaWeights->getDataFromDataIndex(kArbor, kKernel);
          for (int kyPatch = 0; kyPatch < nyp; kyPatch++) {
             for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
@@ -472,9 +472,9 @@ int HebbianUpdater::clearNumActivations(int arborId) {
    int const nkPatch          = nfp * nxp;
    int const patchSizeOverall = nyp * nkPatch;
    int const numArbors        = mArborList->getNumAxonalArbors();
-   int const numDataPatches   = mWeights->getNumDataPatches();
+   long const numDataPatches  = mWeights->getNumDataPatchesOverall();
    for (int kArbor = 0; kArbor < numArbors; kArbor++) {
-      for (int kKernel = 0; kKernel < numDataPatches; kKernel++) {
+      for (long kKernel = 0; kKernel < numDataPatches; kKernel++) {
          long *activations = &mNumKernelActivations[kArbor][kKernel * patchSizeOverall];
          for (int kyPatch = 0; kyPatch < nyp; kyPatch++) {
             for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
@@ -505,19 +505,19 @@ int HebbianUpdater::update_dW(int arborID) {
 
    if (mWeights->getSharedWeightsFlag()) {
       // Calculate x and y cell size
-      int xCellSize  = zUnitCellSize(preLoc->nx, postLoc->nx);
-      int yCellSize  = zUnitCellSize(preLoc->ny, postLoc->ny);
-      int nxExt      = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
-      int nyExt      = preLoc->ny + preLoc->halo.up + preLoc->halo.dn;
-      int nf         = preLoc->nf;
-      int numKernels = mWeights->getNumDataPatches();
+      int xCellSize   = zUnitCellSize(preLoc->nx, postLoc->nx);
+      int yCellSize   = zUnitCellSize(preLoc->ny, postLoc->ny);
+      int nxExt       = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+      int nyExt       = preLoc->ny + preLoc->halo.up + preLoc->halo.dn;
+      int nf          = preLoc->nf;
+      long numKernels = mWeights->getNumDataPatchesOverall();
 
       for (int b = 0; b < nbatch; b++) {
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
+         for (long kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
 
             // Calculate xCellIdx, yCellIdx, and fCellIdx from kernelIndex
             int kxCellIdx = kxPos(kernelIdx, xCellSize, yCellSize, nf);
@@ -688,10 +688,10 @@ int HebbianUpdater::reduceKernels(int arborID) {
    const int nProcs         = nxProcs * nyProcs * nbProcs;
    if (nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
-      const int numPatches    = mWeights->getNumDataPatches();
-      const size_t patchSize  = (size_t)mWeights->getPatchSizeOverall();
-      const size_t localSize  = (size_t)numPatches * (size_t)patchSize;
-      const size_t arborSize  = localSize * (size_t)mArborList->getNumAxonalArbors();
+      const long numPatches    = mWeights->getNumDataPatchesOverall();
+      const long patchSize  = mWeights->getPatchSizeOverall();
+      const long localSize  = numPatches * patchSize;
+      const long arborSize  = localSize * mArborList->getNumAxonalArbors();
 
       auto sz = mDeltaWeightsReduceRequests.size();
       mDeltaWeightsReduceRequests.resize(sz + 1);
@@ -717,10 +717,10 @@ int HebbianUpdater::reduceActivations(int arborID) {
    const int nProcs         = nxProcs * nyProcs * nbProcs;
    if (!mNumKernelActivations.empty() && nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
-      const int numPatches    = mWeights->getNumDataPatches();
-      const size_t patchSize  = (size_t)mWeights->getPatchSizeOverall();
-      const size_t localSize  = numPatches * patchSize;
-      const size_t arborSize  = localSize * mArborList->getNumAxonalArbors();
+      const long numPatches   = mWeights->getNumDataPatchesOverall();
+      const long patchSize    = mWeights->getPatchSizeOverall();
+      const long localSize    = numPatches * patchSize;
+      const long arborSize    = localSize * mArborList->getNumAxonalArbors();
 
       auto sz = mDeltaWeightsReduceRequests.size();
       mDeltaWeightsReduceRequests.resize(sz + 1);
@@ -740,10 +740,9 @@ int HebbianUpdater::reduceActivations(int arborID) {
 void HebbianUpdater::reduceAcrossBatch(int arborID) {
    pvAssert(!mWeights->getSharedWeightsFlag() && mPlasticityFlag);
    if (mCommunicator->numCommBatches() != 1) {
-      const int numPatches     = mWeights->getNumDataPatches();
-      const size_t patchSize   = (size_t)mWeights->getPatchSizeOverall();
-      size_t const localSize   = (size_t)numPatches * (size_t)patchSize;
-      size_t const arborSize   = localSize * (size_t)mArborList->getNumAxonalArbors();
+      long const numPatches = mWeights->getNumDataPatchesOverall();
+      long const patchSize  = mWeights->getPatchSizeOverall();
+      long const localSize  = numPatches * patchSize;
       MPI_Comm const batchComm = mCommunicator->batchCommunicator();
 
       auto sz = mDeltaWeightsReduceRequests.size();
@@ -809,14 +808,14 @@ int HebbianUpdater::normalize_dW(int arbor_ID) {
    }
    if (mWeights->getSharedWeightsFlag()) {
       pvAssert(!mNumKernelActivations.empty());
-      int numKernelIndices = mWeights->getNumDataPatches();
-      int const numArbors  = mArborList->getNumAxonalArbors();
+      long numKernelIndices = mWeights->getNumDataPatchesOverall();
+      int const numArbors   = mArborList->getNumAxonalArbors();
       for (int loop_arbor = 0; loop_arbor < numArbors; loop_arbor++) {
 // Divide by numKernelActivations in this timestep
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int kernelindex = 0; kernelindex < numKernelIndices; kernelindex++) {
+         for (long kernelindex = 0; kernelindex < numKernelIndices; kernelindex++) {
             // Calculate pre feature index from patch index
             int numpatchitems  = mWeights->getPatchSizeOverall();
             float *dwpatchdata = mDeltaWeights->getDataFromDataIndex(loop_arbor, kernelindex);
@@ -835,15 +834,15 @@ int HebbianUpdater::normalize_dW(int arbor_ID) {
       }
    }
    else {
-      int const numPatches       = mWeights->getNumDataPatches();
-      int const numArbors        = mArborList->getNumAxonalArbors();
-      int const numItemsPerPatch = mWeights->getPatchSizeOverall();
+      long const numPatches       = mWeights->getNumDataPatchesOverall();
+      int const numArbors         = mArborList->getNumAxonalArbors();
+      long const numItemsPerPatch = mWeights->getPatchSizeOverall();
       for (int loop_arbor = 0; loop_arbor < numArbors; loop_arbor++) {
-         for (int patchIndex = 0; patchIndex < numPatches; ++patchIndex) {
+         for (long patchIndex = 0; patchIndex < numPatches; ++patchIndex) {
             float *dwpatchdata = mDeltaWeights->getDataFromPatchIndex(loop_arbor, patchIndex);
             long numActivations  = mNumPatchActivations[loop_arbor][patchIndex];
             if (numActivations != 0) {
-               for (int n = 0; n < numItemsPerPatch; ++n) {
+               for (long n = 0L; n < numItemsPerPatch; ++n) {
                   dwpatchdata[n] /= static_cast<float>(numActivations);
                }
             }
@@ -873,12 +872,13 @@ void HebbianUpdater::updateArbors() {
 
 int HebbianUpdater::updateWeights(int arborId) {
    // add dw to w
-   int const numArbors       = mArborList->getNumAxonalArbors();
-   int const weightsPerArbor = mWeights->getNumDataPatches() * mWeights->getPatchSizeOverall();
+   int const numArbors        = mArborList->getNumAxonalArbors();
+   long const weightsPerArbor =
+         mWeights->getNumDataPatchesOverall() * mWeights->getPatchSizeOverall();
    for (int kArbor = 0; kArbor < numArbors; kArbor++) {
       applyWeightDecay(kArbor);
       float *w_data_start = mWeights->getData(kArbor);
-      for (long int k = 0; k < weightsPerArbor; k++) {
+      for (long k = 0; k < weightsPerArbor; k++) {
          w_data_start[k] += mDeltaWeights->getData(kArbor)[k];
       }
    }

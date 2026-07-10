@@ -50,7 +50,7 @@ void InitCocircWeights::ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag) {
          ioFlag, getName(), "deltaRadiusCurvature", &mDeltaRadiusCurvature, mDeltaRadiusCurvature);
 }
 
-void InitCocircWeights::calcWeights(int patchIndex, int arborId) {
+void InitCocircWeights::calcWeights(long patchIndex, int arborId) {
    calcOtherParams(patchIndex);
    mNKurvePre       = mWeights->getGeometry()->getPreLoc().nf / mNumOrientationsPre;
    mNKurvePost      = mWeights->getGeometry()->getPostLoc().nf / mNumOrientationsPost;

@@ -56,7 +56,7 @@ void InitUniformRandomWeights::ioParam_minNNZ(enum ParamsIOFlag ioFlag) {
  * randomWeights() fills the full-size patch with random numbers, whether or not the patch is
  * shrunken.
  */
-void InitUniformRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
+void InitUniformRandomWeights::randomWeights(float *patchDataStart, long patchIndex) {
    double p;
    if (mWMax <= mWMin) {
       if (mWMax < mWMin) {

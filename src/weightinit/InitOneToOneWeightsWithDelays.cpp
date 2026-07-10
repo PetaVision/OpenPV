@@ -27,7 +27,7 @@ void InitOneToOneWeightsWithDelays::initialize(
    InitWeights::initialize(name, params, comm);
 }
 
-void InitOneToOneWeightsWithDelays::calcWeights(int patchIndex, int arborId) {
+void InitOneToOneWeightsWithDelays::calcWeights(long patchIndex, int arborId) {
    float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    createOneToOneConnectionWithDelays(dataStart, patchIndex, mWeightInit, arborId);
 }

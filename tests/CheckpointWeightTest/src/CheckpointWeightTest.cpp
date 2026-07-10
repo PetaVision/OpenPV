@@ -35,16 +35,16 @@ void verifyCheckpointing(
       bool sharedFlag, std::shared_ptr<MPIBlock const> mpiBlock);
 
 int calcGlobalPatchIndex(
-      int localPatchIndex,
+      long localPatchIndex,
       std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
       int nxp,
       int nyp,
       std::string const &name);
-float calcWeight(int patchIndex, int itemIndex, int numItemsInPatch);
+float calcWeight(long patchIndex, long itemIndex, long numItemsInPatch);
 
-bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, int itemIndex);
+bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, long itemIndex);
 
 int main(int argc, char *argv[]) {
    PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
@@ -85,12 +85,12 @@ void verifyCheckpointing(
    // and weightIndex is the index of the location in the patch (in the range
    // 0 to nxp*nyp*nfp-1).
    weights.allocateDataStructures();
-   int const numItemsInPatch = nxp * nyp * nfp;
-   int const numDataPatches  = weights.getNumDataPatches();
+   long const numItemsInPatch = (long)nxp * (long)nyp * (long)nfp;
+   long const numDataPatches  = weights.getNumDataPatchesOverall();
    for (int a = 0; a < numArbors; a++) {
       float *arborDataStart = weights.getData(a);
-      for (int p = 0; p < numDataPatches; p++) {
-         int globalPatchIndex;
+      for (long p = 0; p < numDataPatches; p++) {
+         long globalPatchIndex;
          if (sharedFlag) {
             globalPatchIndex = p;
          }
@@ -98,8 +98,8 @@ void verifyCheckpointing(
             globalPatchIndex =
                   calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp, weights.getName());
          }
-         for (int k = 0; k < numItemsInPatch; k++) {
-            int const indexIntoArbor       = p * numItemsInPatch + k;
+         for (long k = 0; k < numItemsInPatch; k++) {
+            long const indexIntoArbor       = p * numItemsInPatch + k;
             float v                        = calcWeight(globalPatchIndex, k, numItemsInPatch);
             arborDataStart[indexIntoArbor] = v;
          }
@@ -112,10 +112,10 @@ void verifyCheckpointing(
    // values inside a shrunken patch on another.
    if (!sharedFlag) {
       for (int a = 0; a < numArbors; a++) {
-         for (int p = 0; p < numDataPatches; p++) {
+         for (long p = 0; p < numDataPatches; p++) {
             Patch const &patch = weights.getPatch(p);
             float *w           = weights.getDataFromDataIndex(a, p);
-            for (int k = 0; k < numItemsInPatch; k++) {
+            for (long k = 0; k < numItemsInPatch; k++) {
                if (!isActiveWeight(patch, nxp, nyp, nfp, k)) {
                   w[k] = -1.0f;
                }
@@ -171,7 +171,7 @@ void verifyCheckpointing(
    // Initialize readBack values to infinity, to catch errors where checkpoint read does nothing.
    for (int a = 0; a < numArbors; a++) {
       float *w            = readBack.getData(a);
-      int const arborSize = readBack.getNumDataPatches() * numItemsInPatch;
+      long const arborSize = readBack.getNumDataPatchesOverall() * numItemsInPatch;
       for (int d = 0; d < arborSize; d++) {
          w[d] = std::numeric_limits<float>::infinity();
       }
@@ -202,7 +202,7 @@ void verifyCheckpointing(
                   calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp, weights.getName());
          }
          Patch const &patch = weights.getPatch(p);
-         for (int k = 0; k < numItemsInPatch; k++) {
+         for (long k = 0; k < numItemsInPatch; k++) {
             if (sharedFlag or isActiveWeight(patch, nxp, nyp, nfp, k)) {
                int const indexIntoArbor = p * numItemsInPatch + k;
                float weightValue = weightsArborStart[indexIntoArbor];
@@ -279,7 +279,7 @@ PVLayerLoc setLayerLoc(
 }
 
 int calcGlobalPatchIndex(
-      int localPatchIndex,
+      long localPatchIndex,
       std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
@@ -312,11 +312,11 @@ MPIBlock const setMPIBlock(PV_Init &pv_initObj) {
    return mpiBlock;
 }
 
-float calcWeight(int patchIndex, int itemIndex, int numItemsInPatch) {
+float calcWeight(long patchIndex, long itemIndex, long numItemsInPatch) {
    return (float)patchIndex + (float)itemIndex / (float)numItemsInPatch;
 }
 
-bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, int itemIndex) {
+bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, long itemIndex) {
    int const x = kxPos(itemIndex, nxp, nyp, nfp);
    int const y = kyPos(itemIndex, nxp, nyp, nfp);
 

@@ -24,8 +24,8 @@ class InitGaborWeights : public PV::InitGauss2DWeights {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(int patchIndex, int arborId) override;
-   void calcOtherParams(int patchIndex);
+   virtual void calcWeights(long patchIndex, int arborId) override;
+   void calcOtherParams(long patchIndex);
 
   protected:
    InitGaborWeights();

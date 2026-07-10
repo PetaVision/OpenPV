@@ -195,10 +195,10 @@ int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2) {
          conn2->getName(),
          status);
 
-   int numDataPatches = preWeights1->getNumDataPatches();
+   long numDataPatches = preWeights1->getNumDataPatchesOverall();
    status             = verifyEqual(
          numDataPatches,
-         preWeights2->getNumDataPatches(),
+         preWeights2->getNumDataPatchesOverall(),
          "numDataPatches",
          conn1->getName(),
          conn2->getName(),
@@ -225,9 +225,9 @@ int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2) {
    }
 
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      for (int dataindex = 0; dataindex < numDataPatches; dataindex++) {
-         float *w1 = preWeights1->getData(arbor) + numItems * dataindex;
-         float *w2 = preWeights2->getData(arbor) + numItems * dataindex;
+      for (long dataindex = 0L; dataindex < numDataPatches; dataindex++) {
+         float *w1 = &preWeights1->getData(arbor)[numItems * dataindex];
+         float *w2 = &preWeights2->getData(arbor)[numItems * dataindex];
          status = testDataPatchEqual(w1, w2, numItems, conn1->getName(), conn2->getName(), status);
          if (status != PV_SUCCESS)
             break;
@@ -324,13 +324,13 @@ int dumpWeights(ComponentBasedObject *conn) {
          ErrorLog().printf("    Weight Patch %d: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
       }
    }
-   int const numDataPatches = preWeights->getNumDataPatches();
+   long const numDataPatches = preWeights->getNumDataPatchesOverall();
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      for (int n = 0; n < numDataPatches; n++) {
+      for (long n = 0; n < numDataPatches; n++) {
          float *weightsData = preWeights->getDataFromDataIndex(arbor, n);
          for (int k = 0; k < nxp * nyp * nfp; k++) {
             ErrorLog().printf(
-                  "    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
+                  "    Arbor %d, Data Patch %ld, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
                   arbor,
                   n,
                   k,

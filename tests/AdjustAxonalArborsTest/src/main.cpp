@@ -112,9 +112,9 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    auto *preWeights = weightsPair->getPreWeights();
 
    FatalIf(
-         preWeights->getNumDataPatches() != 1,
-         "Test failed. Weights have %d patches instead of 1.\n",
-         preWeights->getNumDataPatches());
+         preWeights->getNumDataPatchesOverall() != 1L,
+         "Test failed. Weights have %ld patches instead of 1.\n",
+         preWeights->getNumDataPatchesOverall());
    float *w = preWeights->getDataFromDataIndex(0, 0);
    for (int r = 0; r < hc->getCommunicator()->commSize(); r++) {
       if (r == hc->columnId()) {

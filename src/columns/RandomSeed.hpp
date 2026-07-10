@@ -14,7 +14,7 @@ class RandomSeed {
   public:
    static RandomSeed *instance();
    void initialize(unsigned int initialSeed);
-   unsigned int allocate(unsigned int numRequested);
+   unsigned int allocate(unsigned long numRequested);
    unsigned int getInitialSeed() { return mInitialSeed; }
 
   private:

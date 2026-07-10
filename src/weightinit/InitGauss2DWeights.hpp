@@ -59,11 +59,11 @@ class InitGauss2DWeights : public InitWeights {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   void calcOtherParams(int patchIndex);
+   void calcOtherParams(long patchIndex);
 
-   virtual void calcWeights(int dataPatchIndex, int arborId) override;
+   virtual void calcWeights(long dataPatchIndex, int arborId) override;
 
-   void calculateThetas(int kfPre_tmp, int patchIndex);
+   void calculateThetas(int kfPre_tmp, long patchIndex);
    float calcThPost(int fPost);
    bool checkThetaDiff(float thPost);
    bool checkColorDiff(int fPost);
