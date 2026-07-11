@@ -150,10 +150,10 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
          for (int y = 0; y < origNyp; y++) {
             for (int x = 0; x < origNxp; x++) {
                for (int f = 0; f < origNfp; f++) {
-                  int indexinpatch = kIndex(x, y, f, origNxp, origNyp, origNfp);
-                  float origWeight = origWeightsData[indexinpatch];
-                  float copyWeight = copyWeightsData[indexinpatch];
-                  float discrep    = fabsf(origWeight * copyStrength - copyWeight * origStrength);
+                  long indexinpatch = kIndex(x, y, f, origNxp, origNyp, origNfp);
+                  float origWeight  = origWeightsData[indexinpatch];
+                  float copyWeight  = copyWeightsData[indexinpatch];
+                  float discrep     = fabsf(origWeight * copyStrength - copyWeight * origStrength);
                   if (discrep > 1e-6f) {
                      ErrorLog().printf(
                            "Rank %d: arbor %d, patchIndex %ld, x=%d, y=%d, f=%d: discrepancy of "

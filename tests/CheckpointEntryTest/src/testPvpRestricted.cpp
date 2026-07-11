@@ -18,8 +18,8 @@ void testPvpRestricted(std::shared_ptr<PV::FileManager const> fileManager) {
       int kxGlobal      = kxPos(k, loc.nx, loc.ny, loc.nf) + loc.kx0;
       int kyGlobal      = kyPos(k, loc.nx, loc.ny, loc.nf) + loc.ky0;
       int kf            = featureIndex(k, loc.nx, loc.ny, loc.nf);
-      int kGlobal       = kIndex(kxGlobal, kyGlobal, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
-      correctData.at(k) = (float)kGlobal;
+      long kGlobal      = kIndex(kxGlobal, kyGlobal, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
+      correctData.at(k) = static_cast<float>(kGlobal);
    }
 
    // Initialize checkpointData as a vector with the same size as correctData.

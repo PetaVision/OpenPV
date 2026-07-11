@@ -115,7 +115,7 @@ void LocalPatchWeightsIO::calcExtremeWeights(
       for (int y = 0; y < nyRestrictedRegion + 2 * getYMargin(); ++y) {
          for (int x = 0; x < nxRestrictedRegion + 2 * getXMargin(); ++x) {
             for (int f = 0; f < nf; ++f) {
-               int kIndexInRegion = kIndex(
+               long kIndexInRegion = kIndex(
                      x,
                      y,
                      f,
@@ -132,7 +132,7 @@ void LocalPatchWeightsIO::calcExtremeWeights(
                   int const &yStart = yStartsAndStops[0].at(y);
                   int const &yStop  = yStartsAndStops[1].at(y);
                   for (int ky = yStart; ky < yStop; ++ky) {
-                     int kStart = kIndex(
+                     long kStart = kIndex(
                            xStart,
                            ky,
                            0,
@@ -263,7 +263,7 @@ void LocalPatchWeightsIO::readRegion(
                      header.maxVal);
                int xIndexInRegion = x + xMarginRegion;
                int yIndexInRegion = y + yMarginRegion;
-               int kIndexInRegion = kIndex(
+               long kIndexInRegion = kIndex(
                      xIndexInRegion,
                      yIndexInRegion,
                      f,
@@ -279,7 +279,7 @@ void LocalPatchWeightsIO::readRegion(
                   int const &yStart = yStartsAndStops[0].at(yIndexInRegion);
                   int const &yStop  = yStartsAndStops[1].at(yIndexInRegion);
                   for (int ky = yStart; ky < yStop; ++ky) {
-                     int kStart =
+                     long kStart =
                            kIndex(xStart, ky, 0, getPatchSizeX(), getPatchSizeY(), getPatchSizeF());
                      int numBytesToCopy =
                            (xStop - xStart) * getPatchSizeF() * static_cast<int>(mDataSize);
@@ -364,7 +364,7 @@ void LocalPatchWeightsIO::writeRegion(
 
                int xIndexInRegion = x + xMarginRegion;
                int yIndexInRegion = y + yMarginRegion;
-               int kIndexInRegion = kIndex(
+               long kIndexInRegion = kIndex(
                      xIndexInRegion,
                      yIndexInRegion,
                      f,
@@ -381,7 +381,7 @@ void LocalPatchWeightsIO::writeRegion(
                   // but only copy the active part of the patch.
                   memset(writeBuffer.data(), 0, mDataSize * getPatchSizeOverall());
                   for (int ky = yStart; ky < yStop; ++ky) {
-                     int kStart =
+                     long kStart =
                            kIndex(xStart, ky, 0, getPatchSizeX(), getPatchSizeY(), getPatchSizeF());
                      int numBytesToCopy =
                            (xStop - xStart) * getPatchSizeF() * static_cast<int>(mDataSize);
@@ -674,8 +674,8 @@ void LocalPatchWeightsIO::readPatch(
    int nxExtendedPre     = getNxRestrictedPre() + 2 * getXMargin();
    int nyExtendedPre     = getNyRestrictedPre() + 2 * getYMargin();
    int nfPre             = getNfPre();
-   long patchIndexInFile = static_cast<long>(
-         kIndex(xPatchIndex, yPatchIndex, fPatchIndex, nxExtendedPre, nyExtendedPre, nfPre));
+   long patchIndexInFile =
+         kIndex(xPatchIndex, yPatchIndex, fPatchIndex, nxExtendedPre, nyExtendedPre, nfPre);
    long frameStart       = calcFilePositionFromFrameNumber(getFrameNumber());
    long arborSizeBytes   = calcArborSizeBytes();
    long patchOffsetBytes = patchIndexInFile * calcPatchSizeBytes();
@@ -715,8 +715,8 @@ void LocalPatchWeightsIO::writePatch(
    int nxExtendedPre     = getNxRestrictedPre() + 2 * getXMargin();
    int nyExtendedPre     = getNyRestrictedPre() + 2 * getYMargin();
    int nfPre             = getNfPre();
-   long patchIndexInFile = static_cast<long>(
-         kIndex(xPatchIndex, yPatchIndex, fPatchIndex, nxExtendedPre, nyExtendedPre, nfPre));
+   long patchIndexInFile = 
+         kIndex(xPatchIndex, yPatchIndex, fPatchIndex, nxExtendedPre, nyExtendedPre, nfPre);
    long frameStart       = calcFilePositionFromFrameNumber(getFrameNumber());
    long arborSizeBytes   = calcArborSizeBytes();
    long patchOffsetBytes = patchIndexInFile * calcPatchSizeBytes();

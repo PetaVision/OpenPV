@@ -43,18 +43,18 @@ void testOneToOneRestricted() {
    PV::PatchGeometry patchGeometry(name, nxp, nyp, nfp, &preLoc, &postLoc);
    patchGeometry.allocateDataStructures();
 
-   int numPatches = patchGeometry.getNumPatches();
+   long numPatches = patchGeometry.getNumPatchesOverall();
    FatalIf(
-         numPatches != preLoc.nx * preLoc.ny * preLoc.nf,
-         "%s: expected %d patches; there were %d.\n",
+         numPatches != (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf,
+         "%s: expected %ld patches; there were %ld.\n",
          name.c_str(),
-         preLoc.nx * preLoc.ny * preLoc.nf,
+         (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf,
          numPatches);
-   for (int p = 0; p < numPatches; p++) {
+   for (long p = 0; p < numPatches; p++) {
       PV::Patch const &patch = patchGeometry.getPatch(p);
       FatalIf(
             patch.nx != nxp or patch.ny != nxp or patch.offset != 0,
-            "%s: patch %d is (nx=%d, ny=%d, offset=%d) instead of "
+            "%s: patch %ld is (nx=%d, ny=%d, offset=%d) instead of "
             "expected (nx=%d, ny=%d, offset=0).\n",
             name.c_str(),
             p,
@@ -66,7 +66,7 @@ void testOneToOneRestricted() {
       std::size_t correctGSynPatchStart = (p / preLoc.nf) * postLoc.nf; // integer division
       FatalIf(
             patchGeometry.getGSynPatchStart(p) != correctGSynPatchStart,
-            "%s: patch %d has GSynPatchStart %zu instead of expected %zu.\n",
+            "%s: patch %ld has GSynPatchStart %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getGSynPatchStart(p),
@@ -74,7 +74,7 @@ void testOneToOneRestricted() {
       std::size_t correctAPostOffset = correctGSynPatchStart; // postsynaptic margin zero
       FatalIf(
             patchGeometry.getAPostOffset(p) != correctAPostOffset,
-            "%s: patch %d has APostOffset %zu instead of expected %zu.\n",
+            "%s: patch %ld has APostOffset %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getAPostOffset(p),
@@ -114,13 +114,13 @@ void testOneToOneExtended() {
    PV::PatchGeometry patchGeometry(name, nxp, nyp, nfp, &preLoc, &postLoc);
    patchGeometry.allocateDataStructures();
 
-   int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
+   long numPatches         = patchGeometry.getNumPatchesOverall();
+   long expectedNumPatches = (long)nxExt * (long)nyExt * (long)preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
-         "%s: expected %d patches; there were %d.\n",
+         "%s: expected %ld patches; there were %ld.\n",
          name.c_str(),
-         preLoc.nx * preLoc.ny * preLoc.nf,
+         expectedNumPatches,
          numPatches);
 
    std::vector<uint16_t> const correctSizes{1, 2, 3, 4, 5, 5, 5, 5, 5, 5,
@@ -208,18 +208,18 @@ void testOneToManyRestricted() {
    PV::PatchGeometry patchGeometry(name, nxp, nyp, nfp, &preLoc, &postLoc);
    patchGeometry.allocateDataStructures();
 
-   int numPatches = patchGeometry.getNumPatches();
+   long numPatches = patchGeometry.getNumPatchesOverall();
    FatalIf(
-         numPatches != preLoc.nx * preLoc.ny * preLoc.nf,
-         "%s: expected %d patches; there were %d.\n",
+         numPatches != (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf,
+         "%s: expected %ld patches; there were %ld.\n",
          name.c_str(),
-         preLoc.nx * preLoc.ny * preLoc.nf,
+         (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf,
          numPatches);
-   for (int p = 0; p < numPatches; p++) {
+   for (long p = 0; p < numPatches; p++) {
       PV::Patch const &patch = patchGeometry.getPatch(p);
       FatalIf(
             patch.nx != nxp or patch.ny != nyp or patch.offset != 0,
-            "One-to-many restriced, shared weights: patch %d is (nx=%d, ny=%d, offset=%d) "
+            "One-to-many restriced, shared weights: patch %ld is (nx=%d, ny=%d, offset=%d) "
             "instead of expected (nx=%d ny=%d offset=0).\n",
             p,
             patch.nx,
@@ -234,7 +234,7 @@ void testOneToManyRestricted() {
             kIndex(xPost, yPost, 0, postLoc.nx, postLoc.ny, postLoc.nf);
       FatalIf(
             patchGeometry.getGSynPatchStart(p) != correctGSynPatchStart,
-            "%s: patch %d has GSynPatchStart %zu instead of expected %zu.\n",
+            "%s: patch %ld has GSynPatchStart %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getGSynPatchStart(p),
@@ -242,7 +242,7 @@ void testOneToManyRestricted() {
       std::size_t correctAPostOffset = correctGSynPatchStart; // postsynaptic margin zero
       FatalIf(
             patchGeometry.getAPostOffset(p) != correctAPostOffset,
-            "%s: patch %d has APostOffset %zu instead of expected %zu.\n",
+            "%s: patch %ld has APostOffset %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getAPostOffset(p),
@@ -284,18 +284,18 @@ void testOneToManyExtended() {
    PV::PatchGeometry patchGeometry(name, nxp, nyp, nfp, &preLoc, &postLoc);
    patchGeometry.allocateDataStructures();
 
-   int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
+   long numPatches         = patchGeometry.getNumPatchesOverall();
+   long expectedNumPatches = (long)nxExt * (long)nyExt * (long)preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
-         "%s: expected %d patches; there were %d.\n",
+         "%s: expected %ld patches; there were %ld.\n",
          name.c_str(),
          expectedNumPatches,
          numPatches);
 
    std::vector<uint16_t> const correctSizes{4, 8, 12, 12, 8, 4};
    std::vector<int> const correctStarts{8, 4, 0, 0, 0, 0};
-   for (int p = 0; p < numPatches; p++) {
+   for (long p = 0; p < numPatches; p++) {
       int xIndex =
             kxPos(p,
                   patchGeometry.getNumPatchesX(),
@@ -317,7 +317,7 @@ void testOneToManyExtended() {
       auto correctOffset = (uint32_t)kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
       FatalIf(
             patch.nx != correctNx or patch.ny != correctNy or patch.offset != correctOffset,
-            "%s: patch %d is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
+            "%s: patch %ld is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
             "expected (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ").\n",
             name.c_str(),
             p,
@@ -335,7 +335,7 @@ void testOneToManyExtended() {
       std::size_t correctGSynPatchStart = kIndex(xPost, yPost, 0, nxPostRes, nyPostRes, postLoc.nf);
       FatalIf(
             patchGeometry.getGSynPatchStart(p) != correctGSynPatchStart,
-            "%s: patch %d has GSynPatchStart %zu instead of expected %zu.\n",
+            "%s: patch %ld has GSynPatchStart %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getGSynPatchStart(p),
@@ -348,7 +348,7 @@ void testOneToManyExtended() {
       std::size_t correctAPostOffset = kIndex(xPost, yPost, 0, nxPostExt, nyPostExt, postLoc.nf);
       FatalIf(
             patchGeometry.getAPostOffset(p) != correctAPostOffset,
-            "%s: patch %d has APostOffset %zu instead of expected %zu.\n",
+            "%s: patch %ld has APostOffset %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getAPostOffset(p),
@@ -386,18 +386,18 @@ void testManyToOneRestricted() {
    PV::PatchGeometry patchGeometry(name, nxp, nyp, nfp, &preLoc, &postLoc);
    patchGeometry.allocateDataStructures();
 
-   int numPatches = patchGeometry.getNumPatches();
+   long numPatches = patchGeometry.getNumPatchesOverall();
    FatalIf(
-         numPatches != preLoc.nx * preLoc.ny * preLoc.nf,
-         "%s: expected %d patches; there were %d.\n",
+         numPatches != (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf,
+         "%s: expected %ld patches; there were %ld.\n",
          name.c_str(),
-         preLoc.nx * preLoc.ny * preLoc.nf,
+         (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf,
          numPatches);
    for (int p = 0; p < numPatches; p++) {
       PV::Patch const &patch = patchGeometry.getPatch(p);
       FatalIf(
             patch.nx != nxp or patch.ny != nyp or patch.offset != 0,
-            "%s: patch %d is (nx=%d, ny=%d, offset=%d) "
+            "%s: patch %ld is (nx=%d, ny=%d, offset=%d) "
             "instead of expected (nx=%d ny=%d offset=0).\n",
             name.c_str(),
             p,
@@ -413,7 +413,7 @@ void testManyToOneRestricted() {
             kIndex(xPost, yPost, 0, postLoc.nx, postLoc.ny, postLoc.nf);
       FatalIf(
             patchGeometry.getGSynPatchStart(p) != correctGSynPatchStart,
-            "%s: patch %d has GSynPatchStart %zu instead of expected %zu.\n",
+            "%s: patch %ld has GSynPatchStart %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getGSynPatchStart(p),
@@ -421,7 +421,7 @@ void testManyToOneRestricted() {
       std::size_t correctAPostOffset = correctGSynPatchStart; // postsynaptic margin zero
       FatalIf(
             patchGeometry.getAPostOffset(p) != correctAPostOffset,
-            "%s: patch %d has APostOffset %zu instead of expected %zu.\n",
+            "%s: patch %ld has APostOffset %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getAPostOffset(p),
@@ -463,11 +463,11 @@ void testManyToOneExtended() {
    PV::PatchGeometry patchGeometry(name, nxp, nyp, nfp, &preLoc, &postLoc);
    patchGeometry.allocateDataStructures();
 
-   int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
+   long numPatches         = patchGeometry.getNumPatchesOverall();
+   long expectedNumPatches = (long)nxExt * (long)nyExt * (long)preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
-         "%s: expected %d patches; there were %d.\n",
+         "%s: expected %ld patches; there were %ld.\n",
          name.c_str(),
          expectedNumPatches,
          numPatches);
@@ -482,17 +482,17 @@ void testManyToOneExtended() {
       correctStarts[k]     = 2;
       correctStarts[k + 4] = 1;
    }
-   for (int p = 0; p < numPatches; p++) {
-      int xIndex =
-            kxPos(p,
-                  patchGeometry.getNumPatchesX(),
-                  patchGeometry.getNumPatchesY(),
-                  patchGeometry.getNumPatchesF());
-      int yIndex =
-            kyPos(p,
-                  patchGeometry.getNumPatchesX(),
-                  patchGeometry.getNumPatchesY(),
-                  patchGeometry.getNumPatchesF());
+   for (long p = 0; p < numPatches; p++) {
+      int xIndex = kxPos(
+            p,
+            patchGeometry.getNumPatchesX(),
+            patchGeometry.getNumPatchesY(),
+            patchGeometry.getNumPatchesF());
+      int yIndex = kyPos(
+            p,
+            patchGeometry.getNumPatchesX(),
+            patchGeometry.getNumPatchesY(),
+            patchGeometry.getNumPatchesF());
 
       auto &patch = patchGeometry.getPatch(p);
 
@@ -504,7 +504,7 @@ void testManyToOneExtended() {
       auto correctOffset = (uint32_t)kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
       FatalIf(
             patch.nx != correctNx or patch.ny != correctNy or patch.offset != correctOffset,
-            "%s: patch %d is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
+            "%s: patch %ld is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
             "expected (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ").\n",
             name.c_str(),
             p,
@@ -522,7 +522,7 @@ void testManyToOneExtended() {
       std::size_t correctGSynPatchStart = kIndex(xPost, yPost, 0, nxPostRes, nyPostRes, postLoc.nf);
       FatalIf(
             patchGeometry.getGSynPatchStart(p) != correctGSynPatchStart,
-            "%s: patch %d has GSynPatchStart %zu instead of expected %zu.\n",
+            "%s: patch %ld has GSynPatchStart %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getGSynPatchStart(p),
@@ -535,7 +535,7 @@ void testManyToOneExtended() {
       std::size_t correctAPostOffset = kIndex(xPost, yPost, 0, nxPostExt, nyPostExt, postLoc.nf);
       FatalIf(
             patchGeometry.getAPostOffset(p) != correctAPostOffset,
-            "%s: patch %d has APostOffset %zu instead of expected %zu.\n",
+            "%s: patch %ld has APostOffset %zu instead of expected %zu.\n",
             name.c_str(),
             p,
             patchGeometry.getAPostOffset(p),

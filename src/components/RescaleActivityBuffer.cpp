@@ -197,7 +197,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          float minA = 1000000000;
          // Find max and min of A
          for (int k = 0; k < numNeurons; k++) {
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -223,7 +223,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
             for (int k = 0; k < numNeurons; k++) {
-               int kExt = kIndexExtended(
+               long kExt = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -232,7 +232,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.dn,
                      loc->halo.up);
-               int kExtOriginal = kIndexExtended(
+               long kExtOriginal = kIndexExtended(
                      k,
                      locOriginal->nx,
                      locOriginal->ny,
@@ -251,7 +251,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
             for (int k = 0; k < numNeurons; k++) {
-               int kExt = kIndexExtended(
+               long kExt = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -272,7 +272,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for reduction(+ : sum)
 #endif
          for (int k = 0; k < numNeurons; k++) {
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -293,7 +293,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for reduction(+ : sumsq)
 #endif
          for (int k = 0; k < numNeurons; k++) {
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -316,7 +316,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
             for (int k = 0; k < numNeurons; k++) {
-               int kext = kIndexExtended(
+               long kext = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -325,7 +325,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.up,
                      loc->halo.dn);
-               int kextOriginal = kIndexExtended(
+               long kextOriginal = kIndexExtended(
                      k,
                      locOriginal->nx,
                      locOriginal->ny,
@@ -343,7 +343,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
             for (int k = 0; k < numNeurons; k++) {
-               int kext = kIndexExtended(
+               long kext = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -352,7 +352,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.up,
                      loc->halo.dn);
-               int kextOriginal = kIndexExtended(
+               long kextOriginal = kIndexExtended(
                      k,
                      locOriginal->nx,
                      locOriginal->ny,
@@ -373,7 +373,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for reduction(+ : sum)
 #endif
          for (int k = 0; k < numNeurons; k++) {
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -394,7 +394,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for reduction(+ : sumsq)
 #endif
          for (int k = 0; k < numNeurons; k++) {
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -416,7 +416,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
             for (int k = 0; k < numNeurons; k++) {
-               int kext = kIndexExtended(
+               long kext = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -425,7 +425,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.up,
                      loc->halo.dn);
-               int kextOriginal = kIndexExtended(
+               long kextOriginal = kIndexExtended(
                      k,
                      locOriginal->nx,
                      locOriginal->ny,
@@ -446,7 +446,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
             for (int k = 0; k < numNeurons; k++) {
-               int kext = kIndexExtended(
+               long kext = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -455,7 +455,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.up,
                      loc->halo.dn);
-               int kextOriginal = kIndexExtended(
+               long kextOriginal = kIndexExtended(
                      k,
                      locOriginal->nx,
                      locOriginal->ny,
@@ -474,7 +474,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for reduction(+ : sumsq)
 #endif
          for (int k = 0; k < numNeurons; k++) {
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -499,7 +499,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
             for (int k = 0; k < numNeurons; k++) {
-               int kext = kIndexExtended(
+               long kext = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -508,7 +508,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.up,
                      loc->halo.dn);
-               int kextOriginal = kIndexExtended(
+               long kextOriginal = kIndexExtended(
                      k,
                      locOriginal->nx,
                      locOriginal->ny,
@@ -528,7 +528,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
             for (int k = 0; k < numNeurons; k++) {
-               int kext = kIndexExtended(
+               long kext = kIndexExtended(
                      k,
                      loc->nx,
                      loc->ny,
@@ -537,7 +537,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.up,
                      loc->halo.dn);
-               int kextOriginal = kIndexExtended(
+               long kextOriginal = kIndexExtended(
                      k,
                      locOriginal->nx,
                      locOriginal->ny,
@@ -567,7 +567,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                // Find sum sq in feature space
                float sumsq = 0;
                for (int iF = 0; iF < nf; iF++) {
-                  int kext = kIndex(
+                  long kext = kIndex(
                         iX,
                         iY,
                         iF,
@@ -583,28 +583,28 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                // already parallelized in the outermost for-loop
                if (divisor != 0) {
                   for (int iF = 0; iF < nf; iF++) {
-                     int kextOrig = kIndex(
+                     long kextOrig = kIndex(
                            iX,
                            iY,
                            iF,
                            nx + haloOrig->lt + haloOrig->rt,
                            ny + haloOrig->dn + haloOrig->up,
                            nf);
-                     int kext = kIndex(
+                     long kext = kIndex(
                            iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                      ABatch[kext] = (originalABatch[kextOrig] / divisor);
                   }
                }
                else {
                   for (int iF = 0; iF < nf; iF++) {
-                     int kextOrig = kIndex(
+                     long kextOrig = kIndex(
                            iX,
                            iY,
                            iF,
                            nx + haloOrig->lt + haloOrig->rt,
                            ny + haloOrig->dn + haloOrig->up,
                            nf);
-                     int kext = kIndex(
+                     long kext = kIndex(
                            iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                      ABatch[kext] = originalABatch[kextOrig];
                   }
@@ -630,7 +630,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                float sum   = 0;
                float sumsq = 0;
                for (int iF = 0; iF < nf; iF++) {
-                  int kext = kIndex(
+                  long kext = kIndex(
                         iX,
                         iY,
                         iF,
@@ -641,7 +641,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                }
                float mean = sum / nf;
                for (int iF = 0; iF < nf; iF++) {
-                  int kext = kIndex(
+                  long kext = kIndex(
                         iX,
                         iY,
                         iF,
@@ -657,14 +657,14 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                // already parallelized in the outermost for-loop
                if (stdev != 0.0f) {
                   for (int iF = 0; iF < nf; iF++) {
-                     int kextOrig = kIndex(
+                     long kextOrig = kIndex(
                            iX,
                            iY,
                            iF,
                            nx + haloOrig->lt + haloOrig->rt,
                            ny + haloOrig->dn + haloOrig->up,
                            nf);
-                     int kext = kIndex(
+                     long kext = kIndex(
                            iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                      ABatch[kext] =
                            ((originalABatch[kextOrig] - mean) * (mTargetStd / stdev) + mTargetMean);
@@ -672,14 +672,14 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                }
                else {
                   for (int iF = 0; iF < nf; iF++) {
-                     int kextOrig = kIndex(
+                     long kextOrig = kIndex(
                            iX,
                            iY,
                            iF,
                            nx + haloOrig->lt + haloOrig->rt,
                            ny + haloOrig->dn + haloOrig->up,
                            nf);
-                     int kext = kIndex(
+                     long kext = kIndex(
                            iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                      ABatch[kext] = originalABatch[kextOrig];
                   }
@@ -705,7 +705,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                // To prevent overflow, we subtract the max raw value before taking the exponential
                float maxvalue = -FLT_MAX;
                for (int iF = 0; iF < nf; iF++) {
-                  int kextOrig = kIndex(
+                  long kextOrig = kIndex(
                         iX,
                         iY,
                         iF,
@@ -715,7 +715,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   maxvalue = std::max(maxvalue, originalABatch[kextOrig]);
                }
                for (int iF = 0; iF < nf; iF++) {
-                  int kextOrig = kIndex(
+                  long kextOrig = kIndex(
                         iX,
                         iY,
                         iF,
@@ -727,14 +727,14 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                // can't pragma omp parallel the for loops because it was already parallelized in the
                // outermost for-loop
                for (int iF = 0; iF < nf; iF++) {
-                  int kextOrig = kIndex(
+                  long kextOrig = kIndex(
                         iX,
                         iY,
                         iF,
                         nx + haloOrig->lt + haloOrig->rt,
                         ny + haloOrig->dn + haloOrig->up,
                         nf);
-                  int kext =
+                  long kext =
                         kIndex(iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                   if (sumexpx != 0.0f && sumexpx == sumexpx) { // Check for zero and NaN
                      ABatch[kext] = std::exp(originalABatch[kextOrig] - maxvalue) / sumexpx;
@@ -755,7 +755,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
          for (int k = 0; k < numNeurons; k++) {
-            int kext = kIndexExtended(
+            long kext = kIndexExtended(
                   k,
                   loc->nx,
                   loc->ny,
@@ -764,7 +764,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   loc->halo.rt,
                   loc->halo.up,
                   loc->halo.dn);
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -783,7 +783,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
          for (int k = 0; k < numNeurons; k++) {
-            int kextOriginal = kIndexExtended(
+            long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
                   locOriginal->ny,
@@ -792,7 +792,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   haloOrig->rt,
                   haloOrig->dn,
                   haloOrig->up);
-            int kext = kIndexExtended(
+            long kext = kIndexExtended(
                   k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
             if (originalABatch[kextOriginal] == 0) {
                ;

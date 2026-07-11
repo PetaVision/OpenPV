@@ -3,7 +3,7 @@
 namespace PV {
 
 void pvpatch_max_pooling(
-      int kPreGlobalExt,
+      long kPreGlobalExt,
       int nk,
       float *RESTRICT v,
       float a,
@@ -23,7 +23,7 @@ void pvpatch_max_pooling(
 }
 
 void pvpatch_max_pooling_from_post(
-      int kPreGlobalExt,
+      long kPreGlobalExt,
       int nk,
       float *RESTRICT v,
       float const *RESTRICT a,
@@ -32,9 +32,9 @@ void pvpatch_max_pooling_from_post(
       int sf) {
    float vmax  = *v;
    float *gate = (float *)auxPtr;
-   int gateMax = 0;
+   long gateMax = 0L;
    if (gate) {
-      gateMax = (int)*gate;
+      gateMax = (long)*gate;
    }
    for (int k = 0; k < nk; k += sf) {
       float checkVal = a[k];
@@ -50,7 +50,7 @@ void pvpatch_max_pooling_from_post(
 }
 
 void pvpatch_sum_pooling(
-      int kPreExt,
+      long kPreExt,
       int nk,
       float *RESTRICT v,
       float a,
@@ -63,7 +63,7 @@ void pvpatch_sum_pooling(
 }
 
 void pvpatch_sum_pooling_from_post(
-      int kPreExt,
+      long kPreExt,
       int nk,
       float *RESTRICT v,
       float const *RESTRICT a,

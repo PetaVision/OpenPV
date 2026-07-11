@@ -59,9 +59,9 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
             float a = inLayerData->getLayerData()[k];
 
             if (x >= 0 && x < inLoc->nxGlobal && y >= 0 && y < inLoc->nyGlobal) {
-               int kRestricted = kIndex(x, y, f, inLoc->nxGlobal, inLoc->nyGlobal, inLoc->nf);
+               long kRestricted = kIndex(x, y, f, inLoc->nxGlobal, inLoc->nyGlobal, inLoc->nf);
                InfoLog().printf(
-                     "Rank %d, kLocal(extended)=%d, kGlobal(restricted)=%2d, x=%2d, y=%2d, f=%2d, "
+                     "Rank %d, kLocal(extended)=%d, kGlobal(restricted)=%2ld, x=%2d, y=%2d, f=%2d, "
                      "a=%f\n",
                      r,
                      k,
@@ -153,9 +153,9 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
             float V = outLayer->getV()[k];
 
             if (x >= 0 && x < outLoc->nxGlobal && y >= 0 && y < outLoc->nyGlobal) {
-               int kRestricted = kIndex(x, y, f, outLoc->nxGlobal, outLoc->nyGlobal, outLoc->nf);
+               long kRestricted = kIndex(x, y, f, outLoc->nxGlobal, outLoc->nyGlobal, outLoc->nf);
                InfoLog().printf(
-                     "Rank %d, kLocal=%d, kGlobal=%2d, x=%2d, y=%2d, f=%2d, V=%f\n",
+                     "Rank %d, kLocal=%d, kGlobal=%2ld, x=%2d, y=%2d, f=%2d, V=%f\n",
                      r,
                      k,
                      kRestricted,

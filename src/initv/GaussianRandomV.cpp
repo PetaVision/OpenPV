@@ -53,7 +53,7 @@ void GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {
 #endif
       for (int xy = 0; xy < nxny; xy++) {
          for (int f = 0; f < loc->nf; f++) {
-            int index     = kIndex(xy, 0, f, nxny, 1, loc->nf);
+            long index    = kIndex(xy, 0, f, nxny, 1, loc->nf);
             VBatch[index] = randState.gaussianDist(xy, meanV, sigmaV);
          }
       }

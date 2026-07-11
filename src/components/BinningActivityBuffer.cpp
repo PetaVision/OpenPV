@@ -185,7 +185,7 @@ void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          int iY = kyPos(kExt, nxExt, nyExt, currLoc->nf);
          int iF = featureIndex(kExt, nxExt, nyExt, currLoc->nf);
 
-         int origIndex = kIndex(iX, iY, 0, nxExt, nyExt, 1);
+         long origIndex = kIndex(iX, iY, 0, nxExt, nyExt, 1);
          float inVal   = origDataBatch[origIndex];
          // If inVal is out of bounds in either binMax or binMin, set the value to be the maximum
          // or minimum val

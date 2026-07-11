@@ -22,8 +22,8 @@ void testPvpExtended(std::shared_ptr<PV::FileManager const> fileManager) {
       int kxGlobalExt   = kxPos(k, nxLocalExt, nyLocalExt, loc.nf) + loc.kx0;
       int kyGlobalExt   = kyPos(k, nxLocalExt, nyLocalExt, loc.nf) + loc.ky0;
       int kf            = featureIndex(k, nxLocalExt, nyLocalExt, loc.nf);
-      int kGlobal       = kIndex(kxGlobalExt, kyGlobalExt, kf, nxGlobalExt, nyGlobalExt, loc.nf);
-      correctData.at(k) = (float)kGlobal;
+      long kGlobal      = kIndex(kxGlobalExt, kyGlobalExt, kf, nxGlobalExt, nyGlobalExt, loc.nf);
+      correctData.at(k) = static_cast<float>(kGlobal);
    }
 
    // Initialize checkpointData as a vector with the same size as correctData.

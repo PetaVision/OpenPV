@@ -6,7 +6,7 @@
 namespace PV {
 
 void pvpatch_max_pooling(
-      int kPreRes,
+      long kPreRes,
       int nk,
       float *RESTRICT v,
       float a,
@@ -14,7 +14,7 @@ void pvpatch_max_pooling(
       void *auxPtr,
       int sf);
 void pvpatch_sum_pooling(
-      int kPreRes,
+      long kPreRes,
       int nk,
       float *RESTRICT v,
       float a,
@@ -23,7 +23,7 @@ void pvpatch_sum_pooling(
       int sf);
 
 void pvpatch_max_pooling_from_post(
-      int kPreRes,
+      long kPreRes,
       int nk,
       float *v,
       float const *a,
@@ -31,7 +31,7 @@ void pvpatch_max_pooling_from_post(
       void *auxPtr,
       int sf);
 void pvpatch_sum_pooling_from_post(
-      int kPreRes,
+      long kPreRes,
       int nk,
       float *RESTRICT v,
       float const *RESTRICT a,

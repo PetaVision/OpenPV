@@ -34,7 +34,7 @@ void verifyCheckpointing(
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc,
       bool sharedFlag, std::shared_ptr<MPIBlock const> mpiBlock);
 
-int calcGlobalPatchIndex(
+long calcGlobalPatchIndex(
       long localPatchIndex,
       std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const &preLoc,
@@ -192,8 +192,8 @@ void verifyCheckpointing(
    for (int a = 0; a < numArbors; a++) {
       float *weightsArborStart = weights.getData(a);
       float *readBackArborStart = readBack.getData(a);
-      for (int p = 0; p < numDataPatches; p++) {
-         int globalPatchIndex;
+      for (long p = 0; p < numDataPatches; p++) {
+         long globalPatchIndex;
          if (sharedFlag) {
             globalPatchIndex = p;
          }
@@ -278,7 +278,7 @@ PVLayerLoc setLayerLoc(
    return layerLoc;
 }
 
-int calcGlobalPatchIndex(
+long calcGlobalPatchIndex(
       long localPatchIndex,
       std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const &preLoc,
@@ -300,7 +300,7 @@ int calcGlobalPatchIndex(
    y += preLoc.ny * (mpiBlock->getStartRow() + mpiBlock->getRowIndex());
    int f = featureIndex(localPatchIndex, numPatchesX, numPatchesY, nf);
 
-   int patchIndexGlobal = kIndex(x, y, f, numPatchesXGlobal, numPatchesYGlobal, nf);
+   long patchIndexGlobal = kIndex(x, y, f, numPatchesXGlobal, numPatchesYGlobal, nf);
    return patchIndexGlobal;
 }
 

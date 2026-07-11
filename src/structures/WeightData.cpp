@@ -65,13 +65,13 @@ float const *WeightData::getDataFromDataIndex(int arbor, long int dataIndex) con
 }
 
 float *WeightData::getDataFromXYF(int arbor, int indexX, int indexY, int indexF) {
-   long int dataIndex = kIndex(
+   long dataIndex = kIndex(
          indexX, indexY, indexF, getNumDataPatchesX(), getNumDataPatchesY(), getNumDataPatchesF());
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
 float const *WeightData::getDataFromXYF(int arbor, int indexX, int indexY, int indexF) const {
-   long int dataIndex = kIndex(
+   long dataIndex = kIndex(
          indexX, indexY, indexF, getNumDataPatchesX(), getNumDataPatchesY(), getNumDataPatchesF());
    return getDataFromDataIndex(arbor, dataIndex);
 }

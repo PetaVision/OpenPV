@@ -55,8 +55,8 @@ void PtwiseQuotientGSynAccumulator::updateBufferCPU(double simTime, double delta
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kIndex = 0; kIndex < numNeurons; kIndex++) {
-      bufferData[kIndex] = gSynExc[kIndex] / gSynInh[kIndex];
+   for (int index = 0; index < numNeurons; index++) {
+      bufferData[index] = gSynExc[index] / gSynInh[index];
    }
 }
 

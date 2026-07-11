@@ -104,9 +104,9 @@ int TestNonshared(
          originalWeights.getSharedWeightsFlag(),
          0.0 /*timestamp*/);
 
-   int const numPatchesPost = transposeWeights.getGeometry()->getNumPatches();
+   long const numPatchesPost = transposeWeights.getGeometry()->getNumPatchesOverall();
 
-   int const numPatchItemsPost = transposeWeights.getPatchSizeOverall();
+   long const numPatchItemsPost = transposeWeights.getPatchSizeOverall();
    FatalIf(
          transposeWeights.getPatchSizeX() != patchSizeXPost,
          "%s has transposeWeights PatchSizeX of %d, when it should be %d.\n",
@@ -126,11 +126,11 @@ int TestNonshared(
          transposeWeights.getPatchSizeF(),
          patchSizeFPost);
    FatalIf(
-         numPatchItemsPost != patchSizeXPost * patchSizeYPost * patchSizeFPost,
+         numPatchItemsPost != (long)patchSizeXPost * (long)patchSizeYPost * (long)patchSizeFPost,
          "%s has transposeWeights overall patch size of %d, when it should be %d.\n",
          testName.c_str(),
          numPatchItemsPost,
-         patchSizeXPost * patchSizeYPost * patchSizeFPost);
+         (long)patchSizeXPost * (long)patchSizeYPost * (long)patchSizeFPost);
 
    transposeWeights.allocateDataStructures();
 
@@ -147,8 +147,8 @@ int TestNonshared(
    // so postLoc is for the transposeWeight's presynaptic layer and vice versa.
    PVLayerLoc const &postLoc = geometryPost->getPreLoc();
    PVLayerLoc const &preLoc  = geometryPost->getPostLoc();
-   for (int patchIndexPost = 0; patchIndexPost < numPatchesPost; patchIndexPost++) {
-      for (int itemInPatchPost = 0; itemInPatchPost < numPatchItemsPost; itemInPatchPost++) {
+   for (long patchIndexPost = 0; patchIndexPost < numPatchesPost; patchIndexPost++) {
+      for (long itemInPatchPost = 0; itemInPatchPost < numPatchItemsPost; itemInPatchPost++) {
          Patch const &patchPost = transposeWeights.getPatch(patchIndexPost);
 
          int const patchOffsetXPost =
@@ -232,7 +232,7 @@ int TestNonshared(
                0 /*arbor index*/, patchIndexPost)[itemInPatchPost];
          if (observedValue != correctValue) {
             ErrorLog().printf(
-                  "%s, rank %d, patch index %d, patch item %d has transposeWeights value %d, "
+                  "%s, rank %d, patch index %ld, patch item %ld has transposeWeights value %d, "
                   "when it should be %d.\n",
                   testName.c_str(),
                   comm->globalCommRank(),

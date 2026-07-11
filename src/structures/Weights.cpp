@@ -121,7 +121,7 @@ void Weights::allocateDataStructures() {
             getNumDataPatchesX(), getNumDataPatchesY(), getNumDataPatchesF());
    }
    if (getSharedWeightsFlag() and getNumDataPatchesOverall() > 0L) {
-      long const numPatches = mGeometry->getNumPatches();
+      long const numPatches = mGeometry->getNumPatchesOverall();
       dataIndexLookupTable.resize(numPatches);
       for (long p = 0; p < numPatches; p++) {
          dataIndexLookupTable[p] = calcDataIndexFromPatchIndex(p);
@@ -147,19 +147,18 @@ void Weights::allocateCudaBuffers() {
    pvAssert(mCUDNNData == nullptr); // Should only be called once, by allocateDataStructures();
 #endif // PV_USE_CUDNN
    std::string description(mName);
-   int numPatches = getGeometry()->getNumPatchesX() * getGeometry()->getNumPatchesY()
-                    * getGeometry()->getNumPatchesF();
+   long numPatches = getGeometry()->getNumPatchesOverall();
    std::size_t size;
 
    if (getNumDataPatches() > 0) {
       std::vector<int> hostPatchToDataLookupVector(numPatches);
       if (getSharedWeightsFlag()) {
-         for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+         for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
             hostPatchToDataLookupVector[patchIndex] = dataIndexLookupTable[patchIndex];
          }
       }
       else {
-         for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+         for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
             hostPatchToDataLookupVector[patchIndex] = patchIndex;
          }
       }
@@ -228,7 +227,7 @@ float *Weights::getDataFromPatchIndexWithOffset(int arbor, int patchIndex) {
    return getDataFromPatchIndex(arbor, patchIndex) + getPatch(patchIndex).offset;
 }
 
-int Weights::calcDataIndexFromPatchIndex(int patchIndex) const {
+long Weights::calcDataIndexFromPatchIndex(long patchIndex) const {
    if (getSharedWeightsFlag()) {
       int numPatchesX = mGeometry->getNumPatchesX();
       int numPatchesY = mGeometry->getNumPatchesY();
@@ -247,7 +246,7 @@ int Weights::calcDataIndexFromPatchIndex(int patchIndex) const {
 
       int fIndex = featureIndex(patchIndex, numPatchesX, numPatchesY, numPatchesF);
 
-      int dataIndex =
+      long dataIndex =
             kIndex(xIndex, yIndex, fIndex, mNumDataPatchesX, mNumDataPatchesY, mNumDataPatchesF);
       return dataIndex;
    }
@@ -280,7 +279,7 @@ float Weights::calcMinWeight(int arbor) {
       }
    }
    else {
-      pvAssert(getNumDataPatchesOverall() == getGeometry()->getNumPatches());
+      pvAssert(getNumDataPatchesOverall() == getGeometry()->getNumPatchesOverall());
       for (long p = 0; p < getNumDataPatchesOverall(); p++) {
          float *patchDataStart = getDataFromDataIndex(arbor, p);
          Patch const &patch = getPatch(p);
@@ -323,7 +322,7 @@ float Weights::calcMaxWeight(int arbor) {
       }
    }
    else {
-      pvAssert(getNumDataPatchesOverall() == getGeometry()->getNumPatches());
+      pvAssert(getNumDataPatchesOverall() == getGeometry()->getNumPatchesOverall());
       for (long p = 0; p < getNumDataPatchesOverall(); p++) {
          float *patchDataStart = getDataFromDataIndex(arbor, p);
          Patch const &patch = getPatch(p);

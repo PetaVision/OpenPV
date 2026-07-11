@@ -52,7 +52,7 @@ void RescaleDelivery::deliver(float *destBuffer) {
    int nyPreExtended  = ny + preLoc.halo.dn + preLoc.halo.up;
    int numPreExtended = nxPreExtended * nyPreExtended * nf;
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
-   int numPostRestricted = nx * ny * nf;
+   long numPostRestricted = (long)nx * (long)ny * (long)nf;
 
    float *postChannel = destBuffer;
    int const nbatch   = preLoc.nbatch;
@@ -77,9 +77,9 @@ void RescaleDelivery::deliver(float *destBuffer) {
             if (kx < 0 or kx >= nx or ky < 0 or ky >= ny) {
                continue;
             }
-            int kf    = featureIndex(kPre, nxPreExtended, nyPreExtended, nf);
-            int kPost = kIndex(kx, ky, kf, nx, ny, nf);
-            pvAssert(kPost >= 0 and kPost < numPostRestricted);
+            int kf     = featureIndex(kPre, nxPreExtended, nyPreExtended, nf);
+            long kPost = kIndex(kx, ky, kf, nx, ny, nf);
+            pvAssert(kPost >= 0L and kPost < numPostRestricted);
             float a = activeIndices[loopIndex].value;
             postGSynBuffer[kPost] += mScale * a;
          }
@@ -90,11 +90,11 @@ void RescaleDelivery::deliver(float *destBuffer) {
 #pragma omp parallel for
 #endif
          for (int y = 0; y < ny; y++) {
-            int preLineIndex =
+            long preLineIndex =
                   kIndex(preLoc.halo.lt, y + preLoc.halo.up, 0, nxPreExtended, nyPreExtended, nf);
 
             float const *preActivityLine = &preActivityBuffer[preLineIndex];
-            int postLineIndex            = kIndex(0, y, 0, postLoc.nx, ny, postLoc.nf);
+            long postLineIndex           = kIndex(0, y, 0, postLoc.nx, ny, postLoc.nf);
             float *postGSynLine          = &postGSynBuffer[postLineIndex];
             for (int k = 0; k < nk; k++) {
                postGSynLine[k] += mScale * preActivityLine[k];

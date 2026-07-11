@@ -690,26 +690,26 @@ void setWeightDataValues(
       float start,
       float step) {
    float *weightPtr = weightData->getData(0 /*arbor*/);
-   int numDataPatches = weightData->getNumDataPatchesOverall();
-   int patchSize = weightData->getPatchSizeOverall();
+   long numDataPatches = weightData->getNumDataPatchesOverall();
+   long patchSize = weightData->getPatchSizeOverall();
    int patchSizeX = weightData->getPatchSizeX();
    int patchSizeY = weightData->getPatchSizeY();
    int patchSizeF = weightData->getPatchSizeF();
    int numProcsX = mpiBlock->getGlobalNumColumns();
    int numProcsY = mpiBlock->getGlobalNumRows();
-   int patchSizeGlobal = patchSize * numProcsX * numProcsY;
+   long patchSizeGlobal = patchSize * numProcsX * numProcsY;
    int procIndexX = mpiBlock->getStartColumn() + mpiBlock->getColumnIndex();
    int procIndexY = mpiBlock->getStartRow() + mpiBlock->getRowIndex();
-   for (int p = 0; p < numDataPatches; ++p) {
-      for (int k = 0; k < patchSize; ++k) {
+   for (long p = 0L; p < numDataPatches; ++p) {
+      for (long k = 0L; k < patchSize; ++k) {
          // need to convert k, which is the location within the MPI block, to the global location
          int kx = kxPos(k, patchSizeX, patchSizeY, patchSizeF) + patchSizeX * procIndexX;
          int ky = kyPos(k, patchSizeX, patchSizeY, patchSizeF) + patchSizeY * procIndexY;
          int kf = featureIndex(k, patchSizeX, patchSizeY, patchSizeF);
-         int kGlobal =
+         long kGlobal =
                kIndex(kx, ky, kf, patchSizeX * numProcsX, patchSizeY * numProcsY, patchSizeF);
-         int globalIndex = p * patchSizeGlobal + kGlobal;
-         int localIndex = p * patchSize + k;
+         long globalIndex = p * patchSizeGlobal + kGlobal;
+         long localIndex = p * patchSize + k;
          weightPtr[localIndex] = start + static_cast<float>(globalIndex) * step;
       }
    }

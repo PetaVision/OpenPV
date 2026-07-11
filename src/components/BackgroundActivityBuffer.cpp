@@ -163,7 +163,7 @@ void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime)
             int outVal = 1;
             // Shift all features down by one
             for (int iF = 0; iF < origNf; iF++) {
-               int kextOrig = kIndex(
+               long kextOrig = kIndex(
                      iX,
                      iY,
                      iF,
@@ -180,7 +180,7 @@ void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime)
                   // Index iF one down, multiply by replicate feature number, add repIdx offset
                   int newFeatureIdx = ((iF + 1) * mRepFeatureNum) + repIdx;
                   assert(newFeatureIdx < thisNf);
-                  int kext = kIndex(
+                  long kext = kIndex(
                         iX,
                         iY,
                         newFeatureIdx,
@@ -192,7 +192,7 @@ void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime)
             }
             // Set background indices to outVal
             for (int repIdx = 0; repIdx < mRepFeatureNum; repIdx++) {
-               int kextBackground = kIndex(
+               long kextBackground = kIndex(
                      iX,
                      iY,
                      repIdx,

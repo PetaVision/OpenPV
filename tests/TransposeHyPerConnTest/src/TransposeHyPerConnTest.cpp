@@ -42,8 +42,8 @@ int testPatchesEqual(
       const char *conn1name,
       const char *conn2name);
 int verifyEqual(
-      int val1,
-      int val2,
+      long val1,
+      long val2,
       const char *description,
       const char *name1,
       const char *name2,
@@ -186,10 +186,10 @@ int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2) {
    auto *preWeights1 = conn1->getComponentByType<WeightsPair>()->getPreWeights();
    auto *preWeights2 = conn2->getComponentByType<WeightsPair>()->getPreWeights();
 
-   int numGeometryPatches = preWeights1->getGeometry()->getNumPatches();
+   long numGeometryPatches = preWeights1->getGeometry()->getNumPatchesOverall();
    status                 = verifyEqual(
          numGeometryPatches,
-         preWeights2->getGeometry()->getNumPatches(),
+         preWeights2->getGeometry()->getNumPatchesOverall(),
          "numGeometryPatches",
          conn1->getName(),
          conn2->getName(),
@@ -207,7 +207,7 @@ int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2) {
    if (status != PV_SUCCESS)
       return status;
 
-   for (int patchindex = 0; patchindex < numGeometryPatches; patchindex++) {
+   for (long patchindex = 0; patchindex < numGeometryPatches; patchindex++) {
       int status1 = testPatchesEqual(
             &preWeights1->getPatch(patchindex),
             &preWeights2->getPatch(patchindex),
@@ -251,8 +251,8 @@ int testPatchesEqual(
 }
 
 int verifyEqual(
-      int val1,
-      int val2,
+      long val1,
+      long val2,
       const char *description,
       const char *name1,
       const char *name2,
@@ -313,15 +313,15 @@ int dumpWeights(ComponentBasedObject *conn) {
    int numArbors   = conn->getComponentByType<ArborList>()->getNumAxonalArbors();
    ErrorLog().printf(
          "    nxp = %d, nyp = %d, nfp = %d, numAxonalArbors = %d\n", nxp, nyp, nfp, numArbors);
-   auto *preWeights     = conn->getComponentByType<WeightsPair>()->getPreWeights();
-   int const numPatches = preWeights->getGeometry()->getNumPatches();
+   auto *preWeights      = conn->getComponentByType<WeightsPair>()->getPreWeights();
+   long const numPatches = preWeights->getGeometry()->getNumPatchesOverall();
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      for (int kn = 0; kn < numPatches; kn++) {
+      for (long kn = 0; kn < numPatches; kn++) {
          Patch const &kp = preWeights->getPatch(kn);
          int nx          = kp.nx;
          int ny          = kp.ny;
          int offset      = kp.offset;
-         ErrorLog().printf("    Weight Patch %d: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
+         ErrorLog().printf("    Weight Patch %ld: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
       }
    }
    long const numDataPatches = preWeights->getNumDataPatchesOverall();

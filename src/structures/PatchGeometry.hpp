@@ -145,7 +145,7 @@ class PatchGeometry {
    int getNumPatchesF() const { return mNumPatchesF; }
 
    /** Returns the overall number of patches in the patch geometry */
-   long getNumPatches() const {
+   long getNumPatchesOverall() const {
          return (long)getNumPatchesX() * (long)getNumPatchesY() * (long)getNumPatchesF();
    }
 

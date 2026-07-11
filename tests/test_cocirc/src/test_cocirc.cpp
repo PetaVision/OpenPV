@@ -88,7 +88,9 @@ int main(int argc, char *argv[]) {
    const int axonID      = 0;
    int numPreExtended    = pre->getNumExtended();
    auto *hyperPreWeights = cHyPer->getComponentByType<WeightsPair>()->getPreWeights();
-   FatalIf(numPreExtended != hyperPreWeights->getGeometry()->getNumPatches(), "Test failed.\n");
+   FatalIf(
+         numPreExtended != hyperPreWeights->getGeometry()->getNumPatchesOverall(),
+         "Test failed.\n");
 
    int status = PV_SUCCESS;
    for (int kPre = 0; kPre < numPreExtended; kPre++) {

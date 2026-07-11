@@ -37,12 +37,14 @@ void testWeights(
          weights.getName().c_str(),
          weights.getGeometry()->getNumPatchesF(),
          preLoc.nf);
+
+   long numPatchesOverall = weights.getGeometry()->getNumPatchesOverall();
    FatalIf(
-         weights.getGeometry()->getNumPatches() != nxExt * nyExt * preLoc.nf,
-         "%s: number of geometry patches overall was %d instead of the expected %d\n",
+         numPatchesOverall != (long)nxExt * (long)nyExt * (long)preLoc.nf,
+         "%s: number of geometry patches overall was %ld instead of the expected %ld\n",
          weights.getName().c_str(),
-         weights.getGeometry()->getNumPatchesF(),
-         nxExt * nyExt * preLoc.nf);
+         numPatchesOverall,
+         (long)nxExt * (long)nyExt * (long)preLoc.nf);
 
    FatalIf(
          weights.getNumDataPatchesX() != correctNumDataPatchesX,

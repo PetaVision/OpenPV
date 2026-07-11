@@ -345,7 +345,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    // but the real inefficiency is calling the function pointer in a tight for-loop.
    // TODO: Use templating instead of function pointer.
    void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float const *a, float const *w, void *auxPtr, int sf) =
+         long kPreRes, int nk, float *v, float const *a, float const *w, void *auxPtr, int sf) =
          nullptr;
    switch (mAccumulateType) {
       case MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling_from_post; break;
@@ -426,7 +426,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
          float *gSynBatchHead = gSyn + b * targetNx * targetNy * targetNf;
 
          // Change restricted to extended post neuron
-         int kTargetExt = kIndexExtended(
+         long kTargetExt = kIndexExtended(
                kTargetRes,
                targetNx,
                targetNy,
@@ -482,7 +482,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
                   sourceLoc->nf);
             int const kxPreGlobalExt = kxPreExt + sourceLoc->kx0;
             int const kyPreGlobalExt = kyPreExt + sourceLoc->ky0;
-            int const kPreGlobalExt  = kIndex(
+            long const kPreGlobalExt = kIndex(
                   kxPreGlobalExt,
                   kyPreGlobalExt,
                   kfPre,
@@ -509,7 +509,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    // but the real inefficiency is calling the function pointer in a tight for-loop.
    // TODO: Use templating instead of function pointer.
    void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float a, float const *w, void *auxPtr, int sf) = nullptr;
+         long kPreRes, int nk, float *v, float a, float const *w, void *auxPtr, int sf) = nullptr;
    switch (mAccumulateType) {
       case MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling; break;
       case SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling; break;
@@ -680,7 +680,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
          int const kxPreGlobalExt = kxPreExt + preLoc->kx0;
          int const kyPreGlobalExt = kyPreExt + preLoc->ky0;
 
-         int const kPreGlobalExt = kIndex(
+         long const kPreGlobalExt = kIndex(
                kxPreGlobalExt,
                kyPreGlobalExt,
                kfPre,

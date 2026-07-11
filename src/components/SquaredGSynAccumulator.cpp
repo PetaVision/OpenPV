@@ -39,9 +39,9 @@ void SquaredGSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kIndex = 0; kIndex < numNeurons; kIndex++) {
-      float gSyn         = gSynExc[kIndex];
-      bufferData[kIndex] = gSyn * gSyn;
+   for (int neuron = 0; neuron < numNeurons; neuron++) {
+      float gSyn         = gSynExc[neuron];
+      bufferData[neuron] = gSyn * gSyn;
    }
 }
 

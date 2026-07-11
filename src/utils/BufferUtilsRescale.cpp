@@ -89,7 +89,7 @@ void nearestNeighborInterp(
          for (int f = 0; f < numBands; f++) {
             long fetchIdx =
                   yfetch * (long)yStrideIn + xfetch * (long)xStrideIn + f * (long)bandStrideIn;
-            int outputIdx        = kIndex(kx, ky, f, widthOut, heightOut, numBands);
+            long outputIdx       = kIndex(kx, ky, f, widthOut, heightOut, numBands);
             bufferOut[outputIdx] = bufferIn[fetchIdx];
          }
       }
@@ -161,9 +161,10 @@ void bicubicInterp(
                assert(xfetch >= 0 && xfetch < widthIn && yfetch >= 0 && yfetch < heightIn);
 
                for (int f = 0; f < numBands; f++) {
-                  long fetchIdx = yfetch * (long)yStrideIn + xfetch * (long)xStrideIn + f * (long)bandStrideIn;
-                  float p       = bufferIn[fetchIdx];
-                  int outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
+                  long fetchIdx =
+                        yfetch * (long)yStrideIn + xfetch * (long)xStrideIn + f * bandStrideIn;
+                  float p        = bufferIn[fetchIdx];
+                  long outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
                   bufferOut[outputIdx] += xcoeff * ycoeff * p;
                }
             }

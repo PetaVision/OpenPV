@@ -103,7 +103,7 @@ void TransposeWeights::transposeShared(Weights *preWeights, Weights *postWeights
                featureIndex(itemInPatchPre, patchSizeXPre, patchSizeYPre, patchSizeFPre);
          int patchIndexFPost = itemInPatchFPre;
 
-         int patchIndexPost = kIndex(
+         long patchIndexPost = kIndex(
                patchIndexXPost,
                patchIndexYPost,
                patchIndexFPost,
@@ -174,14 +174,14 @@ void TransposeWeights::transposeBroadcast(
                featureIndex(patchIndexPre, numPatchesXPre, numPatchesYPre, numPatchesFPre);
          int const kernelIndexFPre = patchIndexFPre;
 
-         int const kernelIndexPre = kIndex(
+         long const kernelIndexPre = kIndex(
                kernelIndexXPre,
                kernelIndexYPre,
                kernelIndexFPre,
                numKernelsXPre,
                numKernelsYPre,
                numKernelsFPre);
-         int const itemInPatchPost = kernelIndexPre;
+         long const itemInPatchPost = kernelIndexPre;
 
          Patch const &patch     = preWeights->getPatch(patchIndexPre);
          int const patchOffsetX = kxPos(patch.offset, patchSizeXPre, patchSizeYPre, patchSizeFPre);
@@ -240,8 +240,8 @@ void TransposeWeights::transposeBroadcast(
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for collapse(2)
 #endif
-   for (int patchIndexPost = 0; patchIndexPost < numPatchesPost; patchIndexPost++) {
-      for (int itemInPatchPost = 0; itemInPatchPost < patchSizePost; itemInPatchPost++) {
+   for (long patchIndexPost = 0L; patchIndexPost < numPatchesPost; patchIndexPost++) {
+      for (long itemInPatchPost = 0L; itemInPatchPost < patchSizePost; itemInPatchPost++) {
          Patch const &patchPost = postWeights->getPatch(patchIndexPost);
 
          int const patchOffsetXPost =
@@ -324,7 +324,7 @@ void TransposeWeights::transposeNonshared(
                featureIndex(patchIndexPre, numPatchesXPre, numPatchesYPre, numPatchesFPre);
          int const kernelIndexFPre = patchIndexFPre;
 
-         int const kernelIndexPre = kIndex(
+         long const kernelIndexPre = kIndex(
                kernelIndexXPre,
                kernelIndexYPre,
                kernelIndexFPre,

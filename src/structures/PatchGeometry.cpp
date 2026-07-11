@@ -5,13 +5,14 @@
  *      Author: Pete Schultz
  */
 
-#include "PatchGeometry.hpp"
-#include "utils/PVAssert.hpp"
-#include "utils/conversions.hpp"
+#include <cinttypes>
 #include <cmath>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
+#include "PatchGeometry.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/conversions.hpp"
 
 namespace PV {
 
@@ -244,21 +245,28 @@ void PatchGeometry::setPatchGeometry() {
       int yIndex = kyPos(patchIndex, mNumPatchesX, mNumPatchesY, mNumPatchesF);
       patch.ny   = patchDimY[yIndex];
 
-      patch.offset = kIndex(
+      long patchOffset = kIndex(
             patchStartX[xIndex], patchStartY[yIndex], 0, mPatchSizeX, mPatchSizeY, mPatchSizeF);
+      patch.offset = static_cast<std::uint32_t>(patchOffset);
+      FatalIf(
+            static_cast<std::size_t>(patch.offset) != static_cast<std::size_t>(patchOffset),
+            "Patch index %ld has an offset of %ld, which is exceeds limit of %" PRIu32 "\n",
+            patchIndex, patchOffset, std::numeric_limits<uint32_t>::max());
 
       int startX                  = postStartRestrictedX[xIndex];
       int startY                  = postStartRestrictedY[yIndex];
       int nxPost                  = mPostLoc.nx;
       int nyPost                  = mPostLoc.ny;
       int nfPost                  = mPostLoc.nf;
-      mGSynPatchStart[patchIndex] = kIndex(startX, startY, 0, nxPost, nyPost, nfPost);
+      mGSynPatchStart[patchIndex] =
+            static_cast<std::size_t>(kIndex(startX, startY, 0, nxPost, nyPost, nfPost));
 
       int startXExt            = postStartExtendedX[xIndex];
       int startYExt            = postStartExtendedY[yIndex];
       int nxExtPost            = mPostLoc.nx + mPostLoc.halo.lt + mPostLoc.halo.rt;
       int nyExtPost            = mPostLoc.ny + mPostLoc.halo.dn + mPostLoc.halo.up;
-      mAPostOffset[patchIndex] = kIndex(startXExt, startYExt, 0, nxExtPost, nyExtPost, nfPost);
+      mAPostOffset[patchIndex] =
+            static_cast<std::size_t>(kIndex(startXExt, startYExt, 0, nxExtPost, nyExtPost, nfPost));
 
       int startUnshrunkenX = postUnshrunkenStartX[xIndex];
       int startUnshrunkenY = postUnshrunkenStartY[yIndex];

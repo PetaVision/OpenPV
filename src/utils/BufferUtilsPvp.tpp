@@ -76,13 +76,13 @@ double readFrameWindow(
          fStart + nf,
          nfGlobal);
 
-   vector<T> bufferData(nx * ny * nf);
+   vector<T> bufferData((long)nx * (long)ny * (long)nf);
    if (nfGlobal == buffer->getFeatures()) {
       std::size_t lineWidth = sizeof(T) * (std::size_t)(nfGlobal * buffer->getWidth());
       for (int y = 0; y < buffer->getHeight(); y++) {
-         int fileIndex       = kIndex(xStart, y + yStart, fStart, nxGlobal, nyGlobal, nfGlobal);
-         int bufferIndex     = kIndex(0, y, 0, nx, ny, nf);
-         long currentFilePos = frameDataStart + (long)sizeof(T) * (long)fileIndex;
+         long fileIndex      = kIndex(xStart, y + yStart, fStart, nxGlobal, nyGlobal, nfGlobal);
+         long bufferIndex    = kIndex(0, y, 0, nx, ny, nf);
+         long currentFilePos = frameDataStart + (long)sizeof(T) * fileIndex;
          fStream.setOutPos(currentFilePos, true /*fromBeginning flag*/);
          fStream.read(&bufferData[bufferIndex], lineWidth);
       }
@@ -91,9 +91,9 @@ double readFrameWindow(
       std::size_t dataWidth = sizeof(T) * (std::size_t)buffer->getFeatures();
       for (int y = 0; y < buffer->getHeight(); y++) {
          for (int x = 0; x < buffer->getWidth(); x++) {
-            int fileIndex       = kIndex(xStart, y + yStart, fStart, nxGlobal, nyGlobal, nfGlobal);
-            int bufferIndex     = kIndex(x, y, 0, nx, ny, nf);
-            long currentFilePos = frameDataStart + (long)sizeof(T) * (long)fileIndex;
+            long fileIndex      = kIndex(xStart, y + yStart, fStart, nxGlobal, nyGlobal, nfGlobal);
+            long bufferIndex    = kIndex(x, y, 0, nx, ny, nf);
+            long currentFilePos = frameDataStart + (long)sizeof(T) * fileIndex;
             fStream.setOutPos(currentFilePos, true /*fromBeginning flag*/);
             fStream.read(&bufferData[bufferIndex], dataWidth);
          }

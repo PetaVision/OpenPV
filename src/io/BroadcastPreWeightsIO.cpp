@@ -141,9 +141,9 @@ void BroadcastPreWeightsIO::readRegion(
          for (int y = 0; y < nypLocal; ++y) {
             float *localPointer = &weightData.getDataFromDataIndex(a, p)[y * lineSize];
             // Set file location
-            int lineStartInFilePatch = kIndex(
+            long lineStartInFilePatch = kIndex(
                   xStart, yStart + y, fStart, mPatchSizeX, mPatchSizeY, mPatchSizeF);
-            long lineStartOffset = static_cast<long int>(lineStartInFilePatch) * mDataSize;
+            long lineStartOffset = lineStartInFilePatch * mDataSize;
             long frameStart      = calcFilePositionFromFrameNumber(getFrameNumber()) + mHeaderSize;
             long arborStart      = frameStart + (arborIndexStart + a) * calcArborSizeBytes();
             long patchStart      = arborStart + (p + fPreStart) * calcPatchSizeBytes();
@@ -226,9 +226,9 @@ void BroadcastPreWeightsIO::writeRegion(
          for (int y = 0; y < nypLocal; ++y) {
             float const *localPointer = &weightData.getDataFromDataIndex(a, p)[y * lineSize];
             // Set file location
-            int lineStartInFilePatch = kIndex(
+            long lineStartInFilePatch = kIndex(
                   xStart, yStart + y, fStart, mPatchSizeX, mPatchSizeY, mPatchSizeF);
-            long lineStartOffset = static_cast<long int>(lineStartInFilePatch) * mDataSize;
+            long lineStartOffset = lineStartInFilePatch * mDataSize;
             long lineStart       = patchDataStart + lineStartOffset;
             getFileStream()->setOutPos(lineStart, std::ios_base::beg);
             if (getCompressedFlag()) {

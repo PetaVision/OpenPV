@@ -1227,7 +1227,7 @@ void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    for (int y = 0; y < activityHeight; ++y) {
       for (int x = 0; x < activityWidth; ++x) {
          for (int f = 0; f < numFeatures; ++f) {
-            int activityIndex = kIndex(
+            long activityIndex = kIndex(
                   activityLeft + x,
                   activityTop + y,
                   f,
@@ -1245,7 +1245,7 @@ void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
       for (int y = 0; y < activityHeight; ++y) {
          for (int x = 0; x < activityWidth; ++x) {
             for (int f = 0; f < numFeatures; ++f) {
-               int activityIndex = kIndex(
+               long activityIndex = kIndex(
                      activityLeft + x,
                      activityTop + y,
                      f,

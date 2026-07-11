@@ -458,7 +458,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
                continue;
             }
 
-            const int kPostLocalRes = kIndex(
+            long const kPostLocalRes = kIndex(
                   kxPostLocalRes, kyPostLocalRes, kfPost, postLoc->nx, postLoc->ny, postLoc->nf);
             if (fabs(a) > fabs(gSynPatchHead[kPostLocalRes])) {
                gSynPatchHead[kPostLocalRes] = a;

@@ -57,8 +57,8 @@ void SingleChannelGSynAccumulator::updateBufferCPU(double simTime, double deltaT
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kIndex = 0; kIndex < numNeurons; kIndex++) {
-      bufferData[kIndex] = gSynExc[kIndex];
+   for (int neuron = 0; neuron < numNeurons; neuron++) {
+      bufferData[neuron] = gSynExc[neuron];
    }
 }
 
