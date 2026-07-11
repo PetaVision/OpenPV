@@ -150,7 +150,7 @@ void Weights::allocateCudaBuffers() {
    long numPatches = getGeometry()->getNumPatchesOverall();
    std::size_t size;
 
-   if (getNumDataPatches() > 0) {
+   if (getNumDataPatchesOverall() > 0) {
       std::vector<int> hostPatchToDataLookupVector(numPatches);
       if (getSharedWeightsFlag()) {
          for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
@@ -167,7 +167,7 @@ void Weights::allocateCudaBuffers() {
       // Copy PatchToDataLookup array onto CUDA device because it never changes.
       mDevicePatchToDataLookup->copyToDevice(hostPatchToDataLookupVector.data());
 
-      size = (std::size_t)getNumArbors() * (std::size_t)getNumDataPatches()
+      size = (std::size_t)getNumArbors() * (std::size_t)getNumDataPatchesOverall()
              * (std::size_t)getPatchSizeOverall() * sizeof(float);
       mDeviceData = mCudaDevice->createBuffer(size, &description);
       pvAssert(mDeviceData);

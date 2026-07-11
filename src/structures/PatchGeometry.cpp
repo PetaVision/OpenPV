@@ -8,6 +8,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include "PatchGeometry.hpp"

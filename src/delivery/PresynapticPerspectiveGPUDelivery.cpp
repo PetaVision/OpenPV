@@ -93,16 +93,16 @@ Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
    // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
    // the Weights object, because they are only needed by presynaptic-perspective delivery.
    auto preGeometry             = mWeightsPair->getPreWeights()->getGeometry();
-   std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
+   std::size_t const numPatches = static_cast<std::size_t>(preGeometry->getNumPatchesOverall());
    std::size_t cudaBufferSize;
 
    auto const *hostPatches = &preGeometry->getPatch(0); // Only used to get size for allocation
-   cudaBufferSize          = (std::size_t)numPatches * sizeof(*hostPatches);
+   cudaBufferSize          = numPatches * sizeof(*hostPatches);
    mDevicePatches          = mCudaDevice->createBuffer(cudaBufferSize, &getDescription());
    pvAssert(mDevicePatches);
 
    auto const *hostGSynPatchStart = preGeometry->getGSynPatchStart().data();
-   cudaBufferSize                 = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
+   cudaBufferSize                 = numPatches * sizeof(*hostGSynPatchStart);
    mDeviceGSynPatchStart          = mCudaDevice->createBuffer(cudaBufferSize, &getDescription());
    pvAssert(mDeviceGSynPatchStart);
 
