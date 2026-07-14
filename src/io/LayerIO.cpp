@@ -228,7 +228,7 @@ void LayerIO::writeHeader() {
    header.ny         = mHeight;
    header.nf         = mNumFeatures;
    header.numRecords = 1;
-   header.recordSize = header.nx * header.ny * header.nf;
+   header.recordSize = 0;
    header.dataSize   = static_cast<int>(mDataSize);
    header.dataType   = BufferUtils::returnDataType<float>();
    header.nxProcs    = 1;

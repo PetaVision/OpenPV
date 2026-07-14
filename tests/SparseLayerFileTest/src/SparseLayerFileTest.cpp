@@ -281,7 +281,6 @@ int checkHeader(
       if (headerData.ny         != correctHeader.ny        ) { status = PV_FAILURE; }
       if (headerData.nf         != correctHeader.nf        ) { status = PV_FAILURE; }
       if (headerData.numRecords != correctHeader.numRecords) { status = PV_FAILURE; }
-      if (headerData.recordSize != correctHeader.recordSize) { status = PV_FAILURE; }
       if (headerData.dataSize   != correctHeader.dataSize  ) { status = PV_FAILURE; }
       if (headerData.dataType   != correctHeader.dataType  ) { status = PV_FAILURE; }
       if (headerData.nxProcs    != correctHeader.nxProcs   ) { status = PV_FAILURE; }
@@ -428,7 +427,6 @@ BufferUtils::ActivityHeader createInitialHeader(
       nxBlock += layerLoc.halo.lt + layerLoc.halo.rt;
       nyBlock += layerLoc.halo.dn + layerLoc.halo.up;
    }
-   int recordSize = 0;
    int dataSize = static_cast<int>(sizeof(SparseList<float>::Entry));
    int dataType = BufferUtils::returnDataType<float>();
 
@@ -440,7 +438,7 @@ BufferUtils::ActivityHeader createInitialHeader(
    headerData.ny          = nyBlock;
    headerData.nf          = layerLoc.nf;
    headerData.numRecords  = 1;
-   headerData.recordSize  = recordSize;
+   headerData.recordSize  = 0;
    headerData.dataSize    = dataSize;
    headerData.dataType    = dataType;
    headerData.nxProcs     = 1;

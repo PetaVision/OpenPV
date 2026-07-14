@@ -340,7 +340,6 @@ int BroadcastPreWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) 
    status = checkHeaderField(expected.ny, observed.ny, "ny", status);
    status = checkHeaderField(expected.nf, observed.nf, "nf", status);
    status = checkHeaderField(expected.numRecords, observed.numRecords, "numRecords", status);
-   status = checkHeaderField(expected.recordSize, observed.recordSize, "recordSize", status);
    status = checkHeaderField(expected.dataSize, observed.dataSize, "dataSize", status);
    status = checkHeaderField(expected.dataType, observed.dataType, "dataType", status);
    status = checkHeaderField(expected.nxProcs, observed.nxProcs, "nxProcs", status);

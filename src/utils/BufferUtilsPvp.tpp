@@ -136,7 +136,7 @@ ActivityHeader buildActivityHeader(int width, int height, int features, int numF
    result.ny         = height;
    result.nf         = features;
    result.numRecords = 1;
-   result.recordSize = width * height * features; // don't use this value; it can overflow
+   result.recordSize = 0; // No longer used
    result.dataSize   = sizeof(T);
    result.dataType   = dataType;
    result.nxProcs    = 1;
