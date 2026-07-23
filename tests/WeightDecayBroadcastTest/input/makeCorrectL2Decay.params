@@ -1,0 +1,111 @@
+//
+// makeCorrectL2Decay.params
+//
+
+//  A params file to generate the ground truth for WeightDecayBroadcastTest.
+//  Two ConstantLayer objects serve as the pre- and post- synaptic layers. The
+//  pre-synaptic layer is a non-broadcast 1x1x16 layer, and the post-synaptic
+//  layer is 4x4x3. A plastic HyPerConn between them has weightL2Decay set
+//  to 0.25, and weightL1Decay set to zero. Because pre- is 1x1 and not a
+//  broadcast layer, this params file can only be run with one MPI row and
+//  one MPI column.
+//
+//  To use this params file, do not run it on the WeightDecayBroadcastTest
+//  executable, as this will fail the weight comparison check within that test.
+//  Instead, run it on a program with a no-frills buildandrun() function call,
+//  such as the executable in BasicSystemTest. Then copy the output from
+//  output/makeCorrectL2DecayBroadcastTest/Last/PreToPost_W.pvp to the
+//  input/weightL2Decay_correct.pvp file. This correct.pvp file is then
+//  used when running the WeightDecayBroadcastTest executable.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 4;
+   ny = 4;
+   nbatch = 2;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 25.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/makeCorrectL2DecayBroadcastTest";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/makeCorrectL2DecayBroadcastTest/Last";
+};
+
+//
+// layers
+//
+
+ConstantLayer "Pre" = {
+    nxScale = 0.25;
+    nyScale = 0.25;
+    
+    InitVType = "InitVFromFile";
+    Vfilename = "input/BroadcastPre.pvp";
+    nf = 16;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+};
+
+ConstantLayer "Post" = {
+    nxScale = 1;
+    nyScale = 1;
+    
+    InitVType = "InitVFromFile";
+    Vfilename = "input/Post2.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+};
+
+//
+// connection
+//
+
+HyPerConn "PreToPost" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 4;
+    nyp                                 = 4;
+    nfp                                 = 3;
+    sharedWeights                       = true;
+    writeStep                           = 5;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/BroadcastInitialWeights.pvp";
+    frameNumber                         = 0;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = true;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 5;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    dWMax                               = 1;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+    combine_dW_with_W_flag              = false;
+    weightL1Decay                       = 0;
+    weightL2Decay                       = 0.25;
+};

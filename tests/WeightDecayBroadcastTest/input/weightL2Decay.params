@@ -1,0 +1,104 @@
+//
+// weightL2Decay.params
+//
+
+//  A params file to test the weightL2Decay feature of HyPerConn when the
+//  presynaptic layer is a broadcast layer. Two ConstantLayer objects serve as
+//  the pre- and post- synaptic layers. The pre-synaptic layer is 1x1x16 and
+//  the post-synaptic layer is 4x4x3. A plastic HyPerConn between them has
+//  weightL2Decay set to 0.25, and weightL1Decay set to zero.
+//
+//  The run goes for five update periods. The resulting weight file in
+//  {lastCheckpointDir}/PreToPost_W.pvp should be compared against the
+//  input/weightL2Decay_correct.pvp file. Calling the buildandrun() function
+//  does not perform this comparison, but the checkWeights file in the
+//  executable for the WeightDecayBroadcastTest system test does.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 4;
+   ny = 4;
+   nbatch = 2;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 25.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/weightL2DecayBroadcastTest";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/weightL2DecayBroadcastTest/Last";
+};
+
+//
+// layers
+//
+
+ConstantLayer "Pre" = {
+    broadcastFlag = true;
+    
+    InitVType = "InitVFromFile";
+    Vfilename = "input/BroadcastPre.pvp";
+    nf = 16;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+};
+
+ConstantLayer "Post" = {
+    nxScale = 1;
+    nyScale = 1;
+    
+    InitVType = "InitVFromFile";
+    Vfilename = "input/Post2.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+};
+
+//
+// connection
+//
+
+HyPerConn "PreToPost" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    // nxp, nyp, nfp can be inferred from the post-layer, since the pre-layer is a broadcast layer.
+    sharedWeights                       = false;
+    writeStep                           = 5;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/BroadcastInitialWeights.pvp";
+    frameNumber                         = 0;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = true;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 5;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    dWMax                               = 1;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+    combine_dW_with_W_flag              = false;
+    weightL1Decay                       = 0;
+    weightL2Decay                       = 0.25;
+};
