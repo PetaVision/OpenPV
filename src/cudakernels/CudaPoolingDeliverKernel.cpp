@@ -104,13 +104,14 @@ void CudaPoolingDeliverKernel::setArgs(
    cudnnHandleError(status, "Set output tensor descriptor");
 
    std::string str(mKernelName);
-   mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize(), &str);
+   mCudnnDataStore = mDevice->createBuffer(dataStoreBuffer->getSize(), &str);
 
-   int numGSynNeuronsAcrossBatch = postLoc->nf * postLoc->ny * postLoc->nf * postLoc->nbatch;
-   float *gSynHead               = (float *)gSynBuffer->getPointer();
-   mGSyn                         = &gSynHead[channel * numGSynNeuronsAcrossBatch];
+   long numGSynNeuronsAcrossBatch =
+      (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf * (long)postLoc->nbatch;
+   float *gSynHead = (float *)gSynBuffer->getPointer();
+   mGSyn           = &gSynHead[channel * numGSynNeuronsAcrossBatch];
 
-   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch, &str);
+   mCudnnGSyn = mDevice->createBuffer(numGSynNeuronsAcrossBatch, &str);
 }
 
 int CudaPoolingDeliverKernel::calcBorderExcess(
@@ -132,7 +133,7 @@ int CudaPoolingDeliverKernel::calcStride(int preRestricted, int postRestricted) 
 int CudaPoolingDeliverKernel::do_run() {
    float scalingFactor = 1.0f;
 
-   int const blockSize = device->get_max_threads();
+   int const blockSize = mDevice->get_max_threads();
 
    // Permute PV-organized DataStore to CUDNN organization.
    PVHalo const *halo = &mPreLoc->halo;
@@ -141,9 +142,9 @@ int CudaPoolingDeliverKernel::do_run() {
    int const nf       = mPreLoc->nf;
    int const nbatch   = mPreLoc->nbatch;
    // Calculate grid and work size
-   int numNeurons = nbatch * nyPreExt * nxPreExt * nf;
+   long numNeurons = (long)nbatch * (long)nyPreExt * (long)nxPreExt * (long)nf;
    // Ceil to get all neurons
-   int const gridSizePre        = std::ceil((float)numNeurons / blockSize);
+   int const gridSizePre        = (int)std::ceil((float)numNeurons / (float)blockSize);
    float *cudnnDataStorePointer = (float *)mCudnnDataStore->getPointer();
    callPermuteDatastorePVToCudnnKernel(
          gridSizePre,
@@ -164,10 +165,10 @@ int CudaPoolingDeliverKernel::do_run() {
    pvAssert(mPostLoc->nf == nf);
    pvAssert(mPostLoc->nbatch == mPreLoc->nbatch);
    // Calculate grid and work size
-   numNeurons              = nbatch * nxPost * nyPost * nf;
+   numNeurons              = (long)nbatch * (long)nxPost * (long)nyPost * (long)nf;
    float *cudnnGSynPointer = (float *)mCudnnGSyn->getPointer();
    // Ceil to get all neurons
-   int const gridSizePost = std::ceil((float)numNeurons / (float)blockSize);
+   int const gridSizePost = (int)std::ceil((float)numNeurons / (float)blockSize);
    callPermuteGSynPVToCudnnKernel(
          gridSizePost, blockSize, mGSyn, cudnnGSynPointer, nbatch, nyPost, nxPost, nf, 1, 1);
    handleCallError("Permute GSyn PV to CUDNN");
@@ -203,7 +204,7 @@ int CudaPoolingDeliverKernel::do_run() {
 
    // Do the pooling
    cudnnStatus_t status = cudnnPoolingForward(
-         (cudnnHandle_t)device->getCudnnHandle(),
+         (cudnnHandle_t)mDevice->getCudnnHandle(),
          mPoolingDescriptor,
          &mMultiplier,
          mDataStoreDescriptor,

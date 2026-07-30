@@ -33,7 +33,7 @@ class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
    void initialize(char const *objName, PVParams *params);
 
   private:
-   static int calcExtendedIndex(int k, PVLayerLoc const *loc);
+   static long calcExtendedIndex(long k, PVLayerLoc const *loc);
 
    void countDiscrepancies(ProbeData<int> &values) const;
 

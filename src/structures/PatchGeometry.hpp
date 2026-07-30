@@ -117,7 +117,7 @@ class PatchGeometry {
     * the overall number of items in a patch.
     */
    long getPatchSizeOverall() const {
-         return (long)mPatchSizeX * (long)mPatchSizeY * (long)mPatchSizeF;
+      return (long)mPatchSizeX * (long)mPatchSizeY * (long)mPatchSizeF;
    }
 
    /** get-method to retrieve a constant reference to the pre-synaptic PVLayerLoc. */
@@ -146,7 +146,7 @@ class PatchGeometry {
 
    /** Returns the overall number of patches in the patch geometry */
    long getNumPatchesOverall() const {
-         return (long)getNumPatchesX() * (long)getNumPatchesY() * (long)getNumPatchesF();
+      return (long)getNumPatchesX() * (long)getNumPatchesY() * (long)getNumPatchesF();
    }
 
    /**

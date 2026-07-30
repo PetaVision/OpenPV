@@ -80,7 +80,7 @@ void CudaBuffer::permuteWeightsPVToCudnn(
    int numWeights = numArbors * outFeatures * ny * nx * inFeatures;
    int blockSize  = mDeviceProps->maxThreadsPerBlock;
    // Ceil to get all weights
-   int gridSize = std::ceil((float)numWeights / blockSize);
+   unsigned int gridSize = (unsigned int)std::ceil((float)numWeights / (float)blockSize);
    // Call function
    callCudaPermuteWeightsPVToCudnn(
          gridSize, blockSize, d_inPtr, numArbors, outFeatures, ny, nx, inFeatures);

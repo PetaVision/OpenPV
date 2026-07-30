@@ -83,7 +83,7 @@ void nearestNeighborInterp(
    }
 
    for (int ky = 0; ky < heightOut; ky++) {
-      float yfetch = yinteger[ky];
+      int yfetch = yinteger[ky];
       for (int kx = 0; kx < widthOut; kx++) {
          int xfetch = xinteger[kx];
          for (int f = 0; f < numBands; f++) {
@@ -190,8 +190,8 @@ void rescale(
       return;
    }
 
-   float xRatio       = (float)newWidth / buffer.getWidth();
-   float yRatio       = (float)newHeight / buffer.getHeight();
+   float xRatio       = (float)newWidth / (float)buffer.getWidth();
+   float yRatio       = (float)newHeight / (float)buffer.getHeight();
    int resizedWidth   = newWidth;
    int resizedHeight  = newHeight;
    float resizeFactor = 1.0f;
@@ -201,8 +201,8 @@ void rescale(
       case PAD: resizeFactor  = std::min(xRatio, yRatio); break;
    }
 
-   resizedWidth  = static_cast<int>(std::nearbyint(resizeFactor * buffer.getWidth()));
-   resizedHeight = static_cast<int>(std::nearbyint(resizeFactor * buffer.getHeight()));
+   resizedWidth  = static_cast<int>(std::nearbyint(resizeFactor * (float)buffer.getWidth()));
+   resizedHeight = static_cast<int>(std::nearbyint(resizeFactor * (float)buffer.getHeight()));
    if (resizedWidth != buffer.getWidth() or resizedHeight != buffer.getHeight()) {
       std::vector<float> rawInput = buffer.asVector();
       long resizedNumElements =

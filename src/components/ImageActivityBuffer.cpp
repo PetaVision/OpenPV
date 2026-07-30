@@ -49,7 +49,12 @@ int ImageActivityBuffer::countInputImages() {
       // Calculate file positions for beginning of each frame
       populateFileList();
       InfoLog() << "File " << getInputPath() << " contains " << mFileList.size() << " frames\n";
-      return mFileList.size();
+      int numImages = static_cast<int>(mFileList.size());
+      FatalIf(
+            static_cast<std::size_t>(numImages) != mFileList.size(),
+            "Image layer \"%s\" has %zu images, which is more than INT_MAX = %d\n",
+            getName(), mFileList.size(), INT_MAX);
+      return numImages;
    }
    else {
       mUsingFileList = false;

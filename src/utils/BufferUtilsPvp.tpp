@@ -271,9 +271,9 @@ double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex
 // outstream location
 template <typename T>
 void writeSparseFrame(FileStream &fStream, SparseList<T> *list, double timeStamp) {
-   size_t dataSize                              = sizeof(struct SparseList<T>::Entry);
+   std::size_t dataSize                         = sizeof(struct SparseList<T>::Entry);
    vector<struct SparseList<T>::Entry> contents = list->getContents();
-   int numElements                              = contents.size();
+   int numElements                              = static_cast<int>(contents.size());
    fStream.write(&timeStamp, sizeof(double));
    fStream.write(&numElements, sizeof(int));
    if (numElements > 0) {
@@ -286,11 +286,11 @@ void writeSparseFrame(FileStream &fStream, SparseList<T> *list, double timeStamp
 template <typename T>
 double readSparseFrame(FileStream &fStream, SparseList<T> *list) {
    size_t dataSize  = sizeof(struct SparseList<T>::Entry);
-   double timeStamp = -1;
+   double timeStamp = -1.0;
    int numElements  = -1;
    fStream.read(&timeStamp, sizeof(double));
    fStream.read(&numElements, sizeof(int));
-   FatalIf(timeStamp == -1, "Failed to read timeStamp.\n");
+   FatalIf(timeStamp == -1.0, "Failed to read timeStamp.\n");
    FatalIf(numElements == -1, "Failed to read numElements.\n");
    vector<struct SparseList<T>::Entry> contents(numElements);
    if (numElements > 0) {
@@ -304,16 +304,16 @@ double readSparseFrame(FileStream &fStream, SparseList<T> *list) {
 // instream location
 template <typename T>
 double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValue) {
-   double timeStamp = -1;
+   double timeStamp = -1.0;
    int numElements  = -1;
    fStream.read(&timeStamp, sizeof(double));
    fStream.read(&numElements, sizeof(int));
-   FatalIf(timeStamp == -1, "Failed to read timeStamp.\n");
+   FatalIf(timeStamp == -1.0, "Failed to read timeStamp.\n");
    FatalIf(numElements == -1, "Failed to read numElements.\n");
    vector<struct SparseList<T>::Entry> contents(numElements);
    vector<int> indices(numElements);
    if (numElements > 0) {
-      fStream.read(indices.data(), numElements * sizeof(int));
+      fStream.read(indices.data(), numElements * static_cast<int>(sizeof(int)));
    }
    for (std::size_t i = 0; i < indices.size(); ++i) {
       contents.at(i).index = indices.at(i);

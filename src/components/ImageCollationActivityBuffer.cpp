@@ -141,7 +141,7 @@ std::shared_ptr<Image> ImageCollationActivityBuffer::readImageChannel(std::strin
 std::string ImageCollationActivityBuffer::downloadURL(std::string const &url) {
    std::string ext        = extension(url);
    std::string pathstring = mURLDownloadTemplate + ext;
-   int tempFileID = mkstemps(&pathstring.at(0), ext.size());
+   int tempFileID = ::mkstemps(&pathstring.at(0), static_cast<int>(ext.size()));
    FatalIf(
          tempFileID < 0,
          "Input layer \"%s\" cannot create temporary image file to download \"%s\".\n",

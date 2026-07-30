@@ -56,12 +56,13 @@ void FirmThresholdCostActivityBuffer::updateBufferCPU(double simTime, double del
    auto modThresh     = mVThresh + mVWidth;
    auto a2            = 0.5f / modThresh;
 
-   int const numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
+   long const numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-      int kExt = kIndexExtendedBatch(k, nbatch, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
+      long kExt =
+            kIndexExtendedBatch(k, nbatch, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
       auto input = std::fabs(V[k]);
       auto cost  = input <= modThresh ? input * (1.0f - input * a2) : 0.5f * modThresh;
       A[kExt]    = cost;

@@ -11,14 +11,14 @@ PVLayerLoc initLocPvpBatch(std::shared_ptr<PV::MPIBlock const> mpiBlock);
 void testPvpBatch(std::shared_ptr<PV::FileManager const> fileManager) {
    PVLayerLoc loc = initLocPvpBatch(fileManager->getMPIBlock());
 
-   int const localSize = loc.nbatch * loc.nx * loc.ny * loc.nf;
+   long const localSize = (long)loc.nbatch * (long)loc.nx * (long)loc.ny * (long)loc.nf;
    std::vector<float> correctData(localSize);
-   for (int k = 0; k < localSize; k++) {
-      int kbatchGlobal = batchIndex(k, loc.nbatch, loc.nx, loc.ny, loc.nf) + loc.kb0;
+   for (long k = 0; k < localSize; k++) {
+      int kf           = featureIndex(k, loc.nx, loc.ny, loc.nf);
       int kxGlobal     = kxPos(k, loc.nx, loc.ny, loc.nf) + loc.kx0;
       int kyGlobal     = kyPos(k, loc.nx, loc.ny, loc.nf) + loc.ky0;
-      int kf           = featureIndex(k, loc.nx, loc.ny, loc.nf);
-      int kGlobal      = kIndexBatch(
+      int kbatchGlobal = batchIndex(k, loc.nbatch, loc.nx, loc.ny, loc.nf) + loc.kb0;
+      long kGlobal     = kIndexBatch(
             kbatchGlobal,
             kxGlobal,
             kyGlobal,

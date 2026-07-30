@@ -149,7 +149,7 @@ void InitVFromFile::readBroadcastLayerFile(
          false /*clobberFlag*/,
          false /*verifyWritesFlag*/);
    for (int b = 0; b < loc.nbatch; ++b) {
-      float *Vbatch = &V[b * loc.nx * loc.ny * loc.nf];
+      float *Vbatch = &V[b * (long)loc.nx * (long)loc.ny * (long)loc.nf];
       inputLayerFile.setDataLocation(Vbatch, b);
    }
    inputLayerFile.setIndex(mFrameNumber);
@@ -171,7 +171,7 @@ void InitVFromFile::readLayerFile(
          false /*clobberFlag*/,
          false /*verifyWritesFlag*/);
    for (int b = 0; b < loc.nbatch; ++b) {
-      float *Vbatch = &V[b * loc.nx * loc.ny * loc.nf];
+      float *Vbatch = &V[b * (long)loc.nx * (long)loc.ny * (long)loc.nf];
       inputLayerFile.setDataLocation(Vbatch, b);
    }
    inputLayerFile.setIndex(mFrameNumber);
@@ -234,11 +234,11 @@ void InitVFromFile::readSparseLayerFile(
    inputLayerFile.setIndex(mFrameNumber);
    inputLayerFile.read();
    for (int b = 0; b < loc.nbatch; ++b) {
-      int neuronsPerBatchElement = loc.nx * loc.ny * loc.nf;
+      long neuronsPerBatchElement = (long)loc.nx * (long)loc.ny * (long)loc.nf;
       float *Vbatch = &V[b * neuronsPerBatchElement];
       std::vector<SparseList<float>::Entry> contents = sparseLists[b].getContents();
       for (auto const &entry : contents) {
-         int index = entry.index;
+         long index = entry.index;
          FatalIf(
                index >= neuronsPerBatchElement or index < 0,
                "SparseLayerFile \"%s\" batch element %d has index %d, which is out of bounds "

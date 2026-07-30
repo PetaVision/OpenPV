@@ -109,8 +109,8 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
    FatalIf(rows != hc->getCommunicator()->numCommRows(), "Test failed.\n");
    FatalIf(columns != hc->getCommunicator()->numCommColumns(), "Test failed.\n");
    PVParams *params     = hc->parameters();
-   int nxGlobFromParams = params->value("column", "nx");
-   int nyGlobFromParams = params->value("column", "ny");
+   int nxGlobFromParams = (int)params->value("column", "nx");
+   int nyGlobFromParams = (int)params->value("column", "ny");
    testpassed = (loc->nx == nxGlobFromParams / columns) && (loc->ny == nyGlobFromParams / rows)
                 && (loc->nf == params->value("layer", "nf")) && (loc->nxGlobal == nxGlobFromParams)
                 && (loc->nyGlobal == nyGlobFromParams) && (loc->kx0 == loc->nx * (rank % columns))

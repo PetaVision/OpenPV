@@ -58,7 +58,13 @@ void TransposeWeights::transpose(
 
 void TransposeWeights::transposeShared(Weights *preWeights, Weights *postWeights, int arbor) {
    pvAssert(!(preWeights->prelayerIsBroadcast() or preWeights->postlayerIsBroadcast()));
-   long const numPatchesPre = preWeights->getNumDataPatchesOverall();
+   long const numPatchesPreL = preWeights->getNumDataPatchesOverall();
+   int const numPatchesPre   = static_cast<int>(numPatchesPreL);
+   FatalIf(
+         static_cast<long>(numPatchesPre) != numPatchesPreL,
+         "TransposeWeights::transposeShared() called where pre-weights \"%s\" has %ld patches, "
+         "which is greater than INT_MAX=%ld. The code has not been updated for this case.\n",
+         preWeights->getName().c_str(), numPatchesPreL);
    int const patchSizeXPre  = preWeights->getPatchSizeX();
    int const patchSizeYPre  = preWeights->getPatchSizeY();
    int const patchSizeFPre  = preWeights->getPatchSizeF();
@@ -71,10 +77,10 @@ void TransposeWeights::transposeShared(Weights *preWeights, Weights *postWeights
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for collapse(2)
 #endif
-   for (long patchIndexPre = 0L; patchIndexPre < numPatchesPre; patchIndexPre++) {
+   for (int patchIndexPre = 0; patchIndexPre < numPatchesPre; patchIndexPre++) {
       for (long itemInPatchPre = 0L; itemInPatchPre < patchSizePre; itemInPatchPre++) {
 
-         int itemInPatchPost =
+         std::size_t itemInPatchPost =
                preWeights->getGeometry()->getTransposeItemIndex(patchIndexPre, itemInPatchPre);
 
          int patchIndexXPost = 0;
@@ -121,21 +127,21 @@ void TransposeWeights::transposeBroadcast(
       Communicator const *comm,
       int arbor) {
    pvAssert(preWeights->prelayerIsBroadcast() or preWeights->postlayerIsBroadcast());
-   int const numPatchesXPre  = preWeights->getNumDataPatchesX();
-   int const numPatchesYPre  = preWeights->getNumDataPatchesY();
-   int const numPatchesFPre  = preWeights->getNumDataPatchesF();
-   long const numPatchesPre  = preWeights->getNumDataPatchesOverall();
+   int const numPatchesXPre = preWeights->getNumDataPatchesX();
+   int const numPatchesYPre = preWeights->getNumDataPatchesY();
+   int const numPatchesFPre = preWeights->getNumDataPatchesF();
+   long const numPatchesPre = preWeights->getNumDataPatchesOverall();
 
-   int const patchSizeXPre  = preWeights->getPatchSizeX();
-   int const patchSizeYPre  = preWeights->getPatchSizeY();
-   int const patchSizeFPre  = preWeights->getPatchSizeF();
-   long const patchSizePre  = preWeights->getPatchSizeOverall();
+   int const patchSizeXPre = preWeights->getPatchSizeX();
+   int const patchSizeYPre = preWeights->getPatchSizeY();
+   int const patchSizeFPre = preWeights->getPatchSizeF();
+   long const patchSizePre = preWeights->getPatchSizeOverall();
 
-   int const numPatchesXPost  = postWeights->getNumDataPatchesX();
-   int const numPatchesYPost  = postWeights->getNumDataPatchesY();
-   int const numPatchesFPost  = postWeights->getNumDataPatchesF();
-   long const numPatchesPost  = postWeights->getNumDataPatchesOverall();
-   long const patchSizePost   = postWeights->getPatchSizeOverall();
+   int const numPatchesXPost = postWeights->getNumDataPatchesX();
+   int const numPatchesYPost = postWeights->getNumDataPatchesY();
+   int const numPatchesFPost = postWeights->getNumDataPatchesF();
+   long const numPatchesPost = postWeights->getNumDataPatchesOverall();
+   long const patchSizePost  = postWeights->getPatchSizeOverall();
 
    PVLayerLoc const &preLoc  = preWeights->getGeometry()->getPreLoc();
    PVLayerLoc const &postLoc = postWeights->getGeometry()->getPreLoc();
@@ -223,7 +229,12 @@ void TransposeWeights::transposeBroadcast(
 
    PVLayerLoc transposeLoc;
    memcpy(&transposeLoc, &postLoc, sizeof(transposeLoc));
-   transposeLoc.nf = postLoc.nf * patchSizePost;
+   transposeLoc.nf = (int)(postLoc.nf * patchSizePost);
+   FatalIf(
+         (long)transposeLoc.nf != postLoc.nf * patchSizePost,
+         "transposeWeights must transpose with postLoc.nf = %d and patchSizePost = %ld, "
+         "which is too large.\n",
+         postLoc.nf, patchSizePost);
 
    BorderExchange borderExchange(*comm->getLocalMPIBlock(), transposeLoc);
    float *data = postWeights->getDataFromDataIndex(arbor, 0);
@@ -302,8 +313,8 @@ void TransposeWeights::transposeNonshared(
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for collapse(2)
 #endif
-   for (int patchIndexPre = 0; patchIndexPre < numPatchesPre; patchIndexPre++) {
-      for (int itemInPatchPre = 0; itemInPatchPre < patchSizePre; itemInPatchPre++) {
+   for (long patchIndexPre = 0; patchIndexPre < numPatchesPre; patchIndexPre++) {
+      for (long itemInPatchPre = 0; itemInPatchPre < patchSizePre; itemInPatchPre++) {
          int const patchIndexXPre =
                kxPos(patchIndexPre, numPatchesXPre, numPatchesYPre, numPatchesFPre);
          int kernelIndexXPre = (patchIndexXPre - preLoc.halo.lt) % numKernelsXPre;
@@ -324,15 +335,15 @@ void TransposeWeights::transposeNonshared(
                featureIndex(patchIndexPre, numPatchesXPre, numPatchesYPre, numPatchesFPre);
          int const kernelIndexFPre = patchIndexFPre;
 
-         long const kernelIndexPre = kIndex(
+         int const kernelIndexPre = (int)kIndex(
                kernelIndexXPre,
                kernelIndexYPre,
                kernelIndexFPre,
                numKernelsXPre,
                numKernelsYPre,
                numKernelsFPre);
-         int const itemInPatchPost =
-               preWeights->getGeometry()->getTransposeItemIndex(kernelIndexPre, itemInPatchPre);
+         std::size_t const itemInPatchPost = preWeights->getGeometry()->getTransposeItemIndex(
+               (long)kernelIndexPre, itemInPatchPre);
 
          Patch const &patch     = preWeights->getPatch(patchIndexPre);
          int const patchOffsetX = kxPos(patch.offset, patchSizeXPre, patchSizeYPre, patchSizeFPre);
@@ -349,7 +360,7 @@ void TransposeWeights::transposeNonshared(
             continue;
          }
 
-         int const aPostOffset  = preWeights->getGeometry()->getAPostOffset(patchIndexPre);
+         long const aPostOffset = preWeights->getGeometry()->getAPostOffset(patchIndexPre);
          int const aPostOffsetX = kxPos(aPostOffset, numPatchesXPost, numPatchesYPost, nfPost);
          int const aPostOffsetY = kyPos(aPostOffset, numPatchesXPost, numPatchesYPost, nfPost);
 
@@ -374,7 +385,12 @@ void TransposeWeights::transposeNonshared(
 
    PVLayerLoc transposeLoc;
    memcpy(&transposeLoc, &postLoc, sizeof(transposeLoc));
-   transposeLoc.nf = postLoc.nf * patchSizePost;
+   transposeLoc.nf = (int)(postLoc.nf * patchSizePost);
+   FatalIf(
+         (long)transposeLoc.nf != postLoc.nf * patchSizePost,
+         "transposeWeights must transpose with postLoc.nf = %d and patchSizePost = %ld, "
+         "which is too large.\n",
+         postLoc.nf, patchSizePost);
 
    BorderExchange borderExchange(*comm->getLocalMPIBlock(), transposeLoc);
    float *data = postWeights->getDataFromDataIndex(arbor, 0);

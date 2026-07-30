@@ -6,14 +6,15 @@
 namespace PV {
 
 void ANNActivityBuffer::runKernel() {
-   PVLayerLoc const *loc           = getLayerLoc();
-   int const numNeurons            = mInternalState->getBufferSize();
-   int const nbatch                = loc->nbatch;
-   int const numNeuronsAcrossBatch = numNeurons * nbatch;
-   int currBlockSize               = mCudaDevice->get_max_threads();
-   cudaStream_t cudaStream         = mCudaDevice->getStream();
+   PVLayerLoc const *loc            = getLayerLoc();
+   long const numNeurons            = mInternalState->getBufferSize();
+   int const nbatch                 = loc->nbatch;
+   long const numNeuronsAcrossBatch = numNeurons * nbatch;
+   int currBlockSize                = mCudaDevice->get_max_threads();
+   cudaStream_t cudaStream          = mCudaDevice->getStream();
    // Ceil to get all weights
-   int currGridSize = (int)ceil((float)numNeuronsAcrossBatch / (float)currBlockSize);
+   unsigned int currGridSize =
+         (unsigned int)std::ceil((float)numNeuronsAcrossBatch / (float)currBlockSize);
    PVCuda::applyVerticesANNActivityBufferOnGPU<<<currGridSize, currBlockSize, 0, cudaStream>>>(
          nbatch,
          numNeurons,

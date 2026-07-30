@@ -86,12 +86,12 @@ Response::Status
 SigmoidActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    FatalIf(mInternalState == nullptr, "%s requires an InternalState buffer.\n", getDescription_c());
 
-   int const numExtendedAcrossBatch = getBufferSizeAcrossBatch();
-   float *activityData              = getReadWritePointer();
+   long const numExtendedAcrossBatch = getBufferSizeAcrossBatch();
+   float *activityData               = getReadWritePointer();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kExt = 0; kExt < numExtendedAcrossBatch; kExt++) {
+   for (long kExt = 0; kExt < numExtendedAcrossBatch; kExt++) {
       activityData[kExt] = 0.0f;
    }
    return Response::SUCCESS;
@@ -109,9 +109,9 @@ void SigmoidActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int const rt          = loc->halo.rt;
    int const dn          = loc->halo.dn;
    int const up          = loc->halo.up;
-   pvAssert(mInternalState->getBufferSize() == nx * ny * nf);
-   pvAssert(getBufferSize() == (nx + lt + rt) * (ny + dn + up) * nf);
-   int numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
+   pvAssert(mInternalState->getBufferSize() == (long)nx * (long)ny * (long)nf);
+   pvAssert(getBufferSize() == (long)(nx + lt + rt) * (long)(ny + dn + up) * (long)nf);
+   long numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
    float Vth                 = (mVthRest + mVrest) / 2.0f;
    float sigScale            = -logf(1.0f / mSigmoidAlpha - 1.0f) / (Vth - mVrest);
    if (!mSigmoidFlag) {
@@ -126,8 +126,8 @@ void SigmoidActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-         int kex        = kIndexExtendedBatch(k, nb, nx, ny, nf, lt, rt, dn, up);
+      for (long k = 0; k < numNeuronsAcrossBatch; k++) {
+         long kex       = kIndexExtendedBatch(k, nb, nx, ny, nf, lt, rt, dn, up);
          float activity = 1.0f / (1.0f + std::exp(2.0f * (V[k] - Vth) * sigScale));
          A[kex]         = activity;
       }
@@ -140,8 +140,8 @@ void SigmoidActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-         int kex        = kIndexExtendedBatch(k, nb, nx, ny, nf, lt, rt, dn, up);
+      for (long k = 0; k < numNeuronsAcrossBatch; k++) {
+         long kex       = kIndexExtendedBatch(k, nb, nx, ny, nf, lt, rt, dn, up);
          float activity = 0.5f - (V[k] - Vth) * sigScale / 2.0f;
          activity       = activity < 0.0f ? 0.0f : activity;
          activity       = activity > 1.0f ? 1.0f : activity;
@@ -152,9 +152,9 @@ void SigmoidActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-         int kex = kIndexExtendedBatch(k, nb, nx, ny, nf, lt, rt, dn, up);
-         A[kex]  = 1.0f - A[kex];
+      for (long k = 0; k < numNeuronsAcrossBatch; k++) {
+         long kex = kIndexExtendedBatch(k, nb, nx, ny, nf, lt, rt, dn, up);
+         A[kex]   = 1.0f - A[kex];
       }
    }
 }

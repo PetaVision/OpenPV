@@ -57,18 +57,20 @@ class HyPerLayer : public ComponentBasedObject {
    // Public access functions.
    // As much as possible, anything that needs one of these quantities should instead retrieve
    // the appropriate component and use access functions of the component.
-   int getNumNeurons() const { return mLayerGeometry->getNumNeurons(); }
-   int getNumExtended() const { return mLayerGeometry->getNumExtended(); }
-   int getNumNeuronsAllBatches() const { return mLayerGeometry->getNumNeuronsAllBatches(); }
-   int getNumExtendedAllBatches() const { return mLayerGeometry->getNumExtendedAllBatches(); }
+   long getNumNeurons() const { return mLayerGeometry->getNumNeurons(); }
+   long getNumExtended() const { return mLayerGeometry->getNumExtended(); }
+   long getNumNeuronsAllBatches() const { return mLayerGeometry->getNumNeuronsAllBatches(); }
+   long getNumExtendedAllBatches() const { return mLayerGeometry->getNumExtendedAllBatches(); }
 
-   int getNumGlobalNeurons() const {
-      return getLayerLoc()->nxGlobal * getLayerLoc()->nyGlobal * getLayerLoc()->nf;
+   long getNumGlobalNeurons() const {
+      PVLayerLoc const *loc = getLayerLoc();
+      return (long)loc->nxGlobal * (long)loc->nyGlobal * (long)loc->nf;
    }
-   int getNumGlobalExtended() const {
-      const PVLayerLoc *loc = getLayerLoc();
-      return (loc->nxGlobal + loc->halo.lt + loc->halo.rt)
-             * (loc->nyGlobal + loc->halo.dn + loc->halo.up) * loc->nf;
+   long getNumGlobalExtended() const {
+      PVLayerLoc const *loc = getLayerLoc();
+      int nxGlobalExt       = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
+      int nyGlobalExt       = loc->nyGlobal + loc->halo.dn + loc->halo.up;
+      return (long)nxGlobalExt * (long)nyGlobalExt * (long)loc->nf;
    }
 
    float const *getV() const {

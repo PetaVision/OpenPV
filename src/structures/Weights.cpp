@@ -112,8 +112,7 @@ void Weights::allocateDataStructures() {
    FatalIf(mGeometry == nullptr, "%s has not been initialized.\n", mName.c_str());
    mGeometry->allocateDataStructures();
 
-   int numDataPatches = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
-   if (numDataPatches != 0) {
+   if (getNumDataPatchesOverall() != 0) {
       mData = std::make_shared<WeightData>(
             mName,
             mNumArbors,
@@ -122,9 +121,9 @@ void Weights::allocateDataStructures() {
    }
    if (getSharedWeightsFlag() and getNumDataPatchesOverall() > 0L) {
       long const numPatches = mGeometry->getNumPatchesOverall();
-      dataIndexLookupTable.resize(numPatches);
+      mDataIndexLookupTable.resize(numPatches);
       for (long p = 0; p < numPatches; p++) {
-         dataIndexLookupTable[p] = calcDataIndexFromPatchIndex(p);
+         mDataIndexLookupTable[p] = calcDataIndexFromPatchIndex(p);
       }
    }
 #ifdef PV_USE_CUDA
@@ -147,19 +146,25 @@ void Weights::allocateCudaBuffers() {
    pvAssert(mCUDNNData == nullptr); // Should only be called once, by allocateDataStructures();
 #endif // PV_USE_CUDNN
    std::string description(mName);
-   long numPatches = getGeometry()->getNumPatchesOverall();
+   long numPatchesL = getGeometry()->getNumPatchesOverall();
+   int numPatches   = static_cast<int>(numPatchesL);
+   FatalIf(
+         static_cast<long>(numPatches) != numPatchesL,
+         "Connection \"%s\" has %ld patches, which is bigger than INT_MAX=%d. Cuda implementation "
+         "has not yet been updated to allow the number of patches to be this large.\n",
+         getName(), numPatchesL);
    std::size_t size;
 
-   if (getNumDataPatchesOverall() > 0) {
+   if (getNumDataPatchesOverall() > 0L) {
       std::vector<int> hostPatchToDataLookupVector(numPatches);
       if (getSharedWeightsFlag()) {
          for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-            hostPatchToDataLookupVector[patchIndex] = dataIndexLookupTable[patchIndex];
+            hostPatchToDataLookupVector[patchIndex] = (int)mDataIndexLookupTable[patchIndex];
          }
       }
       else {
          for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-            hostPatchToDataLookupVector[patchIndex] = patchIndex;
+            hostPatchToDataLookupVector[patchIndex] = (int)patchIndex;
          }
       }
       size = hostPatchToDataLookupVector.size() * sizeof(hostPatchToDataLookupVector[0]);
@@ -219,11 +224,11 @@ float *Weights::getData(int arbor) { return mData->getData(arbor); }
 float const *Weights::getData(int arbor) const { return mData->getData(arbor); }
 
 float *Weights::getDataFromPatchIndex(int arbor, long patchIndex) {
-   long dataIndex = getSharedWeightsFlag() ?  dataIndexLookupTable[patchIndex] : patchIndex;
+   long dataIndex = getSharedWeightsFlag() ? mDataIndexLookupTable[patchIndex] : patchIndex;
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
-float *Weights::getDataFromPatchIndexWithOffset(int arbor, int patchIndex) {
+float *Weights::getDataFromPatchIndexWithOffset(int arbor, long patchIndex) {
    return getDataFromPatchIndex(arbor, patchIndex) + getPatch(patchIndex).offset;
 }
 
@@ -348,14 +353,20 @@ void Weights::copyToGPU() {
    }
    pvAssert(mDeviceData);
 
-   int const numDataPatches    = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
-   std::size_t const arborSize = (std::size_t)numDataPatches * (std::size_t)getPatchSizeOverall();
-   std::size_t const numArbors = (std::size_t)mNumArbors;
-   for (std::size_t a = 0; a < numArbors; a++) {
+   long const numDataPatchesL   = getNumDataPatchesOverall();
+   std::size_t const arborSize = (std::size_t)numDataPatchesL * (std::size_t)getPatchSizeOverall();
+   int const numArbors = mNumArbors;
+   for (int a = 0; a < numArbors; a++) {
       mDeviceData->copyToDevice(
-            mData->getData(a), arborSize * sizeof(mData->getData(a)[0]), a * arborSize);
+            mData->getData(a), arborSize * sizeof(mData->getData(a)[0]), (std::size_t)a * arborSize);
    }
 #ifdef PV_USE_CUDNN
+   int const numDataPatches = static_cast<int>(numDataPatchesL);
+   FatalIf(
+         static_cast<long>(numDataPatches) != numDataPatchesL,
+         "Connection \"%s\" has %ld patches, which is bigger than INT_MAX=%d. Cuda implementation "
+         "has not yet been updated to allow the number of patches to be this large.\n",
+         getName(), numDataPatchesL);
    mCUDNNData->permuteWeightsPVToCudnn(
          mDeviceData->getPointer(),
          mNumArbors,

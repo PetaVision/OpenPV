@@ -65,8 +65,8 @@ class BasePublisherComponent : public BaseObject {
 
    int getNumDelayLevels() const { return mNumDelayLevels; }
 
-   int getNumExtended() const { return mActivity->getBufferSize(); }
-   int getNumExtendedAcrossBatch() const { return mActivity->getBufferSizeAcrossBatch(); }
+   long getNumExtended() const { return mActivity->getBufferSize(); }
+   long getNumExtendedAcrossBatch() const { return mActivity->getBufferSizeAcrossBatch(); }
 
 // get-methods for CudaBuffers
 #ifdef PV_USE_CUDA

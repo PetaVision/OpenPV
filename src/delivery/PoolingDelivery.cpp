@@ -303,7 +303,7 @@ void PoolingDelivery::allocateThreadGateIdxBuffer() {
       PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
       // We could use mPostGSyn->getBufferSize(), but this requires
       // checking mPostGSyn->getDataStructuresAllocatedFlag().
-      int const numNeurons = postLoc->nx * postLoc->ny * postLoc->nf;
+      long const numNeurons = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
       for (int th = 0; th < numThreads; th++) {
          mThreadGateIdxBuffer[th].resize(numNeurons);
       }
@@ -383,7 +383,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    pvAssert(gSyn);
 
    // Get number of neurons restricted target
-   int const numPostRestricted = mPostGSyn->getBufferSize();
+   long const numPostRestricted = mPostGSyn->getBufferSize();
 
    int const sourceNx = sourceLoc->nx;
    int const sourceNy = sourceLoc->ny;
@@ -396,7 +396,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    const PVHalo *targetHalo = &targetLoc->halo;
 
    // get source layer's extended y stride
-   int sy = (sourceNx + sourceHalo->lt + sourceHalo->rt) * sourceNf;
+   long sy = (long)(sourceNx + sourceHalo->lt + sourceHalo->rt) * (long)sourceNf;
 
    clearGateIdxBuffer();
    float *gatePatchHead = nullptr;
@@ -418,7 +418,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++) {
+      for (long kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++) {
          float const *activityBatch = activityCube.data
                                       + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
                                               * (sourceNy + sourceHalo->up + sourceHalo->dn)
@@ -438,7 +438,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
          long startSourceExt = postWeights->getGeometry()->getUnshrunkenStart(kTargetExt);
 
          // Calculate target's start of gsyn
-         float *gSynPatchPos = gSynBatchHead + kTargetRes;
+         float *gSynPatchPos = &gSynBatchHead[kTargetRes];
          // Initialize patch as a huge negative number
          *gSynPatchPos = resetVal;
 
@@ -464,7 +464,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
          int offset = kfPost;
 
          for (int ky = 0; ky < yPatchSize; ky++) {
-            int kPreExt = startSourceExt + ky * sy + offset;
+            long kPreExt = startSourceExt + ky * sy + offset;
             int const kxPreExt =
                   kxPos(kPreExt,
                         sourceLoc->nx + sourceLoc->halo.lt + sourceLoc->halo.rt,
@@ -549,31 +549,30 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < mPostGSyn->getBufferSizeAcrossBatch(); i++) {
+      for (long i = 0L; i < mPostGSyn->getBufferSizeAcrossBatch(); i++) {
          gSyn[i] = resetVal;
       }
    }
 
    clearGateIdxBuffer();
 
+   int nxExtPre    = preLoc->nx + preLoc->halo.rt + preLoc->halo.lt;
+   int nyExtPre    = preLoc->ny + preLoc->halo.up + preLoc->halo.dn;
+   long numExtPre  = (long)nxExtPre * (long)nyExtPre * (long)preLoc->nf;
+   long numResPost = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
    for (int b = 0; b < activityCube.loc.nbatch; b++) {
-      float const *activityBatch = activityCube.data
-                                   + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                           * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                           * preLoc->nf;
-      float *gSynPatchHeadBatch = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      float *gatePatchHeadBatch = NULL;
+      float const *activityBatch = &activityCube.data[b * numExtPre];
+      float *gSynPatchHeadBatch = &gSyn[b * numResPost];
+      float *gatePatchHeadBatch = nullptr;
       if (mNeedPostIndexLayer) {
          gatePatchHeadBatch = mPostIndexBuffer->getIndexBuffer(b);
       }
 
       SparseList<float>::Entry const *activeIndicesBatch = nullptr;
-      int numLoop;
+      long numLoop;
       if (activityCube.isSparse) {
-         activeIndicesBatch = (SparseList<float>::Entry *)activityCube.activeIndices
-                              + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                      * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                      * preLoc->nf;
+         activeIndicesBatch =
+               (SparseList<float>::Entry *)activityCube.activeIndices + b * numExtPre;
          numLoop = activityCube.numActive[b];
       }
       else {
@@ -585,9 +584,9 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       pvAssert((int)mThreadGSyn.size() == numThreads);
       if (numThreads > 0) {
 #pragma omp parallel for
-         for (int i = 0; i < numThreads * mPostGSyn->getBufferSize(); i++) {
-            int ti                       = i / mPostGSyn->getBufferSize();
-            int ni                       = i % mPostGSyn->getBufferSize();
+         for (long i = 0L; i < numThreads * mPostGSyn->getBufferSize(); i++) {
+            long ti                      = i / mPostGSyn->getBufferSize();
+            long ni                      = i % mPostGSyn->getBufferSize();
             mThreadGateIdxBuffer[ti][ni] = -1.0f;
          }
       }
@@ -598,13 +597,13 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       // BaseDelivery::clearThreadGSyn() is that the former sets the values to zero, while this
       // method sets them to resetVal (which is -infinity for maxpooling and zero for other types).
       if (numThreads > 0) {
-         int numNeurons = mPostGSyn->getBufferSize();
+         long numNeurons = mPostGSyn->getBufferSize();
          for (int ti = 0; ti < numThreads; ti++) {
             float *threadData = mThreadGSyn[ti].data();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-            for (int ni = 0; ni < numNeurons; ni++) {
+            for (long ni = 0; ni < numNeurons; ni++) {
                threadData[ni] = resetVal;
             }
          }
@@ -615,11 +614,11 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-         int kPreExt;
+      for (long loopIndex = 0; loopIndex < numLoop; loopIndex++) {
+         long kPreExt;
          float a; // We never convert rates to spike counts in pooling conns
          if (activityCube.isSparse) {
-            kPreExt = activeIndicesBatch[loopIndex].index;
+            kPreExt = static_cast<long>(activeIndicesBatch[loopIndex].index);
             a       = activeIndicesBatch[loopIndex].value;
          }
          else {
@@ -703,14 +702,14 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       // Accumulate back into gSyn
       if (mAccumulateType == MAXPOOLING) {
          if (numThreads > 1) {
-            int numNeurons       = mPostGSyn->getBufferSize();
+            long numNeurons      = mPostGSyn->getBufferSize();
             float *gateIdxBuffer = nullptr;
             if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
                gateIdxBuffer = gatePatchHeadBatch;
             }
 // Looping over neurons first to be thread safe
 #pragma omp parallel for
-            for (int ni = 0; ni < numNeurons; ni++) {
+            for (long ni = 0; ni < numNeurons; ni++) {
                for (int ti = 0; ti < numThreads; ti++) {
                   float *threadData = mThreadGSyn[ti].data();
                   if (gSynPatchHeadBatch[ni] < threadData[ni]) {
@@ -741,14 +740,14 @@ void PoolingDelivery::clearGateIdxBuffer() {
    pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    if (mNeedPostIndexLayer) {
       // Reset mPostIndexLayer's gsyn
-      int const numNeuronsAcrossBatch = mPostIndexBuffer->getBufferSizeAcrossBatch();
-      int const numNeuronsAllChannels = numNeuronsAcrossBatch * mPostIndexBuffer->getNumChannels();
-      float *gSynHead                 = mPostIndexBuffer->getIndexBuffer(0);
+      long const numNeuronsAcrossBatch = mPostIndexBuffer->getBufferSizeAcrossBatch();
+      long const numNeuronsAllChannels = numNeuronsAcrossBatch * mPostIndexBuffer->getNumChannels();
+      float *gSynHead                  = mPostIndexBuffer->getIndexBuffer(0);
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int k = 0; k < numNeuronsAllChannels; k++) {
+      for (long k = 0L; k < numNeuronsAllChannels; k++) {
          gSynHead[k] = -1.0f;
       }
    }
@@ -759,8 +758,8 @@ void PoolingDelivery::reducePostIndices() {
    // If post is broadcast, post indices layer also must be broadcast, since their sizes must agree
    assert(mPostGSyn and mPostGSyn->getBroadcastFlag());
    assert(mPostIndexBuffer and mPostIndexBuffer->getBroadcastFlag());
-   int postBufferSize = mPostGSyn->getBufferSizeAcrossBatch();
-   int postIndexBufferSize = mPostIndexBuffer->getBufferSizeAcrossBatch();
+   long postBufferSize = mPostGSyn->getBufferSizeAcrossBatch();
+   long postIndexBufferSize = mPostIndexBuffer->getBufferSizeAcrossBatch();
    assert(postIndexBufferSize == postBufferSize);
    float const *postData = mPostGSyn->getChannelData(mChannelCode);
    float *postIndexData = mPostIndexBuffer->getIndexBuffer(0);
@@ -774,13 +773,18 @@ void PoolingDelivery::reducePostIndices() {
       gatheredIndicesPointer = &gatheredIndices[0];
       gatheredValuesPointer = &gatheredValues[0];
    }
+   int sendCount = static_cast<int>(postBufferSize);
+   FatalIf(
+         static_cast<long>(sendCount) != postBufferSize,
+         "Connection \"%s\" needs to gather/scatter %ld values, which is too large for MPI\n",
+         getName(), postBufferSize);
    MPI_Gather(
-         postIndexData, postBufferSize, MPI_FLOAT,
-         gatheredIndicesPointer, postBufferSize, MPI_FLOAT,
+         postIndexData, sendCount, MPI_FLOAT,
+         gatheredIndicesPointer, sendCount, MPI_FLOAT,
          0 /*root process*/, getCommunicator()->communicator());
    MPI_Gather(
-         postData, postBufferSize, MPI_FLOAT,
-         gatheredValuesPointer, postBufferSize, MPI_FLOAT,
+         postData, sendCount, MPI_FLOAT,
+         gatheredValuesPointer, sendCount, MPI_FLOAT,
          0 /*root process*/, getCommunicator()->communicator());
    if (getCommunicator()->commRank() == 0) {
       int numProcs = getCommunicator()->commSize();
@@ -800,8 +804,8 @@ void PoolingDelivery::reducePostIndices() {
       }
    }
    MPI_Scatter(
-         gatheredIndicesPointer, postBufferSize, MPI_FLOAT,
-         postIndexData, postBufferSize, MPI_FLOAT,
+         gatheredIndicesPointer, sendCount, MPI_FLOAT,
+         postIndexData, sendCount, MPI_FLOAT,
          0 /*root process*/, getCommunicator()->communicator());
 }
 

@@ -124,7 +124,7 @@ class RetinaActivityBuffer : public ActivityBuffer {
 
    static void spikingUpdateBuffer(
          const int nbatch,
-         const int numNeurons,
+         const long numNeurons,
          const double simTime,
          const double deltaTime,
          const int nx,
@@ -142,7 +142,7 @@ class RetinaActivityBuffer : public ActivityBuffer {
 
    static void nonspikingUpdateBuffer(
          const int nbatch,
-         const int numNeurons,
+         const long numNeurons,
          const double simTime,
          const double deltaTime,
          const int nx,

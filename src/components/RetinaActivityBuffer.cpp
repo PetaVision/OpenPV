@@ -180,8 +180,8 @@ Response::Status
 RetinaActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    setRetinaParams(message->mDeltaTime);
    if (mSpikingFlag) {
-      int const numExtendedAcrossBatch = (int)mSinceLastSpike.size();
-      for (int k = 0; k < numExtendedAcrossBatch; k++) {
+      long const numExtendedAcrossBatch = (long)mSinceLastSpike.size();
+      for (long k = 0; k < numExtendedAcrossBatch; k++) {
          // allow neuron to fire at t=0
          mSinceLastSpike[k] = 10 * mRetinaParams.mAbsRefractoryPeriod;
       }
@@ -234,7 +234,7 @@ void RetinaActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    const int ny          = loc->ny;
    const int nf          = loc->nf;
    const int nbatch      = loc->nbatch;
-   const int numNeurons  = nx * ny * nf;
+   const long numNeurons = (long)nx * (long)ny * (long)nf;
 
    pvAssert(mLayerInput->getNumChannels() >= 2); // CHANNEL_EXC and CHANNEL_INH
    float const *GSynHead = mLayerInput->getBufferData();
@@ -281,14 +281,14 @@ void RetinaActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 float RetinaActivityBuffer::calcBurstStatus(double simTime, RetinaParams *retinaParams) {
    float burstStatus;
    if (retinaParams->mBurstDuration <= 0 || retinaParams->mBurstFreq == 0) {
-      burstStatus = cosf(2.0f * PI * (float)simTime * retinaParams->mBurstFreq / 1000.0f);
+      burstStatus = std::cos(2.0f * PI * (float)simTime * retinaParams->mBurstFreq / 1000.0f);
    }
    else {
-      burstStatus = fmodf((float)simTime, 1000.0f / retinaParams->mBurstFreq);
+      burstStatus = std::fmod((float)simTime, 1000.0f / retinaParams->mBurstFreq);
       burstStatus = burstStatus < retinaParams->mBurstDuration;
    }
    burstStatus *=
-         (int)((simTime >= retinaParams->mBeginStim) && (simTime < retinaParams->mEndStim));
+         ((simTime >= retinaParams->mBeginStim) && (simTime < retinaParams->mEndStim));
    return burstStatus;
 }
 
@@ -334,7 +334,7 @@ int RetinaActivityBuffer::spike(
 
 void RetinaActivityBuffer::spikingUpdateBuffer(
       const int nbatch,
-      const int numNeurons,
+      const long numNeurons,
       const double simTime,
       const double deltaTime,
 
@@ -354,16 +354,21 @@ void RetinaActivityBuffer::spikingUpdateBuffer(
 
    float const *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
    float const *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+   // I *think* that numNeurons is always equal to the product of nx, ny, and nf; in which case
+   // numRestricted is redundant. There would be issues with the code below if not. But I hesitate
+   // to assume so, since both numNeurons and {nx,ny,nf} are passed as arguments.
+   long numRestricted  = (long)nx * (long)ny * (long)nf;
+   long numExtended    = (long)(nx + lt + rt) * (long)(ny + up + dn) * (long)nf;
    for (int b = 0; b < nbatch; b++) {
-      taus_uint4 *rndBatch      = rnd + b * nx * ny * nf;
-      float const *phiExcBatch  = phiExc + b * nx * ny * nf;
-      float const *phiInhBatch  = phiInh + b * nx * ny * nf;
-      float *timeSinceLastBatch = timeSinceLast + b * (nx + lt + rt) * (ny + up + dn) * nf;
-      float *activityBatch      = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
-      int k;
+      taus_uint4 *rndBatch      = &rnd[b * numRestricted];
+      float const *phiExcBatch  = &phiExc[b * numRestricted];
+      float const *phiInhBatch  = &phiInh[b * numRestricted];
+      float *timeSinceLastBatch = &timeSinceLast[b * numExtended];
+      float *activityBatch      = &activity[b * numExtended];
+      long k;
       float burstStatus = calcBurstStatus(simTime, retinaParams);
-      for (k = 0; k < nx * ny * nf; k++) {
-         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      for (k = 0; k < numRestricted; k++) {
+         long kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          //
          // kernel (nonheader part) begins here
          //
@@ -394,7 +399,7 @@ void RetinaActivityBuffer::spikingUpdateBuffer(
 
 void RetinaActivityBuffer::nonspikingUpdateBuffer(
       const int nbatch,
-      const int numNeurons,
+      const long numNeurons,
       const double simTime,
       const double deltaTime,
 
@@ -409,18 +414,20 @@ void RetinaActivityBuffer::nonspikingUpdateBuffer(
       RetinaParams *retinaParams,
       float const *GSynHead,
       float *activity) {
-   int k;
+   long k;
    float burstStatus = calcBurstStatus(simTime, retinaParams);
 
    float const *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
    float const *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+   long numRestricted  = (long)nx * (long)ny * (long)nf;
+   long numExtended    = (long)(nx + lt + rt) * (long)(ny + up + dn) * (long)nf;
 
    for (int b = 0; b < nbatch; b++) {
-      float const *phiExcBatch = phiExc + b * nx * ny * nf;
-      float const *phiInhBatch = phiInh + b * nx * ny * nf;
-      float *activityBatch     = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
-      for (k = 0; k < nx * ny * nf; k++) {
-         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      float const *phiExcBatch = &phiExc[b * numRestricted];
+      float const *phiInhBatch = &phiInh[b * numRestricted];
+      float *activityBatch     = &activity[b * numExtended];
+      for (k = 0; k < numRestricted; k++) {
+         long kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          //
          // kernel (nonheader part) begins here
          //

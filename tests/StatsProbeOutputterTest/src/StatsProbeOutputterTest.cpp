@@ -270,7 +270,7 @@ void generateData(ProbeDataBuffer<LayerStats> &data, Communicator *comm) {
       ProbeData<LayerStats> stats(timestamp, LOCALBATCHWIDTH);
       for (int b = 0; b < LOCALBATCHWIDTH; ++b) {
          int globalBatchIndex = b + LOCALBATCHWIDTH * globalBatchProcIndex;
-         generateData(stats.getValue(b), timestamp, globalBatchWidth, globalBatchIndex);
+         generateData(stats.getValue(b), t, globalBatchWidth, globalBatchIndex);
       }
       data.store(stats);
    }

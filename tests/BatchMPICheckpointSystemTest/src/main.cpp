@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int diffDirs(const char *cpdir1, const char *cpdir2, int index) {
+int diffDirs(const char *cpdir1, const char *cpdir2, long index) {
    int status = PV_SUCCESS;
    if (cpdir1 == NULL || cpdir2 == NULL) {
       Fatal().printf("unable to allocate memory for names of checkpoint directories");
@@ -104,7 +104,7 @@ int diffDirs(const char *cpdir1, const char *cpdir2, int index) {
    const int max_buf_len = 1024;
    char shellcommand[max_buf_len];
    const char *fmtstr =
-         "diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua %s/Checkpoint%d %s/Checkpoint%d";
+      "diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua %s/Checkpoint%ld %s/Checkpoint%ld";
    snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
    status = system(shellcommand);
    if (status != 0) {
@@ -135,7 +135,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
    if (rank == rootproc) {
-      int index          = hc->getFinalStep();
+      long index         = hc->getFinalStep();
       const char *cpdir1 = "checkpoints1";
       const char *cpdir2 = "checkpoints2";
       status             = diffDirs(cpdir1, cpdir2, index);

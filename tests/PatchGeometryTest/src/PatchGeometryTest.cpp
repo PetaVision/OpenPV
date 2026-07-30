@@ -126,7 +126,7 @@ void testOneToOneExtended() {
    std::vector<uint16_t> const correctSizes{1, 2, 3, 4, 5, 5, 5, 5, 5, 5,
                                             5, 5, 5, 5, 5, 5, 4, 3, 2, 1};
    std::vector<int> const correctStarts{4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-   for (int p = 0; p < numPatches; p++) {
+   for (long p = 0; p < numPatches; p++) {
       int numPatchesX = patchGeometry.getNumPatchesX();
       int numPatchesY = patchGeometry.getNumPatchesY();
       int numPatchesF = patchGeometry.getNumPatchesF();
@@ -138,9 +138,9 @@ void testOneToOneExtended() {
       int correctNx = correctSizes[xIndex];
       int correctNy = correctSizes[yIndex];
 
-      uint16_t correctStartX = correctStarts[xIndex];
-      uint16_t correctStartY = correctStarts[yIndex];
-      auto correctOffset     = (uint32_t)kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
+      int correctStartX  = correctStarts[xIndex];
+      int correctStartY  = correctStarts[yIndex];
+      auto correctOffset = (uint32_t)kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
       FatalIf(
             patch.nx != correctNx or patch.ny != correctNy or patch.offset != correctOffset,
             "%s: patch %d is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
@@ -393,7 +393,7 @@ void testManyToOneRestricted() {
          name.c_str(),
          (long)preLoc.nx * (long)preLoc.ny * (long)preLoc.nf,
          numPatches);
-   for (int p = 0; p < numPatches; p++) {
+   for (long p = 0; p < numPatches; p++) {
       PV::Patch const &patch = patchGeometry.getPatch(p);
       FatalIf(
             patch.nx != nxp or patch.ny != nyp or patch.offset != 0,
@@ -472,7 +472,7 @@ void testManyToOneExtended() {
          expectedNumPatches,
          numPatches);
 
-   std::vector<uint16_t> correctSizes(nxExt, nxp);
+   std::vector<uint16_t> correctSizes(nxExt, (uint16_t)nxp);
    std::vector<int> correctStarts(nxExt, 0);
    for (int k = 0; k < 4; k++) {
       correctSizes[k]      = 1;

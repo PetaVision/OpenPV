@@ -68,17 +68,17 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
    auto *inputPublisher  = inputLayer->getComponentByType<BasePublisherComponent>();
    auto *outputPublisher = outputLayer->getComponentByType<BasePublisherComponent>();
 
-   int nbatch         = inLoc->nbatch;
-   int numNeurons     = inLoc->nx * inLoc->ny * inLoc->nf;
-   int numInExtended  = inputPublisher->getNumExtended();
-   int numOutExtended = outputPublisher->getNumExtended();
+   int nbatch          = inLoc->nbatch;
+   long numNeurons     = inLoc->nx * inLoc->ny * inLoc->nf;
+   long numInExtended  = inputPublisher->getNumExtended();
+   long numOutExtended = outputPublisher->getNumExtended();
 
    float const *inData  = inputPublisher->getLayerData();
    float const *outData = outputPublisher->getLayerData();
    bool failed          = false;
    for (int b = 0; b < nbatch; b++) {
-      for (int k = 0; k < numNeurons; k++) {
-         int kInExt = kIndexExtended(
+      for (long k = 0; k < numNeurons; k++) {
+         long kInExt = kIndexExtended(
                k,
                inLoc->nx,
                inLoc->ny,
@@ -87,7 +87,7 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
                inLoc->halo.rt,
                inLoc->halo.dn,
                inLoc->halo.up);
-         int kOutExt = kIndexExtended(
+         long kOutExt = kIndexExtended(
                k,
                outLoc->nx,
                outLoc->ny,
@@ -101,7 +101,7 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
 
          if (inValue != outValue) {
             ErrorLog().printf(
-                  "b=%d, k=%d, %s=%f, %s=%f.\n",
+                  "b=%d, k=%ld, %s=%f, %s=%f.\n",
                   b,
                   k,
                   inputLayer->getDescription_c(),

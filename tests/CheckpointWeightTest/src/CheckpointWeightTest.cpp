@@ -99,7 +99,7 @@ void verifyCheckpointing(
                   calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp, weights.getName());
          }
          for (long k = 0; k < numItemsInPatch; k++) {
-            long const indexIntoArbor       = p * numItemsInPatch + k;
+            long const indexIntoArbor      = p * numItemsInPatch + k;
             float v                        = calcWeight(globalPatchIndex, k, numItemsInPatch);
             arborDataStart[indexIntoArbor] = v;
          }
@@ -172,7 +172,7 @@ void verifyCheckpointing(
    for (int a = 0; a < numArbors; a++) {
       float *w            = readBack.getData(a);
       long const arborSize = readBack.getNumDataPatchesOverall() * numItemsInPatch;
-      for (int d = 0; d < arborSize; d++) {
+      for (long d = 0; d < arborSize; d++) {
          w[d] = std::numeric_limits<float>::infinity();
       }
    }
@@ -204,12 +204,12 @@ void verifyCheckpointing(
          Patch const &patch = weights.getPatch(p);
          for (long k = 0; k < numItemsInPatch; k++) {
             if (sharedFlag or isActiveWeight(patch, nxp, nyp, nfp, k)) {
-               int const indexIntoArbor = p * numItemsInPatch + k;
+               long const indexIntoArbor = p * numItemsInPatch + k;
                float weightValue = weightsArborStart[indexIntoArbor];
                float readBackValue = readBackArborStart[indexIntoArbor];
                FatalIf(
                      readBackValue != weightValue,
-                     "%s, Rank %d, patch %d (global %d), patch item %d: "
+                     "%s, Rank %d, patch %ld (global %ld), patch item %ld: "
                      "expected %f; observed %f (discrepancy %g)\n",
                      label.c_str(),
                      mpiBlock->getGlobalRank(),

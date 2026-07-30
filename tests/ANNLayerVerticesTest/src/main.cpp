@@ -28,7 +28,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    PVHalo const &halo       = loc->halo;
    int N                    = loc->nx * loc->ny * loc->nf;
    for (int k = 0; k < N; k++) {
-      int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo.lt, halo.rt, halo.dn, halo.up);
+      long kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo.lt, halo.rt, halo.dn, halo.up);
       float v  = V[k];
       float a  = A[kExt];
       // Based on params file having verticesV = [0.5, 0.5]; verticesA = [0.0, 1.0];

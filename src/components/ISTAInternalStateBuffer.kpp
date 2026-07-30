@@ -19,7 +19,7 @@ namespace PV {
 inline void updateISTAInternalStateBufferOnCPU
 #endif // PV_RUN_ON_GPU
       (int const nbatch,
-       int const numNeurons,
+       long const numNeurons,
        int const nx,
        int const ny,
        int const nf,
@@ -34,27 +34,28 @@ inline void updateISTAInternalStateBufferOnCPU
        float const *A,
        float *V) {
 #ifdef PV_RUN_ON_GPU
-   int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+   long index = (blockIdx.x * blockDim.x) + threadIdx.x;
    if (index < numNeurons * nbatch)
 #else
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int index = 0; index < numNeurons * nbatch; index++)
+   for (long index = 0; index < numNeurons * nbatch; index++)
 #endif // PV_RUN_ON_GPU
    {
-      int b                             = index / numNeurons;
-      int k                             = index % numNeurons;
-      float *VBatch                     = V + b * numNeurons;
-      float const *accumulatedGSynBatch = accumulatedGSyn + b * numNeurons;
+      long b                            = index / numNeurons;
+      long k                            = index % numNeurons;
+      float *VBatch                     = &V[b * numNeurons];
+      float const *accumulatedGSynBatch = &accumulatedGSyn[b * numNeurons];
       // Activity is an extended buffer.
-      float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
+      long numExtended = (long)(nx + rt + lt) * (long)(ny + up + dn) * (long)nf;
+      float const *ABatch = &A[b * numExtended];
 
       float const gSyn = accumulatedGSynBatch[k];
-      int kex          = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      long kex         = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       float sign       = 0.0f;
       if (ABatch[kex] != 0.0f) {
-         sign = ABatch[kex] / fabsf(ABatch[kex]);
+         sign = ABatch[kex] / std::fabs(ABatch[kex]);
       }
       VBatch[k] += ((float)dtAdapt[b] / tau) * (gSyn - (VThresh * sign));
    }

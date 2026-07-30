@@ -6,29 +6,29 @@
 using PV::kxPos;
 
 int main(int argc, char *argv[]) {
-   int kl;
+   long kl;
 
    int nf = 3;
    int nx = 64;
    int ny = 128;
 
-   float nxLocal = nx;
-   float nyLocal = ny;
+   int nxLocal = nx;
+   int nyLocal = ny;
 
    int inx = nx;
    int iny = ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kxx = kl % inx;
+      int kxx = (int)(kl % inx);
 #else
-      int y   = kl / (nf * nx);
-      int kxx = (kl - y * nx * nf) / nf;
+      int y   = (int)(kl / (nf * nx));
+      int kxx = (int)((kl - y * nx * nf) / nf);
 #endif
-      float kx = kxPos(kl, nxLocal, nyLocal, nf);
+      int kx = kxPos(kl, nxLocal, nyLocal, nf);
 
-      if (kx != (float)kxx) {
-         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+      if (kx != kxx) {
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%ld,%d)\n", kl, kx);
       }
    }
 
@@ -40,17 +40,17 @@ int main(int argc, char *argv[]) {
    inx = nx;
    iny = ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kxx = kl % inx;
+      int kxx = (int)(kl % inx);
 #else
-      int y   = kl / (nf * nx);
-      int kxx = (kl - y * nx * nf) / nf;
+      int y   = (int)(kl / (nf * nx));
+      int kxx = (int)((kl - y * nx * nf) / nf);
 #endif
-      float kx = kxPos(kl, nxLocal, nyLocal, nf);
+      int kx = kxPos(kl, nxLocal, nyLocal, nf);
 
-      if ((int)kx - kxx != 0) {
-         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+      if (kx - kxx != 0) {
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%ld,%d)\n", kl, kx);
       }
    }
 
@@ -63,17 +63,17 @@ int main(int argc, char *argv[]) {
    inx = nx;
    iny = ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kxx = kl % inx;
+      int kxx = (int)(kl % inx);
 #else
-      int y   = kl / (nf * nx);
-      int kxx = (kl - y * nx * nf) / nf;
+      int y   = (int)(kl / (nf * nx));
+      int kxx = (int)((kl - y * nx * nf) / nf);
 #endif
-      float kx = kxPos(kl, nxLocal, nyLocal, nf);
+      int kx = kxPos(kl, nxLocal, nyLocal, nf);
 
-      if ((int)kx - kxx != 0) {
-         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+      if (kx - kxx != 0) {
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%ld,%d)\n", kl, kx);
       }
    }
 
@@ -87,17 +87,17 @@ int main(int argc, char *argv[]) {
    inx = nx;
    iny = ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kxx = kl % inx;
+      int kxx = (int)(kl % inx);
 #else
-      int y   = kl / (nf * nx);
-      int kxx = (kl - y * nx * nf) / nf;
+      int y   = (int)(kl / (nf * nx));
+      int kxx = (int)((kl - y * nx * nf) / nf);
 #endif
-      float kx = kxPos(kl, nxLocal, nyLocal, nf);
+      int kx = kxPos(kl, nxLocal, nyLocal, nf);
 
-      if ((int)kx - kxx != 0) {
-         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+      if (kx - kxx != 0) {
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%ld,%d)\n", kl, kx);
       }
    }
 

@@ -117,7 +117,7 @@ class HebbianUpdater : public BaseWeightUpdater {
          int batchID,
          float const *preLayerData,
          float const *postLayerData,
-         int kExt);
+         long kExt);
 
    virtual float updateRule_dW(float pre, float post);
 

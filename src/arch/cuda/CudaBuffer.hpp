@@ -81,7 +81,7 @@ class CudaBuffer {
 
   private:
    void callCudaPermuteWeightsPVToCudnn(
-         int gridSize,
+         unsigned int gridSize,
          int blockSize,
          void *d_inPtr,
          int numArbors,

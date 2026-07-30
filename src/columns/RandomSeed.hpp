@@ -13,23 +13,23 @@ namespace PV {
 class RandomSeed {
   public:
    static RandomSeed *instance();
-   void initialize(unsigned int initialSeed);
-   unsigned int allocate(unsigned long numRequested);
-   unsigned int getInitialSeed() { return mInitialSeed; }
+   void initialize(unsigned long initialSeed);
+   unsigned long allocate(unsigned long numRequested);
+   unsigned long getInitialSeed() { return mInitialSeed; }
 
   private:
    RandomSeed();
    virtual ~RandomSeed() {}
 
   public:
-   static unsigned int constexpr minSeed = 10000000U;
+   static unsigned long constexpr mMinSeed = 10000000UL;
+   // mMinSeed needs to be high enough that for the pseudorandom sequence to be
+   // good, but must be less than (and should be much less than) ULONG_MAX/2
 
   private:
-   unsigned int mNextSeed    = 0U;
-   unsigned int mInitialSeed = 0U;
-   bool mInitialized         = false;
-   // minSeed needs to be high enough that for the pseudorandom sequence to be
-   // good, but must be less than (and should be much less than) ULONG_MAX/2
+   unsigned long mNextSeed    = 0UL;
+   unsigned long mInitialSeed = 0UL;
+   bool mInitialized          = false;
 };
 
 } /* namespace PV */

@@ -15,7 +15,7 @@ namespace PV {
 template <typename T>
 class RingBuffer {
   public:
-   RingBuffer(int numLevels, int numItems, T initialValue = (T)0) {
+   RingBuffer(int numLevels, long numItems, T initialValue = (T)0) {
       mCurrentLevel = 0;
       mNumLevels    = numLevels;
       mNumItems     = numItems;
@@ -28,13 +28,13 @@ class RingBuffer {
 
    int getNumLevels() { return mNumLevels; }
 
-   int getNumItems() { return mNumItems; }
+   long getNumItems() { return mNumItems; }
 
    void newLevel() { mCurrentLevel = (mNumLevels + mCurrentLevel - 1) % mNumLevels; }
 
-   T *getBuffer(int level, int offset) { return &mBuffer[levelIndex(level)].at(offset); }
+   T *getBuffer(int level, long offset) { return &mBuffer[levelIndex(level)].at(offset); }
 
-   T *getBuffer(int offset) { return &mBuffer[mCurrentLevel].at(offset); }
+   T *getBuffer(long offset) { return &mBuffer[mCurrentLevel].at(offset); }
 
    T *getBuffer() { return mBuffer[mCurrentLevel].data(); }
 
@@ -44,7 +44,7 @@ class RingBuffer {
   private:
    int mCurrentLevel;
    int mNumLevels;
-   int mNumItems;
+   long mNumItems;
    std::vector<std::vector<T>> mBuffer;
 };
 

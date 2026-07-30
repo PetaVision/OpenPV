@@ -17,9 +17,9 @@ Response::Status ImageTestLayer::checkUpdateState(double time, double dt) {
    float const *activityData = mActivityComponent->getActivity();
    for (int b = 0; b < nbatch; b++) {
       float const *activityDataBatch = activityData + b * mActivityComponent->getNumExtended();
-      for (int nkRes = 0; nkRes < getNumNeurons(); nkRes++) {
+      for (long nkRes = 0; nkRes < getNumNeurons(); nkRes++) {
          // Calculate extended index
-         int nkExt = kIndexExtended(
+         long nkExt = kIndexExtended(
                nkRes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          // checkVal is the value from batch index 0
          float checkVal = activityDataBatch[nkExt] * 255;
@@ -28,7 +28,8 @@ Response::Status ImageTestLayer::checkUpdateState(double time, double dt) {
          int kyGlobal = kyPos(nkRes, nx, ny, nf) + loc->ky0;
          int kf       = featureIndex(nkRes, nx, ny, nf);
 
-         float expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf);
+         long globalIndex = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf);
+         float expectedVal = (float)globalIndex;
          if (std::fabs(checkVal - expectedVal) >= 1e-5f) {
             Fatal() << "ImageFileIO test Expected: " << expectedVal << " Actual: " << checkVal
                     << "\n";

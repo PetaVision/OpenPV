@@ -19,7 +19,7 @@ namespace PV {
 inline void applyVerticesANNActivityBufferOnCPU
 #endif // PV_RUN_ON_GPU
       (int const nbatch,
-       int const numNeurons,
+       long const numNeurons,
        int const nx,
        int const ny,
        int const nf,
@@ -34,21 +34,22 @@ inline void applyVerticesANNActivityBufferOnCPU
        float const *V,
        float *A) {
 #ifdef PV_RUN_ON_GPU
-   int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+   long index = (blockIdx.x * blockDim.x) + threadIdx.x;
    if (index < numNeurons * nbatch)
 #else
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int index = 0; index < numNeurons * nbatch; index++)
+   for (long index = 0; index < numNeurons * nbatch; index++)
 #endif // PV_RUN_ON_GPU
    {
       int last            = numVertices - 1;
-      int b               = index / numNeurons;
-      int k               = index % numNeurons;
-      float const *VBatch = V + b * numNeurons;
-      float *ABatch       = A + b * (nx + lt + rt) * (ny + up + dn) * nf;
-      int kex             = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      long b              = index / numNeurons;
+      long k              = index % numNeurons;
+      float const *VBatch = &V[b * numNeurons];
+      long numExtended    = (long)(nx + lt + rt) * (long)(ny + up + dn) * (long)nf;
+      float *ABatch       = &A[b * numExtended];
+      long kex            = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       float potential     = VBatch[k];
       float activity      = 0.0f;
 

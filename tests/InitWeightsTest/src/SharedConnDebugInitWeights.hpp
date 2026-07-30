@@ -86,10 +86,10 @@ class SharedConnDebugInitWeights : public PV::HyPerConn {
          float lambda,
          float strength,
          float phi);
-   void initializeGaborWeights(float *dataStart, int numPatches);
+   void initializeGaborWeights(float *dataStart, long numPatches);
 
-   int
-   dataIndexToUnitCellIndex(int dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
+   int dataIndexToUnitCellIndex(
+         long dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
 
   protected:
    char *mWeightInitTypeString = nullptr;

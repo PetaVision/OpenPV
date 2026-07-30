@@ -6,13 +6,14 @@
 namespace PV {
 
 void ISTAInternalStateBuffer::runKernel() {
-   PVLayerLoc const *loc           = getLayerLoc();
-   int const numNeurons            = loc->nx * loc->ny * loc->nf;
-   int const numNeuronsAcrossBatch = numNeurons * loc->nbatch;
-   int currBlockSize               = mCudaDevice->get_max_threads();
-   cudaStream_t cudaStream         = mCudaDevice->getStream();
+   PVLayerLoc const *loc            = getLayerLoc();
+   long const numNeurons            = (long)loc->nx * (long)loc->ny * (long)loc->nf;
+   long const numNeuronsAcrossBatch = numNeurons * loc->nbatch;
+   int currBlockSize                = mCudaDevice->get_max_threads();
+   cudaStream_t cudaStream          = mCudaDevice->getStream();
    // Ceil to get all weights
-   int currGridSize = (int)ceil(((float)numNeuronsAcrossBatch) / currBlockSize);
+   unsigned int currGridSize =
+         (unsigned int)std::ceil(((float)numNeuronsAcrossBatch) / (float)currBlockSize);
    // Call function
    PVCuda::updateISTAInternalStateBufferOnGPU<<<currGridSize, currBlockSize, 0, cudaStream>>>(
          loc->nbatch,

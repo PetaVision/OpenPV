@@ -62,18 +62,18 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          averagePublisher == nullptr, "Layer \"Counts\" does not have a BasePublisherComponent\n");
    float const *checkData = averagePublisher->getLayerData();
-   int const numNeurons   = averagePublisher->getNumExtended();
+   long const numNeurons  = averagePublisher->getNumExtended();
 
    // Leaky integrator has integration time infinity;
    // Each neuron in the Count layer is the sum over time of the
    // corresponding neuron in the DropoutLayer -- calculate sum over whole layer
    float count = 0.0f;
-   for (int k = 0; k < numNeurons; k++) {
+   for (long k = 0; k < numNeurons; k++) {
       count += checkData[k];
    }
 
-   long int const numTimeSteps = hc->getFinalStep();
-   long int const numTrials = numTimeSteps * (long int)numNeurons;
+   long const numTimeSteps = hc->getFinalStep();
+   long const numTrials = numTimeSteps * numNeurons;
    
    float observedAvg = count / (float)numTrials;
 
@@ -81,7 +81,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // and success probability of (100-probability)/100 == targetAvg.
    // Thus observedAvg has expected value of targetAvg,
    // and a variance of targetAvg * (1-targetAvg) / numTrials.
-   float stddev = std::sqrt(targetAvg * (1-targetAvg) / numTrials);
+   float stddev = std::sqrt(targetAvg * (1-targetAvg) / (float)numTrials);
    float tolerance = 2.0f * stddev;
 
    FatalIf(

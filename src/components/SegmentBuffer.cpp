@@ -129,7 +129,7 @@ int SegmentBuffer::checkLabelBufSize(int newSize) {
 
 int SegmentBuffer::loadLabelBuf() {
    // Load in maxX and label buf from maxX map
-   int numLabels = mMaxX.size();
+   int numLabels = static_cast<int>(mMaxX.size());
    // Allocate send buffer to the right size
    checkLabelBufSize(numLabels);
 
@@ -204,10 +204,11 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
 
    // Segment input layer based on segmentMethod
    if (strcmp(segmentMethod, "none") == 0) {
-      int numBatchExtended = getBufferSizeAcrossBatch();
+      long numBatchExtended = getBufferSizeAcrossBatch();
       // Copy activity over
       // Since both buffers should be identical size, we can do a memcpy here
-      memcpy(thisA, origA, numBatchExtended * sizeof(float));
+      std::size_t numBytes = (std::size_t)numBatchExtended * sizeof(float);
+      memcpy(thisA, origA, numBytes);
    }
    else {
       // This case should never happen
@@ -242,7 +243,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
             // Get label value
             // Note that we're assuming that the activity here are integers,
             // even though the buffer is floats
-            int labelVal = round(batchA[niLocalExt]);
+            int labelVal = static_cast<int>(std::round(batchA[niLocalExt]));
 
             // Calculate max/min x and y for a single batch
             // If labelVal exists in map
@@ -280,7 +281,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
 
       // Local comm rank
       // Non root processes simply send buffer size and then buffers
-      int numLabels = mMaxX.size();
+      int numLabels = static_cast<int>(mMaxX.size());
 
       if (rank != 0) {
          // Load buffers
@@ -401,7 +402,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
 
          // Fill centerpoint buffer
-         int numCenterIdx = centerIdx[bi].size();
+         int numCenterIdx = static_cast<int>(centerIdx[bi].size());
          checkIdxBufSize(numCenterIdx);
 
          int idx = 0;

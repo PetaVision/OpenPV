@@ -39,11 +39,11 @@ void TestImageActivityBuffer::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 TestImageActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   PVLayerLoc const *loc   = getLayerLoc();
-   int const numRestricted = loc->nx * loc->ny * loc->nf;
-   for (int kbatch = 0; kbatch < numRestricted * loc->nbatch; kbatch++) {
-      int const k = kbatch % numRestricted;
-      int kExt    = kIndexExtended(
+   PVLayerLoc const *loc    = getLayerLoc();
+   long const numRestricted = (long)loc->nx * (long)loc->ny * (long)loc->nf;
+   for (long kbatch = 0; kbatch < numRestricted * loc->nbatch; kbatch++) {
+      long const k = kbatch % numRestricted;
+      long kExt    = kIndexExtended(
             k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       mBufferData[kExt] = mConstantVal;
    }

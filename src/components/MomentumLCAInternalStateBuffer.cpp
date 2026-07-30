@@ -116,7 +116,7 @@ void MomentumLCAInternalStateBuffer::updateBufferCPU(double simTime, double delt
 #endif // PV_USE_CUDA
 
    const PVLayerLoc *loc = getLayerLoc();
-   int numNeurons        = getBufferSize();
+   long numNeurons       = getBufferSize();
 
    double const *dtAdapt        = deltaTimes(simTime, deltaTime);
    float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();

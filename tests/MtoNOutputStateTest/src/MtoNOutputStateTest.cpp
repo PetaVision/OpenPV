@@ -134,7 +134,7 @@ void verifyOutputStatePre(
    int batchElementsPerBlock = batchElementsPerProcess * mpiBlock->getBatchDimension();
 
    int const numFrames  = header.nBands;
-   int const numNeurons = header.nx * header.ny * header.nf;
+   long const numNeurons = (long)header.nx * (long)header.ny * (long)header.nf;
 
    double frameTime    = std::strtod("NAN", nullptr);
    int localBatchIndex = 0;
@@ -156,7 +156,7 @@ void verifyOutputStatePre(
                (double)(frame / batchElementsPerBlock)); // Integer division
       }
       frameTime = newTime;
-      for (int k = 0; k < numNeurons; k++) {
+      for (long k = 0; k < numNeurons; k++) {
          int x          = kxPos(k, header.nx, header.ny, header.nf);
          int y          = kyPos(k, header.nx, header.ny, header.nf);
          int f          = featureIndex(k, header.nx, header.ny, header.nf);
@@ -196,7 +196,7 @@ void verifyOutputStatePost(
 
    int const numFrames = header.nBands;
 
-   int numNeurons       = header.nx * header.ny * header.nf;
+   long numNeurons      = (long)header.nx * (long)header.ny * (long)header.nf;
    int nxGlobal         = header.nx * (mpiBlock->getGlobalNumColumns() / mpiBlock->getNumColumns());
    int nyGlobal         = header.ny * (mpiBlock->getGlobalNumRows() / mpiBlock->getNumRows());
    int numNeuronsGlobal = nxGlobal * nyGlobal * header.nf;
@@ -223,7 +223,7 @@ void verifyOutputStatePost(
                (double)(frame / batchElementsPerBlock)); // Integer division
       }
       frameTime = newTime;
-      for (int k = 0; k < numNeurons; k++) {
+      for (long k = 0; k < numNeurons; k++) {
          int x                = kxPos(k, header.nx, header.ny, header.nf);
          int y                = kyPos(k, header.nx, header.ny, header.nf);
          int f                = featureIndex(k, header.nx, header.ny, header.nf);
@@ -232,13 +232,13 @@ void verifyOutputStatePost(
          int globalBatchIndex = localBatchIndex + batchIndexOffset;
          int xGlobal          = x + kx0;
          int yGlobal          = y + ky0;
-         int kGlobal          = kIndex(x + kx0, y + ky0, f, nxGlobal, nyGlobal, header.nf);
+         long kGlobal         = kIndex(x + kx0, y + ky0, f, nxGlobal, nyGlobal, header.nf);
          float expected = (float)frameTime * (float)(globalBatchIndex * numNeuronsGlobal + kGlobal);
          if (observed != expected) {
             ErrorLog().printf(
                   "%s, frame %d, t = %f, local batch index = %d, global batch index %d, local "
                   "coordinates (x,y,f) = (%d,%d,%d), global coordinates (x,y,f) = (%d,%d,%d), "
-                  "local index %d, global index %d: expected %f, observed %f.\n",
+                  "local index %ld, global index %ld: expected %f, observed %f.\n",
                   path.c_str(),
                   frame,
                   frameTime,

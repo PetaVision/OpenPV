@@ -164,10 +164,10 @@ void compareLayers(
             "Buffers from %s and %s do not have the same total number of elements.\n",
             publisher1->getDescription_c(),
             publisher2->getDescription_c());
-      int const N = layer1buffer.getTotalElements();
+      long const N = layer1buffer.getTotalElements();
 
       int status = PV_FAILURE;
-      for (int n = 0; n < N; n++) {
+      for (long n = 0; n < N; n++) {
          if (layer1buffer.at(n) != 0.0f) {
             status = PV_SUCCESS;
             break;
@@ -179,7 +179,8 @@ void compareLayers(
       }
 
       pvAssert(status == PV_SUCCESS);
-      for (int n = 0; n < N; n++) {
+      pvAssert(layer2buffer.getTotalElements() == N);
+      for (long n = 0; n < N; n++) {
          if (layer1buffer.at(n) != layer2buffer.at(n)) {
             status = PV_FAILURE;
             break;

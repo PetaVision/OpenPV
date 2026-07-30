@@ -28,7 +28,7 @@ void broadcastMessage(
 int check_cocirc_vs_hyper(
       ComponentBasedObject *cHyPer,
       ComponentBasedObject *cKernel,
-      int kPre,
+      long kPre,
       int axonID);
 
 int main(int argc, char *argv[]) {
@@ -86,14 +86,14 @@ int main(int argc, char *argv[]) {
    broadcastMessage(objectTable, initializeMessagePtr);
 
    const int axonID      = 0;
-   int numPreExtended    = pre->getNumExtended();
+   long numPreExtended   = pre->getNumExtended();
    auto *hyperPreWeights = cHyPer->getComponentByType<WeightsPair>()->getPreWeights();
    FatalIf(
          numPreExtended != hyperPreWeights->getGeometry()->getNumPatchesOverall(),
          "Test failed.\n");
 
    int status = PV_SUCCESS;
-   for (int kPre = 0; kPre < numPreExtended; kPre++) {
+   for (long kPre = 0; kPre < numPreExtended; kPre++) {
       status = check_cocirc_vs_hyper(cHyPer, cCocirc, kPre, axonID);
       FatalIf(status != PV_SUCCESS, "Test failed.\n");
       status = check_cocirc_vs_hyper(cHyPer1to2, cCocirc1to2, kPre, axonID);
@@ -128,7 +128,7 @@ void broadcastMessage(
 int check_cocirc_vs_hyper(
       ComponentBasedObject *cHyPer,
       ComponentBasedObject *cKernel,
-      int kPre,
+      long kPre,
       int axonID) {
    FatalIf(
          cKernel->getComponentByType<SharedWeights>()->getSharedWeightsFlag() != true,
@@ -145,8 +145,8 @@ int check_cocirc_vs_hyper(
    auto *kernelPreWeights   = kernelWeightsPair->getPreWeights();
    Patch const &hyperPatch  = hyperPreWeights->getPatch(kPre);
    Patch const &cocircPatch = kernelPreWeights->getPatch(kPre);
-   int hyPerDataIndex       = hyperPreWeights->calcDataIndexFromPatchIndex(kPre);
-   int kernelDataIndex      = kernelPreWeights->calcDataIndexFromPatchIndex(kPre);
+   long hyPerDataIndex      = hyperPreWeights->calcDataIndexFromPatchIndex(kPre);
+   long kernelDataIndex     = kernelPreWeights->calcDataIndexFromPatchIndex(kPre);
 
    auto hyperPatchSize  = cHyPer->getComponentByType<PatchSize>();
    auto kernelPatchSize = cKernel->getComponentByType<PatchSize>();
@@ -166,7 +166,7 @@ int check_cocirc_vs_hyper(
          test_cond = cocircWeights[k] - hyperWeights[k];
          if (std::abs(test_cond) > 0.001f) {
             ErrorLog().printf(
-                  "axodID %d, patch index %d, k=%d, y=%d: %s weight is %f; %s is %f.\n",
+                  "axodID %d, patch index %ld, k=%d, y=%d: %s weight is %f; %s is %f.\n",
                   axonID,
                   kPre,
                   k,

@@ -46,7 +46,7 @@ static uint64_t get_cpu_time() {
 }
 
 // Convert to milliseconds
-static double cpu_time_to_sec(uint64_t cpu_elapsed) {
+static double cpu_time_to_millisec(uint64_t cpu_elapsed) {
    double us = 0.0;
 #ifdef USE_MACH_TIMER
    static mach_timebase_info_data_t info;
@@ -60,7 +60,7 @@ static double cpu_time_to_sec(uint64_t cpu_elapsed) {
    return us / 1000.0;
 }
 
-Timer::Timer(const char *timermessage, double init_time) {
+Timer::Timer(const char *timermessage, uint64_t init_time) {
 #ifdef PV_TIMER_VERBOSE
    if (mEpoch == (uint64_t)0) { // Fix this Y2K-like problem before 586438 AD.
       mEpoch = get_cpu_time();
@@ -72,7 +72,7 @@ Timer::Timer(const char *timermessage, double init_time) {
    mMessage = timermessage ? timermessage : "";
 }
 
-Timer::Timer(const char *objname, const char *objtype, const char *timertype, double init_time) {
+Timer::Timer(const char *objname, const char *objtype, const char *timertype, uint64_t init_time) {
 #ifdef PV_TIMER_VERBOSE
    if (mEpoch == (uint64_t)0) {
       mEpoch = get_cpu_time();
@@ -105,7 +105,7 @@ void Timer::stringPad(std::string &str, std::size_t fillCount, std::size_t padCo
 
 Timer::~Timer() {}
 
-void Timer::reset(double init_time) {
+void Timer::reset(uint64_t init_time) {
    mTimeStart   = get_cpu_time();
    mTimeEnd     = mTimeStart;
    mTimeElapsed = init_time;
@@ -130,14 +130,14 @@ double Timer::stop() {
    return (double)mTimeEnd;
 }
 
-double Timer::elapsed_time() const {
-   return (double)(mTimeElapsed + (mRunning ? get_cpu_time()-mTimeStart : (uint64_t)0));
+uint64_t Timer::elapsed_time() const {
+   return mTimeElapsed + (mRunning ? get_cpu_time() - mTimeStart : (uint64_t)0);
 }
 
 int Timer::fprint_time(PrintStream &stream) const {
    if (mRank == 0) {
       stream << mMessage.c_str() << "processor cycle time == "
-             << (float)cpu_time_to_sec(elapsed_time()) << std::endl;
+             << cpu_time_to_millisec(elapsed_time()) << std::endl;
    }
    return 0;
 }

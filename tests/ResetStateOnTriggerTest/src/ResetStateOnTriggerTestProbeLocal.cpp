@@ -19,20 +19,24 @@ void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &value
    pvAssert(nbatch == static_cast<int>(values.size()));
    double timestamp = values.getTimestamp();
    if (values.getTimestamp() > 0.0) {
-      int N           = loc->nx * loc->ny * loc->nf;
-      int NGlobal     = loc->nxGlobal * loc->nyGlobal * loc->nf;
-      int nxExt       = loc->nx + loc->halo.lt + loc->halo.rt;
-      int nyExt       = loc->nx + loc->halo.dn + loc->halo.up;
-      int numExtended = nxExt * nyExt * loc->nf;
-      int inttime     = static_cast<int>(timestamp);
+      long N           = (long)loc->nx * (long)loc->ny * (long)loc->nf;
+      FatalIf(
+            static_cast<long>(static_cast<int>(N)) != N,
+            "Probe \"%s\" target layer \"%s\" is too large (%d-by-%d-by-%d)\n",
+            getName().c_str(), mTargetLayer->getName(), loc->nx, loc->ny, loc->nf);
+      long NGlobal     = (long)loc->nxGlobal * (long)loc->nyGlobal * (long)loc->nf;
+      int nxExt        = loc->nx + loc->halo.lt + loc->halo.rt;
+      int nyExt        = loc->nx + loc->halo.dn + loc->halo.up;
+      long numExtended = (long)nxExt * (long)nyExt * (long)loc->nf;
+      int inttime      = static_cast<int>(timestamp);
       for (int b = 0; b < nbatch; ++b) {
          int numDiscrepancies  = 0;
          float const *activity = mTargetLayerData + b * numExtended;
-         for (int k = 0; k < N; k++) {
-            int kex          = calcExtendedIndex(k, loc);
-            float a          = activity[kex];
-            int kGlobal      = PV::globalIndexFromLocal(k, *loc);
-            int correctValue = 4 * (kGlobal + 1) * ((inttime + 4) % 5 + 1)
+         for (int k = 0; k < (int)N; k++) {
+            long kex          = calcExtendedIndex(k, loc);
+            float a           = activity[kex];
+            long kGlobal      = PV::globalIndexFromLocal(k, *loc);
+            long correctValue = 4 * (kGlobal + 1) * ((inttime + 4) % 5 + 1)
                                + (kGlobal == ((((inttime - 1) / 5) * 5) + 1) % NGlobal);
             if (a != (float)correctValue) {
                ++numDiscrepancies;
@@ -71,8 +75,8 @@ void ResetStateOnTriggerTestProbeLocal::storeValues(double simTime) {
    countDiscrepancies(discrepancies);
 }
 
-int ResetStateOnTriggerTestProbeLocal::calcExtendedIndex(int k, PVLayerLoc const *loc) {
-   int kExt = PV::kIndexExtended(
+long ResetStateOnTriggerTestProbeLocal::calcExtendedIndex(long k, PVLayerLoc const *loc) {
+   long kExt = PV::kIndexExtended(
          k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
    return kExt;
 }

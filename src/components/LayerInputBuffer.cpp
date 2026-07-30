@@ -211,12 +211,12 @@ LayerInputBuffer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessag
 #endif // PV_USE_CUDA
 
 void LayerInputBuffer::resetGSynBuffers(double simTime, double deltaTime) {
-   int const sizeAcrossChannels = getBufferSizeAcrossBatch() * getNumChannels();
-   float *bufferData            = mBufferData.data();
+   long const sizeAcrossChannels = getBufferSizeAcrossBatch() * getNumChannels();
+   float *bufferData             = mBufferData.data();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel
 #endif
-   for (int k = 0; k < sizeAcrossChannels; k++) {
+   for (long k = 0L; k < sizeAcrossChannels; k++) {
       bufferData[k] = 0.0f;
    }
 }
@@ -273,10 +273,15 @@ void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
 
    if (mLayerGeometry->getBroadcastFlag() and !mDeliverySources.empty()) {
       mBroadcastReduceTimer->start();
+      int numValues = static_cast<int>(mBufferSizeAcrossChannels);
+      FatalIf(
+            static_cast<long>(numValues) != mBufferSizeAcrossChannels,
+            "Layer \"%s\" must reduce %ld synaptic input values over MPI, which is too large.\n",
+            getName(), mBufferSizeAcrossChannels);
       MPI_Allreduce(
             MPI_IN_PLACE, 
             mBufferData.data(), 
-            mBufferData.size(),
+            numValues,
             MPI_FLOAT,
             mMPIReductionOp,
             getCommunicator()->communicator());

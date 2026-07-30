@@ -57,7 +57,7 @@ void InitGauss2DWeights::ioParam_rMax(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "rMax", &mRMax, mRMax);
    if (ioFlag == PARAMS_IO_READ) {
       double rMaxd = (double)mRMax;
-      mRMaxSquared = rMaxd * rMaxd;
+      mRMaxSquared = (float)(rMaxd * rMaxd);
    }
 }
 
@@ -65,7 +65,7 @@ void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "rMin", &mRMin, mRMin);
    if (ioFlag == PARAMS_IO_READ) {
       double rMind = (double)mRMin;
-      mRMinSquared = rMind * rMind;
+      mRMinSquared = (float)(rMind * rMind);
    }
 }
 
@@ -210,10 +210,10 @@ void InitGauss2DWeights::calculateThetas(int kfPre_tmp, long patchIndex) {
    mTheta0Post        = mRotate * mDeltaThetaPost / 2.0f;
    const float dthPre = PI * mThetaMax / (float)mNumOrientationsPre;
    const float th0Pre = mRotate * dthPre / 2.0f;
-   mFeaturePre        = patchIndex % mWeights->getGeometry()->getPreLoc().nf;
+   mFeaturePre        = (int)(patchIndex % mWeights->getGeometry()->getPreLoc().nf);
    pvAssert(mFeaturePre == kfPre_tmp);
-   const int iThPre = patchIndex % mNumOrientationsPre;
-   mThetaPre        = th0Pre + iThPre * dthPre;
+   const long iThPre = patchIndex % mNumOrientationsPre;
+   mThetaPre         = th0Pre + (float)iThPre * dthPre;
 }
 
 float InitGauss2DWeights::calcThPost(int fPost) {
@@ -223,7 +223,7 @@ float InitGauss2DWeights::calcThPost(int fPost) {
       thPost = mThetaPre;
    }
    else {
-      thPost = mTheta0Post + oPost * mDeltaThetaPost;
+      thPost = mTheta0Post + (float)oPost * mDeltaThetaPost;
    }
    return thPost;
 }

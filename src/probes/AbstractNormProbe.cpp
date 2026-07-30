@@ -25,9 +25,9 @@ void AbstractNormProbe::calcValues(double timestamp) {
    bool layerIsBroadcast = getTargetLayer()->getLayerLoc()->bcast;
    mProbeAggregator->aggregateStoredValues(mProbeLocal->getStoredValues(), layerIsBroadcast);
    ProbeDataBuffer<double> const *storedValues = &mProbeAggregator->getStoredValues();
-   auto bufferSize          = storedValues->size();
-   pvAssert(bufferSize > static_cast<batchwidth_type>(0));
-   auto lastDataIndex             = bufferSize - static_cast<batchwidth_type>(1);
+   int bufferSize = (int)storedValues->size();
+   pvAssert(bufferSize > 0);
+   int lastDataIndex = bufferSize - 1;
    LayerProbeData const &lastData = storedValues->getData(lastDataIndex);
    setValues(lastData);
    mProbeLocal->clearStoredValues();

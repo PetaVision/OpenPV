@@ -72,8 +72,8 @@ int NormalizeL2::normalizeWeights() {
          for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sumsq = 0.0f;
             for (auto &weights : mWeightsList) {
-               int weightsPerPatch   = weights->getPatchSizeOverall();
-               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
+               long weightsPerPatch   = weights->getPatchSizeOverall();
+               float *dataStartPatch  = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateSumSquared(dataStartPatch, weightsPerPatch, &sumsq);
             }
             sumSquares[patchindex] = sumsq;
@@ -81,10 +81,15 @@ int NormalizeL2::normalizeWeights() {
          if (mConnectionData->getPreIsBroadcast()) {
             pvAssert(mConnectionData->getPre()->getLayerLoc()->nx == 1);
             pvAssert(mConnectionData->getPre()->getLayerLoc()->ny == 1);
+            int reduceCount = static_cast<int>(numDataPatches);
+            FatalIf(
+                  static_cast<long>(reduceCount) != numDataPatches,
+                  "Connection \"%s\" must reduce %ld norm values over MPI, which is too large.\n",
+                  getName(), numDataPatches);
             MPI_Allreduce(
                   MPI_IN_PLACE,
                   sumSquares.data(),
-                  numDataPatches,
+                  reduceCount,
                   MPI_FLOAT,
                   MPI_SUM,
                   mCommunicator->communicator());
@@ -94,7 +99,7 @@ int NormalizeL2::normalizeWeights() {
             if (std::fabs(l2norm) <= minL2NormTolerated) {
                WarnLog().printf(
                      "for NormalizeL2 \"%s\": sum of squares of weights in patch %ld of arbor %d is "
-                     "within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                     "within minL2NormTolerated=%f of zero. Weights in this patch unchanged.\n",
                      getName(),
                      patchindex,
                      arborID,
@@ -125,10 +130,15 @@ int NormalizeL2::normalizeWeights() {
       if (mConnectionData->getPreIsBroadcast()) {
          pvAssert(mConnectionData->getPre()->getLayerLoc()->nx == 1);
          pvAssert(mConnectionData->getPre()->getLayerLoc()->ny == 1);
+         int reduceCount = static_cast<int>(numDataPatches);
+         FatalIf(
+               static_cast<long>(reduceCount) != numDataPatches,
+               "Connection \"%s\" must reduce %ld norm values over MPI, which is too large.\n",
+               getName(), numDataPatches);
          MPI_Allreduce(
                MPI_IN_PLACE,
                sumSquares.data(),
-               numDataPatches,
+               reduceCount,
                MPI_FLOAT,
                MPI_SUM,
                mCommunicator->communicator());
@@ -147,7 +157,7 @@ int NormalizeL2::normalizeWeights() {
          float normalizationFactor = scaleFactor / l2norm;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int weightsPerPatch   = weights->getPatchSizeOverall();
+               long weightsPerPatch  = weights->getPatchSizeOverall();
                float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                normalizePatch(dataStartPatch, weightsPerPatch, normalizationFactor);
             }

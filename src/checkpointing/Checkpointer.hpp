@@ -146,8 +146,8 @@ class Checkpointer : public Subject {
 
   public:
    struct TimeInfo {
-      double mSimTime                 = 0.0;
-      long int mCurrentCheckpointStep = 0L;
+      double mSimTime             = 0.0;
+      long mCurrentCheckpointStep = 0L;
    };
    Checkpointer(
          std::string const &name,
@@ -157,7 +157,7 @@ class Checkpointer : public Subject {
    ~Checkpointer();
 
    void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
-   void provideFinalStep(long int finalStep);
+   void provideFinalStep(long finalStep);
 
    template <typename T>
    bool registerCheckpointData(
@@ -181,7 +181,7 @@ class Checkpointer : public Subject {
    void readNamedCheckpointEntry(
          std::string const &checkpointEntryName, bool constantEntireRunFlag = false);
    void readStateFromCheckpoint();
-   void checkpointRead(double *simTimePointer, long int *currentStepPointer);
+   void checkpointRead(double *simTimePointer, long *currentStepPointer);
    void checkpointWrite(double simTime);
    void checkpointDelete(std::shared_ptr<FileManager const> fileManager);
    void finalCheckpoint(double simTime);
@@ -200,7 +200,7 @@ class Checkpointer : public Subject {
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
       return mCheckpointWriteTriggerMode;
    }
-   long int getCheckpointWriteStepInterval() const { return mCheckpointWriteStepInterval; }
+   long getCheckpointWriteStepInterval() const { return mCheckpointWriteStepInterval; }
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    std::string const &getCheckpointReadDirectory() const { return mCheckpointReadDirectory; }
@@ -321,7 +321,7 @@ class Checkpointer : public Subject {
    char *mCheckpointWriteDir                                               = nullptr;
    char *mCheckpointWriteTriggerModeString                                 = nullptr;
    enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode             = NONE;
-   long int mCheckpointWriteStepInterval                                   = 1L;
+   long mCheckpointWriteStepInterval                                       = 1L;
    double mCheckpointWriteSimtimeInterval                                  = 1.0;
    std::time_t mCheckpointWriteWallclockInterval                           = 1L;
    char *mCheckpointWriteWallclockUnit                                     = nullptr;
@@ -334,7 +334,7 @@ class Checkpointer : public Subject {
    char *mInitializeFromCheckpointDir                                      = nullptr;
    std::shared_ptr<FileManager> mInitializeFromCheckpointFileManager       = nullptr;
    std::string mCheckpointReadDirectory;
-   long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
+   long mNextCheckpointStep             = 0L; // kept only for consistency with HyPerCol
    double mNextCheckpointSimtime        = 0.0;
    std::time_t mLastCheckpointWallclock = (std::time_t)0;
    int mWidthOfFinalStepNumber          = 0;

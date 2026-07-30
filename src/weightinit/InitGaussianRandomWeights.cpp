@@ -72,8 +72,8 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
  * shrunken.
  */
 void InitGaussianRandomWeights::randomWeights(float *patchDataStart, long patchIndex) {
-   const int patchSize = mWeights->getPatchSizeOverall();
-   for (int n = 0; n < patchSize; n++) {
+   const long patchSize = mWeights->getPatchSizeOverall();
+   for (long n = 0; n < patchSize; n++) {
       patchDataStart[n] = mGaussianRandState->gaussianDist(patchIndex, mWGaussMean, mWGaussStdev);
    }
 }

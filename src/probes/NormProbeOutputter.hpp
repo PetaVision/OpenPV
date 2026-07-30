@@ -16,7 +16,7 @@ class NormProbeOutputter : public BaseProbeOutputter {
    NormProbeOutputter(char const *objName, PVParams *params, Communicator const *comm);
    virtual ~NormProbeOutputter() {}
 
-   void printGlobalNormsBuffer(ProbeDataBuffer<double> const &storedValues, int numNeurons);
+   void printGlobalNormsBuffer(ProbeDataBuffer<double> const &storedValues, long numNeurons);
 
   protected:
    NormProbeOutputter() {}
@@ -25,11 +25,11 @@ class NormProbeOutputter : public BaseProbeOutputter {
    void printNorm(
          std::shared_ptr<PrintStream> printStreamPtr,
          double timestamp,
-         int numNeurons,
+         long numNeurons,
          int batchIndex,
          double norm);
-   void printToFiles(ProbeDataBuffer<double> const &storedValues, int numNeurons);
-   void printToLog(ProbeDataBuffer<double> const &storedValues, int numNeurons);
+   void printToFiles(ProbeDataBuffer<double> const &storedValues, long numNeurons);
+   void printToLog(ProbeDataBuffer<double> const &storedValues, long numNeurons);
 
 }; // class NormProbeOutputter
 

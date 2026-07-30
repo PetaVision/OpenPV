@@ -86,10 +86,10 @@ Response::Status NonsharedConnDebugInitWeights::initializeState(
 void NonsharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, long numPatches) {
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
-   int overallPatchSize = preWeights->getPatchSizeOverall();
+   long overallPatchSize = preWeights->getPatchSizeOverall();
    for (long k = 0; k < numPatches; k++) {
       auto &patch = preWeights->getPatch(k);
-      smartWeights(patch, dataStart + k * overallPatchSize, dataIndexToUnitCellIndex(k));
+      smartWeights(patch, &dataStart[k * overallPatchSize], dataIndexToUnitCellIndex(k));
    }
 }
 
@@ -101,15 +101,15 @@ void NonsharedConnDebugInitWeights::smartWeights(Patch const &wp, float *dataSta
    const int nfp = getComponentByType<PatchSize>()->getPatchSizeF();
 
    auto *preWeights = getComponentByType<WeightsPair>()->getPreWeights();
-   const int sxp    = preWeights->getPatchStrideX();
-   const int syp    = preWeights->getPatchStrideY();
-   const int sfp    = preWeights->getPatchStrideF();
+   const long sxp   = (long)preWeights->getPatchStrideX();
+   const long syp   = (long)preWeights->getPatchStrideY();
+   const long sfp   = (long)preWeights->getPatchStrideF();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = k;
+            w[x * sxp + y * syp + f * sfp] = (float)k;
          }
       }
    }
@@ -122,10 +122,10 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, lo
    float rMax       = 1.4f;
    float strength   = 1.0f;
 
-   aspect   = params->value(getName(), "aspect", aspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   strength = params->value(getName(), "strength", strength);
+   aspect   = (float)params->value(getName(), "aspect", aspect);
+   sigma    = (float)params->value(getName(), "sigma", sigma);
+   rMax     = (float)params->value(getName(), "rMax", rMax);
+   strength = (float)params->value(getName(), "strength", strength);
 
    float r2Max = rMax * rMax;
 
@@ -134,8 +134,8 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, lo
    float rotate  = 0.0f; // rotate so that axis isn't aligned
 
    numFlanks = (int)params->value(getName(), "numFlanks", numFlanks);
-   shift     = params->value(getName(), "flankShift", shift);
-   rotate    = params->value(getName(), "rotate", rotate);
+   shift     = (float)params->value(getName(), "flankShift", shift);
+   rotate    = (float)params->value(getName(), "rotate", rotate);
 
    auto *preLayer  = getComponentByType<ConnectionData>()->getPre();
    auto *postLayer = getComponentByType<ConnectionData>()->getPost();
@@ -150,30 +150,30 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, lo
    FatalIf(!(noPost <= postLayer->getLayerLoc()->nf), "Test failed.\n");
 
    float sigma_cocirc = PI / 2.0f;
-   sigma_cocirc       = params->value(getName(), "sigmaCocirc", sigma_cocirc);
+   sigma_cocirc       = (float)params->value(getName(), "sigmaCocirc", sigma_cocirc);
 
    float sigma_kurve = 1.0f; // fraction of delta_radius_curvature
-   sigma_kurve       = params->value(getName(), "sigmaKurve", sigma_kurve);
+   sigma_kurve       = (float)params->value(getName(), "sigmaKurve", sigma_kurve);
 
    // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
    float sigma_chord = 0.5f;
-   sigma_chord       = params->value(getName(), "sigmaChord", sigma_chord);
+   sigma_chord       = (float)params->value(getName(), "sigmaChord", sigma_chord);
 
    float delta_theta_max = PI / 2.0f;
-   delta_theta_max       = params->value(getName(), "deltaThetaMax", delta_theta_max);
+   delta_theta_max       = (float)params->value(getName(), "deltaThetaMax", delta_theta_max);
 
    float cocirc_self = (preLayer != postLayer);
-   cocirc_self       = params->value(getName(), "cocircSelf", cocirc_self);
+   cocirc_self       = (float)params->value(getName(), "cocircSelf", cocirc_self);
 
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
    float delta_radius_curvature = 1.0f; // 1 = minimum radius of curvature
    delta_radius_curvature =
-         params->value(getName(), "deltaRadiusCurvature", delta_radius_curvature);
+         (float)params->value(getName(), "deltaRadiusCurvature", delta_radius_curvature);
 
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
-   int patchSizeOverall = preWeights->getPatchSizeOverall();
+   long patchSizeOverall = preWeights->getPatchSizeOverall();
    for (long patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
       float *patchDataStart = &dataStart[patchIndex * patchSizeOverall];
       cocircCalcWeights(
@@ -286,34 +286,26 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
          &yDistNNPostUnits);
 
    // get indices of nearest neighbor
-   int kxNN;
-   int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, postGeom->getXScale() - preGeom->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, postGeom->getYScale() - preGeom->getYScale());
+   int kxNN = nearby_neighbor(kxPre_tmp, postGeom->getXScale() - preGeom->getXScale());
+   int kyNN = nearby_neighbor(kyPre_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get indices of patch head
-   int kxHead;
-   int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postGeom->getXScale() - preGeom->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postGeom->getYScale() - preGeom->getYScale());
+   int kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postGeom->getXScale() - preGeom->getXScale());
+   int kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get distance to patch head
-   float xDistHeadPostUnits;
-   xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
-   float yDistHeadPostUnits;
-   yDistHeadPostUnits = yDistNNPostUnits + (kyHead - kyNN);
+   float xDistHeadPostUnits = xDistNNPostUnits + (float)(kxHead - kxNN);
+   float yDistHeadPostUnits = yDistNNPostUnits + (float)(kyHead - kyNN);
    float xRelativeScale =
          xDistNNPreUnits == xDistNNPostUnits ? 1.0f : xDistNNPreUnits / xDistNNPostUnits;
-   float xDistHeadPreUnits;
-   xDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
+   float xDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
    float yRelativeScale =
          yDistNNPreUnits == yDistNNPostUnits ? 1.0f : yDistNNPreUnits / yDistNNPostUnits;
-   float yDistHeadPreUnits;
-   yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
+   float yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
 
    // sigma is in units of pre-synaptic layer
-   const float dxPost = powf(2, postGeom->getXScale());
-   const float dyPost = powf(2, postGeom->getYScale());
+   const float dxPost = (float)std::pow(2, postGeom->getXScale());
+   const float dyPost = (float)std::pow(2, postGeom->getYScale());
 
    const int kfPre = featureIndex(
          dataPatchIndex,
@@ -325,18 +317,18 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
    bool SADDLE_FLAG     = false; // handle saddle points separately
    const int nKurvePre  = preGeom->getLayerLoc()->nf / noPre;
    const int nKurvePost = postGeom->getLayerLoc()->nf / noPost;
-   const float dThPre   = PI / noPre;
-   const float dThPost  = PI / noPost;
+   const float dThPre   = PI / (float)noPre;
+   const float dThPost  = PI / (float)noPost;
    const float th0Pre   = rotate * dThPre / 2.0f;
    const float th0Post  = rotate * dThPost / 2.0f;
-   const int iThPre     = dataPatchIndex % noPre;
+   const int iThPre     = (int)(dataPatchIndex % noPre);
    // const int iThPre = kfPre / nKurvePre;
-   const float thetaPre = th0Pre + iThPre * dThPre;
+   const float thetaPre = th0Pre + (float)iThPre * dThPre;
 
    int iKvPre        = kfPre % nKurvePre;
    bool iPosKurvePre = false;
    bool iSaddlePre   = false;
-   float radKurvPre  = delta_radius_curvature + iKvPre * delta_radius_curvature;
+   float radKurvPre  = delta_radius_curvature + (float)iKvPre * delta_radius_curvature;
    float kurvePre    = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
    int iKvPreAdj     = iKvPre;
    if (POS_KURVE_FLAG) {
@@ -351,7 +343,7 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
          iKvPreAdj = (iKvPre % (nKurvePre / 2));
       }
    } // POS_KURVE_FLAG
-   radKurvPre             = delta_radius_curvature + iKvPreAdj * delta_radius_curvature;
+   radKurvPre             = delta_radius_curvature + (float)iKvPreAdj * delta_radius_curvature;
    kurvePre               = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
    float sigma_kurve_pre  = sigma_kurve * radKurvPre;
    float sigma_kurve_pre2 = 2 * sigma_kurve_pre * sigma_kurve_pre;
@@ -362,14 +354,14 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
    for (int kfPost = 0; kfPost < nfPatch_tmp; kfPost++) {
       // int iThPost = kfPost / nKurvePost;
       int iThPost     = kfPost % noPost;
-      float thetaPost = th0Post + iThPost * dThPost;
+      float thetaPost = th0Post + (float)iThPost * dThPost;
 
       int iKvPost = kfPost % nKurvePost;
       // InitCocircWeights calculates IPosKurvePost and ISaddlePost as data members,
       // but this test does not check their values. Possible TODO: add these checks?
       // bool iPosKurvePost = false;
       // bool iSaddlePost   = false;
-      float radKurvPost = delta_radius_curvature + iKvPost * delta_radius_curvature;
+      float radKurvPost = delta_radius_curvature + (float)iKvPost * delta_radius_curvature;
       float kurvePost   = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
       int iKvPostAdj    = iKvPost;
       if (POS_KURVE_FLAG) {
@@ -384,7 +376,7 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
             iKvPostAdj = (iKvPost % (nKurvePost / 2));
          }
       } // POS_KURVE_FLAG
-      radKurvPost             = delta_radius_curvature + iKvPostAdj * delta_radius_curvature;
+      radKurvPost             = delta_radius_curvature + (float)iKvPostAdj * delta_radius_curvature;
       kurvePost               = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
       float sigma_kurve_post  = sigma_kurve * radKurvPost;
       float sigma_kurve_post2 = 2 * sigma_kurve_post * sigma_kurve_post;
@@ -396,9 +388,9 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
       }
 
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-         float yDelta = (yDistHeadPreUnits + jPost * dyPost);
+         float yDelta = yDistHeadPreUnits + (float)jPost * dyPost;
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-            float xDelta = (xDistHeadPreUnits + iPost * dxPost);
+            float xDelta = xDistHeadPreUnits + (float)iPost * dxPost;
 
             float gDist      = 0.0f;
             float gChord     = 1.0f;
@@ -591,21 +583,21 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
    float bowtieFlag    = 0.0f; // flag for setting bowtie angle
    float bowtieAngle   = PI * 2.0f; // bowtie angle
 
-   aspect   = params->value(getName(), "aspect", aspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   rMin     = params->value(getName(), "rMin", rMin);
-   strength = params->value(getName(), "strength", strength);
+   aspect   = (float)params->value(getName(), "aspect", aspect);
+   sigma    = (float)params->value(getName(), "sigma", sigma);
+   rMax     = (float)params->value(getName(), "rMax", rMax);
+   rMin     = (float)params->value(getName(), "rMin", rMin);
+   strength = (float)params->value(getName(), "strength", strength);
    if (patchSize->getPatchSizeF() > 1) {
       noPost = (int)params->value(getName(), "numOrientationsPost", patchSize->getPatchSizeF());
-      deltaThetaMax = params->value(getName(), "deltaThetaMax", deltaThetaMax);
-      thetaMax      = params->value(getName(), "thetaMax", thetaMax);
+      deltaThetaMax = (float)params->value(getName(), "deltaThetaMax", deltaThetaMax);
+      thetaMax      = (float)params->value(getName(), "thetaMax", thetaMax);
       numFlanks     = (int)params->value(getName(), "numFlanks", (float)numFlanks);
-      shift         = params->value(getName(), "flankShift", shift);
-      rotate        = params->value(getName(), "rotate", rotate);
-      bowtieFlag    = params->value(getName(), "bowtieFlag", bowtieFlag);
+      shift         = (float)params->value(getName(), "flankShift", shift);
+      rotate        = (float)params->value(getName(), "rotate", rotate);
+      bowtieFlag    = (float)params->value(getName(), "bowtieFlag", bowtieFlag);
       if (bowtieFlag == 1.0f) {
-         bowtieAngle = params->value(getName(), "bowtieAngle", bowtieAngle);
+         bowtieAngle = (float)params->value(getName(), "bowtieAngle", bowtieAngle);
       }
    }
 
@@ -614,7 +606,7 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
 
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
-   int patchSizeOverall = preWeights->getPatchSizeOverall();
+   long patchSizeOverall = preWeights->getPatchSizeOverall();
    for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(
             preWeights->getPatch(patchIndex),
@@ -639,7 +631,7 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
 void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
       Patch const &wp,
       float *dataStart,
-      int dataPatchIndex,
+      long dataPatchIndex,
       int no,
       int numFlanks,
       float shift,
@@ -716,30 +708,22 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
          &yDistNNPostUnits);
 
    // get indices of nearest neighbor
-   int kxNN;
-   int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, postGeom->getXScale() - preGeom->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, postGeom->getYScale() - preGeom->getYScale());
+   int kxNN = nearby_neighbor(kxPre_tmp, postGeom->getXScale() - preGeom->getXScale());
+   int kyNN = nearby_neighbor(kyPre_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get indices of patch head
-   int kxHead;
-   int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postGeom->getXScale() - preGeom->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postGeom->getYScale() - preGeom->getYScale());
+   int kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postGeom->getXScale() - preGeom->getXScale());
+   int kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get distance to patch head (measured relative to pre-synaptic cell)
-   float xDistHeadPostUnits;
-   xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
-   float yDistHeadPostUnits;
-   yDistHeadPostUnits = yDistNNPostUnits + (kyHead - kyNN);
+   float xDistHeadPostUnits = xDistNNPostUnits + (float)(kxHead - kxNN);
+   float yDistHeadPostUnits = yDistNNPostUnits + (float)(kyHead - kyNN);
    float xRelativeScale =
          xDistNNPreUnits == xDistNNPostUnits ? 1.0f : xDistNNPreUnits / xDistNNPostUnits;
-   float xDistHeadPreUnits;
-   xDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
+   float xDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
    float yRelativeScale =
          yDistNNPreUnits == yDistNNPostUnits ? 1.0f : yDistNNPreUnits / yDistNNPostUnits;
-   float yDistHeadPreUnits;
-   yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
+   float yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
 
    // sigma is in units of pre-synaptic layer
    const float dxPost = xRelativeScale;
@@ -754,15 +738,15 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
    const int noPre     = preGeom->getLayerLoc()->nf;
    const float dthPre  = PI * thetaMax / (float)noPre;
    const float th0Pre  = rotate * dthPre / 2.0f;
-   const int fPre      = dataPatchIndex % preGeom->getLayerLoc()->nf;
+   const int fPre      = (int)(dataPatchIndex % preGeom->getLayerLoc()->nf);
    FatalIf(!(fPre == kfPre_tmp), "Test failed.\n");
-   const int iThPre  = dataPatchIndex % noPre;
-   const float thPre = th0Pre + iThPre * dthPre;
+   const int iThPre  = (int)(dataPatchIndex % noPre);
+   const float thPre = th0Pre + (float)iThPre * dthPre;
 
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       int oPost    = fPost % noPost;
-      float thPost = th0Post + oPost * dthPost;
+      float thPost = th0Post + (float)oPost * dthPost;
       if (noPost == 1 && noPre > 1) {
          thPost = thPre;
       }
@@ -771,9 +755,9 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
          continue;
       }
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-         float yDelta = (yDistHeadPreUnits + jPost * dyPost);
+         float yDelta = yDistHeadPreUnits + (float)jPost * dyPost;
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-            float xDelta = (xDistHeadPreUnits + iPost * dxPost);
+            float xDelta = xDistHeadPreUnits + (float)iPost * dxPost;
             bool sameLoc = ((fPre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
             if ((sameLoc) && (!self)) {
                continue;
@@ -813,7 +797,6 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
 }
 
 void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, long numPatches) {
-
    auto *preLayer   = getComponentByType<ConnectionData>()->getPre();
    auto *postLayer  = getComponentByType<ConnectionData>()->getPost();
    auto *preGeom    = preLayer->getComponentByType<LayerGeometry>();
@@ -830,18 +813,18 @@ void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, lon
    float strength = 1.0f;
    float phi      = 0;
 
-   aspect   = params->value(getName(), "aspect", aspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   lambda   = params->value(getName(), "lambda", lambda);
-   strength = params->value(getName(), "strength", strength);
-   phi      = params->value(getName(), "phi", phi);
+   aspect   = (float)params->value(getName(), "aspect", aspect);
+   sigma    = (float)params->value(getName(), "sigma", sigma);
+   rMax     = (float)params->value(getName(), "rMax", rMax);
+   lambda   = (float)params->value(getName(), "lambda", lambda);
+   strength = (float)params->value(getName(), "strength", strength);
+   phi      = (float)params->value(getName(), "phi", phi);
 
    float r2Max = rMax * rMax;
 
    auto *weightsPair    = getComponentByType<WeightsPair>();
    Weights *preWeights  = weightsPair->getPreWeights();
-   int patchSizeOverall = preWeights->getPatchSizeOverall();
+   long patchSizeOverall = preWeights->getPatchSizeOverall();
    for (long kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       // TODO - change parameters based on kernelIndex (i.e., change orientation)
       gaborWeights(
@@ -874,9 +857,9 @@ void NonsharedConnDebugInitWeights::gaborWeights(
    float rotate = 1.0f;
    float invert = 0.0f;
    if (params->present(getName(), "rotate"))
-      rotate = params->value(getName(), "rotate");
+      rotate = (float)params->value(getName(), "rotate");
    if (params->present(getName(), "invert"))
-      invert = params->value(getName(), "invert");
+      invert = (float)params->value(getName(), "invert");
 
    float *w = dataStart;
 
@@ -892,25 +875,24 @@ void NonsharedConnDebugInitWeights::gaborWeights(
    const int sy = preWeights->getPatchStrideY(); // FatalIf(!(sy == nf*nx), "Test failed.\n");
    const int sf = preWeights->getPatchStrideF(); // FatalIf(!(sf == 1), "Test failed.\n");
 
-   const float dx = powf(2, xScale);
-   const float dy = powf(2, yScale);
+   const float dx = (float)std::pow(2, xScale);
+   const float dy = (float)std::pow(2, yScale);
 
    // pre-synaptic neuron is at the center of the patch (0,0)
    // (x0,y0) is at upper left corner of patch (i=0,j=0)
-   const float x0 = -(nx / 2.0f - 0.5f) * dx;
-   // const float y0 = +(ny/2.0 - 0.5) * dy;
-   const float y0 = -(ny / 2.0f - 0.5f) * dy;
+   const float x0 = -((float)nx / 2.0f - 0.5f) * dx;
+   const float y0 = -((float)ny / 2.0f - 0.5f) * dy;
 
-   const float dth = PI / nf;
+   const float dth = PI / (float)nf;
    const float th0 = rotate * dth / 2.0f;
 
    for (int f = 0; f < nf; f++) {
-      float th = th0 + f * dth;
+      float th = th0 + (float)f * dth;
       for (int j = 0; j < ny; j++) {
          // float yp = y0 - j * dy;    // pixel coordinate
-         float yp = y0 + j * dy; // pixel coordinate
+         float yp = y0 + (float)j * dy; // pixel coordinate
          for (int i = 0; i < nx; i++) {
-            float xp = x0 + i * dx; // pixel coordinate
+            float xp = x0 + (float)i * dx; // pixel coordinate
 
             // rotate the reference frame by th ((x,y) is center of patch (0,0))
             // float u1 = - (0.0f - xp) * cos(th) - (0.0f - yp) * sin(th);
@@ -991,7 +973,7 @@ int NonsharedConnDebugInitWeights::dataIndexToUnitCellIndex(
    }
    pvAssert(yUnitCell >= 0 and yUnitCell < yStride);
 
-   int kUnitCell = kIndex(xUnitCell, yUnitCell, fDataIndex, xStride, yStride, preLoc.nf);
+   int kUnitCell = (int)kIndex(xUnitCell, yUnitCell, fDataIndex, xStride, yStride, preLoc.nf);
 
    if (kx) {
       *kx = xUnitCell;

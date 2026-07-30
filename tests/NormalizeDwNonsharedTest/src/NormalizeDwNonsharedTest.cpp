@@ -45,26 +45,26 @@ int checkWeights(HyPerCol *hc, int argc, char **argv) {
          correctWeightData->getNumArbors() != 1,
          "CorrectWeights has NumArbors=%d but there should only be a single arbor for this test.",
          correctWeightData->getNumArbors());
-   int observedPatchSizeOverall = observedWeightData->getPatchSizeOverall();
-   int correctPatchSizeOverall = correctWeightData->getPatchSizeOverall();
+   long observedPatchSizeOverall = observedWeightData->getPatchSizeOverall();
+   long correctPatchSizeOverall = correctWeightData->getPatchSizeOverall();
    FatalIf(
          observedPatchSizeOverall != correctPatchSizeOverall,
          "InputToOutput has overall patch size %d but CorrectWeights has %d\n",
          observedWeightData->getPatchSizeOverall(), correctWeightData->getPatchSizeOverall());
-   int observedNumDataPatches = observedWeightData->getNumDataPatchesOverall();
-   int correctNumDataPatches = correctWeightData->getNumDataPatchesOverall();
+   long observedNumDataPatches = observedWeightData->getNumDataPatchesOverall();
+   long correctNumDataPatches = correctWeightData->getNumDataPatchesOverall();
    FatalIf(
          observedNumDataPatches != correctNumDataPatches,
          "InputToOutput has overall patch size %d but CorrectWeights has %d\n",
          observedWeightData->getPatchSizeOverall(), correctWeightData->getPatchSizeOverall());
 
-   int numWeightValues = correctPatchSizeOverall * correctNumDataPatches;
+   long numWeightValues = correctPatchSizeOverall * correctNumDataPatches;
    assert(observedPatchSizeOverall * observedNumDataPatches == numWeightValues); 
    float const *observed = observedWeightData->getData(0);
    float const *correct  = correctWeightData->getData(0);
 
    int status = PV_SUCCESS;
-   for (int k = 0; k < numWeightValues; ++k) {
+   for (long k = 0; k < numWeightValues; ++k) {
       if (observed[k] == correct[k]) { continue; }
       if (correct[k] == 0.0f) {
          assert(observed[k] != 0.0f);

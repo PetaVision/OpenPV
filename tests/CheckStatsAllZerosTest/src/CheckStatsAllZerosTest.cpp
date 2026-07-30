@@ -39,13 +39,13 @@ int main(int argc, char **argv) {
 }
 
 void initRNG() {
-   unsigned int seed = std::time((std::time_t *)nullptr);
+   unsigned long seed = std::time((std::time_t *)nullptr);
    PV::RandomSeed::instance()->initialize(seed);
 }
 
 ProbeData<LayerStats> initStatsBatch(double timestamp, std::vector<int> numNonzeroVector) {
    auto rng = PV::Random(1);
-   ProbeData<LayerStats> statsBatch(timestamp, numNonzeroVector.size());
+   ProbeData<LayerStats> statsBatch(timestamp, (unsigned int)numNonzeroVector.size());
    int batchWidth = static_cast<int>(numNonzeroVector.size());
    for (int b = 0; b < batchWidth; ++b) {
       PV::LayerStats &stats = statsBatch.getValue(b);

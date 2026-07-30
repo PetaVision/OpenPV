@@ -24,7 +24,7 @@ void broadcastMessage(
 int check_kernel_vs_hyper(
       ComponentBasedObject *cHyPer,
       ComponentBasedObject *cKernel,
-      int kPre,
+      long kPre,
       int axonID);
 
 int main(int argc, char *argv[]) {
@@ -99,13 +99,13 @@ int main(int argc, char *argv[]) {
    broadcastMessage(objectTable, initializeMessagePtr);
 
    const int axonID      = 0;
-   int numPreExtended    = pre->getNumExtended();
+   long numPreExtended   = pre->getNumExtended();
    auto *hyperPreWeights = cHyPer->getComponentByType<WeightsPair>()->getPreWeights();
    FatalIf(
          numPreExtended != hyperPreWeights->getGeometry()->getNumPatchesOverall(),
          "Test failed.\n");
 
-   for (int kPre = 0; kPre < numPreExtended; kPre++) {
+   for (long kPre = 0; kPre < numPreExtended; kPre++) {
       status = check_kernel_vs_hyper(cHyPer, cKernel, kPre, axonID);
       FatalIf(status != PV_SUCCESS, "Test failed.\n");
       status = check_kernel_vs_hyper(cHyPer1to2, cKernel1to2, kPre, axonID);
@@ -140,7 +140,7 @@ void broadcastMessage(
 int check_kernel_vs_hyper(
       ComponentBasedObject *cHyPer,
       ComponentBasedObject *cKernel,
-      int kPre,
+      long kPre,
       int axonID) {
    FatalIf(
          cKernel->getComponentByType<SharedWeights>()->getSharedWeightsFlag() != true,
@@ -157,8 +157,8 @@ int check_kernel_vs_hyper(
    auto *kernelPreWeights   = kernelWeightsPair->getPreWeights();
    Patch const &hyperPatch  = hyperPreWeights->getPatch(kPre);
    Patch const &kernelPatch = kernelPreWeights->getPatch(kPre);
-   int hyPerDataIndex       = hyperPreWeights->calcDataIndexFromPatchIndex(kPre);
-   int kernelDataIndex      = kernelPreWeights->calcDataIndexFromPatchIndex(kPre);
+   long hyPerDataIndex      = hyperPreWeights->calcDataIndexFromPatchIndex(kPre);
+   long kernelDataIndex     = kernelPreWeights->calcDataIndexFromPatchIndex(kPre);
 
    auto hyperPatchSize  = cHyPer->getComponentByType<PatchSize>();
    auto kernelPatchSize = cKernel->getComponentByType<PatchSize>();

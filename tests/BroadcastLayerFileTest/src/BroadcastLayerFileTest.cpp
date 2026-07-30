@@ -191,7 +191,7 @@ int compareLayerData(
    for (int b = 0; b < batchWidth; ++b) {
       auto const &expectedElem = expected[b];
       auto const &observedElem = observed[b];
-      int numFeatures = expectedElem.size();
+      int numFeatures = (int)expectedElem.size();
       if (observedElem.size() != numFeatures) {
          ErrorLog() << "compareLayerData() expected batch element " << b
                     << " has size " << numFeatures << " but observed batch element "

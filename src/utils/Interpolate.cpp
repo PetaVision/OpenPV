@@ -8,11 +8,11 @@ float interpolate(
    int const ny = inputBuffer.getHeight();
 
    float xSrcFloor = std::floor(xSrc);
-   float xSrcInt   = static_cast<int>(xSrcFloor);
+   int xSrcInt     = static_cast<int>(xSrcFloor);
    float xSrcFrac  = xSrc - xSrcFloor;
 
    float ySrcFloor = std::floor(ySrc);
-   float ySrcInt   = static_cast<int>(ySrcFloor);
+   int ySrcInt     = static_cast<int>(ySrcFloor);
    float ySrcFrac  = ySrc - ySrcFloor;
    
    float valueTL = (xSrcInt >= 0 and xSrcInt < nx and ySrcInt >= 0 and ySrcInt < ny) ?

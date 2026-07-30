@@ -51,11 +51,11 @@ void PtwiseQuotientGSynAccumulator::updateBufferCPU(double simTime, double delta
    float const *gSynExc = mLayerInput->getChannelData(CHANNEL_EXC);
    float const *gSynInh = mLayerInput->getChannelData(CHANNEL_INH);
    float *bufferData    = mBufferData.data();
-   int numNeurons       = getBufferSizeAcrossBatch();
+   long numNeurons      = getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int index = 0; index < numNeurons; index++) {
+   for (long index = 0; index < numNeurons; index++) {
       bufferData[index] = gSynExc[index] / gSynInh[index];
    }
 }

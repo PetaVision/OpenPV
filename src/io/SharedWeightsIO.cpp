@@ -199,12 +199,17 @@ SharedWeightsIO::buildWeightHeader(double timestamp, float minVal, float maxVal)
    weightHeader.baseHeader.nBands     = getNumArbors();
    weightHeader.baseHeader.timestamp  = timestamp;
 
-   weightHeader.nxp        = getPatchSizeX();
-   weightHeader.nyp        = getPatchSizeY();
-   weightHeader.nfp        = getPatchSizeF();
-   weightHeader.minVal     = minVal;
-   weightHeader.maxVal     = maxVal;
-   weightHeader.numPatches = getNumPatchesOverall();
+   weightHeader.nxp    = getPatchSizeX();
+   weightHeader.nyp    = getPatchSizeY();
+   weightHeader.nfp    = getPatchSizeF();
+   weightHeader.minVal = minVal;
+   weightHeader.maxVal = maxVal;
+   FatalIf(
+         getNumPatchesOverall() > INT_MAX,
+         "Connection for weights file \"%s\" has %ld patches, which is larger than the PVP file "
+         "limit of INT_MAX = %d\n",
+         getFileStream()->getFileName().c_str(), INT_MAX);
+   weightHeader.numPatches = static_cast<int>(getNumPatchesOverall());
 
    return weightHeader;
 }

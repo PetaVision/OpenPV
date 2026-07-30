@@ -94,13 +94,13 @@ int checkAggregatedStats(
       status = PV_FAILURE;
    }
    try {
-      checkValue(messageHead, "NumNeurons", correct.mNumNeurons, observed.mNumNeurons, 0);
+      checkValue(messageHead, "NumNeurons", correct.mNumNeurons, observed.mNumNeurons, 0L);
    } catch (std::exception const &e) {
       ErrorLog() << e.what();
       status = PV_FAILURE;
    }
    try {
-      checkValue(messageHead, "NumNonzero", correct.mNumNonzero, observed.mNumNonzero, 0);
+      checkValue(messageHead, "NumNonzero", correct.mNumNonzero, observed.mNumNonzero, 0L);
    } catch (std::exception const &e) {
       ErrorLog() << e.what();
       status = PV_FAILURE;

@@ -143,11 +143,11 @@ Weights createOriginalWeights(
          preLoc.nf,
          numKernelsPre);
 
-   int const numPatchItemsPre = originalWeights.getPatchSizeOverall();
+   long const numPatchItemsPre = originalWeights.getPatchSizeOverall();
    FatalIf(
-         numPatchItemsPre != patchSizeXPre * patchSizeYPre * patchSizeFPre,
-         "originalWeights should have numPatchItemsPre=%d; value was %d.\n",
-         patchSizeXPre * patchSizeYPre * patchSizeFPre,
+         numPatchItemsPre != (long)patchSizeXPre * (long)patchSizeYPre * (long)patchSizeFPre,
+         "originalWeights should have numPatchItemsPre=%ld; value was %ld.\n",
+         (long)patchSizeXPre * (long)patchSizeYPre * (long)patchSizeFPre,
          numPatchItemsPre);
 
    originalWeights.allocateDataStructures();
@@ -172,9 +172,10 @@ Weights createOriginalWeights(
       // transpose of transpose equals original.
       // Neurons in interior border regions do get nonzero values.
       // By the same token, we only initialize values in the shrunken patches.
-      int const numGlobalRestricted = preLoc.nxGlobal * preLoc.nyGlobal * preLoc.nf;
-      int const numItemsInPatch     = originalWeights.getPatchSizeOverall();
-      for (int globalRestricted = 0; globalRestricted < numGlobalRestricted; globalRestricted++) {
+      long const numGlobalRestricted =
+            (long)preLoc.nxGlobal * (long)preLoc.nyGlobal * (long)preLoc.nf;
+      long const numItemsInPatch = originalWeights.getPatchSizeOverall();
+      for (long globalRestricted = 0; globalRestricted < numGlobalRestricted; globalRestricted++) {
          int const xGlobal = kxPos(globalRestricted, preLoc.nxGlobal, preLoc.nyGlobal, preLoc.nf);
          int const xLocalExtended = xGlobal - preLoc.kx0 + preLoc.halo.lt;
          if (xLocalExtended < 0 or xLocalExtended >= preLoc.nx + preLoc.halo.lt + preLoc.halo.rt) {
@@ -189,7 +190,7 @@ Weights createOriginalWeights(
 
          int const fLocalExtended =
                featureIndex(globalRestricted, preLoc.nxGlobal, preLoc.nyGlobal, preLoc.nf);
-         int const localExtended = kIndex(
+         long const localExtended = kIndex(
                xLocalExtended,
                yLocalExtended,
                fLocalExtended,
@@ -197,7 +198,7 @@ Weights createOriginalWeights(
                preLoc.ny + preLoc.halo.dn + preLoc.halo.up,
                preLoc.nf);
          Patch const &patch = originalWeights.getPatch(localExtended);
-         for (int itemInPatch = 0; itemInPatch < numItemsInPatch; itemInPatch++) {
+         for (long itemInPatch = 0; itemInPatch < numItemsInPatch; itemInPatch++) {
             float value;
             // Are we inside a shrunken patch?
             int const xStart = kxPos(patch.offset, patchSizeXPre, patchSizeYPre, patchSizeFPre);
@@ -250,24 +251,24 @@ int checkTransposeOfTranspose(
       status = PV_FAILURE;
    }
 
-   int const numPatchItemsPre = originalWeights.getPatchSizeOverall();
+   long const numPatchItemsPre = originalWeights.getPatchSizeOverall();
    if (transposeOfTranspose.getPatchSizeOverall() != numPatchItemsPre) {
       ErrorLog().printf(
-            "In %s, transpose of transpose has an overall patch size of %d "
-            "instead of the expected %d.\n",
+            "In %s, transpose of transpose has an overall patch size of %ld "
+            "instead of the expected %ld.\n",
             testName.c_str(),
             transposeOfTranspose.getPatchSizeOverall(),
             numPatchItemsPre);
       status = PV_FAILURE;
    }
 
-   for (int k = 0; k < numDataPatchesPre; k++) {
-      for (int i = 0; i < numPatchItemsPre; i++) {
+   for (long k = 0; k < numDataPatchesPre; k++) {
+      for (long i = 0; i < numPatchItemsPre; i++) {
          float observed = transposeOfTranspose.getDataFromDataIndex(0, k)[i];
          float expected = originalWeights.getDataFromDataIndex(0, k)[i];
          if (expected != observed) {
             ErrorLog().printf(
-                  "In %s, data patch %d, patch item %d, "
+                  "In %s, data patch %ld, patch item %ld, "
                   "transposeOfTranspose has value %d but original has value %d.\n",
                   testName.c_str(),
                   k,

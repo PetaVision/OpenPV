@@ -84,9 +84,9 @@ class ComponentBuffer : public BaseObject {
 
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
    bool getBroadcastFlag() const { return mLayerGeometry->getBroadcastFlag(); }
-   int getBufferSize() const { return mBufferSize; }
-   int getBufferSizeAcrossBatch() const { return mBufferSizeAcrossBatch; }
-   int getBufferSizeAcrossChannels() const { return mBufferSizeAcrossChannels; }
+   long getBufferSize() const { return mBufferSize; }
+   long getBufferSizeAcrossBatch() const { return mBufferSizeAcrossBatch; }
+   long getBufferSizeAcrossChannels() const { return mBufferSizeAcrossChannels; }
 
    double getTimeLastUpdate() const { return mTimeLastUpdate; }
 
@@ -159,8 +159,9 @@ class ComponentBuffer : public BaseObject {
 #endif // PV_USE_CUDA
 
   private:
-   float const *dataPointer(int index) const {
-      return (index >= 0 && index < mBufferSizeAcrossChannels) ? &mReadOnlyPointer[index] : nullptr;
+   float const *dataPointer(long index) const {
+      bool  inRange = index >= 0L && index < mBufferSizeAcrossChannels;
+      return inRange ? &mReadOnlyPointer[index] : nullptr;
    }
 
   protected:
@@ -170,9 +171,9 @@ class ComponentBuffer : public BaseObject {
    // See the comments on mBufferLabel for details.
 
    LayerGeometry const *mLayerGeometry = nullptr;
-   int mBufferSize                     = 0;
-   int mBufferSizeAcrossBatch          = 0;
-   int mBufferSizeAcrossChannels       = 0;
+   long mBufferSize                    = 0L;
+   long mBufferSizeAcrossBatch         = 0L;
+   long mBufferSizeAcrossChannels      = 0L;
    std::vector<float> mBufferData;
    float const *mReadOnlyPointer = nullptr;
    float *mReadWritePointer      = nullptr;

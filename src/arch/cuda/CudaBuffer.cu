@@ -42,7 +42,7 @@ __global__ void CudaPermuteWeightsPVToCudnn(
 namespace PVCuda {
 
 void CudaBuffer::callCudaPermuteWeightsPVToCudnn(
-      int gridSize,
+      unsigned int gridSize,
       int blockSize,
       void *d_inPtr,
       int numArbors,

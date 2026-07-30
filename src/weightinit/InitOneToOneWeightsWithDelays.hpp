@@ -23,8 +23,8 @@ class InitOneToOneWeightsWithDelays : public InitOneToOneWeights {
   protected:
    InitOneToOneWeightsWithDelays();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
-   void
-   createOneToOneConnectionWithDelays(float *dataStart, int patchIndex, float iWeight, int arborId);
+   void createOneToOneConnectionWithDelays(
+         float *dataStart, long patchIndex, float iWeight, int arborId);
 
   protected:
    float mWeightInit = 1.0f;

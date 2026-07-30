@@ -122,7 +122,7 @@ int NormalizeMultiply::normalizeWeights() {
          if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
-                  "data patches (%s has %d; %s has %d).\n",
+                  "data patches (%s has %ld; %s has %ld).\n",
                   this->getDescription_c(),
                   weights0->getName().c_str(),
                   weights0->getNumDataPatchesOverall(),
@@ -140,14 +140,14 @@ int NormalizeMultiply::normalizeWeights() {
    // Apply rMinX and rMinY
    if (mRMinX > 0.5f && mRMinY > 0.5f) {
       for (auto &weights : mWeightsList) {
-         int num_arbors           = weights->getNumArbors();
-         long num_patches         = weights->getNumDataPatchesOverall();
-         long num_weights_in_patch = weights->getPatchSizeOverall();
-         for (int arbor = 0; arbor < num_arbors; arbor++) {
+         int numArbors          = weights->getNumArbors();
+         long numPatches        = weights->getNumDataPatchesOverall();
+         long numWeightsInPatch = weights->getPatchSizeOverall();
+         for (int arbor = 0; arbor < numArbors; arbor++) {
             float *dataPatchStart = weights->getData(arbor);
-            for (long patchindex = 0; patchindex < num_patches; patchindex++) {
+            for (long patchindex = 0; patchindex < numPatches; patchindex++) {
                applyRMin(
-                     &dataPatchStart[patchindex * num_weights_in_patch],
+                     &dataPatchStart[patchindex * numWeightsInPatch],
                      mRMinX,
                      mRMinY,
                      weights->getPatchSizeX(),
@@ -162,13 +162,13 @@ int NormalizeMultiply::normalizeWeights() {
    // Apply nonnegativeConstraintFlag
    if (mNonnegativeConstraintFlag) {
       for (auto &weights : mWeightsList) {
-         int num_arbors            = weights->getNumArbors();
-         long num_patches          = weights->getNumDataPatchesOverall();
-         long num_weights_in_patch = weights->getPatchSizeOverall();
-         long num_weights_in_arbor = num_patches * num_weights_in_patch;
-         for (int arbor = 0; arbor < num_arbors; arbor++) {
+         int numArbors          = weights->getNumArbors();
+         long numPatches        = weights->getNumDataPatchesOverall();
+         long numWeightsInPatch = weights->getPatchSizeOverall();
+         long numWeightsInArbor = numPatches * numWeightsInPatch;
+         for (int arbor = 0; arbor < numArbors; arbor++) {
             float *dataStart = weights->getData(arbor);
-            for (long weightindex = 0; weightindex < num_weights_in_arbor; weightindex++) {
+            for (long weightindex = 0; weightindex < numWeightsInArbor; weightindex++) {
                float *w = &dataStart[weightindex];
                if (*w < 0) {
                   *w = 0;
@@ -182,26 +182,26 @@ int NormalizeMultiply::normalizeWeights() {
    if (mNormalizeCutoff > 0) {
       float max = 0.0f;
       for (auto &weights : mWeightsList) {
-         int num_arbors            = weights->getNumArbors();
-         long num_patches          = weights->getNumDataPatchesOverall();
-         long num_weights_in_patch = weights->getPatchSizeOverall();
-         for (int arbor = 0; arbor < num_arbors; arbor++) {
+         int numArbors          = weights->getNumArbors();
+         long numPatches        = weights->getNumDataPatchesOverall();
+         long numWeightsInPatch = weights->getPatchSizeOverall();
+         for (int arbor = 0; arbor < numArbors; arbor++) {
             float *dataStart = weights->getData(arbor);
-            for (long patchindex = 0; patchindex < num_patches; patchindex++) {
+            for (long patchindex = 0; patchindex < numPatches; patchindex++) {
                accumulateMaxAbs(
-                     &dataStart[patchindex * num_weights_in_patch], num_weights_in_patch, &max);
+                     &dataStart[patchindex * numWeightsInPatch], numWeightsInPatch, &max);
             }
          }
       }
       for (auto &weights : mWeightsList) {
-         int num_arbors            = weights->getNumArbors();
-         long num_patches          = weights->getNumDataPatchesOverall();
-         long num_weights_in_patch = weights->getPatchSizeOverall();
-         for (int arbor = 0; arbor < num_arbors; arbor++) {
+         int numArbors          = weights->getNumArbors();
+         long numPatches        = weights->getNumDataPatchesOverall();
+         long numWeightsInPatch = weights->getPatchSizeOverall();
+         for (int arbor = 0; arbor < numArbors; arbor++) {
             float *dataStart = weights->getData(arbor);
-            for (long patchindex = 0; patchindex < num_patches; patchindex++) {
+            for (long patchindex = 0; patchindex < numPatches; patchindex++) {
                applyThreshold(
-                     &dataStart[patchindex * num_weights_in_patch], num_weights_in_patch, max);
+                     &dataStart[patchindex * numWeightsInPatch], numWeightsInPatch, max);
             }
          }
       }
@@ -241,10 +241,10 @@ int NormalizeMultiply::applyRMin(
       int yPatchStride) {
    if (rMinX == 0 && rMinY == 0)
       return PV_SUCCESS;
-   int fullWidthX        = floor(2 * rMinX);
-   int fullWidthY        = floor(2 * rMinY);
-   int offsetX           = ceil((nxp - fullWidthX) / 2.0);
-   int offsetY           = ceil((nyp - fullWidthY) / 2.0);
+   int fullWidthX        = (int)std::floor(2 * rMinX);
+   int fullWidthY        = (int)std::floor(2 * rMinY);
+   int offsetX           = (int)std::ceil((nxp - fullWidthX) / 2.0);
+   int offsetY           = (int)std::ceil((nyp - fullWidthY) / 2.0);
    int widthX            = nxp - 2 * offsetX;
    int widthY            = nyp - 2 * offsetY;
    float *rMinPatchStart = dataPatchStart + offsetY * yPatchStride + offsetX * xPatchStride;

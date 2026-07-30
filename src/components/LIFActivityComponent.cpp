@@ -308,17 +308,17 @@ LIFActivityComponent::initializeState(std::shared_ptr<InitializeStateMessage con
       mLIFParams.noiseFreqIB = maxFreq;
    }
 
-   float *G_E                      = mConductanceE->getReadWritePointer();
-   float *G_I                      = mConductanceI->getReadWritePointer();
-   float *G_IB                     = mConductanceIB->getReadWritePointer();
-   float *Vth                      = mVth->getReadWritePointer();
-   int const numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
+   float *G_E                       = mConductanceE->getReadWritePointer();
+   float *G_I                       = mConductanceI->getReadWritePointer();
+   float *G_IB                      = mConductanceIB->getReadWritePointer();
+   float *Vth                       = mVth->getReadWritePointer();
+   long const numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
    pvAssert(mConductanceE->getBufferSizeAcrossBatch() == numNeuronsAcrossBatch);
    pvAssert(mConductanceI->getBufferSizeAcrossBatch() == numNeuronsAcrossBatch);
    pvAssert(mConductanceIB->getBufferSizeAcrossBatch() == numNeuronsAcrossBatch);
    pvAssert(mVth->getBufferSizeAcrossBatch() == numNeuronsAcrossBatch);
    float const initialVthRest = mLIFParams.VthRest;
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
       G_E[k]  = 0.0f;
       G_I[k]  = 0.0f;
       G_IB[k] = 0.0f;
@@ -347,7 +347,7 @@ Response::Status LIFActivityComponent::updateActivity(double simTime, double del
       case 'a':
          updateActivityArma(
                nbatch,
-               nx * ny * nf,
+               (long)nx * (long)ny * (long)nf,
                simTime,
                deltaTime,
                nx,
@@ -370,7 +370,7 @@ Response::Status LIFActivityComponent::updateActivity(double simTime, double del
       case 'b':
          updateActivityBeginning(
                nbatch,
-               nx * ny * nf,
+               (long)nx * (long)ny * (long)nf,
                simTime,
                deltaTime,
                nx,
@@ -393,7 +393,7 @@ Response::Status LIFActivityComponent::updateActivity(double simTime, double del
       case 'o':
          updateActivityOriginal(
                nbatch,
-               nx * ny * nf,
+               (long)nx * (long)ny * (long)nf,
                simTime,
                deltaTime,
                nx,
@@ -429,9 +429,9 @@ Response::Status LIFActivityComponent::updateActivity(double simTime, double del
 //
 void LIFActivityComponent::updateActivityOriginal(
       const int nbatch,
-      const int numNeurons,
-      const float simTime,
-      const float dt,
+      const long numNeurons,
+      const double simTime,
+      const double dt,
 
       const int nx,
       const int ny,
@@ -450,17 +450,19 @@ void LIFActivityComponent::updateActivityOriginal(
       float *G_IB,
       float const *GSynHead,
       float *A) {
-   int k;
+   long k;
 
-   const float exp_tauE   = expf(-dt / params->tauE);
-   const float exp_tauI   = expf(-dt / params->tauI);
-   const float exp_tauIB  = expf(-dt / params->tauIB);
-   const float exp_tauVth = expf(-dt / params->tauVth);
+   float const dtFloat    = static_cast<float>(dt);
+   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
+   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
+   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
+   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
 
-   const float dt_sec = 0.001f * dt; // convert to seconds
+   float const dt_sec = 0.001f * dtFloat; // convert to seconds
 
-   for (k = 0; k < nx * ny * nf * nbatch; k++) {
-      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
+   for (k = 0; k < numNeuronsAcrossBatch; k++) {
+      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here
@@ -469,7 +471,7 @@ void LIFActivityComponent::updateActivityOriginal(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      const float GMAX = 10.0f;
+      float const GMAX = 10.0f;
 
       // local variables
       float l_activ;
@@ -538,11 +540,11 @@ void LIFActivityComponent::updateActivityOriginal(
       l_G_I  = (l_G_I > GMAX) ? GMAX : l_G_I;
       l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
-      tauInf  = (dt / tau) * (1.0f + l_G_E + l_G_I + l_G_IB);
+      tauInf  = (dtFloat / tau) * (1.0f + l_G_E + l_G_I + l_G_IB);
       VmemInf = (Vrest + l_G_E * Vexc + l_G_I * Vinh + l_G_IB * VinhB)
                 / (1.0f + l_G_E + l_G_I + l_G_IB);
 
-      l_V = VmemInf + (l_V - VmemInf) * expf(-tauInf);
+      l_V = VmemInf + (l_V - VmemInf) * std::exp(-tauInf);
 
       //
       // start of LIF2_update_finish
@@ -584,15 +586,15 @@ void LIFActivityComponent::updateActivityOriginal(
 }
 
 inline float LIF_Vmem_derivative(
-      const float Vmem,
-      const float G_E,
-      const float G_I,
-      const float G_IB,
-      const float V_E,
-      const float V_I,
-      const float V_IB,
-      const float Vrest,
-      const float tau) {
+      float const Vmem,
+      float const G_E,
+      float const G_I,
+      float const G_IB,
+      float const V_E,
+      float const V_I,
+      float const V_IB,
+      float const Vrest,
+      float const tau) {
    float totalconductance = 1.0f + G_E + G_I + G_IB;
    float Vmeminf          = (Vrest + V_E * G_E + V_I * G_I + V_IB * G_IB) / totalconductance;
    return totalconductance * (Vmeminf - Vmem) / tau;
@@ -600,9 +602,9 @@ inline float LIF_Vmem_derivative(
 
 void LIFActivityComponent::updateActivityBeginning(
       const int nbatch,
-      const int numNeurons,
-      const float simTime,
-      const float dt,
+      const long numNeurons,
+      const double simTime,
+      const double dt,
 
       const int nx,
       const int ny,
@@ -621,18 +623,20 @@ void LIFActivityComponent::updateActivityBeginning(
       float *G_IB,
       float const *GSynHead,
       float *A) {
-   int k;
+   long k;
 
-   const float exp_tauE   = expf(-dt / params->tauE);
-   const float exp_tauI   = expf(-dt / params->tauI);
-   const float exp_tauIB  = expf(-dt / params->tauIB);
-   const float exp_tauVth = expf(-dt / params->tauVth);
+   float const dtFloat    = static_cast<float>(dt);
+   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
+   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
+   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
+   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
 
-   const float dt_sec = 0.001f * dt; // convert to seconds
+   float const dt_sec = 0.001f * dtFloat; // convert to seconds
 
-   for (k = 0; k < nx * ny * nf * nbatch; k++) {
+   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
+   for (k = 0; k < numNeuronsAcrossBatch; k++) {
 
-      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here
@@ -641,7 +645,7 @@ void LIFActivityComponent::updateActivityBeginning(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      const float GMAX = 10.0f;
+      float const GMAX = 10.0f;
 
       // local variables
       float l_activ;
@@ -721,9 +725,9 @@ void LIFActivityComponent::updateActivityBeginning(
       dV1 = LIF_Vmem_derivative(
             l_V, G_E_initial, G_I_initial, G_IB_initial, Vexc, Vinh, VinhB, Vrest, tau);
       dV2 = LIF_Vmem_derivative(
-            l_V + dt * dV1, G_E_final, G_I_final, G_IB_final, Vexc, Vinh, VinhB, Vrest, tau);
+            l_V + dtFloat * dV1, G_E_final, G_I_final, G_IB_final, Vexc, Vinh, VinhB, Vrest, tau);
       dV  = (dV1 + dV2) * 0.5f;
-      l_V = l_V + dt * dV;
+      l_V = l_V + dtFloat * dV;
 
       l_G_E  = G_E_final;
       l_G_I  = G_I_final;
@@ -767,9 +771,9 @@ void LIFActivityComponent::updateActivityBeginning(
 
 void LIFActivityComponent::updateActivityArma(
       const int nbatch,
-      const int numNeurons,
-      const float simTime,
-      const float dt,
+      const long numNeurons,
+      const double simTime,
+      const double dt,
 
       const int nx,
       const int ny,
@@ -788,17 +792,19 @@ void LIFActivityComponent::updateActivityArma(
       float *G_IB,
       float const *GSynHead,
       float *A) {
-   int k;
+   long k;
 
-   const float exp_tauE   = expf(-dt / params->tauE);
-   const float exp_tauI   = expf(-dt / params->tauI);
-   const float exp_tauIB  = expf(-dt / params->tauIB);
-   const float exp_tauVth = expf(-dt / params->tauVth);
+   float const dtFloat    = static_cast<float>(dt);
+   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
+   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
+   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
+   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
 
-   const float dt_sec = 0.001f * dt; // convert to seconds
+   float const dt_sec = 0.001f * dtFloat; // convert to seconds
 
-   for (k = 0; k < nx * ny * nf * nbatch; k++) {
-      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
+   for (k = 0; k < numNeuronsAcrossBatch; k++) {
+      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here
@@ -807,7 +813,7 @@ void LIFActivityComponent::updateActivityArma(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      const float GMAX = 10.0;
+      float const GMAX = 10.0f;
 
       // local variables
       float l_activ;
@@ -875,7 +881,7 @@ void LIFActivityComponent::updateActivityArma(
       G_E_initial     = l_G_E + l_GSynExc;
       G_I_initial     = l_G_I + l_GSynInh;
       G_IB_initial    = l_G_IB + l_GSynInhB;
-      tau_inf_initial = tau / (1 + G_E_initial + G_I_initial + G_IB_initial);
+      tau_inf_initial = tau / (1.0f + G_E_initial + G_I_initial + G_IB_initial);
       V_inf_initial   = (Vrest + Vexc * G_E_initial + Vinh * G_I_initial + VinhB * G_IB_initial)
                       / (1 + G_E_initial + G_I_initial + G_IB_initial);
 
@@ -887,16 +893,16 @@ void LIFActivityComponent::updateActivityArma(
       G_I_final  = G_I_initial * exp_tauI;
       G_IB_final = G_IB_initial * exp_tauIB;
 
-      tau_inf_final = tau / (1 + G_E_final + G_I_final + G_IB_initial);
+      tau_inf_final = tau / (1.0f + G_E_final + G_I_final + G_IB_initial);
       V_inf_final   = (Vrest + Vexc * G_E_final + Vinh * G_I_final + VinhB * G_IB_final)
-                    / (1 + G_E_final + G_I_final + G_IB_final);
+                    / (1.0f + G_E_final + G_I_final + G_IB_final);
 
-      float tau_slope = (tau_inf_final - tau_inf_initial) / dt;
-      float f1        = tau_slope == 0.0f ? expf(-dt / tau_inf_initial)
-                                   : powf(tau_inf_final / tau_inf_initial, -1 / tau_slope);
+      float tau_slope = (tau_inf_final - tau_inf_initial) / dtFloat;
+      float f1        = tau_slope == 0.0f ? std::exp(-dtFloat / tau_inf_initial)
+                                   : std::pow(tau_inf_final / tau_inf_initial, -1.0f / tau_slope);
       float f2 = tau_slope == -1.0f
-                       ? tau_inf_initial / dt * logf(tau_inf_final / tau_inf_initial + 1.0f)
-                       : (1 - tau_inf_initial / dt * (1 - f1)) / (1 + tau_slope);
+                       ? tau_inf_initial / dtFloat * std::log(tau_inf_final / tau_inf_initial + 1.0f)
+                       : (1.0f - tau_inf_initial / dtFloat * (1.0f - f1)) / (1.0f + tau_slope);
       float f3 = 1.0f - f1 - f2;
       l_V      = f1 * l_V + f2 * V_inf_initial + f3 * V_inf_final;
 

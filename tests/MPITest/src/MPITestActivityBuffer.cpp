@@ -40,20 +40,20 @@ void MPITestActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 // set activity to global x/y/f position, using position in border/margin as required
 void MPITestActivityBuffer::setActivityToGlobalPos() {
    PVLayerLoc const *loc = mLayerGeometry->getLayerLoc();
-   float xScaleLog2      = mLayerGeometry->getXScale();
+   int xScaleLog2        = mLayerGeometry->getXScale();
    float x0              = xOriginGlobal(xScaleLog2);
    float dx              = deltaX(xScaleLog2);
 
    float *A = mBufferData.data();
    for (int b = 0; b < loc->nbatch; b++) {
-      for (int kLocalExt = 0; kLocalExt < getBufferSize(); kLocalExt++) {
+      for (long kLocalExt = 0; kLocalExt < getBufferSize(); kLocalExt++) {
          int kxLocalExt = kxPos(kLocalExt,
                                 loc->nx + loc->halo.lt + loc->halo.rt,
                                 loc->ny + loc->halo.dn + loc->halo.up,
                                 loc->nf)
                           - loc->halo.lt;
          int kxGlobalExt    = kxLocalExt + loc->kx0;
-         float x_global_pos = (x0 + dx * kxGlobalExt);
+         float x_global_pos = (x0 + dx * (float)kxGlobalExt);
          int kyLocalExt     = kyPos(kLocalExt,
                                 loc->nx + loc->halo.lt + loc->halo.rt,
                                 loc->ny + loc->halo.dn + loc->halo.up,

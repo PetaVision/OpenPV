@@ -28,25 +28,31 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
    auto *inputpublisher  = inputlayer->getComponentByType<BasePublisherComponent>();
    PVLayerLoc const *loc = inputpublisher->getLayerLoc();
    FatalIf(loc->nf != 1, "Layer \"input\" nf must be 1 (values is %d).\n", loc->nf);
-   const int numNeurons = loc->nx * loc->ny * loc->nf;
+   const long numNeurons = (long)loc->nx * (long)loc->ny * (long)loc->nf;
    FatalIf(numNeurons <= 0, "Test failed.\n");
    int status = PV_SUCCESS;
 
-   int numExtended        = inputpublisher->getNumExtended();
+   std::size_t numExtended = static_cast<std::size_t>(inputpublisher->getNumExtended());
+   std::size_t numBytesL   = numExtended * sizeof(float);
+   int numBytes            = static_cast<int>(numBytesL);
+   FatalIf(
+         static_cast<std::size_t>(numBytes) != numBytesL,
+         "Buffer is %ld bytes, which is too big for MPI send/receive.\n",
+         numBytesL);
    Communicator *icComm   = hc->getCommunicator();
    float const *layerData = inputpublisher->getLayerData();
    int rootproc           = 0;
    if (icComm->commRank() == rootproc) {
-      float *databuffer = (float *)malloc(numExtended * sizeof(float));
+      float *databuffer = (float *)malloc(numBytesL);
       FatalIf(!(databuffer), "Test failed.\n");
       for (int proc = 0; proc < icComm->commSize(); proc++) {
          if (proc == rootproc) {
-            memcpy(databuffer, layerData, numExtended * sizeof(float));
+            memcpy(databuffer, layerData, numBytesL);
          }
          else {
             MPI_Recv(
                   databuffer,
-                  numExtended * sizeof(float),
+                  numBytes,
                   MPI_BYTE,
                   proc,
                   15,
@@ -54,8 +60,8 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
                   MPI_STATUS_IGNORE);
          }
          // At this point, databuffer on rank 0 should contain the extended input layer on rank proc
-         for (int k = 0; k < numNeurons; k++) {
-            int kExt = kIndexExtended(
+         for (long k = 0; k < numNeurons; k++) {
+            long kExt = kIndexExtended(
                   k,
                   loc->nx,
                   loc->ny,
@@ -67,7 +73,7 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
             float value = databuffer[kExt];
             if (fabsf(value - correctvalue) >= tolerance) {
                ErrorLog().printf(
-                     "Rank %d, restricted index %d, extended index %d, value is %f instead of %f\n",
+                     "Rank %d, restricted index %ld, extended index %ld, value is %f instead of %f\n",
                      proc,
                      k,
                      kExt,
@@ -90,7 +96,7 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
       // not void const*.
       MPI_Send(
             const_cast<float *>(layerData),
-            numExtended * sizeof(float),
+            numBytes,
             MPI_BYTE,
             rootproc,
             15,

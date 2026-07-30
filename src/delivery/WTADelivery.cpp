@@ -106,34 +106,34 @@ void WTADelivery::deliver(float *destBuffer) {
    PVLayerCube const preActivityCube = mPreData->getPublisher()->createCube(mDelay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
 
-   int const nx       = preLoc.nx;
-   int const ny       = preLoc.ny;
-   int const nf       = preLoc.nf;
-   PVHalo const &halo = preLoc.halo;
-   int nxPreExtended  = nx + halo.lt + halo.rt;
-   int nyPreExtended  = ny + halo.dn + halo.up;
-   int numPreExtended = nxPreExtended * nyPreExtended * nf;
+   int const nx        = preLoc.nx;
+   int const ny        = preLoc.ny;
+   int const nf        = preLoc.nf;
+   PVHalo const &halo  = preLoc.halo;
+   int nxPreExtended   = nx + halo.lt + halo.rt;
+   int nyPreExtended   = ny + halo.dn + halo.up;
+   long numPreExtended = (long)nxPreExtended * (long)nyPreExtended * (long)nf;
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
-   int numPostRestricted = nx * ny * nf;
+   long numPostRestricted = (long)nx * (long)ny * (long)nf;
 
    float *postChannel = destBuffer;
    int const nbatch   = preLoc.nbatch;
    pvAssert(nbatch == mPostGSyn->getLayerLoc()->nbatch);
    for (int b = 0; b < nbatch; b++) {
-      float const *preActivityBuffer = preActivityCube.data + b * numPreExtended;
-      float *postGSynBuffer          = postChannel + b * numPostRestricted;
+      float const *preActivityBuffer = &preActivityCube.data[b * numPreExtended];
+      float *postGSynBuffer          = &postChannel[b * numPostRestricted];
       // If preActivityCube.isSparse is true, we could use the list of activeIndices.
       // However, we have to make sure that two indices that correspond to the same location but
       // different features are collapsed properly, and that if all the nonzero values at a
       // location are negative but not all values at the location are nonzero, that the maximum is
       // zero, not the greatest nonzero value.
       // For now, at least, use the nonsparse method even if preActivityCube.isSparse is true.
-      int const numLocations = nx * ny;
+      long const numLocations = (long)nx * (long)ny;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int k = 0; k < numLocations; k++) {
-         int const kPreExtended =
+      for (long k = 0; k < numLocations; k++) {
+         long const kPreExtended =
                kIndexExtended(k, nx, ny, 1, halo.lt, halo.rt, halo.dn, halo.up) * nf;
          float maxValue = -FLT_MAX;
          for (int f = 0; f < nf; f++) {
@@ -149,11 +149,11 @@ void WTADelivery::deliverUnitInput(float *recvBuffer) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
-   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
+   const long numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int k = 0; k < numNeuronsPost; k++) {
+   for (long k = 0; k < numNeuronsPost; k++) {
       recvBuffer[k] += 1.0f;
    }
 }

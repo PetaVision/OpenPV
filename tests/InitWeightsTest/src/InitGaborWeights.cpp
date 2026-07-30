@@ -74,11 +74,11 @@ void InitGaborWeights::gaborWeights(float *dataStart) {
             float xDelta = calcXDelta(iPost);
 
             // rotate the reference frame by th ((x,y) is center of patch (0,0))
-            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
-            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
+            float xp = +xDelta * std::cos(thPost) + yDelta * std::sin(thPost);
+            float yp = -xDelta * std::sin(thPost) + yDelta * std::cos(thPost);
 
-            float factor = cosf(2.0f * PI * yp / mLambda + mPhi);
-            if (fabsf(yp / mLambda) > 3.0f / 4.0f)
+            float factor = std::cos(2.0f * PI * yp / (float)mLambda + mPhi);
+            if (std::fabs(yp / (float)mLambda) > 3.0f / 4.0f)
                factor = 0.0f; // phase < 3*PI/2 (no second positive band)
 
             float d2  = xp * xp + (mAspect * (yp - mFlankShift) * mAspect * (yp - mFlankShift));

@@ -53,11 +53,11 @@ Response::Status SingleChannelGSynAccumulator::communicateInitInfo(
 void SingleChannelGSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
    float const *gSynExc = mLayerInput->getChannelData(CHANNEL_EXC);
    float *bufferData    = mBufferData.data();
-   int numNeurons       = getBufferSizeAcrossBatch();
+   long numNeurons      = getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int neuron = 0; neuron < numNeurons; neuron++) {
+   for (long neuron = 0L; neuron < numNeurons; neuron++) {
       bufferData[neuron] = gSynExc[neuron];
    }
 }

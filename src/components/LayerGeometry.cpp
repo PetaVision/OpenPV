@@ -75,16 +75,16 @@ Response::Status
 LayerGeometry::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    setLayerLoc(&mLayerLoc, message);
 
-   mNumNeurons           = mLayerLoc.nx * mLayerLoc.ny * mLayerLoc.nf;
+   mNumNeurons           = (long)mLayerLoc.nx * (long)mLayerLoc.ny * (long)mLayerLoc.nf;
    mNumNeuronsAllBatches = mNumNeurons * mLayerLoc.nbatch;
 
    updateNumExtended();
 
    double xScaled = -log2((double)mNxScale);
-   mXScale        = (int)nearbyint(xScaled);
+   mXScale        = (int)std::nearbyint(xScaled);
 
    double yScaled = -log2((double)mNyScale);
-   mYScale        = (int)nearbyint(yScaled);
+   mYScale        = (int)std::nearbyint(yScaled);
 
    return Response::SUCCESS;
 }
@@ -92,7 +92,7 @@ LayerGeometry::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 void LayerGeometry::updateNumExtended() {
    int const nxExt        = (mLayerLoc.nx + mLayerLoc.halo.lt + mLayerLoc.halo.rt);
    int const nyExt        = (mLayerLoc.ny + mLayerLoc.halo.dn + mLayerLoc.halo.up);
-   mNumExtended           = nxExt * nyExt * mLayerLoc.nf;
+   mNumExtended           = (long)nxExt * (long)nyExt * (long)mLayerLoc.nf;
    mNumExtendedAllBatches = mNumExtended * mLayerLoc.nbatch;
 }
 
@@ -105,11 +105,11 @@ void LayerGeometry::setLayerLoc(
 
    if (mBroadcastFlag) {
       int nxLayer        = icComm->numCommColumns();
-      mNxScale           = nxLayer / message->mNxGlobal;
+      mNxScale           = (float)nxLayer / (float)message->mNxGlobal;
       layerLoc->nxGlobal = nxLayer;
 
       int nyLayer        = icComm->numCommRows();
-      mNyScale           = nyLayer / message->mNyGlobal;
+      mNyScale           = (float)nyLayer / (float)message->mNyGlobal;
       layerLoc->nyGlobal = nyLayer;
       // For broadcast layers, NxScale and NyScale shouldn't be used; they're set here just in case
       layerLoc->bcast    = 1;

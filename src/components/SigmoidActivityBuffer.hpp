@@ -85,7 +85,7 @@ class SigmoidActivityBuffer : public VInputActivityBuffer {
    float mVthRest      = (float)VTH_REST;
    bool mInverseFlag   = false;
    bool mSigmoidFlag   = true;
-   float mSigmoidAlpha = 0.1;
+   float mSigmoidAlpha = 0.1f;
 };
 
 } // namespace PV

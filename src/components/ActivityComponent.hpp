@@ -53,10 +53,12 @@ class ActivityComponent : public ComponentBasedObject {
 #endif // PV_USE_CUDA
 
    PVLayerLoc const *getLayerLoc() const { return mActivity->getLayerLoc(); }
-   int getNumNeurons() const { return getLayerLoc()->nx * getLayerLoc()->ny * getLayerLoc()->nf; }
-   int getNumNeuronsAcrossBatch() const { return getNumNeurons() * getLayerLoc()->nbatch; }
-   int getNumExtended() const { return mActivity->getBufferSize(); }
-   int getNumExtendedAcrossBatch() const { return getNumExtended() * getLayerLoc()->nbatch; }
+   long getNumNeurons() const {
+      return (long)getLayerLoc()->nx * (long)getLayerLoc()->ny * (long)getLayerLoc()->nf;
+   }
+   long getNumNeuronsAcrossBatch() const { return getNumNeurons() * getLayerLoc()->nbatch; }
+   long getNumExtended() const { return mActivity->getBufferSize(); }
+   long getNumExtendedAcrossBatch() const { return getNumExtended() * getLayerLoc()->nbatch; }
 
    float const *getActivity() const { return mActivity->getBufferData(); }
 

@@ -81,6 +81,11 @@ void BroadcastPreWeightsFile::writePostIsNotBroadcast(double timestamp) {
    MPI_Reduce(sendbuf, extremeValues, 2, MPI_FLOAT, MPI_MIN, root, mpiBlock->getComm());
    extremeValues[1] = -extremeValues[1];
    long numValues   = mWeightData->getNumValuesPerArbor();
+   int numValuesMPI = static_cast<int>(numValues); // MPI_Send/Recv take args of type int.
+   FatalIf(
+         static_cast<long>(numValuesMPI) != numValues,
+         "Writing \"%s\" requires MPI_Send/Recv of %ld values, which is larger than INT_MAX=%d\n",
+         mPath.c_str(), numValues, INT_MAX);
    if (isRoot()) {
       mBroadcastPreWeightsIO->setHeaderTimestamp(timestamp);
       mBroadcastPreWeightsIO->setHeaderExtremeVals(extremeValues[0], extremeValues[1]);
@@ -103,7 +108,13 @@ void BroadcastPreWeightsFile::writePostIsNotBroadcast(double timestamp) {
          float *weightData = tempWeightData.getData(0 /*arbor*/);
          int tag           = 136;
          MPI_Recv(
-               weightData, numValues, MPI_FLOAT, rank, tag, mpiBlock->getComm(), MPI_STATUS_IGNORE);
+               weightData,
+               numValuesMPI,
+               MPI_FLOAT,
+               rank,
+               tag,
+               mpiBlock->getComm(),
+               MPI_STATUS_IGNORE);
          int xStart = nxpLocal * mpiBlock->calcColumnFromRank(rank);
          int yStart = nypLocal * mpiBlock->calcRowFromRank(rank);
          mBroadcastPreWeightsIO->writeRegion(
@@ -129,7 +140,7 @@ void BroadcastPreWeightsFile::writePostIsNotBroadcast(double timestamp) {
    else {
       float const *weightData = mWeightData->getData(0 /*arbor*/);
       int tag                 = 136;
-      MPI_Send(weightData, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm());
+      MPI_Send(weightData, numValuesMPI, MPI_FLOAT, root, tag, mpiBlock->getComm());
    }
    setIndex(getIndex() + 1);
 }
@@ -260,6 +271,12 @@ void BroadcastPreWeightsFile::readInternal(double &timestamp) {
 }
 
 void BroadcastPreWeightsFile::readPostIsBroadcast(double &timestamp) {
+   long numValuesPerArbor = mWeightData->getNumValuesPerArbor();
+   int broadcastCount     = static_cast<int>(numValuesPerArbor);
+   FatalIf(
+         static_cast<long>(broadcastCount) != numValuesPerArbor,
+         "Reading \"%s\" requires MPI broadcast of %ld values, which is larger than INT_MAX=%d\n",
+         mPath.c_str(), numValuesPerArbor, INT_MAX);
    if (isRoot()) {
       mBroadcastPreWeightsIO->readHeader();
       timestamp = mBroadcastPreWeightsIO->getHeaderTimestamp();
@@ -273,7 +290,7 @@ void BroadcastPreWeightsFile::readPostIsBroadcast(double &timestamp) {
    }
    MPI_Bcast(
          mWeightData->getData(0 /*arbor*/),
-         mWeightData->getNumValuesPerArbor(),
+         broadcastCount,
          MPI_FLOAT,
          mFileManager->getRootProcessRank(),
          mFileManager->getMPIBlock()->getComm());
@@ -281,8 +298,13 @@ void BroadcastPreWeightsFile::readPostIsBroadcast(double &timestamp) {
 }
 
 void BroadcastPreWeightsFile::readPostIsNotBroadcast(double &timestamp) {
-   long numValues = mWeightData->getNumValuesPerArbor();
-   auto mpiBlock  = mFileManager->getMPIBlock();
+   long numValuesPerArbor = mWeightData->getNumValuesPerArbor();
+   int sendCount          = static_cast<int>(numValuesPerArbor);
+   FatalIf(
+         static_cast<long>(sendCount) != numValuesPerArbor,
+         "Reading \"%s\" requires MPI send/recv of %ld values, which is larger than INT_MAX=%d\n",
+         mPath.c_str(), numValuesPerArbor, INT_MAX);
+   auto mpiBlock          = mFileManager->getMPIBlock();
    if (isRoot()) {
       mBroadcastPreWeightsIO->readHeader();
       timestamp = mBroadcastPreWeightsIO->getHeaderTimestamp();
@@ -304,7 +326,7 @@ void BroadcastPreWeightsFile::readPostIsNotBroadcast(double &timestamp) {
                0 /*arborIndexStart*/);
          float *weightData = mWeightData->getData(0 /*arbor*/);
          int tag           = 134;
-         MPI_Send(weightData, numValues, MPI_FLOAT, rank, tag, mpiBlock->getComm());
+         MPI_Send(weightData, sendCount, MPI_FLOAT, rank, tag, mpiBlock->getComm());
       }
       // Now do local slice
       int xStart = nxpLocal * mpiBlock->getColumnIndex();
@@ -322,7 +344,7 @@ void BroadcastPreWeightsFile::readPostIsNotBroadcast(double &timestamp) {
       float *weightData = mWeightData->getData(0 /*arbor*/);
       int root     = mFileManager->getRootProcessRank();
       int tag      = 134;
-      MPI_Recv(weightData, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm(), MPI_STATUS_IGNORE);
+      MPI_Recv(weightData, sendCount, MPI_FLOAT, root, tag, mpiBlock->getComm(), MPI_STATUS_IGNORE);
    }
    setIndex(getIndex() + 1);
 }

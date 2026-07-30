@@ -33,7 +33,7 @@ class PVPFrameIndexer {
     * @details This is useful when reading checkpoints, because we checkpoint the file position
     * as a byte offset, not the frame number.
     */
-   long calcFrameNumberFromFilePosition(long filePosition) const;
+   int calcFrameNumberFromFilePosition(long filePosition) const;
 
    void moveFilePosToFrameStart();
 

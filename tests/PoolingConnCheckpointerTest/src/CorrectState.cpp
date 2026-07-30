@@ -30,16 +30,16 @@ void CorrectState::update() {
 }
 
 void CorrectState::updateCorrectInputBuffer() {
-   int const nx        = mCorrectInputBuffer.getWidth();
-   int const ny        = mCorrectInputBuffer.getHeight();
-   int const nf        = mCorrectInputBuffer.getFeatures();
-   int const N         = mCorrectInputBuffer.getTotalElements();
-   int const numGlobal = mInputLoc.nxGlobal * mInputLoc.nyGlobal * mInputLoc.nf;
-   for (int n = 0; n < N; n++) {
-      int const x = kxPos(n, nx, ny, nf);
-      int const y = kyPos(n, nx, ny, nf);
-      int const f = featureIndex(n, nx, ny, nf);
-      int nGlobal = globalIndexFromLocal(n, mInputLoc);
+   int const nx         = mCorrectInputBuffer.getWidth();
+   int const ny         = mCorrectInputBuffer.getHeight();
+   int const nf         = mCorrectInputBuffer.getFeatures();
+   long const N         = mCorrectInputBuffer.getTotalElements();
+   long const numGlobal = (long)mInputLoc.nxGlobal * (long)mInputLoc.nyGlobal * (long)mInputLoc.nf;
+   for (long n = 0; n < N; n++) {
+      int const x  = kxPos(n, nx, ny, nf);
+      int const y  = kyPos(n, nx, ny, nf);
+      int const f  = featureIndex(n, nx, ny, nf);
+      long nGlobal = globalIndexFromLocal(n, mInputLoc);
       mCorrectInputBuffer.set(x, y, f, (float)((nGlobal + mUpdateNumber) % numGlobal));
    }
 }
@@ -50,11 +50,11 @@ void CorrectState::updateCorrectOutputBuffer() {
    pvAssert(mCorrectInputBuffer.getHeight() % mCorrectOutputBuffer.getHeight() == 0);
    int const cellSizeY = mCorrectInputBuffer.getHeight() / mCorrectOutputBuffer.getHeight();
 
-   int const nx = mCorrectOutputBuffer.getWidth();
-   int const ny = mCorrectOutputBuffer.getHeight();
-   int const nf = mCorrectOutputBuffer.getFeatures();
-   int const N  = mCorrectOutputBuffer.getTotalElements();
-   for (int n = 0; n < N; n++) {
+   int const nx  = mCorrectOutputBuffer.getWidth();
+   int const ny  = mCorrectOutputBuffer.getHeight();
+   int const nf  = mCorrectOutputBuffer.getFeatures();
+   long const N  = mCorrectOutputBuffer.getTotalElements();
+   for (long n = 0; n < N; n++) {
       int const x = kxPos(n, nx, ny, nf);
       int const y = kyPos(n, nx, ny, nf);
       int const f = featureIndex(n, nx, ny, nf);

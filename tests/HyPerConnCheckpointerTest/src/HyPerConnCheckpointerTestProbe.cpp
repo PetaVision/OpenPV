@@ -201,13 +201,13 @@ HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkp
    auto fileManager = std::make_shared<PV::FileManager>(mpiBlock, initializeFromCheckpointDir);
    timeInfoCheckpointEntry.read(fileManager, nullptr);
 
-   mStartingUpdateNumber = timeInfo.mSimTime;
+   mStartingUpdateNumber = (int)timeInfo.mSimTime;
 
    return PV::Response::SUCCESS;
 }
 
 void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
-   int const updateNumber = mStartingUpdateNumber + timevalue;
+   int const updateNumber = mStartingUpdateNumber + (int)timevalue;
    if (updateNumber == 0) {
       mCorrectState = new CorrectState(0, 1.0f /*weight*/, 1.0f /*input*/, 1.0f /*output*/);
    }
@@ -226,7 +226,7 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double simTime,
       initializeCorrectValues(simTime);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + simTime;
+   int const updateNumber = mStartingUpdateNumber + (int)simTime;
    while (updateNumber > mCorrectState->getTimestamp()) {
       mCorrectState->update();
    }
@@ -277,11 +277,11 @@ bool HyPerConnCheckpointerTestProbe::verifyLayer(
             getDescription_c());
       globalBuffer.crop(inputLoc->nxGlobal, inputLoc->nyGlobal, PV::Buffer<float>::CENTER);
       std::vector<float> globalVector = globalBuffer.asVector();
-      int const numInputNeurons       = globalVector.size();
-      for (int k = 0; k < numInputNeurons; k++) {
+      long const numInputNeurons      = globalBuffer.getTotalElements();
+      for (long k = 0; k < numInputNeurons; k++) {
          if (globalVector[k] != correctValue) {
             output(0).printf(
-                  "Time %f, %s neuron %d is %f, instead of the expected %f.\n",
+                  "Time %f, %s neuron %ld is %f, instead of the expected %f.\n",
                   timevalue,
                   layer->getName(),
                   k,

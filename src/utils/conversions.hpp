@@ -44,7 +44,7 @@ dist2NearestCell(int kzPre, int zLog2ScaleDiff, float *distPre, float *distPost)
    }
    else if (zLog2ScaleDiff > 0) {
       // many-to-one case
-      float scaleFactor       = powf(2.0f, (float)zLog2ScaleDiff);
+      float scaleFactor       = std::pow(2.0f, static_cast<float>(zLog2ScaleDiff));
       float kzPreToPostCoords = ((float)kzPre - 0.5f * (scaleFactor - 1.0f)) / scaleFactor;
       float kzPost            = round(kzPreToPostCoords);
       *distPost               = kzPost - kzPreToPostCoords;
@@ -54,7 +54,7 @@ dist2NearestCell(int kzPre, int zLog2ScaleDiff, float *distPre, float *distPost)
    else {
       assert(zLog2ScaleDiff < 0);
       // one-to-many case
-      float scaleFactor = powf(2.0f, (float)(-zLog2ScaleDiff));
+      float scaleFactor = std::pow(2.0f, static_cast<float>(-zLog2ScaleDiff));
       *distPost         = -0.5f;
       *distPre          = -0.5f / scaleFactor;
       return (int)(((float)kzPre + 0.5f) * scaleFactor) - 1;
@@ -77,15 +77,15 @@ CONVERSIONS_SPECIFIER inline int zPatchHead(int kzPre, int nzPatch, int zLog2Sca
    }
    else if (zLog2ScaleDiff > 0) {
       // many-to-one case
-      float tstride         = powf(2.0f, (float)zLog2ScaleDiff);
-      float halfWidth       = 0.5f * (float)(nzPatch - 1.0f);
-      float zPreInPostSpace = ((float)kzPre + 0.5f) / tstride;
-      return (int)floor(zPreInPostSpace - halfWidth);
+      float tstride         = std::pow(2.0f, static_cast<float>(zLog2ScaleDiff));
+      float halfWidth       = 0.5f * static_cast<float>(nzPatch - 1);
+      float zPreInPostSpace = (static_cast<float>(kzPre) + 0.5f) / tstride;
+      return (int)std::floor(zPreInPostSpace - halfWidth);
    }
    else {
       assert(zLog2ScaleDiff < 0);
       // one-to-many case
-      int stride = (int)powf(2.0f, -zLog2ScaleDiff);
+      int stride = static_cast<int>(std::pow(2, -zLog2ScaleDiff));
       return kzPre * stride - (nzPatch - stride) / 2;
       // A note regarding integer arithmetic. stride must be even here, and the typical use case
       // is that nzPatch is an integer multiple of stride; then there is no truncation from
@@ -115,7 +115,9 @@ CONVERSIONS_SPECIFIER inline int zPatchHead(int kzPre, int nzPatch, int zLog2Sca
  *      since kf <= nf-1.
  *      .
  */
-CONVERSIONS_SPECIFIER inline int featureIndex(long k, int nx, int ny, int nf) { return k % nf; }
+CONVERSIONS_SPECIFIER inline int featureIndex(long k, int nx, int ny, int nf) {
+   return static_cast<int>(k % nf);
+}
 
 /** RETURNS X INDEX FROM LINEAR INDEX
  * Return the position kx for the given k index
@@ -130,7 +132,9 @@ CONVERSIONS_SPECIFIER inline int featureIndex(long k, int nx, int ny, int nf) { 
  *    since kx <= nx-1.
  *    .
  */
-CONVERSIONS_SPECIFIER inline int kxPos(long k, int nx, int ny, int nf) { return (k / nf) % nx; }
+CONVERSIONS_SPECIFIER inline int kxPos(long k, int nx, int ny, int nf) {
+   return static_cast<int>((k / nf) % nx);
+}
 
 /** RETURNS Y INDEX FROM LINEAR INDEX
  * Return the position ky for the given k index
@@ -144,7 +148,9 @@ CONVERSIONS_SPECIFIER inline int kxPos(long k, int nx, int ny, int nf) { return 
  *    (note that kx <= nx-1 and kf <= nf-1).
  *   .
  */
-CONVERSIONS_SPECIFIER inline int kyPos(long k, int nx, int ny, int nf) { return k / (nx * nf) % ny; }
+CONVERSIONS_SPECIFIER inline int kyPos(long k, int nx, int ny, int nf) {
+   return static_cast<int>(k / (nx * nf)) % ny;
+}
 
 /** RETURNS B INDEX FROM LINEAR INDEX
  * Return the position kb for the given k index into an nb-nx-by-ny-by-nf 4-D array
@@ -155,7 +161,7 @@ CONVERSIONS_SPECIFIER inline int kyPos(long k, int nx, int ny, int nf) { return 
  * @nf the number of neurons in the feature direction
  */
 CONVERSIONS_SPECIFIER inline int batchIndex(long k, int nb, int nx, int ny, int nf) {
-   return k / (nx * nf * ny);
+   return static_cast<int>(k / ((long)nx * (long)ny * (long)nf));
 }
 
 /**
@@ -164,7 +170,9 @@ CONVERSIONS_SPECIFIER inline int batchIndex(long k, int nb, int nx, int ny, int 
  * @xScaleLog2 the log2 scale factor for the layer
  *     - e.g. if xScaleLog2 == 1 then dx == 2, if xScaleLog2 == -1 then dx == 1/2
  */
-CONVERSIONS_SPECIFIER inline float deltaX(int xScaleLog2) { return powf(2.0f, (float)xScaleLog2); }
+CONVERSIONS_SPECIFIER inline float deltaX(int xScaleLog2) {
+   return std::pow(2.0f, (float)xScaleLog2);
+}
 
 /**
  * Returns the y dimension scale length for the layer in retinatopic units
@@ -172,7 +180,9 @@ CONVERSIONS_SPECIFIER inline float deltaX(int xScaleLog2) { return powf(2.0f, (f
  * @yScaleLog2 the log2 scale factor for the layer
  *     - e.g. if yScaleLog2 == 1 then dy == 2, if yScaleLog2 == -1 then dy == 1/2
  */
-CONVERSIONS_SPECIFIER inline float deltaY(int yScaleLog2) { return powf(2.0f, (float)yScaleLog2); }
+CONVERSIONS_SPECIFIER inline float deltaY(int yScaleLog2) {
+   return std::pow(2.0f, (float)yScaleLog2);
+}
 
 /**
  * Returns the _global_ x origin in retinatopic units where dx == 1
@@ -207,7 +217,7 @@ xPosGlobal(long kGlobal, int xScaleLog2, int nxGlobal, int nyGlobal, int nf) {
    const int kxGlobal = kxPos(kGlobal, nxGlobal, nyGlobal, nf);
    const float x0     = xOriginGlobal(xScaleLog2);
    const float dx     = deltaX(xScaleLog2);
-   return (x0 + dx * kxGlobal);
+   return (x0 + dx * static_cast<float>(kxGlobal));
 }
 
 /**
@@ -224,7 +234,7 @@ yPosGlobal(long kGlobal, int yScaleLog2, int nxGlobal, int nyGlobal, int nf) {
    const int kyGlobal = kyPos(kGlobal, nxGlobal, nyGlobal, nf);
    const float y0     = yOriginGlobal(yScaleLog2);
    const float dy     = deltaY(yScaleLog2);
-   return (y0 + dy * kyGlobal);
+   return (y0 + dy * static_cast<float>(kyGlobal));
 }
 
 /** RETURNS LINEAR INDEX FROM X,Y, AND FEATURE INDEXES
@@ -243,10 +253,13 @@ CONVERSIONS_SPECIFIER inline long kIndex(int kx, int ky, int kf, int nx, int ny,
    return kf + (kx + ky * (long)nx) * (long)nf;
 }
 
-//! RETURNS LINEAR INDEX INTO 4-D ARRAY FROM Batch, X,Y, AND FEATURE INDEXES
+//! RETURNS LINEAR INDEX INTO 4-D FROM Batch, X,Y, AND FEATURE INDEXES
 CONVERSIONS_SPECIFIER inline long
 kIndexBatch(int kb, int kx, int ky, int kf, int nb, int nx, int ny, int nf) {
-   return (kb * nx * ny * nf) + (ky * nx * nf) + (kx * nf) + kf;
+   long nxL = static_cast<long>(nx);
+   long nyL = static_cast<long>(ny);
+   long nfL = static_cast<long>(nf);
+   return (kb * nxL * nyL * nfL) + (ky * nxL * nfL) + (kx * nfL) + kf;
 }
 
 //! Returns stride in feature dimension for linear indexing
@@ -258,10 +271,10 @@ kIndexBatch(int kb, int kx, int ky, int kf, int nb, int nx, int ny, int nf) {
  *      - remember that:
  *      k = ky * (nf*nx) + kx * nf + kf
  */
-CONVERSIONS_SPECIFIER inline size_t strideF(const PVLayerLoc *loc) { return 1; }
+CONVERSIONS_SPECIFIER inline long strideF(const PVLayerLoc *loc) { return 1L; }
 
 // Version for data structures in extended space (e.g., activity)
-CONVERSIONS_SPECIFIER inline size_t strideFExtended(const PVLayerLoc *loc) { return 1; }
+CONVERSIONS_SPECIFIER inline long strideFExtended(const PVLayerLoc *loc) { return 1L; }
 
 //! Returns stride in x dimension for linear indexing
 /*!
@@ -273,10 +286,10 @@ CONVERSIONS_SPECIFIER inline size_t strideFExtended(const PVLayerLoc *loc) { ret
  *      - remember that:
  *      k = ky * (nf*nx) + kx * nf + kf
  */
-CONVERSIONS_SPECIFIER inline size_t strideX(const PVLayerLoc *loc) { return loc->nf; }
+CONVERSIONS_SPECIFIER inline long strideX(const PVLayerLoc *loc) { return loc->nf; }
 
 // Version for data structures in extended space (e.g., activity)
-CONVERSIONS_SPECIFIER inline size_t strideXExtended(const PVLayerLoc *loc) { return loc->nf; }
+CONVERSIONS_SPECIFIER inline long strideXExtended(const PVLayerLoc *loc) { return loc->nf; }
 
 //! Returns stride in y dimension for linear indexing
 /*!
@@ -288,11 +301,13 @@ CONVERSIONS_SPECIFIER inline size_t strideXExtended(const PVLayerLoc *loc) { ret
  *      - remember that:
  *      k = ky * (nf*nx) + kx * nf + kf
  */
-CONVERSIONS_SPECIFIER inline size_t strideY(const PVLayerLoc *loc) { return loc->nf * loc->nx; }
+CONVERSIONS_SPECIFIER inline long strideY(const PVLayerLoc *loc) {
+   return (long)loc->nf * (long)loc->nx;
+}
 
 // Version for data structures in extended space (e.g., activity)
-CONVERSIONS_SPECIFIER inline size_t strideYExtended(const PVLayerLoc *loc) {
-   return loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt);
+CONVERSIONS_SPECIFIER inline long strideYExtended(const PVLayerLoc *loc) {
+   return (long)loc->nf * (long)(loc->nx + loc->halo.lt + loc->halo.rt);
 }
 
 //! Returns stride in y dimension for linear indexing
@@ -306,13 +321,14 @@ CONVERSIONS_SPECIFIER inline size_t strideYExtended(const PVLayerLoc *loc) {
  *      k = ky * (nf*nx) + kx * nf + kf
  */
 CONVERSIONS_SPECIFIER inline size_t strideB(const PVLayerLoc *loc) {
-   return loc->nf * loc->nx * loc->ny;
+   return (long)loc->nf * (long)loc->nx * (long)loc->ny;
 }
 
 // Version for data structures in extended space (e.g., activity)
 CONVERSIONS_SPECIFIER inline size_t strideBExtended(const PVLayerLoc *loc) {
-   return loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
-          * (loc->ny + loc->halo.up + loc->halo.dn);
+   return (long)loc->nf *
+          (long)(loc->nx + loc->halo.lt + loc->halo.rt) *
+          (long)(loc->ny + loc->halo.up + loc->halo.dn);
 }
 
 /**
@@ -331,43 +347,16 @@ CONVERSIONS_SPECIFIER inline size_t strideBExtended(const PVLayerLoc *loc) {
  *
  */
 CONVERSIONS_SPECIFIER inline int nearby_neighbor(int kzPre, int zLog2ScaleDiff) {
-   float a = powf(2.0f, -(float)zLog2ScaleDiff);
+   double a = std::pow(2, -zLog2ScaleDiff);
    int ia  = (int)a;
 
    int k0 = (ia < 2) ? 0 : ia / 2 - 1;
 
    // negative kzPre is different if density of post-synaptic layer decreases
-   int k = (a < 1.0f && kzPre < 0) ? kzPre - (int)(1.0f / a) + 1 : kzPre;
+   int k = (a < 1.0 && kzPre < 0) ? kzPre - (int)(1.0 / a) + 1 : kzPre;
 
-   return k0 + (int)(a * k);
+   return k0 + (int)(a * static_cast<double>(k));
 }
-
-#define DEPRECATED_FEATURES
-#ifdef DEPRECATED_FEATURES
-// deprecated
-/**
- * Assuming kPre connects to the nearest kPost, return the distance between these two positions
- *    (xPost - xPre) or (yPost - yPre) in units of post-synaptic dx (or dy).
- *
- * @kPre
- * @scale
- */
-CONVERSIONS_SPECIFIER inline float deltaPosLayers(int kPre, int scale) {
-   if (scale == 0) {
-      return 0.0f;
-   }
-   else if (scale < 0) {
-      // post-synaptic layer has smaller size scale
-      int s = (int)powf(2.0f, (float)-scale);
-      return 0.5f * (float)(1 - s);
-   }
-   else {
-      // post-synaptic layer has larger size scale
-      int s = (int)powf(2.0f, (float)scale);
-      return 0.5f * (1.0f - (1.0f + 2.0f * (kPre % s)) / s);
-   }
-}
-#endif /* DEPRECATED_FEATURES */
 
 //! RETURNS LINEAR INDEX IN THE EXTENDED SPACE FROM INDICES IN RESTRICTED SPACE
 /*!
@@ -390,7 +379,7 @@ CONVERSIONS_SPECIFIER inline float deltaPosLayers(int kPre, int scale) {
  *   .
  */
 CONVERSIONS_SPECIFIER inline long
-kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+kIndexExtended(long k, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    const int kx_ex = lt + kxPos(k, nx, ny, nf);
    const int ky_ex = up + kyPos(k, nx, ny, nf);
    const int kf    = featureIndex(k, nx, ny, nf);
@@ -449,7 +438,7 @@ kIndexExtendedBatch(long kRes, int nb, int nx, int ny, int nf, int lt, int rt, i
  *   .
  */
 CONVERSIONS_SPECIFIER inline long
-kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+kIndexRestricted(long k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int kx, ky, kf;
 
    const int nx_ex = nx + lt + rt;
@@ -478,7 +467,7 @@ kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int u
 //           tests/test_extend_border.c files. These tests run a
 //           function equivalent to the mpi version of
 //           globalIndexFromLocal but without using MPI.
-CONVERSIONS_SPECIFIER inline long globalIndexFromLocal(int kl, const PVLayerLoc loc) {
+CONVERSIONS_SPECIFIER inline long globalIndexFromLocal(long kl, const PVLayerLoc loc) {
 #ifdef PV_USE_MPI
    int kxg = (loc.bcast ? 0 : loc.kx0) + kxPos(kl, loc.nx, loc.ny, loc.nf);
    int kyg = (loc.bcast ? 0 : loc.ky0) + kyPos(kl, loc.nx, loc.ny, loc.nf);
@@ -568,8 +557,8 @@ CONVERSIONS_SPECIFIER inline long globalIndex(
 CONVERSIONS_SPECIFIER inline long
 layerIndexExt(long kPreExt, const PVLayerLoc *inLoc, const PVLayerLoc *outLoc) {
    // Calculate scale factor based on restricted
-   float scaleFactorX = (float)outLoc->nxGlobal / inLoc->nxGlobal;
-   float scaleFactorY = (float)outLoc->nyGlobal / inLoc->nyGlobal;
+   float scaleFactorX = static_cast<float>(outLoc->nxGlobal) / static_cast<float>(inLoc->nxGlobal);
+   float scaleFactorY = static_cast<float>(outLoc->nyGlobal) / static_cast<float>(inLoc->nyGlobal);
    // Calculate x and y in extended space
    int kPreX =
          kxPos(kPreExt,
@@ -584,21 +573,21 @@ layerIndexExt(long kPreExt, const PVLayerLoc *inLoc, const PVLayerLoc *outLoc) {
    // Subtract margin to set 0 to the beginning of the restricted space
    kPreX -= inLoc->halo.lt;
    kPreY -= inLoc->halo.up;
-   int kPostX, kPostY, half;
+   int kPostX, kPostY;
    // If one to many, scale factor is greater than 1
-   if (scaleFactorX > 1) {
-      half   = floor(scaleFactorX / 2);
-      kPostX = kPreX * scaleFactorX + half;
+   if (scaleFactorX > 1.0f) {
+      int half = static_cast<int>(std::floor(scaleFactorX / 2.0f));
+      kPostX   = static_cast<int>(static_cast<float>(kPreX) * scaleFactorX) + half;
    }
    else {
-      kPostX = floor(kPreX * scaleFactorX);
+      kPostX = static_cast<int>(std::floor(static_cast<float>(kPreX) * scaleFactorX));
    }
-   if (scaleFactorY > 1) {
-      half   = floor(scaleFactorY / 2);
-      kPostY = kPreY * scaleFactorY + half;
+   if (scaleFactorY > 1.0f) {
+      int half = (int)std::floor(scaleFactorY / 2.0f);
+      kPostY   = static_cast<int>(static_cast<float>(kPreY) * scaleFactorY) + half;
    }
    else {
-      kPostY = floor(kPreY * scaleFactorY);
+      kPostY = static_cast<int>(std::floor(static_cast<float>(kPreY) * scaleFactorY));
    }
 
    // Change back to ext points

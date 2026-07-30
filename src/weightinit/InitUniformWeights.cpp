@@ -46,8 +46,8 @@ void InitUniformWeights::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFla
 
 void InitUniformWeights::calcWeights(long patchIndex, int arborId) {
    float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
-   const int nfp    = mWeights->getPatchSizeF();
-   const int kf     = static_cast<int>(patchIndex % nfp);
+   int const nfp    = mWeights->getPatchSizeF();
+   int const kf     = static_cast<int>(patchIndex % nfp);
 
    uniformWeights(dataStart, mWeightInit, kf, mConnectOnlySameFeatures);
 }

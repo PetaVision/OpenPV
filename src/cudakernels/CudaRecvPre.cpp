@@ -12,8 +12,8 @@ CudaRecvPre::~CudaRecvPre() {}
 
 void CudaRecvPre::setArgs(
       int nbatch,
-      int numPreExt,
-      int numPostRes,
+      long numPreExt,
+      long numPostRes,
       int nxp,
       int nyp,
       int nfp,
@@ -71,12 +71,12 @@ void CudaRecvPre::setArgs(
 }
 
 void CudaRecvPre::checkSharedMemSize(size_t sharedSize) {
-   if (sharedSize > device->get_local_mem()) {
+   if (sharedSize > mDevice->get_local_mem()) {
       ErrorLog().printf(
             "run: given shared memory size of %zu is bigger than allowed shared memory size of "
             "%zu\n",
             sharedSize,
-            device->get_local_mem());
+            mDevice->get_local_mem());
    }
 }
 

@@ -163,9 +163,14 @@ void SharedWeightsFile::readInternal(double &timestamp) {
    if (isRoot()) {
       mSharedWeightsIO->read(*mWeightData, timestamp);
    }
-   int numElements = getPatchSizeOverall() * getNumPatchesOverall();
-   int rootProc    = mFileManager->getRootProcessRank();
-   auto mpiComm    = mFileManager->getMPIBlock()->getComm();
+   long numElementsL = getPatchSizeOverall() * getNumPatchesOverall();
+   int numElements   = static_cast<int>(numElementsL);
+   FatalIf(
+         static_cast<long>(numElements) != numElementsL,
+         "Weights file \"%s\" must broadcast %ld values over MPI, which is too large.\n",
+         mPath.c_str(), numElementsL);
+   int rootProc = mFileManager->getRootProcessRank();
+   auto mpiComm = mFileManager->getMPIBlock()->getComm();
    for (int a = 0; a < getNumArbors(); ++a) {
       float *weightsData = mWeightData->getData(a);
       MPI_Bcast(weightsData, numElements, MPI_FLOAT, rootProc, mpiComm);

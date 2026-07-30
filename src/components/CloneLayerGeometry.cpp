@@ -63,7 +63,7 @@ Response::Status CloneLayerGeometry::communicateInitInfo(
    mNyScale       = std::exp2(-static_cast<float>(mYScale));
    mNumFeatures   = mLayerLoc.nf;
 
-   mNumNeurons           = mLayerLoc.nx * mLayerLoc.ny * mLayerLoc.nf;
+   mNumNeurons           = (long)mLayerLoc.nx * (long)mLayerLoc.ny * (long)mLayerLoc.nf;
    mNumNeuronsAllBatches = mNumNeurons * mLayerLoc.nbatch;
 
    updateNumExtended();

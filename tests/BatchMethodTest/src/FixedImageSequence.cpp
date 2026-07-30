@@ -89,7 +89,7 @@ Response::Status FixedImageSequence::checkUpdateState(double simTime, double del
                loc->nf);
          float *activity = &mActivityPointer[b * mActivityComponent->getNumExtended()];
          for (int k = 0; k < getNumNeurons(); k++) {
-            int kExt = kIndexExtended(
+            long kExt = kIndexExtended(
                   k,
                   loc->nx,
                   loc->ny,

@@ -63,7 +63,12 @@ void LocalPatchWeightsFile::write(double timestamp) {
    extremeValues[1] = -extremeValues[1]; // Use the same MPI_Reduce call to work on both min and max
    MPI_Reduce(sendbuf, extremeValues, 2, MPI_FLOAT, MPI_MIN, root, mpiBlock->getComm());
    extremeValues[1] = -extremeValues[1];
-   long numValues   = mWeightData->getNumValuesPerArbor();
+   long numValuesL  = mWeightData->getNumValuesPerArbor();
+   int numValues    = static_cast<int>(numValuesL);
+   FatalIf(
+         static_cast<long>(numValues) != numValuesL,
+         "Weights file \"%s\" must send/receive %ld values over MPI, which is too large.\n",
+         mPath.c_str(), numValuesL);
    if (isRoot()) {
       BufferUtils::WeightHeader header =
             createHeader(timestamp, extremeValues[0], extremeValues[1]);
@@ -224,16 +229,16 @@ Response::Status LocalPatchWeightsFile::processCheckpointRead(double simTime) {
 void LocalPatchWeightsFile::convertSharedToNonshared(WeightData const &sharedWeightData) {
    // Each process has the shared weights in the sharedWeightData argument. Now we need to
    // loop over all the nonshared patches, and read in the correct kernel.
-   int const numPatchesX       = getNxExtendedPre();
-   int const numPatchesY       = getNyExtendedPre();
-   int const numPatchesF       = getNfPre();
-   int const numPatchesOverall = numPatchesX * numPatchesY * numPatchesF;
-   int const numKernelsX       = sharedWeightData.getNumDataPatchesX();
-   int const numKernelsY       = sharedWeightData.getNumDataPatchesY();
-   int const numKernelsF       = sharedWeightData.getNumDataPatchesF();
-   int const patchSizeOverall = getPatchSizeOverall();
+   int const numPatchesX        = getNxExtendedPre();
+   int const numPatchesY        = getNyExtendedPre();
+   int const numPatchesF        = getNfPre();
+   long const numPatchesOverall = (long)numPatchesX * (long)numPatchesY * (long)numPatchesF;
+   int const numKernelsX        = sharedWeightData.getNumDataPatchesX();
+   int const numKernelsY        = sharedWeightData.getNumDataPatchesY();
+   int const numKernelsF        = sharedWeightData.getNumDataPatchesF();
+   long const patchSizeOverall  = getPatchSizeOverall();
    for (int a = 0; a < mNumArbors; ++a) {
-      for (int k = 0; k < numPatchesOverall; ++k) {
+      for (long k = 0; k < numPatchesOverall; ++k) {
          int kxExt = kxPos(k, numPatchesX, numPatchesY, numPatchesF);
          int xCell = (kxExt - mPreLayerLoc.halo.lt + mPreLayerLoc.kx0) % numKernelsX;
          xCell += (xCell < 0) ? numKernelsX : 0;
@@ -362,8 +367,13 @@ void LocalPatchWeightsFile::readInternal(double &timestamp) {
 }
 
 void LocalPatchWeightsFile::readLocalPatchWeights(double &timestamp) {
-   long numValues = mWeightData->getNumValuesPerArbor();
-   auto mpiBlock  = mFileManager->getMPIBlock();
+   long numValuesL = mWeightData->getNumValuesPerArbor();
+   int numValues   = static_cast<int>(numValuesL);
+   FatalIf(
+         static_cast<long>(numValues) != numValuesL,
+         "Weights file \"%s\" must send/receive %ld values over MPI, which is too large.\n",
+         mPath.c_str(), numValuesL);
+   auto mpiBlock = mFileManager->getMPIBlock();
    if (isRoot()) {
       BufferUtils::WeightHeader header = mLocalPatchWeightsIO->readHeader();
       timestamp                        = header.baseHeader.timestamp;
@@ -431,9 +441,15 @@ void LocalPatchWeightsFile::readSharedWeights(double &timestamp) {
       mSharedWeightsIO->read(sharedWeightData, timestamp);
    }
 
-   int numElements = sharedWeightData.getNumValuesPerArbor();
-   int rootProc    = mFileManager->getRootProcessRank();
-   auto mpiComm    = mFileManager->getMPIBlock()->getComm();
+   long numElementsL = sharedWeightData.getNumValuesPerArbor();
+   int numElements   = static_cast<int>(numElementsL);
+   FatalIf(
+         static_cast<long>(numElements) != numElementsL,
+         "Weights file \"%s\" must broadcast %ld values over MPI, which is too large.\n",
+         mPath.c_str(), numElementsL);
+
+   int rootProc = mFileManager->getRootProcessRank();
+   auto mpiComm = mFileManager->getMPIBlock()->getComm();
    for (int a = 0; a < mNumArbors; ++a) {
       float *weightValues = sharedWeightData.getData(a);
       MPI_Bcast(weightValues, numElements, MPI_FLOAT, rootProc, mpiComm);

@@ -245,10 +245,10 @@ void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube
    PVLayerLoc const *loc = &cube.loc;
    pvAssert(loc->nbatch == mLayerGeometry->getLayerLoc()->nbatch);
    // Should check that other fields of loc agree with mLayerGeometry->getLayerLoc().
-   int const nxExtLocal  = loc->nx + loc->halo.lt + loc->halo.rt;
-   int const nyExtLocal  = loc->ny + loc->halo.dn + loc->halo.up;
-   int const nf          = loc->nf;
-   int const numExtLocal = nxExtLocal * nyExtLocal * nf;
+   int const nxExtLocal   = loc->nx + loc->halo.lt + loc->halo.rt;
+   int const nyExtLocal   = loc->ny + loc->halo.dn + loc->halo.up;
+   int const nf           = loc->nf;
+   long const numExtLocal = (long)nxExtLocal * (long)nyExtLocal * (long)nf;
    pvAssert(cube.numItems == loc->nbatch * numExtLocal);
 
    for (int b = 0; b < loc->nbatch; ++b) {
@@ -256,7 +256,7 @@ void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube
       auto *activeIndicesElement = &activeIndicesBatch[b * numExtLocal];
       mSparseListVector[b].reset(nxExtLocal, nyExtLocal, nf);
 
-      for (long int k = 0; k < cube.numActive[b]; k++) {
+      for (long k = 0; k < cube.numActive[b]; k++) {
          SparseList<float>::Entry const &entry = activeIndicesElement[k];
          mSparseListVector[b].addEntry(entry);
       }
@@ -279,7 +279,7 @@ void LayerOutputComponent::writeActivitySparseBroadcast(double simTime, PVLayerC
       auto *activeIndicesElement = &activeIndicesBatch[b * nf];
       mSparseListVector[b].reset(1, 1, nf);
 
-      for (long int k = 0; k < cube.numActive[b]; k++) {
+      for (long k = 0; k < cube.numActive[b]; k++) {
          SparseList<float>::Entry const &entry = activeIndicesElement[k];
          mSparseListVector[b].addEntry(entry);
       }
@@ -296,14 +296,14 @@ void LayerOutputComponent::writeActivityDense(double simTime, PVLayerCube &cube)
 
    PVLayerLoc const *loc = &cube.loc;
    // Should check that this is the same as mLayerGeometry->getLayerLoc()
-   int const nxExtLocal  = loc->nx + loc->halo.lt + loc->halo.rt;
-   int const nyExtLocal  = loc->ny + loc->halo.dn + loc->halo.up;
-   int const nf          = loc->nf;
-   int const numExtLocal = nxExtLocal * nyExtLocal * nf;
+   int const nxExtLocal   = loc->nx + loc->halo.lt + loc->halo.rt;
+   int const nyExtLocal   = loc->ny + loc->halo.dn + loc->halo.up;
+   int const nf           = loc->nf;
+   long const numExtLocal = (long)nxExtLocal * (long)nyExtLocal * (long)nf;
    pvAssert(cube.numItems == loc->nbatch * numExtLocal);
 
    std::vector<float> activity(cube.numItems);
-   for (int n = 0; n < cube.numItems; ++n) {
+   for (long n = 0; n < cube.numItems; ++n) {
       activity[n] = cube.data[n];
    }
    for (int b = 0; b < loc->nbatch; ++b) {

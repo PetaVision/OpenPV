@@ -123,7 +123,7 @@ makeUpdateMessage(double simTime, double deltaTime, bool *isPending, bool *hasAc
 double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer) {
    auto *targetLayerPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
 
-   int numExtended         = targetLayer->getNumExtended();
+   long numExtended        = targetLayer->getNumExtended();
    float const *targetData = &targetLayerPublisher->getLayerData()[batchIndex * numExtended];
 
    PVLayerLoc const *targetLayerLoc = targetLayer->getLayerLoc();
@@ -135,10 +135,10 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer) {
    int dn                           = targetLayerLoc->halo.dn;
    int up                           = targetLayerLoc->halo.up;
 
-   double sum     = 0.0;
-   int numNeurons = targetLayer->getNumNeurons();
-   for (int k = 0; k < numNeurons; ++k) {
-      int kExt = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+   double sum      = 0.0;
+   long numNeurons = targetLayer->getNumNeurons();
+   for (long k = 0; k < numNeurons; ++k) {
+      long kExt = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       double v = (double)targetData[kExt];
       sum += v * v;
    }
@@ -151,7 +151,7 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *
    }
    auto *targetLayerPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
 
-   int targetNumExtended   = targetLayer->getNumExtended();
+   long targetNumExtended  = targetLayer->getNumExtended();
    float const *targetData = &targetLayerPublisher->getLayerData()[batchIndex * targetNumExtended];
 
    PVLayerLoc const *targetLayerLoc = targetLayer->getLayerLoc();
@@ -165,7 +165,7 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *
 
    auto *maskLayerPublisher = maskLayer->getComponentByType<BasePublisherComponent>();
 
-   int maskNumExtended   = maskLayer->getNumExtended();
+   long maskNumExtended  = maskLayer->getNumExtended();
    float const *maskData = &maskLayerPublisher->getLayerData()[batchIndex * maskNumExtended];
 
    PVLayerLoc const *maskLayerLoc = maskLayer->getLayerLoc();
@@ -187,15 +187,15 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *
    int maskDn = maskLayerLoc->halo.dn;
    int maskUp = maskLayerLoc->halo.up;
 
-   int maskNumNeurons = maskLayer->getNumNeurons();
+   long maskNumNeurons = maskLayer->getNumNeurons();
 
    double sum = 0.0;
    if (maskNf == targetNf) {
       pvAssert(targetLayer->getNumNeurons() == maskNumNeurons);
       for (int k = 0; k < maskNumNeurons; ++k) {
-         int kExtMask = kIndexExtended(k, maskNx, maskNy, maskNf, maskLt, maskRt, maskDn, maskUp);
+         long kExtMask = kIndexExtended(k, maskNx, maskNy, maskNf, maskLt, maskRt, maskDn, maskUp);
          if (maskData[kExtMask]) {
-            int kExtTarget = kIndexExtended(
+            long kExtTarget = kIndexExtended(
                   k, targetNx, targetNy, targetNf, targetLt, targetRt, targetDn, targetUp);
             if (maskData[kExtMask]) {
                double v = (double)targetData[kExtTarget];
@@ -207,11 +207,11 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *
    else if (targetNf > 1 and maskNf == 1) {
       pvAssert(targetLayer->getNumNeurons() == targetNf * maskNumNeurons);
       for (int k = 0; k < maskNumNeurons; ++k) {
-         int kExtMask = kIndexExtended(k, maskNx, maskNy, 1, maskLt, maskRt, maskDn, maskUp);
+         long kExtMask = kIndexExtended(k, maskNx, maskNy, 1, maskLt, maskRt, maskDn, maskUp);
          if (maskData[kExtMask]) {
             for (int f = 0; f < targetNf; ++f) {
-               int kTarget    = k * targetNf + f;
-               int kExtTarget = kIndexExtended(
+               int kTarget     = k * targetNf + f;
+               long kExtTarget = kIndexExtended(
                      kTarget, targetNx, targetNy, targetNf, targetLt, targetRt, targetDn, targetUp);
                if (maskData[kExtMask]) {
                   double v = (double)targetData[kExtTarget];

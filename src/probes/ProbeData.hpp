@@ -12,12 +12,11 @@ namespace PV {
 template <typename T>
 class ProbeData {
   public:
-   typedef typename std::vector<T>::size_type size_type;
-   ProbeData(double timestamp, size_type batchWidth, T initialValue);
-   ProbeData(double timestamp, size_type batchWidth);
+   ProbeData(double timestamp, unsigned int batchWidth, T initialValue);
+   ProbeData(double timestamp, unsigned int batchWidth);
    ~ProbeData() {}
 
-   size_type size() const { return mValues.size(); }
+   unsigned int size() const { return (unsigned int)mValues.size(); }
 
    static unsigned int calcPackedSize(unsigned int batchWidth);
    std::vector<char> pack() const;
@@ -39,20 +38,20 @@ class ProbeData {
 };
 
 template <typename T>
-ProbeData<T>::ProbeData(double timestamp, size_type batchWidth, T initialValue) {
+ProbeData<T>::ProbeData(double timestamp, unsigned int batchWidth, T initialValue) {
    mTimestamp = timestamp;
    mValues.resize(batchWidth, initialValue);
 }
 
 template <typename T>
-ProbeData<T>::ProbeData(double timestamp, size_type batchWidth) {
+ProbeData<T>::ProbeData(double timestamp, unsigned int batchWidth) {
    mTimestamp = timestamp;
    mValues.resize(batchWidth);
 }
 
 template <typename T>
 unsigned int ProbeData<T>::calcPackedSize(unsigned int batchWidth) {
-   return sizeof(double) + batchWidth * sizeof(T);
+   return (unsigned int)(sizeof(double) + batchWidth * sizeof(T));
 }
 
 template <typename T>
@@ -77,7 +76,7 @@ void ProbeData<T>::reset(ProbeData<T> const &newValues) {
 
 template <typename T>
 std::vector<char> ProbeData<T>::pack() const {
-   unsigned int dataSize     = size();
+   unsigned int dataSize     = (unsigned int)size();
    std::vector<char> result(calcPackedSize(dataSize));
    char *position = &result.at(0);
    memcpy(position, &mTimestamp, sizeof(double));
@@ -99,7 +98,7 @@ ProbeData<T> ProbeData<T>::unpack(std::vector<char> const &packedData) {
    char const *position = &packedData.at(0);
    memcpy(&timestamp, position, sizeof(double));
    position += sizeof(double);
-   unsigned int nbatch = (packedData.size() - sizeof(double)) / sizeof(T);
+   unsigned int nbatch = (unsigned int)(packedData.size() - sizeof(double)) / sizeof(T);
    if (packedData.size() != calcPackedSize(nbatch)) {
       throw std::runtime_error(
             "ProbeData::unpack() argument length does not match header and type.");

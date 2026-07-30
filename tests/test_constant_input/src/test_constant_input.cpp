@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
 
    float sumOfWeights = (float)(nxp * nyp * nfPre);
    if (imageLoc->nx > retinaLoc->nx) {
-      sumOfWeights *= imageLoc->nx / retinaLoc->nx;
+      sumOfWeights *= (float)(imageLoc->nx / retinaLoc->nx);
    }
    if (imageLoc->ny > retinaLoc->ny) {
-      sumOfWeights *= imageLoc->ny / retinaLoc->ny;
+      sumOfWeights *= (float)(imageLoc->ny / retinaLoc->ny);
    }
 
    hc->run();

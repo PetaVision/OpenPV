@@ -141,7 +141,7 @@ void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTi
 #endif // PV_USE_CUDA
 
    PVLayerLoc const *loc        = getLayerLoc();
-   int const numNeurons         = getBufferSize();
+   long const numNeurons        = getBufferSize();
    double const *dtAdapt        = deltaTimes(simTime, deltaTime);
    float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();
    float const *A               = mActivity->getBufferData();

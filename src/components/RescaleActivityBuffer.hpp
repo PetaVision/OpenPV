@@ -119,7 +119,7 @@ class RescaleActivityBuffer : public ActivityBuffer {
    float getTargetMin() const { return mTargetMin; }
    float getTargetMean() const { return mTargetMean; }
    float getTargetStd() const { return mTargetStd; }
-   float getPatchSize() const { return mPatchSize; }
+   int getPatchSize() const { return mPatchSize; }
    const char *getRescaleMethod() const { return mRescaleMethod; }
 
    ActivityBuffer const *getOriginalBuffer() const { return mOriginalBuffer; }

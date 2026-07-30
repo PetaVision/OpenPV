@@ -97,7 +97,7 @@ class CudaKernel {
 
    dim3 grid_size;
    dim3 block_size;
-   CudaDevice *device;
+   CudaDevice *mDevice;
 
    // argsSet must be set to true before being called
    bool argsSet;

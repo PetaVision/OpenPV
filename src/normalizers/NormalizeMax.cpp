@@ -69,7 +69,7 @@ int NormalizeMax::normalizeWeights() {
          for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float max = 0.0f;
             for (auto &weights : mWeightsList) {
-               int weightsPerPatch   = weights->getPatchSizeOverall();
+               long weightsPerPatch  = weights->getPatchSizeOverall();
                float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                accumulateMax(dataStartPatch, weightsPerPatch, &max);
             }
@@ -103,7 +103,7 @@ int NormalizeMax::normalizeWeights() {
          }
          if (max <= minMaxTolerated) {
             WarnLog().printf(
-                  "for NormalizeMax \"%s\": max of weights in patch %d is within "
+                  "for NormalizeMax \"%s\": max of weights in patch %ld is within "
                   "minMaxTolerated=%f of zero. Weights in this patch unchanged.\n",
                   getName(),
                   patchindex,

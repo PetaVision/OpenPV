@@ -28,19 +28,19 @@ void InitSmartWeights::calcWeights(long patchIndex, int arborId) {
 }
 
 void InitSmartWeights::smartWeights(float *dataStart, long k) {
-   int const nfp = mWeights->getPatchSizeF();
-   int const nyp = mWeights->getPatchSizeY();
-   int const nxp = mWeights->getPatchSizeX();
+   long const nfp = (long)mWeights->getPatchSizeF();
+   long const nyp = (long)mWeights->getPatchSizeY();
+   long const nxp = (long)mWeights->getPatchSizeX();
 
-   int const sxp = mWeights->getGeometry()->getPatchStrideX();
-   int const syp = mWeights->getGeometry()->getPatchStrideY();
-   int const sfp = mWeights->getGeometry()->getPatchStrideF();
+   long const sxp = (long)mWeights->getGeometry()->getPatchStrideX();
+   long const syp = (long)mWeights->getGeometry()->getPatchStrideY();
+   long const sfp = (long)mWeights->getGeometry()->getPatchStrideF();
 
    // loop over all post-synaptic cells in patch
-   for (int y = 0; y < nyp; y++) {
-      for (int x = 0; x < nxp; x++) {
-         for (int f = 0; f < nfp; f++) {
-            dataStart[x * sxp + y * syp + f * sfp] = dataIndexToUnitCellIndex(k);
+   for (long y = 0; y < nyp; y++) {
+      for (long x = 0; x < nxp; x++) {
+         for (long f = 0; f < nfp; f++) {
+            dataStart[x * sxp + y * syp + f * sfp] = (float)dataIndexToUnitCellIndex(k);
          }
       }
    }

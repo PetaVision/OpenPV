@@ -40,11 +40,11 @@ Response::Status CPTestInputInternalStateBuffer::initializeState(
    const PVLayerLoc *loc = getLayerLoc();
    for (int b = 0; b < loc->nbatch; b++) {
       float *VBatch = mBufferData.data() + b * getBufferSize();
-      for (int k = 0; k < getBufferSize(); k++) {
+      for (long k = 0; k < getBufferSize(); k++) {
          int kx = kxPos(k, loc->nx, loc->nx, loc->nf);
          int ky = kyPos(k, loc->nx, loc->ny, loc->nf);
          int kf = featureIndex(k, loc->nx, loc->ny, loc->nf);
-         int kGlobal =
+         long kGlobal =
                kIndex(loc->kx0 + kx, loc->ky0 + ky, kf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          VBatch[k] = (float)kGlobal;
       }
@@ -54,9 +54,9 @@ Response::Status CPTestInputInternalStateBuffer::initializeState(
 }
 
 void CPTestInputInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
-   int const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
-   float *V                        = mBufferData.data();
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+   long const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
+   float *V                         = mBufferData.data();
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
       V[k] += 1.0f;
    }
 }

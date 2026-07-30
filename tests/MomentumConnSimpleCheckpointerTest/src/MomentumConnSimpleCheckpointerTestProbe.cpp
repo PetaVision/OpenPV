@@ -245,7 +245,7 @@ MomentumConnSimpleCheckpointerTestProbe::outputState(double simTime, double delt
       initializeCorrectValues();
       mValuesSet = true;
    }
-   int const updateNumber = mStartingTimestamp + simTime;
+   int const updateNumber = static_cast<int>(std::nearbyint(mStartingTimestamp + simTime));
    while (updateNumber > mCorrectState->getTimestamp()) {
       mCorrectState->update();
    }
@@ -346,11 +346,11 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyLayer(
             getDescription_c());
       globalBuffer.crop(inputLoc->nxGlobal, inputLoc->nyGlobal, PV::Buffer<float>::CENTER);
       std::vector<float> globalVector = globalBuffer.asVector();
-      int const numInputNeurons       = globalVector.size();
-      for (int k = 0; k < numInputNeurons; k++) {
+      long const numInputNeurons      = globalBuffer.getTotalElements();
+      for (long k = 0; k < numInputNeurons; k++) {
          if (globalVector[k] != correctValue) {
             output(0).printf(
-                  "Time %f, %s neuron %d is %f, instead of the expected %f.\n",
+                  "Time %f, %s neuron %ld is %f, instead of the expected %f.\n",
                   timevalue,
                   layer->getName(),
                   k,

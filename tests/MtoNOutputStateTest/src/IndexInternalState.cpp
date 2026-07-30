@@ -41,15 +41,15 @@ IndexInternalState::initializeState(std::shared_ptr<InitializeStateMessage const
 
 void IndexInternalState::updateBufferCPU(double simTime, double deltaTime) {
    PVLayerLoc const *loc = getLayerLoc();
-   int const numNeurons  = loc->nx * loc->ny * loc->nf;
+   long const numNeurons  = (long)loc->nx * (long)loc->ny * (long)loc->nf;
    pvAssert(numNeurons == getBufferSize());
-   int const numGlobalNeurons = loc->nxGlobal * loc->nyGlobal * loc->nf;
+   long const numGlobalNeurons = (long)loc->nxGlobal * (long)loc->nyGlobal * (long)loc->nf;
    for (int b = 0; b < loc->nbatch; b++) {
       int const globalBatchIndex = b + loc->kb0;
       float *V                   = &mBufferData.data()[b * numNeurons];
-      for (int k = 0; k < numNeurons; k++) {
-         int kGlobal      = globalIndexFromLocal(k, *loc);
-         int kGlobalBatch = kGlobal + globalBatchIndex * numGlobalNeurons;
+      for (long k = 0; k < numNeurons; k++) {
+         long kGlobal     = globalIndexFromLocal(k, *loc);
+         long kGlobalBatch = kGlobal + globalBatchIndex * numGlobalNeurons;
          float value      = (float)kGlobalBatch * (float)simTime;
          V[k]             = value;
       }

@@ -243,15 +243,15 @@ class BroadcastPreWeightsIO {
 
    /** Sets the header's minVal and maxVal to the indicated values */
    void setHeaderExtremeVals(double minVal, double maxVal) {
-      mHeader.minVal = minVal;
-      mHeader.maxVal = maxVal;
+      mHeader.minVal = static_cast<float>(minVal);
+      mHeader.maxVal = static_cast<float>(maxVal);
    }
 
    /** Sets the header's minVal to the indicated value */
-   void setHeaderMinVal(double minVal) { mHeader.minVal = minVal; }
+   void setHeaderMinVal(double minVal) { mHeader.minVal = static_cast<float>(minVal); }
 
    /** Sets the header's maxVal to the indicated value */
-   void setHeaderMaxVal(double maxVal) { mHeader.maxVal = maxVal; }
+   void setHeaderMaxVal(double maxVal) { mHeader.maxVal = static_cast<float>(maxVal); }
 
    /** Sets the header's timestamp to the indicated value */
    void setHeaderTimestamp(double timestamp) { mHeader.baseHeader.timestamp = timestamp; }

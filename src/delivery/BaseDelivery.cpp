@@ -103,7 +103,8 @@ void BaseDelivery::allocateThreadGSyn() {
          PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
          // We could use mPostGSyn->getBufferSizeAcrossBatch(), but this requires
          // checking mPostGSyn->getDataStructuresAllocatedFlag().
-         int const numNeuronsAllBatches = postLoc->nx * postLoc->ny * postLoc->nf * postLoc->nbatch;
+         long const numNeuronsAllBatches =
+               (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf * (long)postLoc->nbatch;
          mThreadGSyn.resize(numThreads);
          for (auto &th : mThreadGSyn) {
             th.resize(numNeuronsAllBatches);
@@ -116,11 +117,11 @@ void BaseDelivery::clearThreadGSyn() {
    if (getChannelCode() >= 0) {
       int const numThreads = (int)mThreadGSyn.size();
       if (numThreads > 1) {
-         int const numPostRestricted = mPostGSyn->getBufferSize();
+         long const numPostRestricted = mPostGSyn->getBufferSize();
 #pragma omp parallel for schedule(static)
          for (int ti = 0; ti < numThreads; ++ti) {
             float *threadData = mThreadGSyn[ti].data();
-            for (int ni = 0; ni < numPostRestricted; ++ni) {
+            for (long ni = 0; ni < numPostRestricted; ++ni) {
                threadData[ni] = 0.0f;
             }
          }
@@ -136,12 +137,12 @@ void BaseDelivery::accumulateThreadGSyn(float *baseGSynBuffer) {
    if (getChannelCode() >= 0) {
       int const numThreads = (int)mThreadGSyn.size();
       if (numThreads > 1) {
-         int numNeuronsPost = mPostGSyn->getBufferSize();
+         long numNeuronsPost = mPostGSyn->getBufferSize();
          for (int ti = 0; ti < numThreads; ti++) {
             float *threadData = mThreadGSyn[ti].data();
 // Looping over neurons is thread safe
 #pragma omp parallel for
-            for (int ni = 0; ni < numNeuronsPost; ni++) {
+            for (long ni = 0; ni < numNeuronsPost; ni++) {
                baseGSynBuffer[ni] += threadData[ni];
             }
          }

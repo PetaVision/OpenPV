@@ -218,7 +218,7 @@ void SegmentifyBuffer::buildLabelToIdx(int batchIdx) {
       std::map<int, int> segMap = mSegmentBuffer->getCenterIdxBuf(batchIdx);
       // From the map, we want to grab the set of keys and store it into an int array for
       // broadcasting
-      numLabels = segMap.size();
+      numLabels = static_cast<int>(segMap.size());
       // Adjust size of buffers
       checkLabelValBuf(numLabels);
       // Fill buffer
@@ -279,17 +279,17 @@ void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
       // We caluclate the index into the segment buffer and this buffer based on the
       // relative size differences between source and label buffers
       float segToSrcScaleY = (float)segLoc->ny / (float)srcLoc->ny;
-      int segmentYi        = round(yi * segToSrcScaleY);
+      int segmentYi        = static_cast<int>(std::round(static_cast<float>(yi) * segToSrcScaleY));
       for (int xi = 0; xi < srcLoc->nx; xi++) {
          float segToSrcScaleX = (float)segLoc->nx / (float)srcLoc->nx;
-         int segmentXi        = round(xi * segToSrcScaleX);
+         int segmentXi        = static_cast<int>(std::round(static_cast<float>(xi) * segToSrcScaleX));
          // Convert segment x and y index into extended linear index into the segment buffer
          int extSegIdx =
                (segmentYi + segLoc->halo.up) * (segLoc->nx + segLoc->halo.lt + segLoc->halo.rt)
                + (segmentXi + segLoc->halo.lt);
 
          // Assuming segments are ints
-         int labelVal = round(segBatchA[extSegIdx]);
+         int labelVal = static_cast<int>(std::round(segBatchA[extSegIdx]));
 
          // This label should always exist in the map
          // labelIdx is the index into the vals buffer
@@ -316,7 +316,7 @@ void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
       } // End of xi loop
    } // End of yi loop
 
-   int numLabels = mLabelToIdx.size();
+   int numLabels = static_cast<int>(mLabelToIdx.size());
 
    // We need to reduce our labelVec array
    for (int fi = 0; fi < srcLoc->nf; fi++) {
@@ -333,7 +333,7 @@ void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
       // If average, divide sum by count
       if (strcmp(mInputMethod, "average") == 0) {
          for (int l = 0; l < numLabels; l++) {
-            mLabelVals[fi][l] = mLabelVals[fi][l] / mLabelCount[fi][l];
+            mLabelVals[fi][l] = mLabelVals[fi][l] / static_cast<float>(mLabelCount[fi][l]);
          }
       }
    }
@@ -375,8 +375,10 @@ void SegmentifyBuffer::setOutputVals(int batchIdx) {
          int segGlobalResX = segGlobalResIdx % (segLoc->nxGlobal);
          int segGlobalResY = segGlobalResIdx / (segLoc->nyGlobal);
          // Convert to x and y wrt this layer
-         int thisGlobalResX = round(segGlobalResX * thisToSegScaleX);
-         int thisGlobalResY = round(segGlobalResY * thisToSegScaleY);
+         float thisGlobalResXfloat = static_cast<float>(segGlobalResX) * thisToSegScaleX;
+         int thisGlobalResX        = static_cast<int>(std::round(thisGlobalResXfloat));
+         float thisGlobalResYfloat = static_cast<float>(segGlobalResY) * thisToSegScaleY;
+         int thisGlobalResY        = static_cast<int>(std::round(thisGlobalResYfloat));
          // If we're within bounds in this process
          if (thisGlobalResX >= thisLoc->kx0 && thisGlobalResX < thisLoc->kx0 + thisLoc->nx
              && thisGlobalResY >= thisLoc->ky0
@@ -400,15 +402,15 @@ void SegmentifyBuffer::setOutputVals(int batchIdx) {
       // Looping through restricted
       for (int yi = 0; yi < thisLoc->ny; yi++) {
          // Translate from this yi to segment's yi
-         int segResY = round((float)yi / (float)thisToSegScaleY);
+         int segResY = static_cast<int>(std::round((float)yi / (float)thisToSegScaleY));
          for (int xi = 0; xi < thisLoc->nx; xi++) {
-            int segResX = round((float)xi / (float)thisToSegScaleX);
+            int segResX = static_cast<int>(std::round((float)xi / (float)thisToSegScaleX));
             // Convert restricted segment index to extended
             int segExtIdx =
                   (segResY + segLoc->halo.up) * (segLoc->nx + segLoc->halo.lt + segLoc->halo.rt)
                   + (segResX + segLoc->halo.lt);
             // Get label based on segment layer
-            int label = round(segBatchA[segExtIdx]);
+            int label = static_cast<int>(std::round(segBatchA[segExtIdx]));
             // Fill index with value from labelVals;
             for (int fi = 0; fi < thisLoc->nf; fi++) {
                // Calulate ext index

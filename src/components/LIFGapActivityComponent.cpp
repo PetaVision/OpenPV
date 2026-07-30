@@ -68,9 +68,9 @@ LIFGapActivityComponent::initializeState(std::shared_ptr<InitializeStateMessage 
       return status;
    }
    if (mGapStrength) {
-      float *gapStrength              = mGapStrength->getReadWritePointer();
-      int const numNeuronsAcrossBatch = mGapStrength->getBufferSizeAcrossBatch();
-      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+      float *gapStrength               = mGapStrength->getReadWritePointer();
+      long const numNeuronsAcrossBatch = mGapStrength->getBufferSizeAcrossBatch();
+      for (long k = 0; k < numNeuronsAcrossBatch; k++) {
          gapStrength[k] = 0.0f;
       }
    }
@@ -79,9 +79,9 @@ LIFGapActivityComponent::initializeState(std::shared_ptr<InitializeStateMessage 
 
 void LIFGapActivityComponent::calcGapStrength() {
    pvAssert(!mGapStrengthInitialized);
-   float *gapStrength              = mGapStrength->getReadWritePointer();
-   int const numNeuronsAcrossBatch = mGapStrength->getBufferSizeAcrossBatch();
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+   float *gapStrength               = mGapStrength->getReadWritePointer();
+   long const numNeuronsAcrossBatch = mGapStrength->getBufferSizeAcrossBatch();
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
       gapStrength[k] = 0.0f;
    }
    mLayerInput->recvUnitInput(gapStrength, CHANNEL_GAP);
@@ -112,7 +112,7 @@ Response::Status LIFGapActivityComponent::updateActivity(double simTime, double 
       case 'a':
          updateActivityArma(
                nbatch,
-               nx * ny * nf,
+               (long)nx * (long)ny * (long)nf,
                simTime,
                deltaTime,
                nx,
@@ -136,7 +136,7 @@ Response::Status LIFGapActivityComponent::updateActivity(double simTime, double 
       case 'b':
          updateActivityBeginning(
                nbatch,
-               nx * ny * nf,
+               (long)nx *(long) ny *(long) nf,
                simTime,
                deltaTime,
                nx,
@@ -160,7 +160,7 @@ Response::Status LIFGapActivityComponent::updateActivity(double simTime, double 
       case 'o':
          updateActivityOriginal(
                nbatch,
-               nx * ny * nf,
+               (long)nx *(long) ny *(long) nf,
                simTime,
                deltaTime,
                nx,
@@ -192,17 +192,17 @@ Response::Status LIFGapActivityComponent::updateActivity(double simTime, double 
 //
 
 inline float LIFGap_Vmem_derivative(
-      const float Vmem,
-      const float G_E,
-      const float G_I,
-      const float G_IB,
-      const float G_Gap,
-      const float V_E,
-      const float V_I,
-      const float V_IB,
-      const float sum_gap,
-      const float Vrest,
-      const float tau) {
+      float const Vmem,
+      float const G_E,
+      float const G_I,
+      float const G_IB,
+      float const G_Gap,
+      float const V_E,
+      float const V_I,
+      float const V_IB,
+      float const sum_gap,
+      float const Vrest,
+      float const tau) {
    float totalconductance = 1.0f + G_E + G_I + G_IB + sum_gap;
    float Vmeminf = (Vrest + V_E * G_E + V_I * G_I + V_IB * G_IB + G_Gap) / totalconductance;
    return totalconductance * (Vmeminf - Vmem) / tau;
@@ -222,9 +222,9 @@ inline float LIFGap_Vmem_derivative(
 
 void LIFGapActivityComponent::updateActivityOriginal(
       const int nbatch,
-      const int numNeurons,
-      const float simTime,
-      const float deltaTime,
+      const long numNeurons,
+      const double simTime,
+      const double deltaTime,
 
       const int nx,
       const int ny,
@@ -244,18 +244,20 @@ void LIFGapActivityComponent::updateActivityOriginal(
       float const *GSynHead,
       float *activity,
 
-      const float *gapStrength) {
-   int k;
+      float const *gapStrength) {
+   long k;
 
-   const float exp_tauE   = expf(-deltaTime / params->tauE);
-   const float exp_tauI   = expf(-deltaTime / params->tauI);
-   const float exp_tauIB  = expf(-deltaTime / params->tauIB);
-   const float exp_tauVth = expf(-deltaTime / params->tauVth);
+   float const dtFloat        = static_cast<float>(deltaTime);
+   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
+   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
+   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
+   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
 
-   const float dt_sec = 0.001f * deltaTime; // convert to seconds
+   float const dt_sec = 0.001f * dtFloat; // convert to seconds
 
-   for (k = 0; k < nx * ny * nf * nbatch; k++) {
-      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
+   for (k = 0; k < numNeuronsAcrossBatch; k++) {
+      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here
@@ -319,7 +321,7 @@ void LIFGapActivityComponent::updateActivityOriginal(
          l_GSynInhB = l_GSynInhB + params->noiseAmpIB * cl_random_prob(l_rnd);
       }
 
-      const float GMAX = 10.0f;
+      float const GMAX = 10.0f;
       float tauInf, VmemInf;
 
       // The portion of code below uses the original method of calculating l_V.
@@ -331,11 +333,11 @@ void LIFGapActivityComponent::updateActivityOriginal(
       l_G_I  = (l_G_I > GMAX) ? GMAX : l_G_I;
       l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
-      tauInf  = (deltaTime / tau) * (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
+      tauInf  = (dtFloat / tau) * (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
       VmemInf = (Vrest + l_G_E * Vexc + l_G_I * Vinh + l_G_IB * VinhB + l_GSynGap)
                 / (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
 
-      l_V = VmemInf + (l_V - VmemInf) * expf(-tauInf);
+      l_V = VmemInf + (l_V - VmemInf) * std::exp(-tauInf);
 
       l_Vth = VthRest + (l_Vth - VthRest) * exp_tauVth;
       // End of code unique to original method
@@ -372,9 +374,9 @@ void LIFGapActivityComponent::updateActivityOriginal(
 
 void LIFGapActivityComponent::updateActivityBeginning(
       const int nbatch,
-      const int numNeurons,
-      const float simTime,
-      const float deltaTime,
+      const long numNeurons,
+      const double simTime,
+      const double deltaTime,
 
       const int nx,
       const int ny,
@@ -394,18 +396,20 @@ void LIFGapActivityComponent::updateActivityBeginning(
       float const *GSynHead,
       float *activity,
 
-      const float *gapStrength) {
-   int k;
+      float const *gapStrength) {
+   long k;
 
-   const float exp_tauE   = expf(-deltaTime / params->tauE);
-   const float exp_tauI   = expf(-deltaTime / params->tauI);
-   const float exp_tauIB  = expf(-deltaTime / params->tauIB);
-   const float exp_tauVth = expf(-deltaTime / params->tauVth);
+   float const dtFloat        = static_cast<float>(deltaTime);
+   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
+   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
+   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
+   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
 
-   const float dt_sec = 0.001f * deltaTime; // convert to seconds
+   float const dt_sec = 0.001f * dtFloat; // convert to seconds
 
-   for (k = 0; k < nx * ny * nf * nbatch; k++) {
-      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
+   for (k = 0; k < numNeuronsAcrossBatch; k++) {
+      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here
@@ -472,7 +476,7 @@ void LIFGapActivityComponent::updateActivityBeginning(
          l_GSynInhB = l_GSynInhB + params->noiseAmpIB * cl_random_prob(l_rnd);
       }
 
-      const float GMAX = 10.0f;
+      float const GMAX = 10.0f;
 
       // The portion of code below uses the newer method of calculating l_V.
       float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
@@ -503,7 +507,7 @@ void LIFGapActivityComponent::updateActivityBeginning(
             Vrest,
             tau);
       dV2 = LIFGap_Vmem_derivative(
-            l_V + deltaTime * dV1,
+            l_V + dtFloat * dV1,
             G_E_final,
             G_I_final,
             G_IB_final,
@@ -515,7 +519,7 @@ void LIFGapActivityComponent::updateActivityBeginning(
             Vrest,
             tau);
       dV  = (dV1 + dV2) * 0.5f;
-      l_V = l_V + deltaTime * dV;
+      l_V = l_V + dtFloat * dV;
 
       l_G_E  = G_E_final;
       l_G_I  = G_I_final;
@@ -558,9 +562,9 @@ void LIFGapActivityComponent::updateActivityBeginning(
 
 void LIFGapActivityComponent::updateActivityArma(
       const int nbatch,
-      const int numNeurons,
-      const float simTime,
-      const float deltaTime,
+      const long numNeurons,
+      const double simTime,
+      const double deltaTime,
 
       const int nx,
       const int ny,
@@ -580,18 +584,20 @@ void LIFGapActivityComponent::updateActivityArma(
       float const *GSynHead,
       float *activity,
 
-      const float *gapStrength) {
-   int k;
+      float const *gapStrength) {
+   long k;
 
-   const float exp_tauE   = expf(-deltaTime / params->tauE);
-   const float exp_tauI   = expf(-deltaTime / params->tauI);
-   const float exp_tauIB  = expf(-deltaTime / params->tauIB);
-   const float exp_tauVth = expf(-deltaTime / params->tauVth);
+   float const dtFloat        = static_cast<float>(deltaTime);
+   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
+   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
+   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
+   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
 
-   const float dt_sec = 0.001f * deltaTime; // convert to seconds
+   float const dt_sec = 0.001f * dtFloat; // convert to seconds
 
-   for (k = 0; k < nx * ny * nf * nbatch; k++) {
-      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
+   for (k = 0; k < numNeuronsAcrossBatch; k++) {
+      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here
@@ -600,7 +606,7 @@ void LIFGapActivityComponent::updateActivityArma(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      const float GMAX = 10.0f;
+      float const GMAX = 10.0f;
 
       // local variables
       float l_activ;
@@ -687,12 +693,12 @@ void LIFGapActivityComponent::updateActivityArma(
       V_inf_final   = (Vrest + Vexc * G_E_final + Vinh * G_I_final + VinhB * G_IB_final + l_GSynGap)
                     / (1.0f + G_E_final + G_I_final + G_IB_final + l_gapStrength);
 
-      float tau_slope = (tau_inf_final - tau_inf_initial) / deltaTime;
-      float f1        = tau_slope == 0.0f ? expf(-deltaTime / tau_inf_initial)
-                                   : powf(tau_inf_final / tau_inf_initial, -1 / tau_slope);
+      float tau_slope = (tau_inf_final - tau_inf_initial) / dtFloat;
+      float f1        = tau_slope == 0.0f ? std::exp(-dtFloat / tau_inf_initial)
+                                   : std::pow(tau_inf_final / tau_inf_initial, -1.0f / tau_slope);
       float f2 = tau_slope == -1.0f
-                       ? tau_inf_initial / deltaTime * logf(tau_inf_final / tau_inf_initial + 1.0f)
-                       : (1 - tau_inf_initial / deltaTime * (1 - f1)) / (1 + tau_slope);
+                       ? tau_inf_initial / dtFloat * logf(tau_inf_final / tau_inf_initial + 1.0f)
+                       : (1.0f - tau_inf_initial / dtFloat * (1.0f - f1)) / (1.0f + tau_slope);
       float f3 = 1.0f - f1 - f2;
       l_V      = f1 * l_V + f2 * V_inf_initial + f3 * V_inf_final;
 

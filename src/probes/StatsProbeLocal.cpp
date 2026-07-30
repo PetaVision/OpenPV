@@ -21,16 +21,16 @@ StatsProbeLocal::calculateBatchElementStart<StatsBufferType::A>(int localBatchIn
    PVLayerLoc const *loc = getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
-   int numExtended       = nxExt * nyExt * loc->nf;
-   return findDataBufferA() + localBatchIndex * numExtended;
+   long numExtended      = (long)nxExt * (long)nyExt * (long)loc->nf;
+   return &findDataBufferA()[localBatchIndex * numExtended];
 }
 
 template <>
 float const *
 StatsProbeLocal::calculateBatchElementStart<StatsBufferType::V>(int localBatchIndex) const {
    PVLayerLoc const *loc = getLayerLoc();
-   int numNeurons        = loc->nx * loc->ny * loc->nf;
-   return findDataBufferV() + localBatchIndex * numNeurons;
+   long numNeurons       = (long)loc->nx * (long)loc->ny * (long)loc->nf;
+   return &findDataBufferV()[localBatchIndex * numNeurons];
 }
 
 void StatsProbeLocal::calculateStats(double simTime, ProbeData<LayerStats> &values) const {
@@ -105,15 +105,15 @@ void StatsProbeLocal::storeValues(double simTime) {
 }
 
 template <>
-int StatsProbeLocal::calculateOffset<StatsBufferType::A>(int k) const {
+long StatsProbeLocal::calculateOffset<StatsBufferType::A>(long k) const {
    PVLayerLoc const *loc = getLayerLoc();
-   int kExt              = kIndexExtended(
+   long kExt             = kIndexExtended(
          k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
    return kExt;
 }
 
 template <>
-int StatsProbeLocal::calculateOffset<StatsBufferType::V>(int k) const {
+long StatsProbeLocal::calculateOffset<StatsBufferType::V>(long k) const {
    return k;
 }
 

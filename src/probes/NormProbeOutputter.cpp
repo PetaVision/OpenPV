@@ -25,7 +25,7 @@ void NormProbeOutputter::initialize(
 
 void NormProbeOutputter::printGlobalNormsBuffer(
       ProbeDataBuffer<double> const &storedValues,
-      int numNeurons) {
+      long numNeurons) {
    if (getTextOutputFlag()) {
       if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
          printToFiles(storedValues, numNeurons);
@@ -40,13 +40,13 @@ void NormProbeOutputter::printGlobalNormsBuffer(
 void NormProbeOutputter::printNorm(
       std::shared_ptr<PrintStream> printStreamPtr,
       double timestamp,
-      int numNeurons,
+      long numNeurons,
       int batchIndex,
       double norm) {
-   printStreamPtr->printf("%6.3f, %d, %8d, %f\n", timestamp, batchIndex, numNeurons, norm);
+   printStreamPtr->printf("%6.3f, %d, %8ld, %f\n", timestamp, batchIndex, numNeurons, norm);
 }
 
-void NormProbeOutputter::printToFiles(ProbeDataBuffer<double> const &storedValues, int numNeurons) {
+void NormProbeOutputter::printToFiles(ProbeDataBuffer<double> const &storedValues, long numNeurons) {
    pvAssert(getProbeOutputFilename() != nullptr and getProbeOutputFilename()[0] != '\0');
 #ifdef PV_USE_MPI
    if (getCommunicator()->commRank() != 0) {
@@ -106,7 +106,7 @@ void NormProbeOutputter::printToFiles(ProbeDataBuffer<double> const &storedValue
 #endif // PV_USE_MPI
 }
 
-void NormProbeOutputter::printToLog(ProbeDataBuffer<double> const &storedValues, int numNeurons) {
+void NormProbeOutputter::printToLog(ProbeDataBuffer<double> const &storedValues, long numNeurons) {
    pvAssert(getProbeOutputFilename() == nullptr or getProbeOutputFilename()[0] == '\0');
    int rank = getCommunicator()->commRank();
    if (rank == 0) {

@@ -69,14 +69,14 @@ int checkOutput(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          status != PV_SUCCESS, "Output and CheckOutput have different dimensions. Test failed.\n");
 
-   int N = correctData->getBufferSizeAcrossBatch();
+   long N = correctData->getBufferSizeAcrossBatch();
    assert(observedData->getBufferSizeAcrossBatch() == N);
    float const *observed = observedData->getBufferData();
    float const *correct = correctData->getBufferData();
-   for (int n = 0; n < N; ++n) {
+   for (long n = 0; n < N; ++n) {
       if (observed[n] != correct[n]) {
          ErrorLog().printf(
-               "Output and CheckOutput data buffers differ at index %d (%f versus %f)\n",
+               "Output and CheckOutput data buffers differ at index %ld (%f versus %f)\n",
                n, static_cast<double>(observed[n]), static_cast<double>(correct[n]));
          status = PV_FAILURE;
       }

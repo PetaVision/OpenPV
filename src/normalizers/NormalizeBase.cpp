@@ -179,7 +179,7 @@ int NormalizeBase::accumulateSum(float *dataPatchStart, long weights_in_patch, f
    // Do not call with sum uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
-   for (int k = 0; k < weights_in_patch; k++) {
+   for (long k = 0; k < weights_in_patch; k++) {
       float w = dataPatchStart[k];
       *sum += w;
    }
@@ -213,7 +213,7 @@ int NormalizeBase::accumulateSumSquared(float *dataPatchStart, long weights_in_p
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
-   for (int k = 0; k < weights_in_patch; k++) {
+   for (long k = 0; k < weights_in_patch; k++) {
       float w = dataPatchStart[k];
       *sumsq += w * w;
    }

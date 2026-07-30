@@ -32,8 +32,10 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    pvAssert(
          inLoc->halo.lt == 1 and inLoc->halo.rt == 1 and inLoc->halo.dn == 1
          and inLoc->halo.up == 1);
-   int const numExtended = inLayerData->getNumExtended();
-   FatalIf(numExtended != (inLoc->nx + 1 + 1) * (inLoc->ny + 1 + 1) * inLoc->nf, "Test failed.\n");
+   long const numExtended = inLayerData->getNumExtended();
+   FatalIf(
+         numExtended != (long)(inLoc->nx + 1 + 1) * (long)(inLoc->ny + 1 + 1) * (long)inLoc->nf,
+         "Test failed.\n");
 
    InfoLog().flush();
    MPI_Barrier(hc->getCommunicator()->communicator());

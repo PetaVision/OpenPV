@@ -49,7 +49,7 @@ class SparseList {
    }
 
    void toBuffer(Buffer<T> &dest, T zeroVal) {
-      uint32_t numElements = dest.getTotalElements();
+      long numElements = dest.getTotalElements();
       vector<T> newData(numElements, zeroVal);
       for (auto entry : mContents) {
          FatalIf(

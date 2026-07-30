@@ -127,7 +127,7 @@ int TestNonshared(
          patchSizeFPost);
    FatalIf(
          numPatchItemsPost != (long)patchSizeXPost * (long)patchSizeYPost * (long)patchSizeFPost,
-         "%s has transposeWeights overall patch size of %d, when it should be %d.\n",
+         "%s has transposeWeights overall patch size of %ld, when it should be %ld.\n",
          testName.c_str(),
          numPatchItemsPost,
          (long)patchSizeXPost * (long)patchSizeYPost * (long)patchSizeFPost);
@@ -200,17 +200,17 @@ int TestNonshared(
                int const kernelXPost = kxGlobalResPost % geometryPost->getNumKernelsX();
                int const kernelYPost = kyGlobalResPost % geometryPost->getNumKernelsY();
                int const kernelFPost = kfGlobalResPost;
-               int const kernelPost  = kIndex(
+               long const kernelPost  = kIndex(
                      kernelXPost,
                      kernelYPost,
                      kernelFPost,
                      geometryPost->getNumKernelsX(),
                      geometryPost->getNumKernelsY(),
                      geometryPost->getNumKernelsF());
-               int const itemIndexPre =
-                     geometryPost->getTransposeItemIndex(kernelPost, itemInPatchPost);
+               long const itemIndexPre =
+                     (long)geometryPost->getTransposeItemIndex((int)kernelPost, itemInPatchPost);
 
-               int const kGlobalResPre = kIndex(
+               long const kGlobalResPre = kIndex(
                      kxGlobalResPre,
                      kyGlobalResPre,
                      kfGlobalResPre,
@@ -218,8 +218,8 @@ int TestNonshared(
                      preLoc.nyGlobal,
                      preLoc.nf);
 
-               int const patchSizePre = originalWeights.getPatchSizeOverall();
-               correctValue           = (float)(1 + itemIndexPre + kGlobalResPre * patchSizePre);
+               long const patchSizePre = originalWeights.getPatchSizeOverall();
+               correctValue            = (float)(1 + itemIndexPre + kGlobalResPre * patchSizePre);
             }
             else {
                correctValue = 0.0f;

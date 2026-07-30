@@ -49,8 +49,8 @@ void LeakyIntegratorBuffer::updateBufferCPU(double simTime, double deltaTime) {
    float *V          = mBufferData.data();
 
    float decayfactor                 = std::exp(-(float)deltaTime / mIntegrationTime);
-   float const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+   long const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
       V[k] *= decayfactor;
       V[k] += gSyn[k];
    }

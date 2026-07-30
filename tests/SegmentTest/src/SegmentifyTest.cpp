@@ -57,7 +57,7 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
       // Should never get here
       FatalIf(!(0), "Test failed.\n");
    }
-   return returnLabel;
+   return (float)returnLabel;
 }
 
 int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal) {

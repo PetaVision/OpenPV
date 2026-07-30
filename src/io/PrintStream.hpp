@@ -26,7 +26,7 @@ class PrintStream {
       int chars_needed = vsnprintf(nullptr, 0, fmt, args1) + 1; // +1 for null terminator
       char output_string[chars_needed];
 #ifdef NDEBUG
-      vsnprintf(output_string, chars_needed, fmt, args2);
+      vsnprintf(output_string, std::size_t(chars_needed), fmt, args2);
 #else
       int chars_printed = vsnprintf(output_string, chars_needed, fmt, args2) + 1;
       pvAssert(chars_printed == chars_needed);

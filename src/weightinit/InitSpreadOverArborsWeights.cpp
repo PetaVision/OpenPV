@@ -70,7 +70,7 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(float *dataStart, int a
 
             float weight = 0;
             if (xp * xp + yp * yp < 1e-4f) {
-               weight = mWeightInit / nArbors;
+               weight = mWeightInit / (float)nArbors;
             }
             else {
                float theta2pi = atan2f(yp, xp) / (2 * PI);
@@ -81,15 +81,16 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(float *dataStart, int a
                   theta2pi -= 1; // theta2pi should be in the range [0,1) but roundoff could make it
                   // exactly 1
                }
-               float zone = theta2pi * nArbors;
+               float zone = theta2pi * (float)nArbors;
 
-               float intpart;
-               float fracpart = modff(zone, &intpart);
-               assert(intpart >= 0 && intpart < nArbors && fracpart >= 0 && fracpart < 1);
+               float intpartf;
+               float fracpart = std::modf(zone, &intpartf);
+               int intpart    = (int)intpartf;
+               assert(intpart >= 0 && intpart < nArbors && fracpart >= 0.0f && fracpart < 1.0f);
                if (intpart == arborId) {
                   weight = mWeightInit * (1 - fracpart);
                }
-               else if ((int)(intpart - arborId + 1) % nArbors == 0) {
+               else if ( (intpart - arborId + 1) % nArbors == 0 ) {
                   weight = mWeightInit * fracpart;
                }
             }

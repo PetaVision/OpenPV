@@ -12,7 +12,7 @@ using PV::kIndex;
 //
 // A replacement for globalIndexFromLocal from conversions.hpp.
 // WARNING - any changes in conversions.hpp should be reflected here.
-static inline int globalIndexFromLocal_nompi(int kl, PVLayerLoc loc) {
+static inline long globalIndexFromLocal_nompi(long kl, PVLayerLoc loc) {
    int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
    int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
    int kf  = featureIndex(kl, loc.nx, loc.ny, loc.nf);
@@ -21,7 +21,7 @@ static inline int globalIndexFromLocal_nompi(int kl, PVLayerLoc loc) {
 
 int main(int argc, char *argv[]) {
    PVLayerLoc loc;
-   int kl, kg;
+   long kl, kg;
    int kx, ky, kf, kxg, kyg, kfg;
 #ifdef FEATURES_LAST
    int ij;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
    loc.nxGlobal = nx;
    loc.nyGlobal = ny;
 
-   for (kl = 0; kl < nx * ny * nf; kl++) {
+   for (kl = 0; kl < (long)nx * (long)ny * (long)nf; kl++) {
       kg = globalIndexFromLocal_nompi(kl, loc);
 
       if (kg != kl) {
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
    loc.kx0 = 32;
    loc.ky0 = 0;
 
-   loc.nxGlobal = 2.0 * nx;
+   loc.nxGlobal = 2 * nx;
    loc.nyGlobal = ny;
 
 #ifdef FEATURES_LAST
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
       }
    }
 #else
-   for (kl = 0; kl < nx * ny * nf; kl++) {
+   for (kl = 0; kl < (long)nx * (long)ny * (long)nf; kl++) {
       kx = kxPos(kl, loc.nx, loc.ny, nf);
       ky = kyPos(kl, loc.nx, loc.ny, nf);
       kf = featureIndex(kl, loc.nx, loc.ny, nf);
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
    loc.ky0 = 64;
 
    loc.nxGlobal = nx;
-   loc.nyGlobal = 2.0 * ny;
+   loc.nyGlobal = 2 * ny;
 
 #ifdef FEATURES_LAST
    for (kf = 0; kf < nf; kf++) {
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
       }
    }
 #else
-   for (kl = 0; kl < nx * ny * nf; kl++) {
+   for (kl = 0; kl < (long)nx * (long)ny * (long)nf; kl++) {
       kx = kxPos(kl, loc.nx, loc.ny, nf);
       ky = kyPos(kl, loc.nx, loc.ny, nf);
       kf = featureIndex(kl, loc.nx, loc.ny, nf);
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
    loc.nxGlobal = nx;
    loc.nyGlobal = ny;
 
-   for (kl = 0; kl < nx * ny * nf; kl++) {
+   for (kl = 0; kl < (long)nx * (long)ny * (long)nf; kl++) {
       kg = globalIndexFromLocal_nompi(kl, loc);
 
       if (kg != kl) {

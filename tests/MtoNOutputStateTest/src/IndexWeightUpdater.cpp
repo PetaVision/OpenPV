@@ -37,7 +37,7 @@ void IndexWeightUpdater::updateState(double simTime, double dt) {
       for (long patchIndex = 0L; patchIndex < numDataPatches; patchIndex++) {
          float *Wdata = mWeights->getDataFromDataIndex(arbor, patchIndex);
          for (long kPatch = 0L; kPatch < nPatch; kPatch++) {
-            Wdata[kPatch] = static_cast<long>(patchIndex * nPatch + kPatch) + simTime;
+            Wdata[kPatch] = (float)((double)(patchIndex * nPatch + kPatch) + simTime);
          }
       }
    }

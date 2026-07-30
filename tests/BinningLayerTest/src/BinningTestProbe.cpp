@@ -127,7 +127,7 @@ BinningTestProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> mes
                // that if origIndex==255, F index should be 31.
                float binnedIndex =
                      std::floor((float)origIndexGlobal / 255.0f * 32.0f) - (origIndexGlobal == 255);
-               float correctValue = iF == binnedIndex;
+               float correctValue = ((float)iF == binnedIndex ? 1.0f : 0.0f);
                FatalIf(
                      observedValue != correctValue,
                      "%s, extended global location x=%d, y=%d, f=%d, expected %f, observed %f.\n",
@@ -140,7 +140,7 @@ BinningTestProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> mes
             }
             else {
                // Map feature index to the center of its bin
-               float binCenter = ((float)iF + 0.5f) / nf; // Assumes maxBin is 1 and minBin is zero
+               float binCenter = ((float)iF + 0.5f) / (float)nf; // Assumes maxBin=1 and minBin=0
                // Determine number of bins away the input value is from the bin center
                float inputValue   = (float)origIndexGlobal / 255.0f;
                float binOffset    = (binCenter - inputValue) * (float)loc->nf;

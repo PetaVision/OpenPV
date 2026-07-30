@@ -41,13 +41,13 @@ void ErrScaleInternalStateBuffer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
 void ErrScaleInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
    HyPerInternalStateBuffer::updateBufferCPU(simTime, deltaTime);
 
-   float *V                  = mBufferData.data();
-   int numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
-   float const errScale      = mErrScale;
+   float *V                   = mBufferData.data();
+   long numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
+   float const errScale       = mErrScale;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
       V[k] *= errScale;
    }
 }

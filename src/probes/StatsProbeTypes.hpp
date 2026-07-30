@@ -15,15 +15,15 @@ struct LayerStats {
       mSumSquared = 0.0;
       mMin        = FLT_MAX;
       mMax        = -FLT_MAX;
-      mNumNeurons = 0;
-      mNumNonzero = 0; // number outside of threshold
+      mNumNeurons = 0L;
+      mNumNonzero = 0L; // number outside of threshold
    }
    double mSum;
    double mSumSquared;
    float mMin;
    float mMax;
-   int mNumNeurons;
-   int mNumNonzero; // number outside of threshold
+   long mNumNeurons;
+   long mNumNonzero; // number outside of threshold
 
    double average() const { return mSum / static_cast<double>(mNumNeurons); }
 

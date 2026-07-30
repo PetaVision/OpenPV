@@ -15,16 +15,16 @@
 namespace PVCuda {
 
 CudaKernel::CudaKernel(CudaDevice *inDevice) {
-   argsSet      = false;
-   dimsSet      = false;
-   this->device = inDevice;
-   mKernelName  = nullptr;
+   argsSet     = false;
+   dimsSet     = false;
+   mDevice     = inDevice;
+   mKernelName = nullptr;
 }
 
 CudaKernel::CudaKernel() {
    argsSet     = false;
    dimsSet     = false;
-   device      = NULL;
+   mDevice     = nullptr;
    mKernelName = nullptr;
 }
 
@@ -94,24 +94,24 @@ void CudaKernel::setDims(
       long lWorkSizeY,
       long lWorkSizeZ,
       bool error) {
-   assert(device);
+   assert(mDevice);
    if (error) {
       assert(gWorkSizeX % lWorkSizeX == 0);
       assert(gWorkSizeY % lWorkSizeY == 0);
       assert(gWorkSizeZ % lWorkSizeZ == 0);
    }
-   long gridSizeX = std::ceil((float)gWorkSizeX / lWorkSizeX);
-   long gridSizeY = std::ceil((float)gWorkSizeY / lWorkSizeY);
-   long gridSizeZ = std::ceil((float)gWorkSizeZ / lWorkSizeZ);
+   unsigned int gridSizeX = (unsigned int)std::ceil((float)gWorkSizeX / (float)lWorkSizeX);
+   unsigned int gridSizeY = (unsigned int)std::ceil((float)gWorkSizeY / (float)lWorkSizeY);
+   unsigned int gridSizeZ = (unsigned int)std::ceil((float)gWorkSizeZ / (float)lWorkSizeZ);
 
-   int max_grid_size_x = device->get_max_grid_size_dimension(0);
+   unsigned int max_grid_size_x = mDevice->get_max_grid_size_dimension(0);
    if (gridSizeX > max_grid_size_x) {
       Fatal().printf(
             "run: global work size x %ld is bigger than allowed grid size x %d\n",
             gridSizeX,
             max_grid_size_x);
    }
-   int max_grid_size_y = device->get_max_grid_size_dimension(1);
+   int max_grid_size_y = mDevice->get_max_grid_size_dimension(1);
    if (gridSizeY > max_grid_size_y) {
       Fatal().printf(
             "run: global work size y %ld is bigger than allowed grid size y %d\n",
@@ -119,7 +119,7 @@ void CudaKernel::setDims(
             max_grid_size_y);
    }
 
-   int max_grid_size_z = device->get_max_grid_size_dimension(2);
+   int max_grid_size_z = mDevice->get_max_grid_size_dimension(2);
    if (gWorkSizeZ > max_grid_size_z) {
       Fatal().printf(
             "run: global work size f %ld is bigger than allowed grid size f %d\n",
@@ -127,7 +127,7 @@ void CudaKernel::setDims(
             max_grid_size_z);
    }
 
-   int max_threads      = device->get_max_threads();
+   int max_threads      = mDevice->get_max_threads();
    long local_work_size = lWorkSizeX * lWorkSizeY * lWorkSizeZ;
    if (local_work_size > max_threads) {
       Fatal().printf(
@@ -136,7 +136,7 @@ void CudaKernel::setDims(
             max_threads);
    }
 
-   int max_threads_x = device->get_max_block_size_dimension(0);
+   int max_threads_x = mDevice->get_max_block_size_dimension(0);
    if (lWorkSizeX > max_threads_x) {
       Fatal().printf(
             "run: local_work_size_x %ld is bigger than allowed thread size x %d\n",
@@ -144,7 +144,7 @@ void CudaKernel::setDims(
             max_threads_x);
    }
 
-   int max_threads_y = device->get_max_block_size_dimension(1);
+   int max_threads_y = mDevice->get_max_block_size_dimension(1);
    if (lWorkSizeY > max_threads_y) {
       Fatal().printf(
             "run: local_work_size_y %ld is bigger than allowed thread size y %d\n",
@@ -152,7 +152,7 @@ void CudaKernel::setDims(
             max_threads_y);
    }
 
-   int max_threads_z = device->get_max_block_size_dimension(2);
+   int max_threads_z = mDevice->get_max_block_size_dimension(2);
    if (lWorkSizeZ > max_threads_z) {
       Fatal().printf(
             "run: local_work_size_f %ld is bigger than allowed thread size f %d\n",
@@ -163,9 +163,9 @@ void CudaKernel::setDims(
    grid_size.x  = gridSizeX;
    grid_size.y  = gridSizeY;
    grid_size.z  = gridSizeZ;
-   block_size.x = lWorkSizeX;
-   block_size.y = lWorkSizeY;
-   block_size.z = lWorkSizeZ;
+   block_size.x = (unsigned int)lWorkSizeX;
+   block_size.y = (unsigned int)lWorkSizeY;
+   block_size.z = (unsigned int)lWorkSizeZ;
    dimsSet      = true;
 }
 

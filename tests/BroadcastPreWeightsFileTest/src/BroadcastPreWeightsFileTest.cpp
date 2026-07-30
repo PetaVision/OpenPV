@@ -218,7 +218,10 @@ buildWeightHeader(std::shared_ptr<WeightData> weightData, double timestamp) {
    weightHeader.minVal = minWeight;
    weightHeader.maxVal = maxWeight;
 
-   weightHeader.numPatches = weightData->getNumDataPatchesOverall();
+   long numPatchesL = weightData->getNumDataPatchesOverall();
+   int numPatches   = static_cast<int>(numPatchesL);
+   assert(static_cast<long>(numPatches) == numPatchesL); // overflow shouldn't happen here
+   weightHeader.numPatches = numPatches;
 
    return weightHeader;
 }
@@ -772,7 +775,8 @@ std::shared_ptr<WeightData> readUsingFileStreamPrimitives(
    auto mpiBlock = fileManager->getMPIBlock();
    std::shared_ptr<WeightData> gatheredWeightData = nullptr;
    if (fileStream) {
-      int numPatches = weightData->getNumDataPatchesOverall();
+      int numPatches = static_cast<int>(weightData->getNumDataPatchesOverall());
+      assert(static_cast<long>(numPatches) == weightData->getNumDataPatchesOverall());
       int nxpBlock = weightData->getPatchSizeX() * mpiBlock->getNumColumns();
       int nypBlock = weightData->getPatchSizeY() * mpiBlock->getNumRows();
       int nfp      = weightData->getPatchSizeF();
@@ -894,10 +898,6 @@ void writeUsingFileStreamPrimitives(
          minWeight = w < minWeight ? w : minWeight;
          maxWeight = w > maxWeight ? w : maxWeight;
       }
-      int nxpBlock   = gatheredWeightData->getPatchSizeX();
-      int nypBlock   = gatheredWeightData->getPatchSizeY();
-      int nfp        = gatheredWeightData->getPatchSizeF();
-      int numPatches = gatheredWeightData->getNumDataPatchesOverall();
 
       int frameSize = calcFrameSize(gatheredWeightData, nullptr /*mpiBlock*/);
       long int filePosition = static_cast<long int>(frameSize) * static_cast<long int>(frameNumber);

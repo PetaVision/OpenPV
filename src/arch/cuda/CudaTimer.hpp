@@ -22,12 +22,12 @@ namespace PVCuda {
  */
 class CudaTimer : public PV::Timer {
   public:
-   CudaTimer(const char *timermessage, double init_time = 0.0);
+   CudaTimer(const char *timermessage, uint64_t init_time = 0);
    CudaTimer(
          const char *objname,
          const char *objtype,
          const char *timertype,
-         double init_time = 0.0);
+         uint64_t init_time = 0);
    virtual ~CudaTimer();
 
    /**

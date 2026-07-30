@@ -26,14 +26,14 @@ ReceiveFromPostProbe::ReceiveFromPostProbe(
 
 void ReceiveFromPostProbe::checkStats() {
    auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   int numExtNeurons        = publisherComponent->getNumExtended();
+   long numExtNeurons       = publisherComponent->getNumExtended();
    const float *A           = publisherComponent->getLayerData();
    bool failed              = false;
-   for (int i = 0; i < numExtNeurons; i++) {
+   for (long i = 0; i < numExtNeurons; i++) {
       // For roundoff errors
       if (std::fabs(A[i]) >= mTolerance) {
          ErrorLog().printf(
-               "%s activity outside of tolerance %f: extended index %d has activity %f\n",
+               "%s activity outside of tolerance %f: extended index %ld has activity %f\n",
                getDescription_c(),
                (double)mTolerance,
                i,

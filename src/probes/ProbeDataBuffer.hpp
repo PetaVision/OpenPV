@@ -14,8 +14,7 @@ namespace PV {
 template <typename T>
 class ProbeDataBuffer {
   public:
-   typedef typename std::vector<ProbeData<T>>::size_type size_type;
-   ProbeDataBuffer(size_type batchWidth);
+   ProbeDataBuffer(unsigned int batchWidth);
    ProbeDataBuffer();
    ~ProbeDataBuffer() {}
 
@@ -26,31 +25,31 @@ class ProbeDataBuffer {
    std::vector<char> pack() const;
    static ProbeDataBuffer<T> unpack(std::vector<char> const &packedData);
 
-   size_type size() const { return mBuffer.size(); }
+   unsigned int size() const { return (unsigned int)mBuffer.size(); }
 
    void store(ProbeData<T> const &newData);
 
    std::vector<ProbeData<T>> &getBuffer() { return mBuffer; }
    std::vector<ProbeData<T>> const &getBuffer() const { return mBuffer; }
 
-   size_type getBatchWidth() const { return mBatchWidth; }
+   unsigned int getBatchWidth() const { return mBatchWidth; }
 
    ProbeData<T> &getData(int a) { return mBuffer.at(a); }
    ProbeData<T> const &getData(int a) const { return mBuffer.at(a); }
 
    double getTimestamp(int a) const { return mBuffer.at(a).getTimestamp(); }
-   typename std::vector<T>::size_type getBatchWidth() { return mBatchWidth; }
+   unsigned int getBatchWidth() { return mBatchWidth; }
 
    T &getValue(int a, int b) { return mBuffer.at(a).getValue(b); }
    T const &getValue(int a, int b) const { return mBuffer.at(a).getValue(b); }
 
   private:
    std::vector<ProbeData<T>> mBuffer;
-   size_type mBatchWidth;
+   unsigned int mBatchWidth;
 };
 
 template <typename T>
-ProbeDataBuffer<T>::ProbeDataBuffer(size_type batchWidth) {
+ProbeDataBuffer<T>::ProbeDataBuffer(unsigned int batchWidth) {
    mBatchWidth = batchWidth;
 }
 
@@ -75,15 +74,15 @@ void ProbeDataBuffer<T>::clear() {
 
 template <typename T>
 std::vector<char> ProbeDataBuffer<T>::pack() const {
-   unsigned int bufferSize = size();
-   auto packedLength       = calcPackedSize(bufferSize, mBatchWidth);
+   unsigned int bufferSize   = static_cast<unsigned int>(size());
+   unsigned int batchWidth   = static_cast<unsigned int>(mBatchWidth);
+   unsigned int packedLength = calcPackedSize(bufferSize, batchWidth);
    std::vector<char> result(packedLength);
    memcpy(&result.at(0), &bufferSize, sizeof(unsigned int));
-   auto batchWidth = static_cast<unsigned int>(mBatchWidth);
    memcpy(&result.at(sizeof(unsigned int)), &batchWidth, sizeof(unsigned int));
    for (unsigned int k = 0; k < bufferSize; ++k) {
       std::vector<char> packedElement = mBuffer[k].pack();
-      unsigned int targetPosition     = calcPackedSize(k, mBatchWidth);
+      unsigned int targetPosition     = calcPackedSize(k, batchWidth);
       std::copy(packedElement.begin(), packedElement.end(), &result.at(targetPosition));
    }
    return result;
@@ -102,8 +101,8 @@ void ProbeDataBuffer<T>::store(ProbeData<T> const &newData) {
             (unsigned int)newData.size(),
             (unsigned int)mBatchWidth);
    }
-   double timestamp                              = newData.getTimestamp();
-   typename std::vector<T>::size_type batchWidth = newData.size();
+   double timestamp        = newData.getTimestamp();
+   unsigned int batchWidth = (unsigned int)newData.size();
    mBuffer.emplace_back(timestamp, batchWidth);
    auto *dest      = &mBuffer.back().getValue(0);
    auto const *src = &newData.getValue(0);

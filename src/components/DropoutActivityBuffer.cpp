@@ -55,14 +55,14 @@ Response::Status DropoutActivityBuffer::allocateDataStructures() {
 
 void DropoutActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    ANNActivityBuffer::updateBufferCPU(simTime, deltaTime);
-   float *A  = mBufferData.data();
-   int total = getBufferSizeAcrossBatch();
+   float *A   = mBufferData.data();
+   long total = getBufferSizeAcrossBatch();
 
    unsigned int probability = static_cast<unsigned int>(mProbability);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int i = 0; i < total; ++i) {
+   for (long i = 0L; i < total; ++i) {
       taus_uint4 *rng = mRandState->getRNG(i);
       *rng            = cl_random_get(*rng);
       if (rng->s0 % 100U < probability) {

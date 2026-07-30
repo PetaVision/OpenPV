@@ -172,19 +172,19 @@ void MaskActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    float *A              = mBufferData.data();
    const PVLayerLoc *loc = getLayerLoc();
 
-   int nx         = loc->nx;
-   int ny         = loc->ny;
-   int nf         = loc->nf;
-   int numNeurons = nx * ny * nf;
-   int nbatch     = loc->nbatch;
+   int nx          = loc->nx;
+   int ny          = loc->ny;
+   int nf          = loc->nf;
+   long numNeurons = (long)nx * (long)ny * (long)nf;
+   int nbatch      = loc->nbatch;
 
    for (int b = 0; b < nbatch; b++) {
-      float *ABatch = A + b * getBufferSize();
+      float *ABatch = &A[b * getBufferSize()];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int ni = 0; ni < numNeurons; ni++) {
-         int kThisExt = kIndexExtended(
+      for (long ni = 0L; ni < numNeurons; ni++) {
+         long kThisExt = kIndexExtended(
                ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          bool maskVal = true;
 
@@ -193,14 +193,14 @@ void MaskActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                const PVLayerLoc *maskLoc      = mMaskBuffer->getLayerLoc();
                float const *maskActivity      = mMaskBuffer->getBufferData();
                float const *maskActivityBatch = maskActivity + b * mMaskBuffer->getBufferSize();
-               int kMaskRes;
+               long kMaskRes;
                if (maskLoc->nf == 1) {
                   kMaskRes = ni / nf;
                }
                else {
                   kMaskRes = ni;
                }
-               int kMaskExt = kIndexExtended(
+               long kMaskExt = kIndexExtended(
                      kMaskRes,
                      nx,
                      ny,
@@ -215,14 +215,14 @@ void MaskActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                const PVLayerLoc *maskLoc      = mMaskBuffer->getLayerLoc();
                float const *maskActivity      = mMaskBuffer->getBufferData();
                float const *maskActivityBatch = maskActivity + b * mMaskBuffer->getBufferSize();
-               int kMaskRes;
+               long kMaskRes;
                if (maskLoc->nf == 1) {
                   kMaskRes = ni / nf;
                }
                else {
                   kMaskRes = ni;
                }
-               int kMaskExt = kIndexExtended(
+               long kMaskExt = kIndexExtended(
                      kMaskRes,
                      nx,
                      ny,

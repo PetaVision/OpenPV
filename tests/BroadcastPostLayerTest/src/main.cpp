@@ -48,9 +48,9 @@ int checkOutput(HyPerCol *hc, int argc, char *argv[]) {
       int nx = observedBuffer.getWidth();
       int ny = observedBuffer.getHeight();
       int nf = observedBuffer.getFeatures();
-      int N  = observedBuffer.getTotalElements();
+      long N = observedBuffer.getTotalElements();
 
-      for (int n = 0; n < N; ++n) {
+      for (long n = 0; n < N; ++n) {
          float observed = observedBuffer.at(n);
          int kf         = featureIndex(n, nx, ny, nf);
          float correct  = correctBuffer.at(kf);
@@ -58,7 +58,7 @@ int checkOutput(HyPerCol *hc, int argc, char *argv[]) {
             int kx = kxPos(n, nx, ny, nf);
             int ky = kyPos(n, nx, ny, nf);
             ErrorLog().printf(
-                  "Error in neuron %d: kx=%d, ky=%d, kf=%d; expected %d, observed %d\n",
+                  "Error in neuron %ld: kx=%d, ky=%d, kf=%d; expected %d, observed %d\n",
                   n,
                   kx,
                   ky,

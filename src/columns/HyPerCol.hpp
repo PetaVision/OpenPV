@@ -192,8 +192,8 @@ class HyPerCol : public Subject, public ParamsInterface {
    Communicator *getCommunicator() const { return mCommunicator; }
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
    long int getFinalStep() const { return mFinalStep; }
-   unsigned int getRandomSeed() { return mRandomSeed; }
-   unsigned int seedRandomFromWallClock();
+   unsigned long getRandomSeed() { return mRandomSeed; }
+   unsigned long seedRandomFromWallClock();
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
@@ -269,10 +269,10 @@ class HyPerCol : public Subject, public ParamsInterface {
    PV_Init *mPVInitObj;
    PVParams *mParams = nullptr; // manages input parameters
    std::ofstream mTimeScaleStream;
-   Timer *mBuildAndRunTimer = nullptr;
-   Timer *mBuildTimer       = nullptr;
-   Timer *mRunTimer         = nullptr;
-   unsigned int mRandomSeed = 0U;
+   Timer *mBuildAndRunTimer  = nullptr;
+   Timer *mBuildTimer        = nullptr;
+   Timer *mRunTimer          = nullptr;
+   unsigned long mRandomSeed = 0UL;
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice *mCudaDevice = nullptr; // object for running kernels on OpenCL device
 #endif

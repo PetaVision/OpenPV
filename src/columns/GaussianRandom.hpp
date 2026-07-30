@@ -28,12 +28,13 @@ class GaussianRandom : public Random {
    float gaussianDist(long localIndex, float mean, float sigma) {
       return mean + gaussianDist(localIndex) * sigma;
    }
-   void gaussianDist(float *values, long localIndex, int count = 1) {
-      for (int k   = 0; k < count; k++)
+   void gaussianDist(float *values, long localIndex, long count = 1L) {
+      for (long k = 0; k < count; k++) {
          values[k] = gaussianDist(localIndex + k);
+      }
    }
-   void gaussianDist(float *values, long localIndex, int count, float mean, float sigma) {
-      for (int k   = 0; k < count; k++)
+   void gaussianDist(float *values, long localIndex, long count, float mean, float sigma) {
+      for (long k = 0; k < count; k++)
          values[k] = gaussianDist(localIndex + k, mean, sigma);
    }
 
@@ -48,7 +49,7 @@ class GaussianRandom : public Random {
 
    // Member variables
   protected:
-   std::vector<box_muller_data> heldValues;
+   std::vector<box_muller_data> mHeldValues;
 };
 
 } /* namespace PV */

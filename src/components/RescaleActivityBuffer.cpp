@@ -179,8 +179,8 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    float *A                      = mBufferData.data();
    float const *originalA        = mOriginalBuffer->getBufferData();
    const PVLayerLoc *loc         = getLayerLoc();
-   int const numNeurons          = loc->nx * loc->ny * loc->nf;
-   int const numGlobalNeurons    = loc->nxGlobal * loc->nyGlobal * loc->nf;
+   long const numNeurons         = (long)loc->nx * (long)loc->ny * (long)loc->nf;
+   long const numGlobalNeurons   = (long)loc->nxGlobal * (long)loc->nyGlobal * (long)loc->nf;
    const PVLayerLoc *locOriginal = mOriginalBuffer->getLayerLoc();
    int nbatch                    = loc->nbatch;
    // Make sure all sizes match (this was checked in communicateInitInfo)
@@ -196,7 +196,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          float maxA = -1000000000;
          float minA = 1000000000;
          // Find max and min of A
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
@@ -222,7 +222,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kExt = kIndexExtended(
                      k,
                      loc->nx,
@@ -250,7 +250,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kExt = kIndexExtended(
                      k,
                      loc->nx,
@@ -260,7 +260,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                      loc->halo.rt,
                      loc->halo.dn,
                      loc->halo.up);
-               ABatch[kExt] = (float)0;
+               ABatch[kExt] = 0.0f;
             }
          }
       }
@@ -271,7 +271,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
@@ -286,13 +286,13 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 
          MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
 
-         float mean = sum / numGlobalNeurons;
+         float mean = sum / static_cast<float>(numGlobalNeurons);
 
 // Find (val - mean)^2 of originalA
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sumsq)
 #endif
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
@@ -307,7 +307,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
 
          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
-         float stdev = std::sqrt(sumsq / numGlobalNeurons);
+         float stdev = std::sqrt(sumsq / static_cast<float>(numGlobalNeurons));
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this way the stdev != 0.0 conditional is only evaluated once, not every
          // time through the for-loop.
@@ -315,7 +315,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kext = kIndexExtended(
                      k,
                      loc->nx,
@@ -342,7 +342,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kext = kIndexExtended(
                      k,
                      loc->nx,
@@ -366,13 +366,13 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
       }
       else if (mMethodCode == L2) {
-         float sum   = 0;
-         float sumsq = 0;
+         float sum   = 0.0f;
+         float sumsq = 0.0f;
 // Find sum of originalA
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
@@ -387,13 +387,13 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 
          MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
 
-         float mean = sum / numGlobalNeurons;
+         float mean = sum / static_cast<float>(numGlobalNeurons);
 
 // Find (val - mean)^2 of originalA
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sumsq)
 #endif
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
@@ -407,7 +407,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
 
          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
-         float stdev = std::sqrt(sumsq / numGlobalNeurons);
+         float stdev = std::sqrt(sumsq / static_cast<float>(numGlobalNeurons));
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this way the stdev != 0.0 conditional is only evaluated once, not every
          // time through the for-loop.
@@ -415,7 +415,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kext = kIndexExtended(
                      k,
                      loc->nx,
@@ -445,7 +445,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kext = kIndexExtended(
                      k,
                      loc->nx,
@@ -473,7 +473,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sumsq)
 #endif
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,
@@ -490,7 +490,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
 #endif // PV_USE_MPI
 
-         float stdev = std::sqrt(sumsq / numGlobalNeurons);
+         float stdev = std::sqrt(sumsq / static_cast<float>(numGlobalNeurons));
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this way the stdev != 0.0 conditional is only evaluated once, not every
          // time through the for-loop.
@@ -498,7 +498,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kext = kIndexExtended(
                      k,
                      loc->nx,
@@ -527,7 +527,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-            for (int k = 0; k < numNeurons; k++) {
+            for (long k = 0; k < numNeurons; k++) {
                long kext = kIndexExtended(
                      k,
                      loc->nx,
@@ -627,8 +627,8 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          for (int iY = 0; iY < ny; iY++) {
             for (int iX = 0; iX < nx; iX++) {
                // Find sum and sum sq in feature space
-               float sum   = 0;
-               float sumsq = 0;
+               float sum   = 0.0f;
+               float sumsq = 0.0f;
                for (int iF = 0; iF < nf; iF++) {
                   long kext = kIndex(
                         iX,
@@ -639,7 +639,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                         nf);
                   sum += originalABatch[kext];
                }
-               float mean = sum / nf;
+               float mean = sum / static_cast<float>(nf);
                for (int iF = 0; iF < nf; iF++) {
                   long kext = kIndex(
                         iX,
@@ -650,7 +650,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
                         nf);
                   sumsq += (originalABatch[kext] - mean) * (originalABatch[kext] - mean);
                }
-               float stdev = std::sqrt(sumsq / nf);
+               float stdev = std::sqrt(sumsq / static_cast<float>(nf));
                // Difference in the if-part and else-part is only in the value assigned to A[kext],
                // but this way the stdev != 0 conditional does not have to be reevaluated every
                // time through the for loop. Can't pragma omp parallel the for loops because it was
@@ -754,7 +754,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kext = kIndexExtended(
                   k,
                   loc->nx,
@@ -782,7 +782,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int k = 0; k < numNeurons; k++) {
+         for (long k = 0; k < numNeurons; k++) {
             long kextOriginal = kIndexExtended(
                   k,
                   locOriginal->nx,

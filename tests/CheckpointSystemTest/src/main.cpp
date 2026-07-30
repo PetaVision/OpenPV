@@ -102,7 +102,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
    if (rank == rootproc) {
-      int index = hc->getFinalStep();
+      long index = hc->getFinalStep();
       std::string cpdir1("checkpoints1");
       std::string cpdir2(hc->parameters()->stringValue("column", "checkpointWriteDir"));
       std::string checkpointName = std::string("Checkpoint") + std::to_string(index);

@@ -23,9 +23,10 @@ Publisher::Publisher(
       bool broadcastFlag) {
    mLayerCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
 
-   int const nxExt           = loc->nx + loc->halo.lt + loc->halo.rt;
-   int const nyExt           = loc->ny + loc->halo.dn + loc->halo.up;
-   int const numItemsInBatch = nxExt * nyExt * loc->nf; // number of items in one batch element.
+   int const nxExt            = loc->nx + loc->halo.lt + loc->halo.rt;
+   int const nyExt            = loc->ny + loc->halo.dn + loc->halo.up;
+   long const numItemsInBatch = (long)nxExt * (long)nyExt * (long)loc->nf;
+   // number of items in one batch element.
 
    mLayerCube->numItems      = numItemsInBatch * loc->nbatch; // number of items across the batch.
    mLayerCube->data          = data;
@@ -108,7 +109,7 @@ int Publisher::publish(double lastUpdateTime) {
    // This means that everyone should wait as well.
    //
 
-   size_t dataSize = mLayerCube->numItems * sizeof(float);
+   std::size_t dataSize = static_cast<std::size_t>(mLayerCube->numItems) * sizeof(float);
 
    float const *sendBuf = mLayerCube->data;
    float *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
@@ -129,7 +130,7 @@ int Publisher::publish(double lastUpdateTime) {
 void Publisher::copyForward(double lastUpdateTime) {
    if (mStore->getNumLevels() > 1) {
       float *recvBuf  = recvBuffer(0); // Grab all of the buffer, allocated continuously
-      size_t dataSize = mLayerCube->numItems * sizeof(float);
+      std::size_t dataSize = static_cast<std::size_t>(mLayerCube->numItems) * sizeof(float);
       memcpy(recvBuf, recvBuffer(0 /*bufferId*/, 1), dataSize);
       mStore->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
       updateActiveIndices(0); // alternately, could copy active indices forward as well.

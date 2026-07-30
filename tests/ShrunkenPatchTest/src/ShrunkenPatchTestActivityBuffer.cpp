@@ -42,7 +42,7 @@ void ShrunkenPatchTestActivityBuffer::updateBufferCPU(double simTime, double del
 // set activity to global x/y/f position, using position in border/margin as required
 void ShrunkenPatchTestActivityBuffer::setActivityToGlobalPos() {
    PVLayerLoc const *loc = mLayerGeometry->getLayerLoc();
-   float xScaleLog2      = mLayerGeometry->getXScale();
+   int xScaleLog2        = mLayerGeometry->getXScale();
    float x0              = xOriginGlobal(xScaleLog2);
    float dx              = deltaX(xScaleLog2);
 
@@ -54,7 +54,7 @@ void ShrunkenPatchTestActivityBuffer::setActivityToGlobalPos() {
                              loc->nf)
                        - loc->halo.lt;
       int kxGlobalExt    = kxLocalExt + loc->kx0;
-      float x_global_pos = (x0 + dx * kxGlobalExt);
+      float x_global_pos = (x0 + dx * (float)kxGlobalExt);
       int kyLocalExt     = kyPos(kLocalExt,
                              loc->nx + loc->halo.lt + loc->halo.rt,
                              loc->ny + loc->halo.dn + loc->halo.up,

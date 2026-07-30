@@ -44,9 +44,9 @@ float const *CostFunctionSum<C>::calculateBatchElementStart(
       float const *buffer,
       PVLayerLoc const *loc,
       int batchIndex) const {
-   int nxExt       = loc->nx + loc->halo.lt + loc->halo.rt;
-   int nyExt       = loc->ny + loc->halo.dn + loc->halo.up;
-   int numExtended = nxExt * nyExt * loc->nf;
+   int nxExt        = loc->nx + loc->halo.lt + loc->halo.rt;
+   int nyExt        = loc->ny + loc->halo.dn + loc->halo.up;
+   long numExtended = (long)nxExt * (long)nyExt * (long)loc->nf;
    return &buffer[batchIndex * numExtended];
 }
 
@@ -95,12 +95,12 @@ CostFunctionSum<C>::calculateSumNoMask(float const *buffer, PVLayerLoc const *bu
 
    C const &costFunction = *(mCostFunction.get());
    double sum            = 0.0;
-   int const numNeurons  = nx * ny * nf;
+   long const numNeurons  = (long)nx *(long) ny *(long) nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
-   for (int k = 0; k < numNeurons; ++k) {
-      int kex  = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+   for (long k = 0; k < numNeurons; ++k) {
+      long kex  = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       double v = (double)buffer[kex];
       sum += costFunction(v);
    }
@@ -128,14 +128,14 @@ double CostFunctionSum<C>::calculateSumWithMask(
 
    C const &costFunction = *(mCostFunction.get());
    double sum            = 0.0;
-   int const numNeurons  = nx * ny * nf;
+   long const numNeurons  = (long)nx * (long)ny * (long)nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
-   for (int k = 0; k < numNeurons; ++k) {
-      int kexMask = kIndexExtended(k, nx, ny, nf, mask_lt, mask_rt, mask_dn, mask_up);
+   for (long k = 0; k < numNeurons; ++k) {
+      long kexMask = kIndexExtended(k, nx, ny, nf, mask_lt, mask_rt, mask_dn, mask_up);
       if (mask[kexMask] != 0.0f) {
-         int kex  = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+         long kex  = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          double v = (double)buffer[kex];
          sum += costFunction(v);
       }
@@ -164,16 +164,16 @@ double CostFunctionSum<C>::calculateSumWithSingleFeatureMask(
 
    C const &costFunction = *(mCostFunction.get());
    double sum            = 0.0;
-   int const nxny        = nx * ny;
+   long const nxny       = (long)nx * (long)ny;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
-   for (int k = 0; k < nxny; ++k) {
-      int kexMask = kIndexExtended(k, nx, ny, 1, mask_lt, mask_rt, mask_dn, mask_up);
+   for (long k = 0; k < nxny; ++k) {
+      long kexMask = kIndexExtended(k, nx, ny, 1, mask_lt, mask_rt, mask_dn, mask_up);
       if (mask[kexMask]) {
-         int const xyBase = k * nf;
+         long const xyBase = k * nf;
          for (int f = 0; f < nf; ++f) {
-            int kex  = kIndexExtended(xyBase + f, nx, ny, nf, lt, rt, dn, up);
+            long kex  = kIndexExtended(xyBase + f, nx, ny, nf, lt, rt, dn, up);
             double v = (double)buffer[kex];
             sum += costFunction(v);
          }

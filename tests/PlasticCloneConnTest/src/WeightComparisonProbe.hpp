@@ -65,7 +65,7 @@ class WeightComparisonProbe : public PV::ColProbe {
   private:
    std::vector<PV::ComponentBasedObject *> mConnectionList;
    int mNumArbors;
-   int mNumWeightsInArbor;
+   long mNumWeightsInArbor;
 }; // end class WeightComparisonProbe
 } // end namespace PV
 

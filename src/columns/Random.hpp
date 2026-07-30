@@ -39,19 +39,22 @@ class Random {
    float uniformRandom(long localIndex, float min, float max) {
       return min + uniformRandom(localIndex) * (max - min);
    }
-   void uniformRandom(float *values, long localIndex, int count = 1) {
-      for (int k   = 0; k < count; k++)
+   void uniformRandom(float *values, long localIndex, long count = 1L) {
+      for (long k = 0; k < count; k++) {
          values[k] = uniformRandom(localIndex + k);
+      }
    }
-   void uniformRandom(float *values, long localIndex, int count, float min, float max) {
-      for (int k   = 0; k < count; k++)
+   void uniformRandom(float *values, long localIndex, long count, float min, float max) {
+      for (long k = 0; k < count; k++) {
          values[k] = uniformRandom(localIndex + k, min, max);
+      }
    }
 
-   unsigned int randomUInt(long localIndex = 0);
-   void randomUInt(unsigned int *values, long localIndex, int count = 1) {
-      for (int k   = 0; k < count; k++)
+   unsigned int randomUInt(long localIndex = 0L);
+   void randomUInt(unsigned int *values, long localIndex, long count = 1L) {
+      for (long k = 0L; k < count; k++) {
          values[k] = randomUInt(localIndex + k);
+      }
    }
    static inline unsigned int randomUIntMax() { return CL_RANDOM_MAX; }
 

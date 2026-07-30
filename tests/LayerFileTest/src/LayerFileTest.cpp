@@ -481,21 +481,22 @@ std::vector<Buffer<float>> generateCorrectFileDataFrame1(
 
    int blockNxExtended = blockLayerLoc.nx + blockLayerLoc.halo.lt + blockLayerLoc.halo.rt;
    int blockNyExtended = blockLayerLoc.ny + blockLayerLoc.halo.dn + blockLayerLoc.halo.up;
-   int numNeuronsBlock = blockNxExtended * blockNyExtended * blockLayerLoc.nf;
+   long numNeuronsBlock =
+         (long)blockNxExtended * (long)blockNyExtended * (long)blockLayerLoc.nf;
 
    int globalNxExtended = blockLayerLoc.nxGlobal + blockLayerLoc.halo.lt + blockLayerLoc.halo.rt;
    int globalNyExtended = blockLayerLoc.nyGlobal + blockLayerLoc.halo.dn + blockLayerLoc.halo.up;
    int numNeuronsGlobal = globalNxExtended * globalNyExtended * blockLayerLoc.nf;
    for (int b = 0; b < blockBatchDimension; ++b) {
       correctData[b].resize(blockNxExtended, blockNyExtended, blockLayerLoc.nf);
-      for (int k = 0; k < numNeuronsBlock; ++k) {
-         int kf = k % nf;
-         int kx = (k / nf) % blockNxExtended + blockLayerLoc.kx0;
-         int ky = (k / (nf * blockNxExtended)) % blockNyExtended + blockLayerLoc.ky0;
-         int const kGlobal =
+      for (long k = 0; k < numNeuronsBlock; ++k) {
+         int kf = (int)(k % nf);
+         int kx = (int)((k / nf) % blockNxExtended) + blockLayerLoc.kx0;
+         int ky = (int)(k / (nf * blockNxExtended)) % blockNyExtended + blockLayerLoc.ky0;
+         long const kGlobal =
                kIndex(kx, ky, kf, globalNxExtended, globalNyExtended, blockLayerLoc.nf);
          int const batchIndexGlobal = blockLayerLoc.kb0 + b;
-         int const kGlobalAcrossBatch = kGlobal + batchIndexGlobal * numNeuronsGlobal;
+         long const kGlobalAcrossBatch = kGlobal + batchIndexGlobal * numNeuronsGlobal;
          correctData[b].set(k, static_cast<float>(kGlobalAcrossBatch));
       }
       if (!fileExtendedFlag) {
@@ -521,17 +522,17 @@ std::vector<Buffer<float>> generateLayerDataFrame1(
       globalHeight += layerLoc.halo.dn + layerLoc.halo.up;
    }
    int nf = layerLoc.nf;
-   int numNeurons = width * height * nf;
-   int numGlobalNeurons = globalWidth * globalHeight * nf;
+   long numNeurons = (long)width * (long)height * (long)nf;
+   long numGlobalNeurons = (long)globalWidth * (long)globalHeight * (long)nf;
    for (int b = 0; b < layerLoc.nbatch; ++b) {
       layerData[b].resize(width, height, nf);
-      for (int k = 0; k < numNeurons; ++k) {
-         int kf = k % nf;
-         int kx = (k / nf) % width + layerLoc.kx0;
-         int ky = (k / (nf * width)) % height + layerLoc.ky0;
-         int kGlobal = kIndex(kx, ky, kf, globalWidth, globalHeight, nf);
-         int kGlobalBatchIndex = b + layerLoc.kb0;
-         int kGlobalAcrossBatch = kGlobal + kGlobalBatchIndex * numGlobalNeurons;
+      for (long k = 0; k < numNeurons; ++k) {
+         int kf                  = (int)(k % nf);
+         int kx                  = (int)((k / nf) % width) + layerLoc.kx0;
+         int ky                  = (int)(k / (nf * width)) % height + layerLoc.ky0;
+         long kGlobal            = kIndex(kx, ky, kf, globalWidth, globalHeight, nf);
+         int kGlobalBatchIndex   = b + layerLoc.kb0;
+         long kGlobalAcrossBatch = kGlobal + kGlobalBatchIndex * numGlobalNeurons;
          layerData[b].set(k, static_cast<float>(kGlobalAcrossBatch));
       }
    }
@@ -554,21 +555,21 @@ std::vector<Buffer<float>> generateLayerDataFrame2(
       globalHeight += layerLoc.halo.dn + layerLoc.halo.up;
    }
    int nf = layerLoc.nf;
-   int numNeurons = width * height * nf;
-   int numGlobalNeurons = globalWidth * globalHeight * nf;
-   int numGlobalAcrossBatch = numGlobalNeurons * layerLoc.nbatchGlobal;
+   long numNeurons             = (long)width * (long)height * (long)nf;
+   long numGlobalNeurons       = (long)globalWidth * (long)globalHeight * (long)nf;
+   long numGlobalAcrossBatch   = numGlobalNeurons * layerLoc.nbatchGlobal;
    float numGlobalAcrossBatchF = static_cast<float>(numGlobalAcrossBatch);
    for (int b = 0; b < layerLoc.nbatch; ++b) {
       layerData[b].resize(width, height, nf);
-      for (int k = 0; k < numNeurons; ++k) {
-         int kf = k % nf;
-         int kx = (k / nf) % width + layerLoc.kx0;
-         int ky = (k / (nf * width)) % height + layerLoc.ky0;
-         int kGlobal = kIndex(kx, ky, kf, globalWidth, globalHeight, nf);
-         int kGlobalBatchIndex = b + layerLoc.kb0;
-         int kGlobalAcrossBatch = kGlobal + kGlobalBatchIndex * numGlobalNeurons;
+      for (long k = 0; k < numNeurons; ++k) {
+         int kf                    = (int)(k % nf);
+         int kx                    = (int)((k / nf) % width) + layerLoc.kx0;
+         int ky                    = ((int)(k / (nf * width)) % height + layerLoc.ky0);
+         long kGlobal              = kIndex(kx, ky, kf, globalWidth, globalHeight, nf);
+         int kGlobalBatchIndex     = b + layerLoc.kb0;
+         long kGlobalAcrossBatch   = kGlobal + kGlobalBatchIndex * numGlobalNeurons;
          float kGlobalAcrossBatchF = static_cast<float>(kGlobalAcrossBatch);
-         float val = 1.0f - kGlobalAcrossBatchF / numGlobalAcrossBatchF;
+         float val = 1.0f - kGlobalAcrossBatchF / static_cast<float>(numGlobalAcrossBatchF);
          layerData[b].set(k, val);
       }
    }
@@ -715,11 +716,11 @@ int verifyRead(
       if (layerBuffer.asVector() != fileBuffer.asVector()) {
          pvAssert(layerBuffer.getTotalElements() == fileBuffer.getTotalElements());
          ErrorLog().printf("verifyRead(): discrepancy in batch element %d:\n", b);
-         int numElements = static_cast<int>(layerBuffer.getTotalElements());
-         for (int k = 0; k < numElements; ++k) {
+         long numElements = layerBuffer.getTotalElements();
+         for (long k = 0L; k < numElements; ++k) {
             if (layerBuffer.at(k) != fileBuffer.at(k)) {
                ErrorLog().printf(
-                     "    neuron %d of dataFromLayer is %f; of dataFromFile is %f\n",
+                     "    neuron %ld of dataFromLayer is %f; of dataFromFile is %f\n",
                      k, (double)layerBuffer.at(k), (double)fileBuffer.at(k));
             }
          }

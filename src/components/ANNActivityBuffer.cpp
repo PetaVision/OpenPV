@@ -5,6 +5,7 @@
  *      Author: pschultz
  */
 
+#include <cassert>
 #include "ANNActivityBuffer.hpp"
 
 #undef PV_RUN_ON_GPU
@@ -164,9 +165,9 @@ void ANNActivityBuffer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
 }
 
 Response::Status ANNActivityBuffer::allocateDataStructures() {
-   // allocateVertices needs to be called before the base class allocateDataStructures
-   // because the base class calls allocateUpdateKernel, which creates CudaBuffers
-   // for the vertices and slopes.
+   // allocateVerticesAndSlopes() needs to be called before the base class allocateDataStructures()
+   // because the base class calls allocateUpdateKernel(), which creates CudaBuffers for the
+   // vertices and slopes.
    allocateVerticesAndSlopes();
 
    auto status = HyPerActivityBuffer::allocateDataStructures();
@@ -266,8 +267,8 @@ void ANNActivityBuffer::setVertices() {
    }
 
    // Initialize slopes to NaN so that we can tell whether they've been initialized.
-   mSlopeNegInf = std::numeric_limits<double>::quiet_NaN();
-   mSlopePosInf = std::numeric_limits<double>::quiet_NaN();
+   mSlopeNegInf = std::numeric_limits<float>::quiet_NaN();
+   mSlopePosInf = std::numeric_limits<float>::quiet_NaN();
    std::vector<float> vectorV;
    std::vector<float> vectorA;
 
@@ -433,7 +434,7 @@ void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = getReadWritePointer();
    float const *V        = mInternalState->getBufferData();
-   int numNeurons        = mInternalState->getBufferSize();
+   long numNeurons       = mInternalState->getBufferSize();
    int nbatch            = loc->nbatch;
 
    if (mVerticesListInParams) {
@@ -489,7 +490,7 @@ void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 
 void ANNActivityBuffer::applyVThresh(
       int nbatch,
-      int numNeurons,
+      long numNeurons,
       float const *V,
       float VThresh,
       float AMin,
@@ -504,15 +505,17 @@ void ANNActivityBuffer::applyVThresh(
       int dn,
       int up) {
    if (VThresh > -FLT_MAX) {
+      long numExtended = (long)(nx + lt + rt) * (long)(ny + up + dn) * (long)nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int kbatch = 0; kbatch < numNeurons * nbatch; kbatch++) {
-         int b                = kbatch / numNeurons;
-         int k                = kbatch % numNeurons;
-         float const *VBatch  = V + b * numNeurons;
-         float *activityBatch = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
-         int kex              = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      for (long kbatch = 0; kbatch < numNeurons * nbatch; kbatch++) {
+         long b = kbatch / numNeurons;
+         assert(b >= 0L and b < (long)nbatch);
+         long k               = kbatch % numNeurons;
+         float const *VBatch  = &V[b * numNeurons];
+         float *activityBatch = &activity[b * numExtended];
+         long kex             = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          if (VBatch[k] < VThresh) {
             activityBatch[kex] = AMin;
          }
@@ -529,7 +532,7 @@ void ANNActivityBuffer::applyVThresh(
 
 void ANNActivityBuffer::applyAMax(
       int nbatch,
-      int numNeurons,
+      long numNeurons,
       float AMax,
       float *activity,
       int nx,
@@ -540,14 +543,16 @@ void ANNActivityBuffer::applyAMax(
       int dn,
       int up) {
    if (AMax < FLT_MAX) {
+      long numExtended = (long)(nx + lt + rt) * (long)(ny + up + dn) * (long)nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int kbatch = 0; kbatch < numNeurons * nbatch; kbatch++) {
-         int b                = kbatch / numNeurons;
-         int k                = kbatch % numNeurons;
-         float *activityBatch = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
-         int kex              = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      for (long kbatch = 0; kbatch < numNeurons * nbatch; kbatch++) {
+         long b = kbatch / numNeurons;
+         assert(b >= 0L and b < (long)nbatch);
+         long k               = kbatch % numNeurons;
+         float *activityBatch = &activity[b * numExtended];
+         long kex             = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          if (activityBatch[kex] > AMax) {
             activityBatch[kex] = AMax;
          }

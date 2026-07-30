@@ -69,13 +69,13 @@ class BorderExchange {
     * Returns the recv data offset for the given neighbor
     *  - recv into borders
     */
-   std::size_t recvOffset(int direction);
+   long recvOffset(int direction);
 
    /**
     * returns the send data offset for the given neighbor
     *  - send from interior
     */
-   std::size_t sendOffset(int direction);
+   long sendOffset(int direction);
 
    // Data members
   private:
