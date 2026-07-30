@@ -140,7 +140,7 @@ void bicubicInterp(
    }
 
    // We increment-add as we interpolate, so we need to set the output buffer to zero at the start.
-   std::fill_n(bufferOut, widthOut * heightOut * numBands, 0.0f);
+   std::fill_n(bufferOut, (long)widthOut * (long)heightOut * (long)numBands, 0.0f);
 
    for (int xOff = 2; xOff > -2; xOff--) {
       for (int yOff = 2; yOff > -2; yOff--) {

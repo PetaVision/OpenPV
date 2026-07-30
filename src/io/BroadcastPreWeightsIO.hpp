@@ -200,7 +200,7 @@ class BroadcastPreWeightsIO {
     * values set by the constructor.
     */
    long getPatchSizeOverall() const {
-      return static_cast<long>(mPatchSizeX * mPatchSizeY * mPatchSizeF);
+      return (long)mPatchSizeX * (long)mPatchSizeY * (long)mPatchSizeF;
    }
 
 

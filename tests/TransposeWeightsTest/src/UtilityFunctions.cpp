@@ -140,7 +140,7 @@ Weights createOriginalWeights(
    FatalIf(
          numKernelsPre != xStride * yStride * preLoc.nf,
          "originalWeights should have numKernelsPre=%d; value was %d.\n",
-         preLoc.nf,
+         xStride * yStride * preLoc.nf,
          numKernelsPre);
 
    long const numPatchItemsPre = originalWeights.getPatchSizeOverall();

@@ -63,7 +63,9 @@ class LocalPatchWeightsFile : public WeightsFile {
    int getPatchSizeX() const { return mPatchSizeX; }
    int getPatchSizeY() const { return mPatchSizeY; }
    int getPatchSizeF() const { return mPatchSizeF; }
-   long getPatchSizeOverall() const { return mPatchSizeX * mPatchSizeY * mPatchSizeF; }
+   long getPatchSizeOverall() const {
+      return (long)mPatchSizeX * (long)mPatchSizeY * (long)mPatchSizeF;
+   }
    int getNxRestrictedPre() const { return mPreLayerLoc.nx; }
    int getNyRestrictedPre() const { return mPreLayerLoc.ny; }
    int getNxExtendedPre() const {
