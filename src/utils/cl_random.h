@@ -31,7 +31,7 @@ struct box_muller_state {
    float last_value;
 };
 
-int cl_random_init(taus_uint4 *state, size_t count, unsigned int seed);
+int cl_random_init(taus_uint4 *state, size_t count, unsigned long seed);
 taus_uint4 cl_random_get(taus_uint4 state);
 static inline double cl_random_max() { return (double)CL_RANDOM_MAX; }
 float cl_box_muller(float m, float s, struct box_muller_state *bm_state);

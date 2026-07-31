@@ -90,11 +90,11 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
-   int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
-   int const nyPreExtended  = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int const numPreExtended = nxPreExtended * nyPreExtended * preLoc->nf;
+   int const nxPreExtended   = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
+   int const nyPreExtended   = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+   long const numPreExtended = (long)nxPreExtended * (long)nyPreExtended * (long)preLoc->nf;
 
-   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+   long const numPostRestricted = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
 
    int nbatch = preLoc->nbatch;
    pvAssert(nbatch == postLoc->nbatch);
@@ -111,10 +111,10 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 
       for (int b = 0; b < nbatch; b++) {
          size_t batchOffset                                 = b * numPreExtended;
-         float const *activityBatch                         = activityCube.data + batchOffset;
-         float *gSynPatchHeadBatch                          = postChannel + b * numPostRestricted;
+         float const *activityBatch                         = &activityCube.data[batchOffset];
+         float *gSynPatchHeadBatch                          = &postChannel[b * numPostRestricted];
          SparseList<float>::Entry const *activeIndicesBatch = nullptr;
-         int numNeurons;
+         long numNeurons;
          if (preLayerIsSparse) {
             activeIndicesBatch =
                   (SparseList<float>::Entry *)activityCube.activeIndices + batchOffset;
@@ -134,8 +134,8 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-               for (int idx = 0; idx < numNeurons; idx++) {
-                  int kPreExt = idx;
+               for (long idx = 0; idx < numNeurons; idx++) {
+                  long kPreExt = idx;
 
                   // Weight
                   Patch const *patch = &weights->getPatch(kPreExt);
@@ -176,8 +176,8 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-               for (int idx = 0; idx < numNeurons; idx++) {
-                  int kPreExt = activeIndicesBatch[idx].index;
+               for (long idx = 0; idx < numNeurons; idx++) {
+                  long kPreExt = activeIndicesBatch[idx].index;
 
                   // Weight
                   Patch const *patch = &weights->getPatch(kPreExt);
@@ -221,7 +221,7 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
-   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+   long const numPostRestricted = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
 
    int nbatch = postLoc->nbatch;
 
@@ -234,8 +234,8 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
       PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
-         float *recvBatch = recvBuffer + b * numPostRestricted;
-         int numNeurons   = activityCube.numItems / activityCube.loc.nbatch;
+         float *recvBatch = &recvBuffer[b * numPostRestricted];
+         long numNeurons  = activityCube.numItems / activityCube.loc.nbatch;
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();
@@ -246,8 +246,8 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-            for (int idx = 0; idx < numNeurons; idx++) {
-               int kPreExt = idx;
+            for (long idx = 0; idx < numNeurons; idx++) {
+               long kPreExt = idx;
 
                // Weight
                Patch const *patch = &weights->getPatch(kPreExt);

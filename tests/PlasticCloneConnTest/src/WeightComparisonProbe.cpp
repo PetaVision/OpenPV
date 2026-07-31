@@ -80,7 +80,7 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               mNumWeightsInArbor != nxp * nyp * nfp * numPatches,
+               mNumWeightsInArbor != (long)nxp * (long)nyp * (long)nfp * numPatches,
                "%s and %s have different numbers of data weights.\n",
                firstConn.c_str(),
                c->getDescription_c());
@@ -103,7 +103,7 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
       else {
          firstConn          = c->getDescription();
          mNumArbors         = numArbors;
-         mNumWeightsInArbor = nxp * nyp * nfp * numPatches;
+         mNumWeightsInArbor = (long)nxp * (long)nyp * (long)nfp * numPatches;
          initialized        = true;
       }
    }

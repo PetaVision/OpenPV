@@ -40,8 +40,8 @@ bool LayerArchive::operator==(LayerArchive const &comparison) const {
       for (int b = 0; b < layerLoc.nbatch; b++) {
          int const N = layerLoc.nx * layerLoc.ny * layerLoc.nf;
          for (int n = 0; n < N; n++) {
-            int nExt1 = kIndexExtended(n, nx, ny, nf, halo1.lt, halo1.rt, halo1.dn, halo1.up);
-            int nExt2 = kIndexExtended(n, nx, ny, nf, halo2.lt, halo2.rt, halo2.dn, halo2.up);
+            long nExt1 = kIndexExtended(n, nx, ny, nf, halo1.lt, halo1.rt, halo1.dn, halo1.up);
+            long nExt2 = kIndexExtended(n, nx, ny, nf, halo2.lt, halo2.rt, halo2.dn, halo2.up);
             if (std::fabs(dat1[nExt1] - dat2[nExt2]) > tolerance) {
                int const x = kxPos(n, nx, ny, nf) + layerLoc.kx0;
                int const y = kyPos(n, nx, ny, nf) + layerLoc.ky0;

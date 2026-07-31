@@ -62,7 +62,7 @@ void LayerIO::read(Buffer<float> &buffer, double &timestamp) {
       return;
    }
 
-   if (buffer.getTotalElements() == 0) {
+   if (buffer.getTotalElements() == 0L) {
       buffer.resize(mWidth, mHeight, mNumFeatures);
    }
 
@@ -122,7 +122,7 @@ long LayerIO::calcValuesPerPVPFrame() const {
    long nf                      = static_cast<long>(mNumFeatures);
    long nx                      = static_cast<long>(mWidth);
    long ny                      = static_cast<long>(mHeight);
-   long const valuesPerPVPFrame = nx * ny * nf;
+   long const valuesPerPVPFrame = (long)nx * (long)ny * (long)nf;
    return valuesPerPVPFrame;
 }
 
@@ -152,7 +152,7 @@ long LayerIO::checkBufferDimensions(Buffer<float> const &buffer) {
    FatalIf(
          status != PV_SUCCESS, "LayerIO \"%s\" failed.\n", getFileStream()->getFileName().c_str());
 
-   long numBytes = static_cast<long>(buffer.getTotalElements()) * mDataSize;
+   long numBytes = buffer.getTotalElements() * mDataSize;
    return numBytes;
 }
 

@@ -186,7 +186,7 @@ int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2) {
    auto *preWeights2 = conn2->getComponentByType<WeightsPair>()->getPreWeights();
 
    long numGeometryPatches = preWeights1->getGeometry()->getNumPatchesOverall();
-   status                 = verifyEqual(
+   status                  = verifyEqual(
          numGeometryPatches,
          preWeights2->getGeometry()->getNumPatchesOverall(),
          "numGeometryPatches",
@@ -195,7 +195,7 @@ int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2) {
          status);
 
    long numDataPatches = preWeights1->getNumDataPatchesOverall();
-   status             = verifyEqual(
+   status              = verifyEqual(
          numDataPatches,
          preWeights2->getNumDataPatchesOverall(),
          "numDataPatches",

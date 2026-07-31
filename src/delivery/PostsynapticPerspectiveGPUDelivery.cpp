@@ -93,12 +93,12 @@ Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
    }
    if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
 
-   int const numPostRestricted = mPostGSyn->getBufferSize();
+   long const numPostRestricted = mPostGSyn->getBufferSize();
    mDevicePostToPreActivity =
          mCudaDevice->createBuffer(numPostRestricted * sizeof(long), &getDescription());
 
    // mCudnnGSyn only needs the GSyn channel used by the delivery object
-   int const numPostAcrossBatch = mPostGSyn->getBufferSizeAcrossBatch();
+   long const numPostAcrossBatch = mPostGSyn->getBufferSizeAcrossBatch();
    mCudnnGSyn = mCudaDevice->createBuffer(numPostAcrossBatch * sizeof(float), &getDescription());
 
    return Response::SUCCESS;
@@ -178,7 +178,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    auto *h_PostToPreActivity       = h_PostToPreActivityVector->data();
    auto postGeometry               = postWeights->getGeometry();
    for (int k = 0; k < postNumRestricted; k++) {
-      int const kExtended = kIndexExtended(k, postNx, postNy, postNf, oNblt, oNbrt, oNbup, oNbdn);
+      long const kExtended = kIndexExtended(k, postNx, postNy, postNf, oNblt, oNbrt, oNbup, oNbdn);
       h_PostToPreActivity[k] = postGeometry->getUnshrunkenStart(kExtended);
    }
    mDevicePostToPreActivity->copyToDevice(h_PostToPreActivity);
@@ -292,7 +292,7 @@ void PostsynapticPerspectiveGPUDelivery::deliverUnitInput(
    }
 
    // Get number of neurons restricted target
-   const int numPostRestricted = mPostGSyn->getBufferSize();
+   const long numPostRestricted = mPostGSyn->getBufferSize();
 
    const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
 
@@ -313,7 +313,7 @@ void PostsynapticPerspectiveGPUDelivery::deliverUnitInput(
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
-         float *recvBatch = recvBuffer + b * numPostRestricted;
+         float *recvBatch = &recvBuffer[b * numPostRestricted];
 
          // Iterate over each line in the y axis, the goal is to keep weights in the cache
          for (int ky = 0; ky < yPatchSize; ky++) {
@@ -323,10 +323,10 @@ void PostsynapticPerspectiveGPUDelivery::deliverUnitInput(
 #pragma omp parallel for schedule(static)
 #endif
             for (int feature = 0; feature < neuronIndexStride; feature++) {
-               for (int idx = feature; idx < numPostRestricted; idx += neuronIndexStride) {
+               for (long idx = feature; idx < numPostRestricted; idx += neuronIndexStride) {
                   float *recvLocation = recvBatch + idx;
 
-                  int kTargetExt = kIndexExtended(
+                  long kTargetExt = kIndexExtended(
                         idx,
                         targetNx,
                         targetNy,

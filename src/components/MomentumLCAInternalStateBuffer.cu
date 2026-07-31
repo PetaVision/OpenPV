@@ -6,9 +6,9 @@
 namespace PV {
 
 void MomentumLCAInternalStateBuffer::runKernel() {
-   PVLayerLoc const *loc = getLayerLoc();
-   int const numNeurons  = getBufferSize();
-   int const nbatch      = loc->nbatch;
+   PVLayerLoc const *loc  = getLayerLoc();
+   long const numNeurons  = getBufferSize();
+   int const nbatch       = loc->nbatch;
 
    double const *dtAdapt        = (double const *)mCudaDtAdapt->getPointer();
    float const *accumulatedGSyn = (float const *)mAccumulatedGSyn->getCudaBuffer()->getPointer();
@@ -16,11 +16,12 @@ void MomentumLCAInternalStateBuffer::runKernel() {
    float *prevDrive             = (float *)mPrevDrive->getCudaBuffer()->getPointer();
    float *V                     = (float *)getCudaBuffer()->getPointer();
 
-   int const numNeuronsAcrossBatch = numNeurons * nbatch;
-   int currBlockSize               = mCudaDevice->get_max_threads();
-   cudaStream_t cudaStream         = mCudaDevice->getStream();
+   long const numNeuronsAcrossBatch = numNeurons * nbatch;
+   int currBlockSize                = mCudaDevice->get_max_threads();
+   cudaStream_t cudaStream          = mCudaDevice->getStream();
    // Ceil to get all weights
-   int currGridSize = (int)ceil(((float)numNeuronsAcrossBatch) / currBlockSize);
+   unsigned int currGridSize =
+         (unsigned int)std::ceil(((float)numNeuronsAcrossBatch) / (float)currBlockSize);
    // Call function
    PVCuda::updateMomentumLCAOnGPU<<<currGridSize, currBlockSize, 0, cudaStream>>>(
          nbatch,

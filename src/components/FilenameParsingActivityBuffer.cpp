@@ -149,7 +149,7 @@ void FilenameParsingActivityBuffer::updateBufferCPU(double time, double dt) {
    float *A                  = mBufferData.data();
    auto ioMPIBlock           = getCommunicator()->getIOMPIBlock();
    const PVLayerLoc *loc     = getLayerLoc();
-   int numNeurons            = loc->nx * loc->ny * loc->nf;
+   long numNeurons           = (long)loc->nx * (long)loc->ny * (long)loc->nf;
    int const localBatchWidth = getLayerLoc()->nbatch;
    int const blockBatchWidth = ioMPIBlock->getBatchDimension() * localBatchWidth;
    for (int b = 0; b < blockBatchWidth; b++) {
@@ -173,15 +173,20 @@ void FilenameParsingActivityBuffer::updateBufferCPU(double time, double dt) {
       // It seems clunky to send each process all the fileMatches, when
       // they'll only use only the fileMatches for the correct MPIBlock
       // batch index.  Use MPI_Send/MPI_Recv?  Create more MPI_Comm's?
-      MPI_Bcast(fileMatches.data(), fileMatches.size(), MPI_FLOAT, 0, ioMPIBlock->getComm());
+      int numValues = static_cast<int>(fileMatches.size());
+      FatalIf(
+            static_cast<std::size_t>(numValues) != fileMatches.size(),
+            "Layer \"%s\" must broadcast %zu values, which is too large for MPI_Bcast.\n",
+            getName(), fileMatches.size());
+      MPI_Bcast(fileMatches.data(), numValues, MPI_FLOAT, 0, ioMPIBlock->getComm());
 
       if (ioMPIBlock->getBatchIndex() != mpiBlockBatchIndex) {
          continue;
       }
 
       float *ABatch = A + localBatchIndex * getBufferSize();
-      for (int i = 0; i < numNeurons; i++) {
-         int nExt = kIndexExtended(
+      for (long i = 0; i < numNeurons; i++) {
+         long nExt = kIndexExtended(
                i,
                loc->nx,
                loc->ny,

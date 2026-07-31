@@ -281,7 +281,7 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
                mRandomSeed = seedRandomFromWallClock();
             }
          }
-         if (mRandomSeed < RandomSeed::minSeed) {
+         if (mRandomSeed < RandomSeed::mMinSeed) {
             Fatal().printf(
                   "Error: random seed %u is too small. Use a seed of at "
                   "least 10000000.\n",
@@ -1050,7 +1050,7 @@ int HyPerCol::getAutoGPUDevice() {
    int numMpi  = mCommunicator->globalCommSize();
    char hostNameStr[PV_PATH_MAX];
    gethostname(hostNameStr, PV_PATH_MAX);
-   size_t hostNameLen = strlen(hostNameStr) + 1; //+1 for null terminator
+   int hostNameLen = (int)strlen(hostNameStr) + 1; //+1 for null terminator
 
    // Each rank communicates which host it is on
    // Root process
@@ -1101,7 +1101,7 @@ int HyPerCol::getAutoGPUDevice() {
       // Determine what gpus to use per mpi
       for (auto &host : hostMap) {
          std::vector<int> rankVec = host.second;
-         int numRanksPerHost      = rankVec.size();
+         int numRanksPerHost      = static_cast<int>(rankVec.size());
          assert(numRanksPerHost > 0);
          // Grab maxGpus of current host
          int maxGpus = rankToMaxGpu[rankVec[0]];
@@ -1290,13 +1290,13 @@ Observer *HyPerCol::getNextObject(Observer const *currentObject) const {
    }
 }
 
-unsigned int HyPerCol::seedRandomFromWallClock() {
+unsigned long HyPerCol::seedRandomFromWallClock() {
    unsigned long t = 0UL;
    int rootproc    = 0;
    if (mCommunicator->globalCommRank() == rootproc) {
-      t = time((time_t *)nullptr);
+      t = static_cast<unsigned long>(time((time_t *)nullptr));
    }
-   MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->globalCommunicator());
+   MPI_Bcast(&t, 1, MPI_UNSIGNED_LONG, rootproc, mCommunicator->globalCommunicator());
    return t;
 }
 

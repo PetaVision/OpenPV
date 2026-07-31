@@ -34,7 +34,7 @@ void InitOneToOneWeightsWithDelays::calcWeights(long patchIndex, int arborId) {
 
 void InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
       float *dataStart,
-      int dataPatchIndex,
+      long dataPatchIndex,
       float iWeight,
       int arborId) {
 

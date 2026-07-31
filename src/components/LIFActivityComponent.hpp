@@ -121,9 +121,9 @@ class LIFActivityComponent : public ActivityComponent {
 
    void updateActivityArma(
          int const nbatch,
-         int const numNeurons,
-         float const simTime,
-         float const dt,
+         long const numNeurons,
+         double const simTime,
+         double const dt,
 
          int const nx,
          int const ny,
@@ -146,9 +146,9 @@ class LIFActivityComponent : public ActivityComponent {
 
    void updateActivityBeginning(
          int const nbatch,
-         int const numNeurons,
-         float const simTime,
-         float const dt,
+         long const numNeurons,
+         double const simTime,
+         double const dt,
 
          int const nx,
          int const ny,
@@ -171,9 +171,9 @@ class LIFActivityComponent : public ActivityComponent {
 
    void updateActivityOriginal(
          int const nbatch,
-         int const numNeurons,
-         float const simTime,
-         float const dt,
+         long const numNeurons,
+         double const simTime,
+         double const dt,
 
          int const nx,
          int const ny,

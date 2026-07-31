@@ -168,7 +168,7 @@ class Weights {
     * Returns a pointer to the start of the active area of the patch data for
     * the given patch index (that is, it includes the patch offset).
     */
-   float *getDataFromPatchIndexWithOffset(int arbor, int patchIndex);
+   float *getDataFromPatchIndexWithOffset(int arbor, long patchIndex);
 
    /**
     * Returns a modifiable pointer to the patch data for the given arbor, and sets the timestamp to
@@ -192,8 +192,7 @@ class Weights {
    int getPatchSizeF() const { return mGeometry->getPatchSizeF(); }
 
    /**
-    * Returns getPatchSizeX() * getPatchSizeY() * getPatchSizeF(),
-    * the overall number of items in a patch.
+    * Returns the overall number of items in a patch.
     */
    long getPatchSizeOverall() const { return mGeometry->getPatchSizeOverall(); }
 
@@ -297,7 +296,7 @@ class Weights {
    int mNumDataPatchesF;
 
    std::shared_ptr<WeightData> mData = nullptr;
-   std::vector<int> dataIndexLookupTable;
+   std::vector<long> mDataIndexLookupTable;
 
    bool mWeightsArePlastic = false;
 

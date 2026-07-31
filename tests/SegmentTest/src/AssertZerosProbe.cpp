@@ -27,8 +27,8 @@ void AssertZerosProbe::checkStats() {
    auto *targetLayerInputBuffer = getTargetLayer()->getComponentByType<LayerInputBuffer>();
    auto *targetPublisher        = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    const PVLayerLoc *loc        = getTargetLayer()->getLayerLoc();
-   int numExtNeurons            = targetPublisher->getNumExtended() * loc->nbatch;
-   int numResNeurons            = targetLayerInputBuffer->getBufferSizeAcrossBatch();
+   long numExtNeurons           = targetPublisher->getNumExtended() * loc->nbatch;
+   long numResNeurons           = targetLayerInputBuffer->getBufferSizeAcrossBatch();
    const float *A               = targetPublisher->getLayerData();
    const float *GSyn_E          = targetLayerInputBuffer->getChannelData(CHANNEL_EXC);
    const float *GSyn_I          = targetLayerInputBuffer->getChannelData(CHANNEL_INH);
@@ -38,15 +38,15 @@ void AssertZerosProbe::checkStats() {
    ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
    double simTime                     = stats.getTimestamp();
 
-   for (int i = 0; i < numExtNeurons; i++) {
-      FatalIf(fabsf(A[i]) >= 5e-4f, "Test failed.\n");
+   for (long i = 0; i < numExtNeurons; i++) {
+      FatalIf(std::fabs(A[i]) >= 5e-4f, "Test failed.\n");
    }
 
    if (simTime > 0) {
       // Make sure gsyn_e and gsyn_i are not all 0's
       float sum_E = 0;
       float sum_I = 0;
-      for (int i = 0; i < numResNeurons; i++) {
+      for (long i = 0; i < numResNeurons; i++) {
          sum_E += GSyn_E[i];
          sum_I += GSyn_I[i];
       }

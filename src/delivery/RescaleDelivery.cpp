@@ -45,12 +45,12 @@ void RescaleDelivery::deliver(float *destBuffer) {
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
 
-   int const nx       = preLoc.nx;
-   int const ny       = preLoc.ny;
-   int const nf       = preLoc.nf;
-   int nxPreExtended  = nx + preLoc.halo.lt + preLoc.halo.rt;
-   int nyPreExtended  = ny + preLoc.halo.dn + preLoc.halo.up;
-   int numPreExtended = nxPreExtended * nyPreExtended * nf;
+   int const nx        = preLoc.nx;
+   int const ny        = preLoc.ny;
+   int const nf        = preLoc.nf;
+   int nxPreExtended   = nx + preLoc.halo.lt + preLoc.halo.rt;
+   int nyPreExtended   = ny + preLoc.halo.dn + preLoc.halo.up;
+   long numPreExtended = (long)nxPreExtended * (long)nyPreExtended * (long)nf;
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    long numPostRestricted = (long)nx * (long)ny * (long)nf;
 
@@ -61,19 +61,19 @@ void RescaleDelivery::deliver(float *destBuffer) {
          "%s has different presynaptic and postsynaptic batch sizes.\n",
          getDescription_c());
    for (int b = 0; b < nbatch; b++) {
-      float const *preActivityBuffer = preActivityCube.data + b * numPreExtended;
-      float *postGSynBuffer          = postChannel + b * numPostRestricted;
+      float const *preActivityBuffer = &preActivityCube.data[b * numPreExtended];
+      float *postGSynBuffer          = &postChannel[b * numPostRestricted];
       if (preActivityCube.isSparse) {
          SparseList<float>::Entry const *activeIndices =
                (SparseList<float>::Entry *)preActivityCube.activeIndices + b * numPreExtended;
-         int numActive = preActivityCube.numActive[b];
+         long numActive = preActivityCube.numActive[b];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int loopIndex = 0; loopIndex < numActive; loopIndex++) {
-            int kPre = activeIndices[loopIndex].index;
-            int kx   = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
-            int ky   = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
+         for (long loopIndex = 0; loopIndex < numActive; loopIndex++) {
+            long kPre = (long)activeIndices[loopIndex].index;
+            int kx    = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
+            int ky    = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
             if (kx < 0 or kx >= nx or ky < 0 or ky >= ny) {
                continue;
             }
@@ -105,11 +105,11 @@ void RescaleDelivery::deliver(float *destBuffer) {
 }
 
 void RescaleDelivery::deliverUnitInput(float *recvBuffer) {
-   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
+   const long numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int k = 0; k < numNeuronsPost; k++) {
+   for (long k = 0; k < numNeuronsPost; k++) {
       recvBuffer[k] += mScale;
    }
 }

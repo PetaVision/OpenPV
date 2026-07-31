@@ -27,9 +27,10 @@ int CheckpointEntryLayerBuffer<T>::getNumIndices() const { return 1; }
 template <typename T>
 T *CheckpointEntryLayerBuffer<T>::calcBatchElementStart(int batchElement, int index) const {
    PVLayerLoc const *loc = this->getLayerLoc();
-   int const nx = loc->nx + (this->getExtendedFlag() ? loc->halo.lt + loc->halo.rt : 0);
-   int const ny = loc->ny + (this->getExtendedFlag() ? loc->halo.dn + loc->halo.up : 0);
-   return &getDataPointer()[batchElement * nx * ny * loc->nf];
+   int const nx          = loc->nx + (this->getExtendedFlag() ? loc->halo.lt + loc->halo.rt : 0);
+   int const ny          = loc->ny + (this->getExtendedFlag() ? loc->halo.dn + loc->halo.up : 0);
+   long numNeurons       =(long)nx * (long)ny * (long)loc->nf;
+   return &getDataPointer()[batchElement * numNeurons];
 }
 
 } // end namespace PV

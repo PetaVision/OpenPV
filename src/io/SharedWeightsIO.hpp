@@ -65,12 +65,15 @@ class SharedWeightsIO {
    int getPatchSizeX() const { return mPatchSizeX; }
    int getPatchSizeY() const { return mPatchSizeY; }
    int getPatchSizeF() const { return mPatchSizeF; }
-   long getPatchSizeOverall() const { return mPatchSizeX * mPatchSizeY * mPatchSizeF; }
+   long getPatchSizeOverall() const {
+      return (long)mPatchSizeX * (long)mPatchSizeY * (long)mPatchSizeF; }
 
    int getNumPatchesX() const { return mNumPatchesX; }
    int getNumPatchesY() const { return mNumPatchesY; }
    int getNumPatchesF() const { return mNumPatchesF; }
-   long getNumPatchesOverall() const { return mNumPatchesX * mNumPatchesY * mNumPatchesF; }
+   long getNumPatchesOverall() const {
+      return (long)mNumPatchesX * (long)mNumPatchesY * (long)mNumPatchesF;
+   }
    int getNumArbors() const { return mNumArbors; }
    bool getCompressedFlag() const { return mCompressedFlag; }
 

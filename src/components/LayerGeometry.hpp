@@ -91,10 +91,10 @@ class LayerGeometry : public BaseObject {
     */
    PVLayerLoc const *getLayerLoc() const { return &mLayerLoc; }
 
-   int getNumNeurons() const { return mNumNeurons; }
-   int getNumExtended() const { return mNumExtended; }
-   int getNumNeuronsAllBatches() const { return mNumNeuronsAllBatches; }
-   int getNumExtendedAllBatches() const { return mNumExtendedAllBatches; }
+   long getNumNeurons() const { return mNumNeurons; }
+   long getNumExtended() const { return mNumExtended; }
+   long getNumNeuronsAllBatches() const { return mNumNeuronsAllBatches; }
+   long getNumExtendedAllBatches() const { return mNumExtendedAllBatches; }
 
    bool getBroadcastFlag() const { return mBroadcastFlag; }
 
@@ -172,15 +172,15 @@ class LayerGeometry : public BaseObject {
 
   protected:
    bool mBroadcastFlag = false;
-   float mNxScale      = 1.0;
-   float mNyScale      = 1.0;
+   float mNxScale      = 1.0f;
+   float mNyScale      = 1.0f;
    int mNumFeatures    = 1;
 
    PVLayerLoc mLayerLoc;
-   int mNumNeurons            = 0;
-   int mNumNeuronsAllBatches  = 0;
-   int mNumExtended           = 0;
-   int mNumExtendedAllBatches = 0;
+   long mNumNeurons            = 0L;
+   long mNumNeuronsAllBatches  = 0L;
+   long mNumExtended           = 0L;
+   long mNumExtendedAllBatches = 0L;
 
    int mXScale = 1;
    int mYScale = 1;

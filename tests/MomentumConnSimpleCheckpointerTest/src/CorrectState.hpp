@@ -117,7 +117,7 @@ class CorrectState {
    /**
     * Returns the number of times update() has been called.
     */
-   float getTimestamp() const { return mTimestamp; }
+   int getTimestamp() const { return mTimestamp; }
 
   private:
    float mTimeConstantTau = 0.0f;

@@ -19,7 +19,7 @@ ComponentBasedObject *getObject(HyPerCol *hc, char const *objectName) {
 int main(int argc, char *argv[]) { return buildandrun(argc, argv, NULL, customexit); }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   float tol = 1e-4;
+   float tol = 1e-4f;
    ComponentBasedObject *baseObject;
 
    // check normalizeSum
@@ -31,7 +31,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    HyPerLayer *normalizeSumCheck = dynamic_cast<HyPerLayer *>(baseObject);
    auto *normalizeSumCheckData   = normalizeSumCheck->getComponentByType<BasePublisherComponent>();
    float normalizeSumValue       = normalizeSumCheckData->getLayerData()[0];
-   FatalIf(fabsf(normalizeSumValue - normalizeSumStrength) >= tol, "Test failed.\n");
+   FatalIf(std::fabs(normalizeSumValue - normalizeSumStrength) >= tol, "Test failed.\n");
 
    // check normalizeL2
    baseObject                           = getObject(hc, "NormalizeL2Connection");
@@ -42,8 +42,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    HyPerLayer *normalizeL2Check = dynamic_cast<HyPerLayer *>(baseObject);
    FatalIf(normalizeL2Check == nullptr, "No layer named NormalizeL2Check.\n");
    auto *normalizeL2CheckData = normalizeL2Check->getComponentByType<BasePublisherComponent>();
-   float normalizeL2Value     = sqrtf(normalizeL2CheckData->getLayerData()[0]);
-   FatalIf(fabsf(normalizeL2Value - normalizeL2Strength) >= tol, "Test failed.\n");
+   float normalizeL2Value     = std::sqrt(normalizeL2CheckData->getLayerData()[0]);
+   FatalIf(std::fabs(normalizeL2Value - normalizeL2Strength) >= tol, "Test failed.\n");
 
    // check normalizeMax
    baseObject                            = getObject(hc, "NormalizeMaxConnection");
@@ -61,7 +61,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
          normalizeMaxValue = layerData;
       }
    }
-   FatalIf(fabsf(normalizeMaxValue - normalizeMaxStrength) >= tol, "Test failed.\n");
+   FatalIf(std::fabs(normalizeMaxValue - normalizeMaxStrength) >= tol, "Test failed.\n");
 
    // check normalizeContrastZeroMean.
    baseObject = getObject(hc, "NormalizeContrastZeroMeanConnection");
@@ -75,7 +75,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    float normalizeContrastZeroMeanStrength = normalizeContrastZeroMeanNormalizer->getStrength();
    auto *connData                          = baseObject->getComponentByType<ConnectionData>();
    FatalIf(!connData, "%s has no ConnectionData component.\n", baseObject->getDescription_c());
-   int numNeurons = connData->getPost()->getNumGlobalNeurons();
+   long numNeurons = connData->getPost()->getNumGlobalNeurons();
 
    // check normalizeConstransZeroMean mean
    baseObject = getObject(hc, "NormalizeContrastZeroMeanCheckMean");
@@ -85,8 +85,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
          "No layer named \"NormalizeContrastZeroMeanCheckMean\".\n");
    auto *checkDataMean =
          normalizeContrastZeroMeanCheckMean->getComponentByType<BasePublisherComponent>();
-   float normalizeContrastZeroMeanValue = checkDataMean->getLayerData()[0] / numNeurons;
-   FatalIf(fabsf(normalizeContrastZeroMeanValue) >= tol, "Test failed.\n");
+   float normalizeContrastZeroMeanValue = checkDataMean->getLayerData()[0] / (float)numNeurons;
+   FatalIf(std::fabs(normalizeContrastZeroMeanValue) >= tol, "Test failed.\n");
 
    // check normalizeConstransZeroMean variance
    baseObject = getObject(hc, "NormalizeContrastZeroMeanCheckVariance");
@@ -96,9 +96,10 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
          "No layer named \"NormalizeContrastZeroMeanCheckVariance\".\n");
    auto *checkDataVariance =
          normalizeContrastZeroMeanCheckVariance->getComponentByType<BasePublisherComponent>();
-   float normalizeContrastZeroMeanStDev = sqrtf(checkDataVariance->getLayerData()[0] / numNeurons);
+   float normalizeContrastZeroMeanStDev =
+          std::sqrt(checkDataVariance->getLayerData()[0] / (float)numNeurons);
    FatalIf(
-         fabsf(normalizeContrastZeroMeanStDev - normalizeContrastZeroMeanStrength) >= tol,
+         std::fabs(normalizeContrastZeroMeanStDev - normalizeContrastZeroMeanStrength) >= tol,
          "Test failed.\n");
 
    return PV_SUCCESS;

@@ -133,14 +133,14 @@ class CudaRecvPost : public CudaKernel {
    void permuteGSynCudnnToPV(int channel);
 #endif
 
-   void set_dt_factor(float new_dt_factor) { params.dt_factor = new_dt_factor; }
+   void set_dt_factor(float new_dt_factor) { mParams.dt_factor = new_dt_factor; }
 
   protected:
    // This is the function that should be overwritten in child classes
    virtual int do_run() override;
 
   private:
-   recv_post_params params;
+   recv_post_params mParams;
 }; // end class CudaRecvPost
 
 } // end namespace PV

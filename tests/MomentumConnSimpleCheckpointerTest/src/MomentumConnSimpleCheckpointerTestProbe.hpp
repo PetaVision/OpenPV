@@ -90,7 +90,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
 
    // Data members
   protected:
-   int mStartingTimestamp                       = 0;
+   double mStartingTimestamp                    = 0.0;
    bool mValuesSet                              = false;
    PV::BasePublisherComponent *mInputPublisher  = nullptr;
    PV::BasePublisherComponent *mOutputPublisher = nullptr;

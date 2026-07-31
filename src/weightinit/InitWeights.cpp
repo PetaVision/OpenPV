@@ -303,7 +303,7 @@ int InitWeights::dataIndexToUnitCellIndex(long dataIndex, int *kx, int *ky, int 
    }
    pvAssert(yUnitCell >= 0 and yUnitCell < yStride);
 
-   int kUnitCell = kIndex(xUnitCell, yUnitCell, fDataIndex, xStride, yStride, preLoc.nf);
+   int kUnitCell = (int)kIndex(xUnitCell, yUnitCell, fDataIndex, xStride, yStride, preLoc.nf);
 
    if (kx) {
       *kx = xUnitCell;
@@ -346,16 +346,12 @@ int InitWeights::kernelIndexCalculations(long dataPatchIndex) {
    kyNN = nearby_neighbor(kyPre, log2ScaleDiffY);
 
    // get indices of patch head
-   int kxHead;
-   int kyHead;
-   kxHead = zPatchHead(kxPre, mWeights->getPatchSizeX(), log2ScaleDiffX);
-   kyHead = zPatchHead(kyPre, mWeights->getPatchSizeY(), log2ScaleDiffY);
+   int kxHead = zPatchHead(kxPre, mWeights->getPatchSizeX(), log2ScaleDiffX);
+   int kyHead = zPatchHead(kyPre, mWeights->getPatchSizeY(), log2ScaleDiffY);
 
    // get distance to patch head (measured relative to pre-synaptic cell)
-   float xDistHeadPostUnits;
-   xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
-   float yDistHeadPostUnits;
-   yDistHeadPostUnits = yDistNNPostUnits + (kyHead - kyNN);
+   float xDistHeadPostUnits = xDistNNPostUnits + static_cast<float>(kxHead - kxNN);
+   float yDistHeadPostUnits = yDistNNPostUnits + static_cast<float>(kyHead - kyNN);
    float xRelativeScale =
          xDistNNPreUnits == xDistNNPostUnits ? 1.0f : xDistNNPreUnits / xDistNNPostUnits;
    mXDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
@@ -375,7 +371,7 @@ float InitWeights::calcYDelta(int jPost) { return calcDelta(jPost, mDyPost, mYDi
 float InitWeights::calcXDelta(int iPost) { return calcDelta(iPost, mDxPost, mXDistHeadPreUnits); }
 
 float InitWeights::calcDelta(int post, float dPost, float distHeadPreUnits) {
-   return distHeadPreUnits + post * dPost;
+   return distHeadPreUnits + (float)post * dPost;
 }
 
 } /* namespace PV */

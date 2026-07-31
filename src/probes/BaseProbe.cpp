@@ -478,9 +478,9 @@ void BaseProbe::flushOutputStreams() {
                   ioMPIBlock->getComm(),
                   MPI_STATUS_IGNORE);
          }
-         auto vsize = nonRootTags.size();
-         pvAssert(vsize == mCurrentTag.size());
-         for (std::vector<int>::size_type v = 0; v < vsize; ++v) {
+         int vsize = (int)nonRootTags.size();
+         pvAssert(vsize == (int)mCurrentTag.size());
+         for (int v = 0; v < vsize; ++v) {
             while (mCurrentTag[v] != nonRootTags[v]) {
                int bytesReceived = mMPIRecvStreams[v].receive(mCurrentTag[v]);
                if (bytesReceived > 0) {

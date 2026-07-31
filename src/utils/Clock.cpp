@@ -16,10 +16,10 @@ void Clock::start_clock() {
    m_start = clock();
 
    getrusage(RUSAGE_SELF, &r);
-   m_rstart = r.ru_utime.tv_sec + r.ru_utime.tv_usec * 1.0e-6;
+   m_rstart = (double)r.ru_utime.tv_sec + (double)r.ru_utime.tv_usec * 1.0e-6;
 
    clock_gettime(CLOCK_REALTIME, &t);
-   m_tstart   = t.tv_sec + t.tv_nsec * 1.0e-9;
+   m_tstart   = (double)t.tv_sec + (double)t.tv_nsec * 1.0e-9;
 #ifdef MACH_TIMER
    m_mach_start = mach_absolute_time();
 #endif
@@ -36,10 +36,10 @@ void Clock::stop_clock() {
    m_end = clock();
 
    getrusage(RUSAGE_SELF, &r);
-   m_rend = r.ru_utime.tv_sec + r.ru_utime.tv_usec * 1.0e-6;
+   m_rend = (double)r.ru_utime.tv_sec + (double)r.ru_utime.tv_usec * 1.0e-6;
 
    clock_gettime(CLOCK_REALTIME, &t);
-   m_tend   = t.tv_sec + t.tv_nsec * 1.0e-9;
+   m_tend   = (double)t.tv_sec + (double)t.tv_nsec * 1.0e-9;
 
 #ifdef MACH_TIMER
    m_mach_end = mach_absolute_time();

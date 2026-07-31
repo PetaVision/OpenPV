@@ -159,12 +159,12 @@ void ScaleYActivityBuffer::applyTransformCPU(
 
    float const yCenter = 0.5f * static_cast<float>(nyRes - 1);
 
-   int const numExtended = outputBuffer.getTotalElements();
+   long const numExtended = outputBuffer.getTotalElements();
    float recipScale = 1.0f / scaleFactor;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int kExt = 0; kExt < numExtended; ++kExt) {
+   for (long kExt = 0; kExt < numExtended; ++kExt) {
       int const kxExt = kxPos(kExt, nxExt, nyExt, nf);
       float xSrc = static_cast<float>(kxExt - xMargin);
 
@@ -210,7 +210,7 @@ void ScaleYActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, fl
    }
    BufferUtils::scatter(localMPIBlock, activityBuffer, loc->nx, loc->ny, 0, 0);
    auto const &activityBufferVector = activityBuffer.asVector();
-   int const numLocalExtended = activityBuffer.getTotalElements();
+   long const numLocalExtended = activityBuffer.getTotalElements();
    std::copy(
          &activityBufferVector[0],
          &activityBufferVector[numLocalExtended],

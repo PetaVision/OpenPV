@@ -240,7 +240,8 @@ void Checkpointer::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PV
          if (ioFlag == PARAMS_IO_READ) {
             pvAssert(mCheckpointWriteWallclockUnit);
             for (size_t n = 0; n < strlen(mCheckpointWriteWallclockUnit); n++) {
-               mCheckpointWriteWallclockUnit[n] = tolower(mCheckpointWriteWallclockUnit[n]);
+               int lowercase = std::tolower(mCheckpointWriteWallclockUnit[n]);
+               mCheckpointWriteWallclockUnit[n] = static_cast<char>(lowercase);
             }
             if (!strcmp(mCheckpointWriteWallclockUnit, "second")
                 || !strcmp(mCheckpointWriteWallclockUnit, "seconds")
@@ -744,7 +745,7 @@ bool Checkpointer::scheduledWallclock() {
       throw;
    }
    double elapsed = std::difftime(currentTime, mLastCheckpointWallclock);
-   if (elapsed >= mCheckpointWriteWallclockInterval) {
+   if (elapsed >= (double)mCheckpointWriteWallclockIntervalSeconds) {
       isScheduled              = true;
       mLastCheckpointWallclock = currentTime;
    }

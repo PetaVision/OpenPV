@@ -91,7 +91,7 @@ Response::Status GSynAccumulator::allocateDataStructures() {
 }
 
 void GSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
-   int const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
+   long const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
    float const *channelCoeffs      = mChannelCoefficients.data();
    float const *layerInput         = mLayerInput->getBufferData();
    float *bufferData               = mBufferData.data();

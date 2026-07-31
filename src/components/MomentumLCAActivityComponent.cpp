@@ -70,9 +70,9 @@ Response::Status MomentumLCAActivityComponent::initializeState(
    if (!Response::completed(status)) {
       return status;
    }
-   float *prevDrive                = mPrevDrive->getReadWritePointer();
-   int const numNeuronsAcrossBatch = mPrevDrive->getBufferSizeAcrossBatch();
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+   float *prevDrive                 = mPrevDrive->getReadWritePointer();
+   long const numNeuronsAcrossBatch = mPrevDrive->getBufferSizeAcrossBatch();
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
       prevDrive[k] = 0.0f;
    }
    return Response::SUCCESS;

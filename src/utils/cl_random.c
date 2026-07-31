@@ -39,15 +39,15 @@ taus_uint4 cl_random_get(taus_uint4 state) {
    return state;
 }
 
-int cl_random_init(taus_uint4 *state, size_t count, unsigned int seed) {
-   int i;
+int cl_random_init(taus_uint4 *state, size_t count, unsigned long seed) {
+   size_t i;
 
    // a zero seed can cause problems (see taus_set)
-   seed = (seed == 0) ? 1 : seed;
+   seed = (seed == 0UL) ? 1UL : seed;
 
    // initialize state array using a separate seed for each element
    //
-   for (i = 0; i < count; i++) {
+   for (i = (size_t)0; i < count; i++) {
       taus_set(&state[i].state, i + seed);
       state[i].s0 = (state[i].state.s1 ^ state[i].state.s2 ^ state[i].state.s3);
    }

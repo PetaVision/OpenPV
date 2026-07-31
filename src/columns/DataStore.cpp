@@ -14,7 +14,7 @@
 
 namespace PV {
 
-DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_flag) {
+DataStore::DataStore(int numBuffers, long numItems, int numLevels, bool isSparse_flag) {
    assert(numLevels > 0 && numBuffers > 0);
    mCurrentLevel = 0; // Publisher::publish decrements levels when writing, so
    // first level written

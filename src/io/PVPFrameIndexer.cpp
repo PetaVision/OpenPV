@@ -40,7 +40,7 @@ void PVPFrameIndexer::initializeNumFrames() {
    long fileSize = mFileStream->getInPos();
    mFileStream->setInPos(currentPos, std::ios_base::beg);
    if (fileSize > 0L) {
-      mNumFrames = (fileSize - mExternalHeaderSize) / mFrameSize;
+      mNumFrames = static_cast<int>((fileSize - mExternalHeaderSize) / mFrameSize);
       if (mNumFrames * mFrameSize != fileSize) {
          std::string errMsg(
                "PVPFrameIndexer file \"#1\" has length #2, incompatible with FrameSize #3");
@@ -63,9 +63,9 @@ long PVPFrameIndexer::calcFilePositionFromFrameNumber(long frameNumber) const {
    return filePos;
 }
 
-long PVPFrameIndexer::calcFrameNumberFromFilePosition(long filePosition) const {
-   long frameNumber = (filePosition - mExternalHeaderSize) / mFrameSize;
-   if (frameNumber * mFrameSize + mExternalHeaderSize != filePosition) {
+int PVPFrameIndexer::calcFrameNumberFromFilePosition(long filePosition) const {
+   long frameNumberL = (filePosition - mExternalHeaderSize) / mFrameSize;
+   if (frameNumberL * mFrameSize + mExternalHeaderSize != filePosition) {
       std::string errMsg(
             "calcFrameNumberFromFilePosition() argument #1 is incompatible with "
             "external header size #2 and frame size #3");
@@ -74,13 +74,25 @@ long PVPFrameIndexer::calcFrameNumberFromFilePosition(long filePosition) const {
       errMsg.replace(errMsg.find("#3"), 2, std::to_string(mFrameSize));
       throw std::invalid_argument(errMsg);
    }
+   int frameNumber = static_cast<int>(frameNumberL);
+   if (frameNumber != frameNumberL) {
+      std::string errMsg(
+            "calcFrameNumberFromFilePosition() argument #1 with external header size #2 and "
+            "frame size #3 gives a frame number #4 that is larger than INT_MAX = %5");
+      errMsg.replace(errMsg.find("#1"), 2, std::to_string(filePosition));
+      errMsg.replace(errMsg.find("#2"), 2, std::to_string(mExternalHeaderSize));
+      errMsg.replace(errMsg.find("#3"), 2, std::to_string(mFrameSize));
+      errMsg.replace(errMsg.find("#4"), 2, std::to_string(frameNumberL));
+      errMsg.replace(errMsg.find("#5"), 2, std::to_string(INT_MAX));
+      throw std::invalid_argument(errMsg);
+   }
    return frameNumber;
 }
 
 int PVPFrameIndexer::convertToLogicalFrameNumber(int frameNumber) {
    // A negative value means count from the end; for read-only a frameNumber
    // outside of usual limits means wrap around.
-   long logicalFrameNumber = frameNumber;
+   int logicalFrameNumber = frameNumber;
    if (mReadOnlyFlag) {
       if (logicalFrameNumber < 0 or logicalFrameNumber >= mNumFrames) {
          logicalFrameNumber = logicalFrameNumber % mNumFrames;

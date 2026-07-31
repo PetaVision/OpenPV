@@ -114,12 +114,12 @@ void BackgroundActivityBuffer::checkDimensions() const {
 
 Response::Status
 BackgroundActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   int const numExtendedAcrossBatch = getBufferSizeAcrossBatch();
-   float *activityData              = getReadWritePointer();
+   long const numExtendedAcrossBatch = getBufferSizeAcrossBatch();
+   float *activityData               = getReadWritePointer();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kExt = 0; kExt < numExtendedAcrossBatch; kExt++) {
+   for (long kExt = 0; kExt < numExtendedAcrossBatch; kExt++) {
       activityData[kExt] = 0.0f;
    }
 
@@ -199,7 +199,7 @@ void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime)
                      nx + loc->halo.lt + loc->halo.rt,
                      ny + loc->halo.dn + loc->halo.up,
                      thisNf);
-               ABatch[kextBackground] = outVal;
+               ABatch[kextBackground] = static_cast<float>(outVal);
             }
          }
       }

@@ -461,7 +461,7 @@ int compareWeights(
                for (int ky = yPatchStart; ky < yPatchStart + yPatchDim; ++ky) {
                   for (int kx = xPatchStart; kx < xPatchStart + xPatchDim; ++kx) {
                      for (int kf = 0; kf < patchSizeF; ++kf) {
-                        int index = kIndex(kx, ky, kf, patchSizeX, patchSizeY, patchSizeF);
+                        long index = kIndex(kx, ky, kf, patchSizeX, patchSizeY, patchSizeF);
                         float discrepancy = patch2[index] - patch1[index];
                         if (std::abs(discrepancy) > tolerance * std::abs(patch1[index])) {
                            ErrorLog().printf(
@@ -522,7 +522,7 @@ std::shared_ptr<WeightData> createWgts3(
          int fIndex            = featureIndex(k, nxLocalExt, nyLocalExt, nf);
          int xGlobal           = xLocal + preLoc.kx0;
          int yGlobal           = yLocal + preLoc.ky0;
-         int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
+         long kGlobal          = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
          float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {
@@ -555,7 +555,7 @@ std::shared_ptr<WeightData> createWgts4(
          int fIndex            = featureIndex(k, nxLocalExt, nyLocalExt, nf);
          int xGlobal           = xLocal + preLoc.kx0;
          int yGlobal           = yLocal + preLoc.ky0;
-         int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
+         long kGlobal          = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
          float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {
@@ -632,15 +632,20 @@ std::shared_ptr<WeightData> readFromFileStream(
       // Root process broadcasts the entire block's weights.
       // Inefficient, but easier to code, and this part is used only in the test.
       long blockArborSizeBytes = numPatches * patchSizeBytes;
+      FatalIf(
+            static_cast<int>(blockArborSizeBytes) != blockArborSizeBytes,
+            "blockArborSizeBytes = %ld is too big for MPI_Bcast()\n",
+            blockArborSizeBytes);
       float *blockArborPointer = blockWeightData->getData(a);
-      MPI_Bcast(blockArborPointer, blockArborSizeBytes, MPI_BYTE, rootProc, mpiBlock->getComm());
+      MPI_Bcast(
+            blockArborPointer, (int)blockArborSizeBytes, MPI_BYTE, rootProc, mpiBlock->getComm());
 
       // Each process extracts its part of the weights from the entire block
       int xStart    = localNx * mpiBlock->getColumnIndex();
       int yStart    = localNy * mpiBlock->getRowIndex();
       int lineSize  = localNxExt * nfPre * patchSize;
       for (int ky = 0; ky < localNyExt; ++ky) {
-         int blockStartIndex = kIndex(xStart, yStart + ky, 0, blockNxExt, blockNyExt, nfPre);
+         long blockStartIndex = kIndex(xStart, yStart + ky, 0, blockNxExt, blockNyExt, nfPre);
          float *blockLinePointer = blockWeightData->getDataFromDataIndex(a, blockStartIndex);
          int localStartIndex = ky * localNxExt * nfPre;
          float *localLinePointer = localWeightData->getDataFromDataIndex(a, localStartIndex);
@@ -749,22 +754,21 @@ void writeToFileStream(
                int nxLocalExtended = preLayerLoc.nx + preLayerLoc.halo.lt + preLayerLoc.halo.rt;
                int nyLocalExtended = preLayerLoc.ny + preLayerLoc.halo.dn + preLayerLoc.halo.up;
                for (int y = 0; y < nyLocalExtended; ++y) {
-                  int lineStartIndexInBlock = kIndex(
+                  long lineStartIndexInBlock = kIndex(
                         mpiColumn * preLayerLoc.nx,
                         mpiRow * preLayerLoc.ny + y,
                         0,
                         weightHeader.baseHeader.nxExtended,
                         weightHeader.baseHeader.nyExtended,
                         weightHeader.baseHeader.nf);
-                  long lineStartFileOffset =
-                        static_cast<long>(patchSizeInFile * lineStartIndexInBlock);
+                  long lineStartFileOffset = patchSizeInFile * lineStartIndexInBlock;
                   long lineStartFilePos = arborStartInFile + lineStartFileOffset;
                   fileStream->setOutPos(lineStartFilePos, std::ios_base::beg);
                   for (int x = 0; x < nxLocalExtended; ++x) {
                      for (int f = 0; f < nf; ++f) {
                         fileStream->write(&patchHeader, patchHeaderSize);
-                        int patchIndex = kIndex(x, y, f, nxLocalExtended, nyLocalExtended, nf);
-                        long dataIndex = static_cast<long>(patchIndex) * patchSizeOverall;
+                        long patchIndex = kIndex(x, y, f, nxLocalExtended, nyLocalExtended, nf);
+                        long dataIndex = patchIndex * patchSizeOverall;
                         float *patchData = &mpiBuffer.at(dataIndex);
                         fileStream->write(patchData, patchSizeBytes);
                      } // f
@@ -802,7 +806,7 @@ void setWeights1(
          int fIndex            = featureIndex(k, nxLocalExt, nyLocalExt, nf);
          int xGlobal           = xLocal + preLoc.kx0;
          int yGlobal           = yLocal + preLoc.ky0;
-         int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
+         long kGlobal          = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
          float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {
@@ -833,7 +837,7 @@ void setWeights2(
          int fIndex            = featureIndex(k, nxLocalExt, nyLocalExt, nf);
          int xGlobal           = xLocal + preLoc.kx0;
          int yGlobal           = yLocal + preLoc.ky0;
-         int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
+         long kGlobal          = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
          float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {

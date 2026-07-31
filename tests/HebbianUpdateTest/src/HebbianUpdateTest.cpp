@@ -36,18 +36,18 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    }
    int nyp = weights->getPatchSizeY();
    if (nyp != 8) {
-      ErrorLog().printf("Weights have patch height %d instead of expected 8.\n", nxp);
+      ErrorLog().printf("Weights have patch height %d instead of expected 8.\n", nyp);
       status = PV_FAILURE;
    }
    int nfp = weights->getPatchSizeF();
    if (nfp != 1) {
-      ErrorLog().printf("Weights have feature depth %d instead of expected 1.\n", nxp);
+      ErrorLog().printf("Weights have feature depth %d instead of expected 1.\n", nfp);
       status = PV_FAILURE;
    }
    long numWeightsPerPatch = weights->getPatchSizeOverall();
    long numKernels = weights->getNumDataPatchesOverall();
    if (numKernels != 8L) {
-      ErrorLog().printf("Weights have %d kernels instead of expected 8.\n", nxp);
+      ErrorLog().printf("Weights have %ld kernels instead of expected 8.\n", numKernels);
       status = PV_FAILURE;
    }
    std::vector<std::vector<float>> correctValues(2);

@@ -177,12 +177,12 @@ void verifyActivity(
          validRegionName.c_str(),
          inputBuffer->getTotalElements(),
          validRegionBuffer->getTotalElements());
-   int const totalElements = inputBuffer->getTotalElements();
+   long const totalElements = inputBuffer->getTotalElements();
 
    // Verify each validRegionBuffer value is either 0.0 or 1.0, and that each appears somewhere.
    bool onePresent  = false;
    bool zeroPresent = false;
-   for (int k = 0; k < totalElements; k++) {
+   for (long k = 0; k < totalElements; k++) {
       float const value = validRegionBuffer->at(k);
       FatalIf(
             value != 0.0f and value != 1.0f,
@@ -203,11 +203,11 @@ void verifyActivity(
    // Verify that where ValidRegion is zero, Input is the pad value.
    float padValue = (float)params->value(
          inputName.c_str(), "padValue", 0.0f /*default*/, false /*no warning if absent*/);
-   for (int k = 0; k < totalElements; k++) {
+   for (long k = 0; k < totalElements; k++) {
       if (validRegionBuffer->at(k) == 0.0f and inputBuffer->at(k) != padValue) {
          status = PV_FAILURE;
          ErrorLog().printf(
-               "Neuron %d: %s has value zero but %s has value %f instead of the pad value %f.\n",
+               "Neuron %ld: %s has value zero but %s has value %f instead of the pad value %f.\n",
                k,
                validRegionName.c_str(),
                inputName.c_str(),
@@ -230,7 +230,7 @@ void verifyActivity(
          inputName.c_str());
    double mean = 0.0;
    int count   = 0;
-   for (int k = 0; k < totalElements; k++) {
+   for (long k = 0; k < totalElements; k++) {
       if (validRegionBuffer->at(k) == 0.0f) {
          continue;
       }
@@ -257,7 +257,7 @@ void verifyActivity(
          inputName.c_str());
    double stddev = 0.0;
    count         = 0;
-   for (int k = 0; k < totalElements; k++) {
+   for (long k = 0; k < totalElements; k++) {
       if (validRegionBuffer->at(k) == 0.0f) {
          continue;
       }

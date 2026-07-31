@@ -31,16 +31,18 @@ void LIFTestProbe::checkStats() {
 
    HyPerLayer *l         = getTargetLayer();
    const PVLayerLoc *loc = l->getLayerLoc();
-   int n                 = l->getNumNeurons();
+   long n                = l->getNumNeurons();
    float xctr            = 0.5f * (float)(loc->nxGlobal - 1) - (float)loc->kx0;
    float yctr            = 0.5f * (float)(loc->nyGlobal - 1) - (float)loc->ky0;
    for (int j = 0; j < mNumBins; j++) {
       mRates[j] = 0.0;
    }
-   for (int k = 0; k < n; k++) {
+   for (long k = 0; k < n; k++) {
       int x          = kxPos(k, loc->nx, loc->ny, loc->nf);
       int y          = kyPos(k, loc->nx, loc->ny, loc->nf);
-      float r        = std::sqrt((x - xctr) * (x - xctr) + (y - yctr) * (y - yctr));
+      float xdiff    = (float)x - xctr;
+      float ydiff    = (float)y - yctr;
+      float r        = std::sqrt(xdiff * xdiff + ydiff * ydiff);
       int bin_number = static_cast<int>(std::floor(r / 5.0f));
       bin_number -= bin_number > 0 ? 1 : 0;
       if (bin_number < mNumBins) {

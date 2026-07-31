@@ -34,11 +34,11 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
       for (int iY = 0; iY < ny; iY++) {
          for (int iX = 0; iX < nx; iX++) {
             for (int iF = 0; iF < nf; iF++) {
-               int idx             = kIndex(iX, iY, iF, nx, ny, nf);
+               long idx            = kIndex(iX, iY, iF, nx, ny, nf);
                int ixGlobal        = kx0 + iX;
                int iyGlobal        = ky0 + iY;
                float actualvalue   = A[idx] * 255;
-               float expectedvalue = -1;
+               int expectedvalue   = -1;
                if (strcmp(getName(), "crop") == 0) {
                   expectedvalue = (iyGlobal + 4) * 16 + (ixGlobal + 4);
                }
@@ -117,7 +117,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                else {
                   Fatal() << "Layer name " << getName() << " not recoginzed\n";
                }
-               float diff = fabs(actualvalue - expectedvalue);
+               float diff = std::fabs(actualvalue - (float)expectedvalue);
                if (diff >= 1e-4f) {
                   ErrorLog() << "Connection " << getName() << " Mismatch at (" << ixGlobal << ","
                              << iyGlobal << "," << iF << ") : actual value: " << actualvalue

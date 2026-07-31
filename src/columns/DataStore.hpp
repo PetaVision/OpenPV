@@ -19,7 +19,7 @@ namespace PV {
 
 class DataStore {
   public:
-   DataStore(int numBuffers, int numItems, int numLevels, bool isSparse);
+   DataStore(int numBuffers, long numItems, int numLevels, bool isSparse);
 
    virtual ~DataStore() {
       delete mBuffer;
@@ -80,7 +80,7 @@ class DataStore {
 
    void updateActiveIndices(int bufferId, int level);
 
-   int getNumItems() const { return mNumItems; }
+   long getNumItems() const { return mNumItems; }
 
    /**
     * Returns a PVLayerCube pointing to the data at the given delay.
@@ -90,7 +90,7 @@ class DataStore {
    PVLayerCube createCube(PVLayerLoc const &loc, int delay);
 
   private:
-   int mNumItems;
+   long mNumItems;
    int mCurrentLevel;
    int mNumLevels;
    int mNumBuffers;

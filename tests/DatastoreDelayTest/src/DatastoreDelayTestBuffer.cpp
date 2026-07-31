@@ -63,7 +63,7 @@ int DatastoreDelayTestBuffer::updateV(const PVLayerLoc *loc, bool *inited, float
                   float *V1 = &VBatch[kIndex(x, y, f, loc->nx, loc->ny, loc->nf)];
                   (*V1)--;
                   if (*V1 == 0)
-                     *V1 = period;
+                     *V1 = static_cast<float>(period);
                }
             }
          }
@@ -96,7 +96,8 @@ int DatastoreDelayTestBuffer::updateV(const PVLayerLoc *loc, bool *inited, float
          for (int x = 0; x < loc->nx; x++) {
             for (int f = 0; f < loc->nf; f++) {
                for (int row = 0; row < loc->ny; row++) {
-                  VBatch[kIndex(x, row, f, loc->nx, loc->ny, loc->nf)] = (base + row) % period + 1;
+                  long index = kIndex(x, row, f, loc->nx, loc->ny, loc->nf);
+                  VBatch[index] = static_cast<float>( (base + row) % period + 1 );
                }
             }
          }

@@ -64,7 +64,7 @@ void RotateActivityBuffer::ioParam_angleUnits(enum ParamsIOFlag ioFlag) {
       std::string angleUnitsString(angleUnitsParam);
       free(angleUnitsParam);
       for (auto &c : angleUnitsString) {
-         c = tolower(c);
+         c = (char)std::tolower(c);
       }
       if (angleUnitsString == "degree") {
          angleUnitsString = "degrees";
@@ -202,13 +202,13 @@ void RotateActivityBuffer::applyTransformCPU(
    float const xCenter = 0.5f * static_cast<float>(nxRes - 1);
    float const yCenter = 0.5f * static_cast<float>(nyRes - 1);
 
-   int const numExtended = outputBuffer.getTotalElements();
+   long const numExtended = outputBuffer.getTotalElements();
    float sina = std::sin(angle);
    float cosa = std::cos(angle);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int kExt = 0; kExt < numExtended; ++kExt) {
+   for (long kExt = 0; kExt < numExtended; ++kExt) {
       int const kxExt = kxPos(kExt, nxExt, nyExt, nf);
       int const kyExt = kyPos(kExt, nxExt, nyExt, nf);
       int const kf    = featureIndex(kExt, nxExt, nyExt, nf);
@@ -254,7 +254,7 @@ void RotateActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, fl
    }
    BufferUtils::scatter(localMPIBlock, activityBuffer, loc->nx, loc->ny, 0, 0);
    auto const &activityBufferVector = activityBuffer.asVector();
-   int const numLocalExtended = activityBuffer.getTotalElements();
+   long const numLocalExtended = activityBuffer.getTotalElements();
    std::copy(
          &activityBufferVector[0],
          &activityBufferVector[numLocalExtended],

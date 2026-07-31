@@ -196,8 +196,8 @@ int checkResults(PV_Init &pv_initObj, int displayPeriodOffset) {
    }
    else {
       char const *writeCheckpointDir = params->stringValue("column", "checkpointWriteDir");
-      float stopTime = params->value("column", "stopTime");
-      float dt = params->value("column", "dt");
+      double stopTime = params->value("column", "stopTime");
+      double dt = params->value("column", "dt");
       int numSteps = static_cast<int>(std::round(stopTime / dt));
       checkpointDir = std::string(writeCheckpointDir) + "/Checkpoint" + std::to_string(numSteps);
    }

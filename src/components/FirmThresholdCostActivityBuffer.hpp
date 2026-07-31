@@ -58,7 +58,7 @@ class FirmThresholdCostActivityBuffer : public HyPerActivityBuffer {
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
-   float mVThresh = 0.0;
+   float mVThresh = 0.0f;
    float mVWidth  = 0.0f;
 };
 

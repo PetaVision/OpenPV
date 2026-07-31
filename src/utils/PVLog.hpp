@@ -403,10 +403,10 @@ struct Log {
          va_list args1, args2;
          va_start(args1, fmt);
          va_copy(args2, args1);
-         int chars_needed = vsnprintf(nullptr, 0, fmt, args1);
+         int chars_needed = vsnprintf(nullptr, std::size_t(0), fmt, args1);
          chars_needed++;
          char output_string[chars_needed];
-         chars_printed = vsnprintf(output_string, chars_needed, fmt, args2);
+         chars_printed = vsnprintf(output_string, std::size_t(chars_needed), fmt, args2);
          _stream << output_string;
          va_end(args1);
          va_end(args2);

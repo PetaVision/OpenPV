@@ -46,11 +46,11 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
       halo.dn = 0;
       halo.up = 0;
    }
-   int nxExt    = locptr->nx + halo.lt + halo.rt;
-   int nyExt    = locptr->ny + halo.up + halo.dn;
-   int nf       = locptr->nf;
-   int nbatch   = locptr->nbatch;
-   int rngCount = nxExt * nyExt * nf * nbatch;
+   int nxExt     = locptr->nx + halo.lt + halo.rt;
+   int nyExt     = locptr->ny + halo.up + halo.dn;
+   int nf        = locptr->nf;
+   int nbatch    = locptr->nbatch;
+   long rngCount = (long)nxExt * (long)nyExt * (long)nf * (long)nbatch;
    // Calculate global size
    int nxGlobalExt  = locptr->nxGlobal + halo.lt + halo.rt;
    int nyGlobalExt  = locptr->nyGlobal + halo.up + halo.dn;
@@ -58,24 +58,24 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
    // Allocate buffer to store rngArraySize
    mRNG.resize(rngCount);
    if (status == PV_SUCCESS) {
-      int numTotalSeeds     = nxGlobalExt * nyGlobalExt * nf * nbatchGlobal;
-      unsigned int seedBase = RandomSeed::instance()->allocate(numTotalSeeds);
-      int sb                = nxExt * nyExt * nf;
-      int sy                = nxExt * nf;
-      int sbGlobal          = nxGlobalExt * nyGlobalExt * nf;
-      int syGlobal          = nxGlobalExt * nf;
+      long numTotalSeeds     = (long)nxGlobalExt * (long)nyGlobalExt * (long)nf * (long)nbatchGlobal;
+      unsigned long seedBase = RandomSeed::instance()->allocate(numTotalSeeds);
+      long sb                = (long)nxExt * (long)nyExt * (long)nf;
+      long sy                = (long)nxExt * (long)nf;
+      long sbGlobal          = (long)nxGlobalExt * (long)nyGlobalExt * (long)nf;
+      long syGlobal          = (long)nxGlobalExt * (long)nf;
 
       // Only thing that is continuous in memory is nx and nf, so loop over batch
       // and y
       for (int kb = 0; kb < nbatch; kb++) {
          for (int ky = 0; ky < nyExt; ky++) {
             // Calculate start index into local RNG
-            int localExtStart = kb * sb + ky * sy;
+            long localExtStart = kb * sb + ky * sy;
             // Calculate offset of the seedBase
-            int globalExtStart =
+            long globalExtStart =
                   (kb + locptr->kb0) * sbGlobal + (ky + locptr->ky0) * syGlobal + locptr->kx0 * nf;
-            size_t count = nxExt * nf;
-            cl_random_init(&(mRNG[localExtStart]), count, seedBase + globalExtStart);
+            std::size_t count = static_cast<std::size_t>(nxExt) * static_cast<std::size_t>(nf);
+            cl_random_init(&(mRNG[localExtStart]), count, seedBase + (unsigned long)globalExtStart);
          }
       }
    }
@@ -86,7 +86,7 @@ int Random::initializeFromCount(long count) {
    int status = PV_SUCCESS;
    mRNG.resize(count);
    if (status == PV_SUCCESS) {
-      unsigned int seedBase = RandomSeed::instance()->allocate(count);
+      unsigned long seedBase = RandomSeed::instance()->allocate(static_cast<unsigned long>(count));
       cl_random_init(mRNG.data(), (size_t)count, seedBase);
    }
    return status;
@@ -94,7 +94,7 @@ int Random::initializeFromCount(long count) {
 
 float Random::uniformRandom(long localIndex) {
    mRNG[localIndex] = cl_random_get(mRNG[localIndex]);
-   return mRNG[localIndex].s0 / (float)randomUIntMax();
+   return static_cast<float>(mRNG[localIndex].s0) / static_cast<float>(randomUIntMax());
 }
 
 unsigned int Random::randomUInt(long localIndex) {

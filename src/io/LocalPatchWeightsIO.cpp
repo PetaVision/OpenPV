@@ -426,7 +426,7 @@ long LocalPatchWeightsIO::getNumPatchesFile() const {
    long nx = getNxRestrictedPre() + 2 * getXMargin();
    long ny = getNyRestrictedPre() + 2 * getYMargin();
    long nf = getNfPre();
-   return (nx * ny * nf);
+   return (long)nx * (long)ny * (long)nf;
 }
 
 long LocalPatchWeightsIO::calcArborSizeBytes() const {

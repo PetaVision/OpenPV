@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   float tol = 1e-5;
+   float tol = 1e-5f;
 
    Observer *baseObject;
 

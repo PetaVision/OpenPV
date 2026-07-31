@@ -392,8 +392,8 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
       return status;
    }
    auto layerData = mPublisher->getLayerData();
-   int const N    = getNumExtendedAllBatches();
-   for (int n = 0; n < N; n++) {
+   long const N   = getNumExtendedAllBatches();
+   for (long n = 0; n < N; n++) {
       float a = layerData[n];
       FatalIf(
             a != a,

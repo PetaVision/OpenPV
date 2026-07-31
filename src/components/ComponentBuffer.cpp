@@ -86,7 +86,7 @@ void ComponentBuffer::setBufferSize() {
    int ny                    = loc->ny + (getExtendedFlag() ? loc->halo.dn + loc->halo.up : 0);
    int nf                    = loc->nf;
    int nb                    = loc->nbatch;
-   mBufferSize               = nx * ny * nf;
+   mBufferSize               = (long)nx * (long)ny * (long)nf;
    mBufferSizeAcrossBatch    = mBufferSize * nb;
    mBufferSizeAcrossChannels = mBufferSizeAcrossBatch * mNumChannels;
 }

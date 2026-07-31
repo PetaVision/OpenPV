@@ -120,7 +120,7 @@ void BasePublisherComponent::allocateCudaBuffers() {
       auto const nbatch = (std::size_t)mActivity->getLayerLoc()->nbatch;
       mCudaNumActive    = mCudaDevice->createBuffer(nbatch * sizeof(long), &getDescription());
 
-      int const numExtendedBatch   = mActivity->getBufferSizeAcrossBatch();
+      long const numExtendedBatch  = mActivity->getBufferSizeAcrossBatch();
       std::size_t const bufferSize =
             (std::size_t)numExtendedBatch * sizeof(SparseList<float>::Entry);
       mCudaActiveIndices = mCudaDevice->createBuffer(bufferSize, &getDescription());
@@ -211,8 +211,8 @@ Response::Status BasePublisherComponent::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
    Response::Status status = Response::SUCCESS;
    auto layerData          = getLayerData();
-   int const N             = mActivity->getBufferSizeAcrossBatch();
-   for (int n = 0; n < N; n++) {
+   long const N            = mActivity->getBufferSizeAcrossBatch();
+   for (long n = 0L; n < N; n++) {
       float a = layerData[n];
       FatalIf(
             a != a,

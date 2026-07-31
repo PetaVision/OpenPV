@@ -18,8 +18,8 @@ namespace PVCuda {
 // Parameter structure
 struct recv_pre_params {
    int nbatch;
-   int numPreExt;
-   int numPostRes;
+   long numPreExt;
+   long numPostRes;
 
    int nxp;
    int nyp;
@@ -52,8 +52,8 @@ class CudaRecvPre : public CudaKernel {
 
    void setArgs(
          int nbatch,
-         int numPreExt,
-         int numPostRes,
+         long numPreExt,
+         long numPostRes,
          int nxp,
          int nyp,
          int nfp,

@@ -71,7 +71,7 @@ void DiscreteUniformRandomV::calcV(float *V, PVLayerLoc const *loc) {
    double dV = (maxV - minV) / (numValues - 1.0);
    double p = numValues / (1.0 + static_cast<double>(CL_RANDOM_MAX));
    for (int b = 0; b < loc->nbatch; b++) {
-      float *VBatch = V + b * loc->nx * loc->ny * loc->nf;
+      float *VBatch = &V[b * (long)loc->nx * (long)loc->ny * (long)loc->nf];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -80,7 +80,7 @@ void DiscreteUniformRandomV::calcV(float *V, PVLayerLoc const *loc) {
             long index       = kIndex(xy, 0, f, nxny, 1, loc->nf);
             double randomInt = std::floor(p * static_cast<double>(randState.randomUInt(xy)));
             double value     = minV + dV * randomInt;
-            VBatch[index]    = value;
+            VBatch[index]    = static_cast<float>(value);
          }
       }
    }

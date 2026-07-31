@@ -83,8 +83,8 @@ ProbeData<LayerStats> calcCorrectValues(
       float nnzThreshold) {
    ProbeData<LayerStats> result(timestamp, loc->nbatch);
 
-   pvAssert(static_cast<int>(dataBuffer.size()) % loc->nbatch == 0);
-   int elementSize = static_cast<int>(dataBuffer.size()) / loc->nbatch;
+   pvAssert(static_cast<long>(dataBuffer.size()) % loc->nbatch == 0);
+   long elementSize = static_cast<long>(dataBuffer.size()) / loc->nbatch;
    PVHalo halo     = loc->halo;
 
    for (int b = 0; b < loc->nbatch; ++b) {
@@ -97,7 +97,7 @@ ProbeData<LayerStats> calcCorrectValues(
       int correctNumNeurons    = loc->nx * loc->ny * loc->nf;
       int correctNumNonzero    = 0;
       for (int k = 0; k < correctNumNeurons; ++k) {
-         int kExt =
+         long kExt =
                PV::kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo.lt, halo.rt, halo.dn, halo.up);
          pvAssert(kExt >= 0 and kExt < elementSize);
          float value     = data[kExt];
@@ -183,18 +183,18 @@ int compareStatsBatch(
       }
 
       try {
-         int observed = observedStats.mNumNeurons;
-         int correct  = correctStats.mNumNeurons;
-         checkValue(messageHead, std::string("NumNeurons"), observed, correct, 0);
+         long observed = observedStats.mNumNeurons;
+         long correct  = correctStats.mNumNeurons;
+         checkValue(messageHead, std::string("NumNeurons"), observed, correct, 0L);
       } catch (std::exception const &e) {
          ErrorLog() << e.what();
          status = PV_FAILURE;
       }
 
       try {
-         int observed = observedStats.mNumNonzero;
-         int correct  = correctStats.mNumNonzero;
-         checkValue(messageHead, std::string("NumNonzero"), observed, correct, 0);
+         long observed = observedStats.mNumNonzero;
+         long correct  = correctStats.mNumNonzero;
+         checkValue(messageHead, std::string("NumNonzero"), observed, correct, 0L);
       } catch (std::exception const &e) {
          ErrorLog() << e.what();
          status = PV_FAILURE;

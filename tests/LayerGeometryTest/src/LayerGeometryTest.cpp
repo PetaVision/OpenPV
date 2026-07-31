@@ -76,13 +76,13 @@ int main(int argc, char *argv[]) {
 PVLayerLoc makeCorrectLoc(PV::HyPerCol *hc) {
    // Read parameters directly
    auto *params = hc->parameters();
-   int nx       = params->value(hc->getName(), "nx");
-   int ny       = params->value(hc->getName(), "ny");
-   int nbatch   = params->value(hc->getName(), "nbatch");
+   int nx       = (int)params->value(hc->getName(), "nx");
+   int ny       = (int)params->value(hc->getName(), "ny");
+   int nbatch   = (int)params->value(hc->getName(), "nbatch");
 
-   float nxScale   = params->value("Layer", "nxScale");
-   float nyScale   = params->value("Layer", "nyScale");
-   int numFeatures = params->value("Layer", "nf");
+   float nxScale   = (float)params->value("Layer", "nxScale");
+   float nyScale   = (float)params->value("Layer", "nyScale");
+   int numFeatures = (int)params->value("Layer", "nf");
 
    // Get location in MPI configuration
    auto comm          = hc->getCommunicator();

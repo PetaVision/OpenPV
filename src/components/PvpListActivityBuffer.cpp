@@ -27,8 +27,13 @@ void PvpListActivityBuffer::setObjectType() { mObjectType = "PvpListActivityBuff
 
 int PvpListActivityBuffer::countInputImages() {
    populateFileList();
-   InfoLog() << "File " << getInputPath() << " contains " << mFileList.size() << " frames\n";
-   return mFileList.size();
+   int numImages = static_cast<int>(mFileList.size());
+   FatalIf(
+         static_cast<std::size_t>(numImages) != mFileList.size(),
+         "Layer \"%s\" file list has %zu images, larger than INT_MAX = %d\n",
+         getName(), mFileList.size(), INT_MAX);
+   InfoLog() << "File " << getInputPath() << " contains " << numImages << " frames\n";
+   return numImages;
 }
 
 void PvpListActivityBuffer::populateFileList() {

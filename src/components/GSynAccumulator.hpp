@@ -74,7 +74,7 @@ class GSynAccumulator : public RestrictedBuffer {
 
   protected:
    int mNumChannelIndices            = 0;
-   float *mChannelIndicesParams      = nullptr; // The channel indices as provided in params
+   int *mChannelIndicesParams        = nullptr; // The channel indices as provided in params
    int mNumChannelCoefficients       = 0;
    float *mChannelCoefficientsParams = nullptr; // The channel coefficients as provided in params
    std::vector<float> mChannelCoefficients;

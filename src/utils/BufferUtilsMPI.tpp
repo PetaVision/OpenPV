@@ -1,3 +1,4 @@
+#include <vector>
 #include "arch/mpi/mpi.h"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
@@ -14,18 +15,25 @@ void scatter(
       unsigned int localHeight,
       int mpiBatchIndex,
       int sourceProcess) {
-   size_t dataSize = sizeof(T);
+   long dataSize = (long)sizeof(T);
    if (mpiBlock->getRank() == sourceProcess) {
       // This assumes buffer's dimensions are nxGlobal x nyGlobal
-      int xMargins      = buffer.getWidth() - (localWidth * mpiBlock->getNumColumns());
-      int yMargins      = buffer.getHeight() - (localHeight * mpiBlock->getNumRows());
-      int numElements   = (localWidth + xMargins) * (localHeight + yMargins) * buffer.getFeatures();
-      int const numRows = mpiBlock->getNumRows();
-      int const numColumns = mpiBlock->getNumColumns();
+      int xMargins       = buffer.getWidth() - (localWidth * mpiBlock->getNumColumns());
+      int yMargins       = buffer.getHeight() - (localHeight * mpiBlock->getNumRows());
+      int localWidthExt  = localWidth + xMargins;
+      int localHeightExt = localHeight + yMargins;
+      long numElements   = (long)localWidthExt * (long)localHeightExt * (long)buffer.getFeatures();
+      int numRows        = mpiBlock->getNumRows();
+      int numColumns     = mpiBlock->getNumColumns();
 
       // Loop through each rank.
-      // Uses Buffer::crop and MPI_Send to give each process
-      // the correct slice of input data.
+      // Uses Buffer::crop and MPI_Send to give each process the correct slice of input data.
+      long numBytes   = numElements * dataSize;
+      int numBytesInt = static_cast<int>(numBytes);
+      FatalIf(
+            static_cast<long>(numBytesInt) != numBytes,
+            "BufferUtils::scatter() needs to send/recv %ld bytes over MPI, which is too large.\n",
+            numBytes);
       for (int sendRow = mpiBlock->getNumRows() - 1; sendRow >= 0; --sendRow) {
          for (int sendColumn = numColumns - 1; sendColumn >= 0; --sendColumn) {
             int sendRank = mpiBlock->calcRankFromRowColBatch(sendRow, sendColumn, mpiBatchIndex);
@@ -35,14 +43,14 @@ void scatter(
             unsigned int cropTop  = localHeight * rowFromRank(sliceRank, numRows, numColumns);
 
             Buffer<T> croppedBuffer =
-                  buffer.extract(cropLeft, cropTop, localWidth + xMargins, localHeight + yMargins);
+                  buffer.extract(cropLeft, cropTop, localWidthExt, localHeightExt);
             pvAssert(numElements == croppedBuffer.getTotalElements());
 
             if (sendRank != sourceProcess) {
                // If this isn't for root, ship it off to the appropriate process.
                MPI_Send(
                      croppedBuffer.asVector().data(),
-                     numElements * dataSize,
+                     numBytesInt,
                      MPI_BYTE,
                      sendRank,
                      31,
@@ -52,8 +60,8 @@ void scatter(
                // Root process is in this batch element; this is our slice.
                buffer.set(
                      croppedBuffer.asVector(),
-                     localWidth + xMargins,
-                     localHeight + yMargins,
+                     localWidthExt,
+                     localHeightExt,
                      buffer.getFeatures());
             }
          }
@@ -61,9 +69,15 @@ void scatter(
    }
    else if (mpiBlock->getBatchIndex() == mpiBatchIndex) {
       pvAssert(mpiBlock->getRank() != sourceProcess);
+      long numBytes   = buffer.getTotalElements() * dataSize;
+      int numBytesInt = static_cast<int>(numBytes);
+      FatalIf(
+            static_cast<long>(numBytesInt) != numBytes,
+            "BufferUtils::scatter() needs to send/recv %ld bytes over MPI, which is too large.\n",
+            numBytes);
       MPI_Recv(
             buffer.asVector().data(),
-            buffer.getTotalElements() * dataSize,
+            numBytesInt,
             MPI_BYTE,
             sourceProcess,
             31,
@@ -83,25 +97,27 @@ Buffer<T> gather(
    // Here, we assume that buffer is the size of local,
    // not global, nx and ny. If we have margins, then
    // buffer.getWidth != localWidth. Same for Y.
-   int xMargins    = buffer.getWidth() - localWidth;
-   int yMargins    = buffer.getHeight() - localHeight;
-   size_t dataSize = sizeof(T);
+   int xMargins  = buffer.getWidth() - localWidth;
+   int yMargins  = buffer.getHeight() - localHeight;
+   long dataSize = (long)sizeof(T);
 
    if (mpiBlock->getRank() == destProcess) {
       int const numRows    = mpiBlock->getNumRows();
       int const numColumns = mpiBlock->getNumColumns();
       int globalWidth      = localWidth * numColumns + xMargins;
       int globalHeight     = localHeight * numRows + yMargins;
-      int numElements      = buffer.getTotalElements();
+      long numElements     = buffer.getTotalElements();
 
       Buffer<T> globalBuffer(globalWidth, globalHeight, buffer.getFeatures());
 
       // Receive each slice of our full buffer from each MPI process
-      T *tempMem = (T *)calloc(numElements, dataSize);
+      long numBytes = static_cast<std::size_t>(numElements) * dataSize;
+      int numBytesInt      = static_cast<int>(numBytes);
       FatalIf(
-            tempMem == nullptr,
-            "Could not allocate a receive buffer of %d bytes.\n",
-            numElements * dataSize);
+            static_cast<long>(numBytesInt) != numBytes,
+            "Buffer:gather() needs to send/recv %ld bytes over MPI, which is too large.\n",
+            numBytes);
+      std::vector<T> tempMem(numElements);
       for (int recvRow = numRows - 1; recvRow >= 0; --recvRow) {
          for (int recvColumn = numColumns - 1; recvColumn >= 0; --recvColumn) {
             int recvRank = mpiBlock->calcRankFromRowColBatch(recvRow, recvColumn, mpiBatchIndex);
@@ -109,8 +125,8 @@ Buffer<T> gather(
             if (recvRank != destProcess) {
                // This is nearly identical to the non-root receive in scatter
                MPI_Recv(
-                     tempMem,
-                     numElements * dataSize,
+                     tempMem.data(),
+                     numBytesInt,
                      MPI_BYTE,
                      recvRank,
                      32,
@@ -156,15 +172,20 @@ Buffer<T> gather(
             globalBuffer.insert(smallBuffer, sliceX, sliceY);
          }
       }
-      free(tempMem);
       return globalBuffer;
    }
    else if (mpiBlock->getBatchIndex() == mpiBatchIndex) {
       pvAssert(mpiBlock->getRank() != destProcess);
       // Send our chunk of the global buffer to root for reassembly
+      long numBytes   = buffer.getTotalElements() * dataSize;
+      int numBytesInt = static_cast<int>(numBytes);
+      FatalIf(
+            static_cast<long>(numBytesInt) != numBytes,
+            "Buffer:gather() needs to send/recv %ld bytes over MPI, which is too large.\n",
+            numBytes);
       MPI_Send(
             buffer.asVector().data(),
-            buffer.getTotalElements() * dataSize,
+            numBytesInt,
             MPI_BYTE,
             destProcess,
             32,
@@ -179,7 +200,7 @@ SparseList<T> gatherSparse(
       SparseList<T> list,
       int mpiBatchIndex,
       int destProcess) {
-   size_t entrySize = sizeof(typename SparseList<T>::Entry);
+   unsigned int entrySize = (unsigned int)sizeof(typename SparseList<T>::Entry);
    if (mpiBlock->getRank() == destProcess) {
       SparseList<T> globalList;
       for (int recvRow = mpiBlock->getNumRows() - 1; recvRow >= 0; --recvRow) {
@@ -187,15 +208,21 @@ SparseList<T> gatherSparse(
             int recvRank = mpiBlock->calcRankFromRowColBatch(recvRow, recvColumn, mpiBatchIndex);
             SparseList<T> listChunk;
             if (recvRank != destProcess) {
-               uint32_t numToRecv = 0;
+               unsigned int numToRecv = 0U;
                MPI_Recv(
-                     &numToRecv, 1, MPI_INT, recvRank, 33, mpiBlock->getComm(), MPI_STATUS_IGNORE);
+                     &numToRecv,
+                     1,
+                     MPI_UNSIGNED,
+                     recvRank,
+                     33,
+                     mpiBlock->getComm(),
+                     MPI_STATUS_IGNORE);
                if (numToRecv > 0) {
                   struct SparseList<T>::Entry *recvBuffer =
                         (struct SparseList<T>::Entry *)calloc(numToRecv, entrySize);
                   FatalIf(
                         recvBuffer == nullptr,
-                        "Could not allocate a receive buffer of %d bytes.\n",
+                        "Could not allocate a receive buffer of %u bytes.\n",
                         numToRecv * entrySize);
                   MPI_Recv(
                         recvBuffer,
@@ -221,8 +248,8 @@ SparseList<T> gatherSparse(
    }
    else if (mpiBlock->getBatchIndex() == mpiBatchIndex) {
       vector<struct SparseList<T>::Entry> toSend = list.getContents();
-      uint32_t numToSend                         = toSend.size();
-      MPI_Send(&numToSend, 1, MPI_INT, destProcess, 33, mpiBlock->getComm());
+      unsigned int numToSend                     = toSend.size();
+      MPI_Send(&numToSend, 1, MPI_UNSIGNED, destProcess, 33, mpiBlock->getComm());
       if (numToSend > 0) {
          MPI_Send(
                toSend.data(),

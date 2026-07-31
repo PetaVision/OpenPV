@@ -262,10 +262,12 @@ int MomentumUpdater::updateWeights(int arborId) {
 
    // Current dW saved to prev_dW
    pvAssert(mPrevDeltaWeights);
+   long numValues =
+         mDeltaWeights->getPatchSizeOverall() * mDeltaWeights->getNumDataPatchesOverall();
    std::memcpy(
          mPrevDeltaWeights->getData(arborId),
          mDeltaWeights->getData(arborId),
-         sizeof(float) * mDeltaWeights->getPatchSizeOverall() * mDeltaWeights->getNumDataPatchesOverall());
+         sizeof(float) * std::size_t(numValues));
 
    // add dw to w
    return HebbianUpdater::updateWeights(arborId);

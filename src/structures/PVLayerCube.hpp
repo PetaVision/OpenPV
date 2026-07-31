@@ -8,7 +8,7 @@
  *    plus location information
  */
 struct PVLayerCube {
-   int numItems; // number of items in data buffer
+   long numItems; // number of items in data buffer
    float const *data; // pointer to data
    PVLayerLoc loc;
    bool isSparse;

@@ -185,12 +185,6 @@ void PatchGeometry::verifyPatchSize() {
 }
 
 void PatchGeometry::setPatchGeometry() {
-   int numPatches = mNumPatchesX * mNumPatchesY * mNumPatchesF;
-   mPatchVector.resize(numPatches);
-   mGSynPatchStart.resize(numPatches);
-   mAPostOffset.resize(numPatches);
-   mUnshrunkenStart.resize(numPatches);
-
    std::vector<int> patchStartX(mNumPatchesX);
    std::vector<int> patchDimX(mNumPatchesX);
    std::vector<int> postStartRestrictedX(mNumPatchesX);
@@ -237,14 +231,20 @@ void PatchGeometry::setPatchGeometry() {
             &postUnshrunkenStartY[yIndex]);
    }
 
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+   long numPatches = getNumPatchesOverall();
+   mPatchVector.resize(numPatches);
+   mGSynPatchStart.resize(numPatches);
+   mAPostOffset.resize(numPatches);
+   mUnshrunkenStart.resize(numPatches);
+
+   for (long patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       Patch &patch = mPatchVector[patchIndex];
 
       int xIndex = kxPos(patchIndex, mNumPatchesX, mNumPatchesY, mNumPatchesF);
-      patch.nx   = patchDimX[xIndex];
+      patch.nx   = static_cast<uint16_t>(patchDimX[xIndex]);
 
       int yIndex = kyPos(patchIndex, mNumPatchesX, mNumPatchesY, mNumPatchesF);
-      patch.ny   = patchDimY[yIndex];
+      patch.ny   = static_cast<uint16_t>(patchDimY[yIndex]);
 
       long patchOffset = kIndex(
             patchStartX[xIndex], patchStartY[yIndex], 0, mPatchSizeX, mPatchSizeY, mPatchSizeF);
@@ -277,7 +277,7 @@ void PatchGeometry::setPatchGeometry() {
 }
 
 void PatchGeometry::setTransposeItemIndices() {
-   int const patchSizeOverall = getPatchSizeOverall();
+   long const patchSizeOverall = getPatchSizeOverall();
    int const numKernels       = getNumKernels();
    mTransposeItemIndex.resize(numKernels);
    for (auto &t : mTransposeItemIndex) {

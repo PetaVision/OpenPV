@@ -146,7 +146,7 @@ void CudaKernel::callPermuteDatastorePVToCudnnKernel(
       int diffX,
       int diffY) {
    // Datastore will never get reshaped, so manyScale will always be 1
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, mDevice->getStream()>>>(
          cudnnBuffer, pvBuffer, nbatch, ny, nx, nf, 1, 1, diffY, diffX);
 }
 
@@ -161,7 +161,7 @@ void CudaKernel::callPermuteGSynPVToCudnnKernel(
       int nf,
       int manyScaleX,
       int manyScaleY) {
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, mDevice->getStream()>>>(
          cudnnBuffer, pvBuffer, nbatch, ny, nx, nf, manyScaleX, manyScaleY, 0, 0);
 }
 
@@ -176,7 +176,7 @@ void CudaKernel::callPermuteGSynCudnnToPVKernel(
       int nf,
       int manyScaleX,
       int manyScaleY) {
-   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(
+   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, mDevice->getStream()>>>(
          pvBuffer, cudnnBuffer, nbatch, ny, nx, nf, manyScaleX, manyScaleY);
 }
 

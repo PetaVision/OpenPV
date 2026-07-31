@@ -18,32 +18,34 @@ CudaRecvPost::CudaRecvPost(CudaDevice *inDevice) : CudaKernel(inDevice) {
 
 CudaRecvPost::~CudaRecvPost() {
 #ifdef PV_USE_CUDNN
-   if (params.v_inputDescriptor) {
-      cudnnTensorDescriptor_t inputDescriptor = (cudnnTensorDescriptor_t)params.v_inputDescriptor;
+   if (mParams.v_inputDescriptor) {
+      cudnnTensorDescriptor_t inputDescriptor = (cudnnTensorDescriptor_t)mParams.v_inputDescriptor;
       cudnnDestroyTensorDescriptor(inputDescriptor);
    }
-   if (params.v_filterDescriptor) {
-      cudnnFilterDescriptor_t filterDescriptor = (cudnnFilterDescriptor_t)params.v_filterDescriptor;
+   if (mParams.v_filterDescriptor) {
+      cudnnFilterDescriptor_t filterDescriptor =
+            (cudnnFilterDescriptor_t)mParams.v_filterDescriptor;
       cudnnDestroyFilterDescriptor(filterDescriptor);
    }
-   if (params.v_outputDescriptor) {
-      cudnnTensorDescriptor_t outputDescriptor = (cudnnTensorDescriptor_t)params.v_outputDescriptor;
+   if (mParams.v_outputDescriptor) {
+      cudnnTensorDescriptor_t outputDescriptor =
+            (cudnnTensorDescriptor_t)mParams.v_outputDescriptor;
       cudnnDestroyTensorDescriptor(outputDescriptor);
    }
-   if (params.v_convDescriptor) {
+   if (mParams.v_convDescriptor) {
       cudnnConvolutionDescriptor_t convDescriptor =
-            (cudnnConvolutionDescriptor_t)params.v_convDescriptor;
+            (cudnnConvolutionDescriptor_t)mParams.v_convDescriptor;
       cudnnDestroyConvolutionDescriptor(convDescriptor);
    }
-   if (params.v_convAlgo) {
-      cudnnConvolutionFwdAlgo_t *convAlgo = (cudnnConvolutionFwdAlgo_t *)params.v_convAlgo;
+   if (mParams.v_convAlgo) {
+      cudnnConvolutionFwdAlgo_t *convAlgo = (cudnnConvolutionFwdAlgo_t *)mParams.v_convAlgo;
       delete convAlgo;
    }
-   if (params.cudnn_workspace) {
-      handleError(cudaFree(params.cudnn_workspace), "Freeing workspace pointer");
+   if (mParams.cudnn_workspace) {
+      handleError(cudaFree(mParams.cudnn_workspace), "Freeing workspace pointer");
    }
-   if (params.workspaceSize) {
-      delete params.workspaceSize;
+   if (mParams.workspaceSize) {
+      delete mParams.workspaceSize;
    }
 #endif // PV_USE_CUDNN
 }
@@ -90,64 +92,64 @@ void CudaRecvPost::setArgs(
       /* float* */ CudaBuffer *cudnn_gSyn,
 #endif // PV_USE_CUDNN
       /* int* */ CudaBuffer *patch2datalookuptable) {
-   params.nbatch = nbatch;
-   params.nxRes  = nxRes;
-   params.nyRes  = nyRes;
-   params.nf     = nf;
+   mParams.nbatch = nbatch;
+   mParams.nxRes  = nxRes;
+   mParams.nyRes  = nyRes;
+   mParams.nf     = nf;
 
-   params.nblt = nblt;
-   params.nbrt = nbrt;
-   params.nbdn = nbdn;
-   params.nbup = nbup;
+   mParams.nblt = nblt;
+   mParams.nbrt = nbrt;
+   mParams.nbdn = nbdn;
+   mParams.nbup = nbup;
 
-   params.preNx   = preNx;
-   params.preNy   = preNy;
-   params.preNf   = preNf;
-   params.preNblt = preNblt;
-   params.preNbrt = preNbrt;
-   params.preNbup = preNbup;
-   params.preNbdn = preNbdn;
+   mParams.preNx   = preNx;
+   mParams.preNy   = preNy;
+   mParams.preNf   = preNf;
+   mParams.preNblt = preNblt;
+   mParams.preNbrt = preNbrt;
+   mParams.preNbup = preNbup;
+   mParams.preNbdn = preNbdn;
 
-   params.nxp = nxp;
-   params.nyp = nyp;
-   params.nfp = nfp;
+   mParams.nxp = nxp;
+   mParams.nyp = nyp;
+   mParams.nfp = nfp;
 
-   params.preToPostScaleX = preToPostScaleX;
-   params.preToPostScaleY = preToPostScaleY;
+   mParams.preToPostScaleX = preToPostScaleX;
+   mParams.preToPostScaleY = preToPostScaleY;
 
-   params.sy            = sy;
-   params.syp           = syp;
-   params.numPerStride  = numPerStride;
-   params.dt_factor     = dt_factor;
-   params.sharedWeights = sharedWeights;
+   mParams.sy            = sy;
+   mParams.syp           = syp;
+   mParams.numPerStride  = numPerStride;
+   mParams.dt_factor     = dt_factor;
+   mParams.sharedWeights = sharedWeights;
 
-   params.startSourceExtBuf = (long *)startSourceExtBuf->getPointer();
-   params.preData           = (float *)preData->getPointer();
-   params.weights           = (float *)weights->getPointer();
-   params.postGsyn          = (float *)postGsyn->getPointer();
+   mParams.startSourceExtBuf = (long *)startSourceExtBuf->getPointer();
+   mParams.preData           = (float *)preData->getPointer();
+   mParams.weights           = (float *)weights->getPointer();
+   mParams.postGsyn          = (float *)postGsyn->getPointer();
 #ifdef PV_USE_CUDNN
-   params.cudnn_weights = (float *)cudnn_weights->getPointer();
-   params.cudnn_preData = (float *)cudnn_preData->getPointer();
-   params.cudnn_gSyn    = (float *)cudnn_gSyn->getPointer();
+   mParams.cudnn_weights = (float *)cudnn_weights->getPointer();
+   mParams.cudnn_preData = (float *)cudnn_preData->getPointer();
+   mParams.cudnn_gSyn    = (float *)cudnn_gSyn->getPointer();
 #endif // PV_USE_CUDNN
-   params.patch2datalookuptable = (int *)patch2datalookuptable->getPointer();
+   mParams.patch2datalookuptable = (int *)patch2datalookuptable->getPointer();
 
-   params.warpSize = device->get_warp_size();
+   mParams.warpSize = mDevice->get_warp_size();
 
 #ifdef PV_USE_CUDNN
    int strideX, strideY;
    int actualXBorder, actualYBorder;
-   pvAssert(params.preNblt == params.preNbrt);
-   pvAssert(params.preNbup == params.preNbdn);
+   pvAssert(mParams.preNblt == mParams.preNbrt);
+   pvAssert(mParams.preNbup == mParams.preNbdn);
    // One to many case
-   if (preToPostScaleX < 1) {
-      float fmanyScale = (float)1 / params.preToPostScaleX;
+   if (preToPostScaleX < 1.0f) {
+      float fmanyScale = 1.0f / mParams.preToPostScaleX;
       // Make sure manyScale is an actual integer
       pvAssert(std::ceil(fmanyScale) == fmanyScale);
-      params.manyScaleX = fmanyScale;
-      fmanyScale        = (float)1 / params.preToPostScaleY;
+      mParams.manyScaleX = (int)fmanyScale;
+      fmanyScale        = 1.0f / mParams.preToPostScaleY;
       pvAssert(std::ceil(fmanyScale) == fmanyScale);
-      params.manyScaleY = fmanyScale;
+      mParams.manyScaleY = (int)fmanyScale;
       strideX           = 1;
       strideY           = 1;
 
@@ -156,38 +158,38 @@ void CudaRecvPost::setArgs(
          ErrorLog().printf(
                "cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, "
                "%d) be an odd muliple of many (%d, %d)\n",
-               nxp * params.manyScaleX,
-               nyp * params.manyScaleY,
-               params.manyScaleX,
-               params.manyScaleY);
+               nxp * mParams.manyScaleX,
+               nyp * mParams.manyScaleY,
+               mParams.manyScaleX,
+               mParams.manyScaleY);
       }
 
       // There's the case where the border of pre is made bigger through other connections. Need to
       // calculate difference
       // between current recv border and actual recv border
       // This is calculating what the border would be if this was a one to one connection
-      actualXBorder = params.nxp / 2;
-      actualYBorder = params.nyp / 2;
+      actualXBorder = mParams.nxp / 2;
+      actualYBorder = mParams.nyp / 2;
    }
    // Many to one or one to one case
    else {
-      params.manyScaleX = 1;
-      params.manyScaleY = 1;
+      mParams.manyScaleX = 1;
+      mParams.manyScaleY = 1;
       pvAssert(std::ceil(preToPostScaleX) == preToPostScaleX);
       pvAssert(std::ceil(preToPostScaleY) == preToPostScaleY);
-      strideX = preToPostScaleX;
-      strideY = preToPostScaleY;
+      strideX = (int)preToPostScaleX;
+      strideY = (int)preToPostScaleY;
 
       // There's the case where the border of pre is made bigger through other connections. Need to
       // calculate difference
       // between current recv border and actual recv border
-      actualXBorder = (params.nxp - params.preToPostScaleX) / 2;
-      actualYBorder = (params.nyp - params.preToPostScaleY) / 2;
+      actualXBorder = (mParams.nxp - (int)mParams.preToPostScaleX) / 2;
+      actualYBorder = (mParams.nyp - (int)mParams.preToPostScaleY) / 2;
    }
 
    // diffX is positive value of cropping
-   params.diffX = params.preNblt - actualXBorder;
-   params.diffY = params.preNbup - actualYBorder;
+   mParams.diffX = mParams.preNblt - actualXBorder;
+   mParams.diffY = mParams.preNbup - actualYBorder;
 
    // Set up pre descriptor
    cudnnTensorDescriptor_t inputDescriptor;
@@ -199,11 +201,11 @@ void CudaRecvPost::setArgs(
          CUDNN_TENSOR_NCHW,
          CUDNN_DATA_FLOAT,
          nbatch, // Number of images
-         params.preNf, // Number of feature maps per image
-         params.preNy + params.preNbup + params.preNbdn
-               - 2 * params.diffY, // Height of each feature map
-         params.preNx + params.preNblt + params.preNbrt
-               - 2 * params.diffX); // Width of each feature map
+         mParams.preNf, // Number of feature maps per image
+         mParams.preNy + mParams.preNbup + mParams.preNbdn
+               - 2 * mParams.diffY, // Height of each feature map
+         mParams.preNx + mParams.preNblt + mParams.preNbrt
+               - 2 * mParams.diffX); // Width of each feature map
    if (status != CUDNN_STATUS_SUCCESS) {
       switch (status) {
          case CUDNN_STATUS_BAD_PARAM: Fatal().printf("cuDNN bad parameter\n"); break;
@@ -212,7 +214,7 @@ void CudaRecvPost::setArgs(
       pvAssert(0);
    }
    cudnnHandleError(status, "Set input tensor descriptor");
-   params.v_inputDescriptor = (void *)inputDescriptor;
+   mParams.v_inputDescriptor = (void *)inputDescriptor;
 
    // Set up filter descriptor
    cudnnFilterDescriptor_t filterDescriptor;
@@ -223,27 +225,26 @@ void CudaRecvPost::setArgs(
          filterDescriptor,
          CUDNN_DATA_FLOAT,
          CUDNN_TENSOR_NCHW,
-         params.nf * params.manyScaleX * params.manyScaleY, // Number of output feature maps. For
-         // one to many, output feature maps are
-         // repeated for each kernel
-         params.nfp, // Number of input feature maps
-         params.nyp, // Height of each filter
-         params.nxp); // Width of each filter
+         mParams.nf * mParams.manyScaleX * mParams.manyScaleY, // Number of output feature maps.
+         // For one to many, output feature maps are repeated for each kernel
+         mParams.nfp, // Number of input feature maps
+         mParams.nyp, // Height of each filter
+         mParams.nxp); // Width of each filter
 #elif CUDNN_MAJOR == 4
    status = cudnnSetFilter4dDescriptor(
          filterDescriptor,
          CUDNN_DATA_FLOAT,
-         params.nf * params.manyScaleX * params.manyScaleY, // Number of output feature maps. For
+         mParams.nf * mParams.manyScaleX * mParams.manyScaleY, // Number of output feature maps. For
          // one to many, output feature maps are
          // repeated for each kernel
-         params.nfp, // Number of input feature maps
-         params.nyp, // Height of each filter
-         params.nxp); // Width of each filter
+         mParams.nfp, // Number of input feature maps
+         mParams.nyp, // Height of each filter
+         mParams.nxp); // Width of each filter
 #else
 #error The cuDNN version is required to be either v4 or greater.\n
 #endif
    cudnnHandleError(status, "Set filter tensor descriptor");
-   params.v_filterDescriptor = (void *)filterDescriptor;
+   mParams.v_filterDescriptor = (void *)filterDescriptor;
 
    // Set convolution descriptor
    cudnnConvolutionDescriptor_t convDescriptor;
@@ -264,7 +265,7 @@ void CudaRecvPost::setArgs(
 #endif
          );
    cudnnHandleError(status, "Set convolution tensor descriptor");
-   params.v_convDescriptor = (void *)convDescriptor;
+   mParams.v_convDescriptor = (void *)convDescriptor;
 
    // Query output layout and check with PV layout
    int out_n, out_c, out_h, out_w;
@@ -279,15 +280,15 @@ void CudaRecvPost::setArgs(
    cudnnHandleError(status, "Get output tensor descriptor");
 
    // Make sure dimensions match up with PV layer
-   if (out_n != nbatch || out_h != nyRes / params.manyScaleY || out_w != nxRes / params.manyScaleX
-       || out_c != nf * params.manyScaleX * params.manyScaleY) {
+   if (out_n != nbatch || out_h != nyRes / mParams.manyScaleY || out_w != nxRes / mParams.manyScaleX
+       || out_c != nf * mParams.manyScaleX * mParams.manyScaleY) {
       std::stringstream errmsg("");
       errmsg << "CUDNN:: Dimensions don't match: \n";
       errmsg << "Dimensions of output tensor (n, y, x, f): " << out_n << ", " << out_h << ", "
              << out_w << ", " << out_c << "\n";
       errmsg << "Scaled dimensions of output PV layer (n, y, x, f): " << nbatch << ", "
-             << nyRes / params.manyScaleY << ", " << nxRes / params.manyScaleX << ", "
-             << nf * params.manyScaleX * params.manyScaleY << "\n";
+             << nyRes / mParams.manyScaleY << ", " << nxRes / mParams.manyScaleX << ", "
+             << nf * mParams.manyScaleX * mParams.manyScaleY << "\n";
       errmsg << "Actual dimensions of output PV layer (n, y, x, f): " << nbatch << ", " << nyRes
              << ", " << nxRes << ", " << nf << "\n";
       Fatal() << errmsg.str() << std::endl;
@@ -302,14 +303,14 @@ void CudaRecvPost::setArgs(
          CUDNN_TENSOR_NCHW,
          CUDNN_DATA_FLOAT,
          nbatch, // Number of images
-         nf * params.manyScaleX * params.manyScaleY, // Number of feature maps per image
-         nyRes / params.manyScaleY, // ny restricted
-         nxRes / params.manyScaleX); // nx restricted
+         nf * mParams.manyScaleX * mParams.manyScaleY, // Number of feature maps per image
+         nyRes / mParams.manyScaleY, // ny restricted
+         nxRes / mParams.manyScaleX); // nx restricted
    cudnnHandleError(status, "Set output tensor descriptor");
-   params.v_outputDescriptor = (void *)outputDescriptor;
+   mParams.v_outputDescriptor = (void *)outputDescriptor;
 
    // Calculate and set up best forward conv algorithm to use
-   cudnnHandle_t handle                        = (cudnnHandle_t)device->getCudnnHandle();
+   cudnnHandle_t handle                        = (cudnnHandle_t)mDevice->getCudnnHandle();
    cudnnConvolutionFwdAlgoPerf_t *convAlgoPerf = new cudnnConvolutionFwdAlgoPerf_t();
 
 
@@ -324,7 +325,7 @@ void CudaRecvPost::setArgs(
          &returnedAlgoCount,
          convAlgoPerf);
    cudnnHandleError(status, "Get convolution forward algorithm");
-   params.v_convAlgo = (void *)(&convAlgoPerf->algo);
+   mParams.v_convAlgo = (void *)(&convAlgoPerf->algo);
 
    // Based on algorithm, allocate workspace memory for GPU
    size_t *temp = new size_t();
@@ -336,12 +337,14 @@ void CudaRecvPost::setArgs(
          outputDescriptor,
          convAlgoPerf->algo,
          temp);
-   params.workspaceSize = temp;
+   mParams.workspaceSize = temp;
    cudnnHandleError(status, "Get convolution forward workspace size");
 
    // Allocate workspace based on size
    handleError(
-         cudaMalloc(&params.cudnn_workspace, *params.workspaceSize), "Cudnn workspace cudaMalloc");
+         cudaMalloc(&mParams.cudnn_workspace,
+         *mParams.workspaceSize),
+         "Cudnn workspace cudaMalloc");
 
 #endif // PV_USE_CUDNN
 
@@ -351,13 +354,13 @@ void CudaRecvPost::setArgs(
 int CudaRecvPost::do_run() {
 
 #ifdef PV_USE_CUDNN
-   cudnnHandle_t handle                     = (cudnnHandle_t)device->getCudnnHandle();
-   cudnnTensorDescriptor_t inputDescriptor  = (cudnnTensorDescriptor_t)params.v_inputDescriptor;
-   cudnnFilterDescriptor_t filterDescriptor = (cudnnFilterDescriptor_t)params.v_filterDescriptor;
-   cudnnTensorDescriptor_t outputDescriptor = (cudnnTensorDescriptor_t)params.v_outputDescriptor;
+   cudnnHandle_t handle                     = (cudnnHandle_t)mDevice->getCudnnHandle();
+   cudnnTensorDescriptor_t inputDescriptor  = (cudnnTensorDescriptor_t)mParams.v_inputDescriptor;
+   cudnnFilterDescriptor_t filterDescriptor = (cudnnFilterDescriptor_t)mParams.v_filterDescriptor;
+   cudnnTensorDescriptor_t outputDescriptor = (cudnnTensorDescriptor_t)mParams.v_outputDescriptor;
    cudnnConvolutionDescriptor_t convDescriptor =
-         (cudnnConvolutionDescriptor_t)params.v_convDescriptor;
-   cudnnConvolutionFwdAlgo_t *convAlgo = (cudnnConvolutionFwdAlgo_t *)params.v_convAlgo;
+         (cudnnConvolutionDescriptor_t)mParams.v_convDescriptor;
+   cudnnConvolutionFwdAlgo_t *convAlgo = (cudnnConvolutionFwdAlgo_t *)mParams.v_convAlgo;
 
    float scalingFactor = 1;
 
@@ -365,16 +368,16 @@ int CudaRecvPost::do_run() {
          handle,
          &(scalingFactor),
          inputDescriptor,
-         params.cudnn_preData,
+         mParams.cudnn_preData,
          filterDescriptor,
-         params.cudnn_weights,
+         mParams.cudnn_weights,
          convDescriptor,
          *convAlgo,
-         params.cudnn_workspace,
-         *params.workspaceSize,
+         mParams.cudnn_workspace,
+         *mParams.workspaceSize,
          &(scalingFactor),
          outputDescriptor,
-         params.cudnn_gSyn);
+         mParams.cudnn_gSyn);
 
    cudnnHandleError(status, "Convolution run");
 #endif // PV_USE_CUDNN
@@ -385,84 +388,84 @@ int CudaRecvPost::do_run() {
 #ifdef PV_USE_CUDNN
 void CudaRecvPost::permuteDatastorePVToCudnn() {
    // Ext pre activity
-   int ny     = params.preNy + params.preNbup + params.preNbdn;
-   int nx     = params.preNx + params.preNblt + params.preNbrt;
-   int nf     = params.preNf;
-   int nbatch = params.nbatch;
+   int ny     = mParams.preNy + mParams.preNbup + mParams.preNbdn;
+   int nx     = mParams.preNx + mParams.preNblt + mParams.preNbrt;
+   int nf     = mParams.preNf;
+   int nbatch = mParams.nbatch;
 
    // Calculate grid and work size
    int numNeurons = nbatch * ny * nx * nf;
-   int blockSize  = device->get_max_threads();
+   int blockSize  = mDevice->get_max_threads();
    // Ceil to get all weights
-   int gridSize = ceil((float)numNeurons / blockSize);
+   int gridSize = (int)std::ceil((float)numNeurons / (float)blockSize);
 
    callPermuteDatastorePVToCudnnKernel(
          gridSize,
          blockSize,
-         params.preData,
-         params.cudnn_preData,
+         mParams.preData,
+         mParams.cudnn_preData,
          nbatch,
          ny,
          nx,
          nf,
-         params.diffX,
-         params.diffY);
+         mParams.diffX,
+         mParams.diffY);
    handleCallError("Permute PV to CUDNN");
 }
 
 void CudaRecvPost::permuteGSynPVToCudnn(int channel) {
    // Res post activity
-   int ny     = params.nyRes;
-   int nx     = params.nxRes;
-   int nf     = params.nf;
-   int nbatch = params.nbatch;
+   int ny     = mParams.nyRes;
+   int nx     = mParams.nxRes;
+   int nf     = mParams.nf;
+   int nbatch = mParams.nbatch;
 
    // Calculate grid and work size
    int numNeurons       = nbatch * ny * nx * nf;
-   float *gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
+   float *gSynPatchHead = &(mParams.postGsyn[numNeurons * channel]);
 
-   int blockSize = device->get_max_threads();
+   int blockSize = mDevice->get_max_threads();
    // Ceil to get all weights
-   int gridSize = std::ceil((float)numNeurons / (float)blockSize);
+   int gridSize = (int)std::ceil((float)numNeurons / (float)blockSize);
    callPermuteGSynPVToCudnnKernel(
          gridSize,
          blockSize,
          gSynPatchHead,
-         params.cudnn_gSyn,
+         mParams.cudnn_gSyn,
          nbatch,
          ny,
          nx,
          nf,
-         params.manyScaleX,
-         params.manyScaleY);
+         mParams.manyScaleX,
+         mParams.manyScaleY);
    handleCallError("Permute GSyn PV to CUDNN");
 }
 
 void CudaRecvPost::permuteGSynCudnnToPV(int channel) {
    // Res post activity
-   int ny     = params.nyRes;
-   int nx     = params.nxRes;
-   int nf     = params.nf;
-   int nbatch = params.nbatch;
+   int ny     = mParams.nyRes;
+   int nx     = mParams.nxRes;
+   int nf     = mParams.nf;
+   int nbatch = mParams.nbatch;
 
    // Calculate grid and work size
    int numNeurons       = nbatch * ny * nx * nf;
-   float *gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
+   float *gSynPatchHead = &(mParams.postGsyn[numNeurons * channel]);
 
-   int blockSize = device->get_max_threads();
+   int blockSize = mDevice->get_max_threads();
    // Ceil to get all weights
-   int gridSize = ceil((float)numNeurons / blockSize);
+   int gridSize = (int)std::ceil((float)numNeurons / (float)blockSize);
    callPermuteGSynCudnnToPVKernel(
          gridSize,
          blockSize,
          gSynPatchHead,
-         params.cudnn_gSyn,
+         mParams.cudnn_gSyn,
          nbatch,
          ny,
          nx,
          nf,
-         params.manyScaleX,
-         params.manyScaleY);
+         mParams.manyScaleX,
+         mParams.manyScaleY);
    handleCallError("Permute GSyn CUDNN to PV");
 }
 

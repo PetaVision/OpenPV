@@ -52,14 +52,15 @@ void GaussianNoiseActivityBuffer::updateBufferCPU(double simTime, double deltaTi
    int const nf       = getLayerLoc()->nf;
    PVHalo const *halo = &getLayerLoc()->halo;
 
-   int const numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
+   long const numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
    pvAssert(V != nullptr);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-      int kExt = kIndexExtendedBatch(k, nbatch, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-      A[kExt]  = V[k] + mDistribution(mGenerator);
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
+      long kExt =
+            kIndexExtendedBatch(k, nbatch, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+      A[kExt] = V[k] + mDistribution(mGenerator);
    }
 }
 

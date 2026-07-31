@@ -12,7 +12,7 @@ using PV::kIndexExtended;
 //
 // A replacement for globalIndexFromLocal from conversions.hpp.
 // WARNING - any changes in conversions.hpp should be reflected here.
-static inline int globalIndexFromLocal_nompi(int kl, PVLayerLoc loc) {
+static inline long globalIndexFromLocal_nompi(long kl, PVLayerLoc loc) {
    int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
    int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
    int kf  = featureIndex(kl, loc.nx, loc.ny, loc.nf);
@@ -20,22 +20,19 @@ static inline int globalIndexFromLocal_nompi(int kl, PVLayerLoc loc) {
 }
 
 int main(int argc, char *argv[]) {
-   int kg, kl, kb;
+   int nf = 3;
+
+   int nx = 64;
+   int ny = 68;
+   int nb = 4;
+
+   int nxGlobal = nx + 2 * nb;
+   int nyGlobal = ny + 2 * nb;
+
+   int kx0 = nb;
+   int ky0 = nb;
 
    PVLayerLoc loc;
-
-   float nf = 3;
-
-   float nx = 64.0;
-   float ny = 68.0;
-   float nb = 4.0;
-
-   float nxGlobal = nx + 2 * nb;
-   float nyGlobal = ny + 2 * nb;
-
-   float kx0 = nb;
-   float ky0 = nb;
-
    loc.nx       = nx;
    loc.ny       = ny;
    loc.nxGlobal = nxGlobal;
@@ -48,9 +45,10 @@ int main(int argc, char *argv[]) {
    loc.halo.up  = nb;
    loc.nf       = nf;
 
-   for (kl = 0; kl < nf * nxGlobal * nyGlobal; kl++) {
-      kg = globalIndexFromLocal_nompi(kl, loc);
-      kb = kIndexExtended(
+   long nGlobal = (long)nf * (long)nxGlobal * (long)nyGlobal;
+   for (long kl = 0; kl < nGlobal; kl++) {
+      long kg = globalIndexFromLocal_nompi(kl, loc);
+      long kb = kIndexExtended(
             kl, nx, ny, nf, nb, nb, nb, nb); // All margin widths the same.  Should generalize
       if (kb != kg) {
          Fatal().printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);

@@ -41,14 +41,14 @@ int main(int argc, char *argv[]) {
    int kyFirst = loc->halo.up;
    int kyLast  = loc->ny + loc->halo.up;
    int nf      = loc->nf;
-   int sy      = loc->nx * nf;
-   int syex    = (loc->nx + loc->halo.lt + loc->halo.rt) * nf;
+   long sy     = (long)loc->nx * (long)nf;
+   long syex   = (long)(loc->nx + loc->halo.lt + loc->halo.rt) * (long)nf;
    for (int ky = kyFirst; ky < kyLast; ky++) {
       for (int kx = kxFirst; kx < kxLast; kx++) {
          for (int kf = 0; kf < loc->nf; kf++) {
-            int kex         = ky * syex + kx * nf + kf;
-            int kGlobal     = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            testBuffer[kex] = kGlobal;
+            long kex        = ky * syex + kx * nf + kf;
+            long kGlobal    = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            testBuffer[kex] = (float)kGlobal;
          }
       }
    }
@@ -65,13 +65,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxFirst; kx < kxFirst + loc->halo.lt; kx++) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:northwest mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:northwest mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,
@@ -87,13 +87,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxFirst; kx < kxLast; kx++) {
          int kxmirror = kx;
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:north mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:north mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,
@@ -109,13 +109,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxLast - loc->halo.rt; kx < kxLast; kx++) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kxFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kxFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:northeast mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:northeast mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,
@@ -131,13 +131,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxFirst; kx < kxFirst + loc->halo.lt; kx++) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:west mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:west mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,
@@ -153,13 +153,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxLast - loc->halo.rt; kx < kxLast; kx++) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:east mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:east mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,
@@ -175,13 +175,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxFirst; kx < kxFirst + loc->halo.lt; kx++) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:southwest mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:southwest mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,
@@ -197,13 +197,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxFirst; kx < kxLast; kx++) {
          int kxmirror = kx;
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:south mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:south mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,
@@ -219,13 +219,13 @@ int main(int argc, char *argv[]) {
       for (int kx = kxLast - loc->halo.rt; kx < kxLast; kx++) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
-            int kex       = ky * syex + kx * nf + kf;
-            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
-            int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = testBuffer[kmirror];
+            long kex       = ky * syex + kx * nf + kf;
+            long kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            long kmirror   = kymirror * syex + kxmirror * nf + kf;
+            long mirrorVal = (long)testBuffer[kmirror];
             if (mirrorVal != kGlobal) {
                Fatal().printf(
-                     "ERROR:southeast mirror value at %i from %i = %i, should be %i\n",
+                     "ERROR:southeast mirror value at %li from %li = %li, should be %li\n",
                      kmirror,
                      kex,
                      mirrorVal,

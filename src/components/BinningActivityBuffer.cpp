@@ -163,7 +163,7 @@ void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 
    int numBins    = currLoc->nf;
    float binRange = mBinMax - mBinMin;
-   float stepSize = float(binRange) / numBins;
+   float stepSize = binRange / static_cast<float>(numBins);
 
    int const nxExt = origLoc->nx + origLoc->halo.lt + origLoc->halo.rt;
    int const nyExt = origLoc->ny + origLoc->halo.dn + origLoc->halo.up;
@@ -174,13 +174,15 @@ void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int nbatch = currLoc->nbatch;
    pvAssert(origLoc->nbatch == currLoc->nbatch);
    for (int b = 0; b < nbatch; b++) {
-      const float *origDataBatch = origData + b * nxExt * nyExt * origLoc->nf;
-      float *currABatch          = currActivity + b * nxExt * nyExt * currLoc->nf;
+      long origNumExtended       = (long)nxExt * (long)nyExt * (long)origLoc->nf;
+      long currNumExtended       = (long)nxExt * (long)nyExt * (long)currLoc->nf;
+      const float *origDataBatch = &origData[b * origNumExtended];
+      float *currABatch          = &currActivity[b * currNumExtended];
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int kExt = 0; kExt < nxExt * nyExt * currLoc->nf; kExt++) {
+      for (long kExt = 0; kExt < currNumExtended; kExt++) {
          int iX = kxPos(kExt, nxExt, nyExt, currLoc->nf);
          int iY = kyPos(kExt, nxExt, nyExt, currLoc->nf);
          int iF = featureIndex(kExt, nxExt, nyExt, currLoc->nf);
@@ -191,18 +193,18 @@ void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          // or minimum val
          inVal = inVal < mBinMin ? mBinMin : inVal > mBinMax ? mBinMax : inVal;
 
-         int const outOfBinValue = mZeroNeg ? 0 : -1;
+         float const outOfBinValue = mZeroNeg ? 0.0f : -1.0f;
          if (mZeroDCR && inVal == 0) { // do-not-care region
             currABatch[kExt] = outOfBinValue;
          }
          else {
             // A sigma of zero means only the centered bin value should get input
             if (mBinSigma == 0) {
-               int featureIdx = std::floor((inVal - mBinMin) / stepSize);
+               int featureIdx = (int)std::floor((inVal - mBinMin) / stepSize);
                if (featureIdx >= numBins) {
                   featureIdx = numBins - 1;
                }
-               currABatch[kExt] = iF == featureIdx ? 1 : outOfBinValue;
+               currABatch[kExt] = iF == featureIdx ? 1.0f : outOfBinValue;
             }
             // sigma>0 means bin values have Gaussian decay as bins move farther from inVal.
             // The width of the Gaussian is binValue multiplied by the bin width.

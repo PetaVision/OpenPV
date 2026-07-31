@@ -175,14 +175,14 @@ int StochasticReleaseTestProbe::computePValues() {
    for (int f = 0; f < nf; f++) {
       float wgt = preWeights->getData(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
-      auto *prePublisher       = preLayer->getComponentByType<BasePublisherComponent>();
-      const float *preactPtr   = prePublisher->getLayerData();
-      const PVLayerLoc *preLoc = prePublisher->getLayerLoc();
-      const int numPreNeurons  = preLayer->getNumNeurons();
-      bool found               = false;
-      float preact             = 0.0f;
-      for (int n = f; n < numPreNeurons; n += nf) {
-         int nExt = kIndexExtended(
+      auto *prePublisher        = preLayer->getComponentByType<BasePublisherComponent>();
+      const float *preactPtr    = prePublisher->getLayerData();
+      const PVLayerLoc *preLoc  = prePublisher->getLayerLoc();
+      const long numPreNeurons   = preLayer->getNumNeurons();
+      bool found                = false;
+      float preact              = 0.0f;
+      for (long n = f; n < numPreNeurons; n += nf) {
+         long nExt = kIndexExtended(
                n,
                preLoc->nx,
                preLoc->ny,
@@ -206,9 +206,9 @@ int StochasticReleaseTestProbe::computePValues() {
       const PVLayerLoc *loc = publisher->getLayerLoc();
       const float *activity = publisher->getLayerData();
       int nnzf              = 0;
-      const int numNeurons  = layer->getNumNeurons();
-      for (int n = f; n < numNeurons; n += nf) {
-         int nExt = kIndexExtended(
+      const long numNeurons  = layer->getNumNeurons();
+      for (long n = f; n < numNeurons; n += nf) {
+         long nExt = kIndexExtended(
                n,
                loc->nx,
                loc->ny,
@@ -225,7 +225,7 @@ int StochasticReleaseTestProbe::computePValues() {
       }
 
       MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, mCommunicator->communicator());
-      const int neuronsPerFeature = layer->getNumGlobalNeurons() / nf;
+      const int neuronsPerFeature = (int)(layer->getNumGlobalNeurons() / nf);
       if (preact <= 0.0f) {
          if (nnzf != 0) {
             ErrorLog().printf("nnzf is %d for f = %d; expected 0\n", nnzf, f);
@@ -241,10 +241,11 @@ int StochasticReleaseTestProbe::computePValues() {
          continue;
       }
 
-      double mean   = preact * neuronsPerFeature;
-      double stddev = std::sqrt(static_cast<float>(neuronsPerFeature) * preact * (1.0f - preact));
+      double preactD = (double)preact;
+      double mean    = preactD * (double)neuronsPerFeature;
+      double stddev  = std::sqrt(static_cast<double>(neuronsPerFeature) * preactD * (1.0 - preactD));
       pvAssert(stddev > 0.0);
-      double numdevs = (nnzf - mean) / stddev;
+      double numdevs = ((double)nnzf - mean) / stddev;
       double pval    = std::erfc(std::fabs(numdevs) / std::sqrt(2.0));
       m_pValues.push_back(pval);
       auto *outputter = dynamic_cast<StochasticReleaseTestProbeOutputter *>(mProbeOutputter.get());

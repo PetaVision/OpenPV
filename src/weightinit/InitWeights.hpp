@@ -101,8 +101,8 @@ class InitWeights : public BaseObject {
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
 
-   int
-   dataIndexToUnitCellIndex(long dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
+   int dataIndexToUnitCellIndex(
+         long dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
    int kernelIndexCalculations(long patchIndex);
    float calcYDelta(int jPost);
    float calcXDelta(int iPost);

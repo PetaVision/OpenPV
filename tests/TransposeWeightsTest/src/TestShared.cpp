@@ -102,7 +102,7 @@ int TestShared(
          xTStride * yTStride * nfPost,
          numKernelsPost);
 
-   int const numPatchItemsPost = transposeWeights.getPatchSizeOverall();
+   long const numPatchItemsPost = transposeWeights.getPatchSizeOverall();
    FatalIf(
          transposeWeights.getPatchSizeX() != patchSizeXPost,
          "%s has transposeWeights PatchSizeX of %d, when it should be %d.\n",
@@ -122,7 +122,7 @@ int TestShared(
          transposeWeights.getPatchSizeF(),
          patchSizeFPost);
    FatalIf(
-         numPatchItemsPost != patchSizeXPost * patchSizeYPost * patchSizeFPost,
+         numPatchItemsPost != (long)patchSizeXPost * (long)patchSizeYPost * (long)patchSizeFPost,
          "%s has overall patch size of %d, when it should be %d.\n",
          testName.c_str(),
          numPatchItemsPost,
@@ -144,12 +144,12 @@ int TestShared(
          int const kxPre = xPost % xStride;
          int const kyPre = yPost % yStride;
          int const kfPre = fPost;
-         int const kPre  = kIndex(kxPre, kyPre, kfPre, xStride, yStride, nfPre);
+         long const kPre = kIndex(kxPre, kyPre, kfPre, xStride, yStride, nfPre);
 
-         int const xPre = xTStride * (patchSizeXPost - 1 - (xPost - kxPre)) / xStride + kxPost;
-         int const yPre = yTStride * (patchSizeYPost - 1 - (yPost - kyPre)) / yStride + kyPost;
-         int const fPre = kfPost;
-         int const iPre = kIndex(xPre, yPre, fPre, patchSizeXPre, patchSizeYPre, patchSizeFPre);
+         int const xPre  = xTStride * (patchSizeXPost - 1 - (xPost - kxPre)) / xStride + kxPost;
+         int const yPre  = yTStride * (patchSizeYPost - 1 - (yPost - kyPre)) / yStride + kyPost;
+         int const fPre  = kfPost;
+         long const iPre = kIndex(xPre, yPre, fPre, patchSizeXPre, patchSizeYPre, patchSizeFPre);
 
          float const postWeight = transposeWeights.getDataFromDataIndex(0, kPost)[iPost];
          float const preWeight  = originalWeights.getDataFromDataIndex(0, kPre)[iPre];

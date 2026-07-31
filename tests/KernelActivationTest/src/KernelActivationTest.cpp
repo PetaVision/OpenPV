@@ -98,7 +98,7 @@ int dumponeweight(ComponentBasedObject *conn) {
       for (int f = 0; f < nfp; f++) {
          for (int x = 0; x < nxp; x++) {
             for (int y = 0; y < nyp; y++) {
-               int idx = kIndex(x, y, f, nxp, nyp, nfp);
+               long idx = kIndex(x, y, f, nxp, nyp, nfp);
                // TODO-CER-2014.4.4 - weight conversion
                float wgt = wgtData[idx];
                // New normalization takes into account if pre is not active

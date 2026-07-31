@@ -65,37 +65,39 @@ GapActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
 }
 
 void GapActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
-   PVLayerLoc const *loc           = getLayerLoc();
-   int nx                          = loc->nx;
-   int ny                          = loc->ny;
-   int nf                          = loc->nf;
-   PVHalo const &origHalo          = mOriginalActivity->getLayerLoc()->halo;
-   int lt                          = loc->halo.lt;
-   int rt                          = loc->halo.rt;
-   int dn                          = loc->halo.dn;
-   int up                          = loc->halo.up;
-   int orig_lt                     = origHalo.lt;
-   int orig_rt                     = origHalo.rt;
-   int orig_dn                     = origHalo.dn;
-   int orig_up                     = origHalo.up;
-   float ampSpikelet               = mAmpSpikelet;
-   int const numNeurons            = nx * ny * nf;
-   int const numNeuronsAcrossBatch = numNeurons * loc->nbatch;
-   float const *V                  = mInternalState->getBufferData();
-   float const *checkActive        = mOriginalActivity->getBufferData();
-   float *A                        = mBufferData.data();
+   PVLayerLoc const *loc            = getLayerLoc();
+   int nx                           = loc->nx;
+   int ny                           = loc->ny;
+   int nf                           = loc->nf;
+   PVHalo const &origHalo           = mOriginalActivity->getLayerLoc()->halo;
+   int lt                           = loc->halo.lt;
+   int rt                           = loc->halo.rt;
+   int dn                           = loc->halo.dn;
+   int up                           = loc->halo.up;
+   int orig_lt                      = origHalo.lt;
+   int orig_rt                      = origHalo.rt;
+   int orig_dn                      = origHalo.dn;
+   int orig_up                      = origHalo.up;
+   float ampSpikelet                = mAmpSpikelet;
+   long const numNeurons            = (long)nx * (long)ny * (long)nf;
+   long const numExtended           = (long)(nx + lt + rt) * (long)(ny + up + dn) * (long)nf;
+   long const numNeuronsAcrossBatch = numNeurons * loc->nbatch;
+   float const *V                   = mInternalState->getBufferData();
+   float const *checkActive         = mOriginalActivity->getBufferData();
+   float *A                         = mBufferData.data();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kbatch = 0; kbatch < numNeuronsAcrossBatch; kbatch++) {
-      int b                         = kbatch / numNeurons;
-      int k                         = kbatch % numNeurons;
-      float *ABatch                 = A + b * ((nx + lt + rt) * (ny + up + dn) * nf);
-      float const *VBatch           = V + b * numNeurons;
-      float const *checkActiveBatch = checkActive + b * numNeurons;
-      int kex                       = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      int kexorig = kIndexExtended(k, nx, ny, nf, orig_lt, orig_rt, orig_dn, orig_up);
-      ABatch[kex] = VBatch[k];
+   for (long kbatch = 0L; kbatch < numNeuronsAcrossBatch; kbatch++) {
+      long b              = kbatch / numNeuronsAcrossBatch;
+      long k              = kbatch % numNeuronsAcrossBatch;
+      float *ABatch       = &A[b * numExtended];
+      float const *VBatch = &V[b * numNeurons];
+      long kex            = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      long kexorig        = kIndexExtended(k, nx, ny, nf, orig_lt, orig_rt, orig_dn, orig_up);
+      ABatch[kex]         = VBatch[k];
+
+      float const * checkActiveBatch = &checkActive[b * numNeurons];
       if (checkActiveBatch[kexorig] > 0.0f) {
          ABatch[kex] += ampSpikelet;
       }

@@ -69,9 +69,9 @@ void testWeights(
          (long)correctNumDataPatchesX * (long)correctNumDataPatchesY * (long)correctNumDataPatchesF;
    FatalIf(
          weights.getNumDataPatchesOverall() != correctNumDataPatches,
-         "%s: number of data patches overall was %d instead of the expected %d\n",
+         "%s: number of data patches overall was %ld instead of the expected %d\n",
          weights.getName().c_str(),
-         weights.getNumDataPatchesX(),
+         weights.getNumDataPatchesOverall(),
          correctNumDataPatchesF);
 
    FatalIf(

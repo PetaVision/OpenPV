@@ -18,7 +18,7 @@ __global__ void updateGSynAccumulatorOnGPU
 namespace PV {
 inline void updateGSynAccumulatorOnCPU
 #endif // PV_RUN_ON_GPU
-      (int const numNeuronsAcrossBatch,
+      (long const numNeuronsAcrossBatch,
        int const numChannels,
        float const *channelCoeffs,
        float const *layerInput,
@@ -30,7 +30,7 @@ inline void updateGSynAccumulatorOnCPU
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int index = 0; index < numNeuronsAcrossBatch; index++)
+   for (long index = 0; index < numNeuronsAcrossBatch; index++)
 #endif // PV_RUN_ON_GPU
    {
       float value = 0.0f;

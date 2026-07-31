@@ -25,7 +25,7 @@ int GaussianRandom::initialize_base() { return PV_SUCCESS; }
 
 int GaussianRandom::initializeGaussian() {
    int status = PV_SUCCESS;
-   heldValues.assign(mRNG.size(), {false, 0.0});
+   mHeldValues.assign(mRNG.size(), {false, 0.0f});
    return status;
 }
 
@@ -47,7 +47,7 @@ int GaussianRandom::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended)
 
 float GaussianRandom::gaussianDist(long localIndex) {
    float x1, x2, y;
-   struct box_muller_data bmdata = heldValues[localIndex];
+   struct box_muller_data bmdata = mHeldValues[localIndex];
    if (bmdata.hasHeldValue) {
       y = bmdata.heldValue;
    }

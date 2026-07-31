@@ -75,9 +75,9 @@ int NormalizeL3::normalizeWeights() {
                }
             }
             float l3norm = powf(sumcubed, 1.0f / 3.0f);
-            if (fabsf(l3norm) <= minL3NormTolerated) {
+            if (std::fabs(l3norm) <= minL3NormTolerated) {
                WarnLog().printf(
-                     "NormalizeL3 \"%s\": L^3 norm in patch %d of arbor %d is within "
+                     "NormalizeL3 \"%s\": L^3 norm in patch %ld of arbor %d is within "
                      "minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
                      getName(),
                      patchindex,
@@ -106,8 +106,8 @@ int NormalizeL3::normalizeWeights() {
                }
             }
          }
-         float l3norm = powf(sumcubed, 1.0f / 3.0f);
-         if (fabsf(sumcubed) <= minL3NormTolerated) {
+         float l3norm = std::pow(sumcubed, 1.0f / 3.0f);
+         if (std::fabs(sumcubed) <= minL3NormTolerated) {
             WarnLog().printf(
                   "NormalizeL3 \"%s\": sum of squares of weights in patch %ld is within "
                   "minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
@@ -118,7 +118,7 @@ int NormalizeL3::normalizeWeights() {
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               int weights_per_patch = weights->getPatchSizeOverall();
+               long weights_per_patch = weights->getPatchSizeOverall();
                float *dataStartPatch = &weights->getData(arborID)[patchindex * weights_per_patch];
                normalizePatch(dataStartPatch, weights_per_patch, scaleFactor / l3norm);
             }

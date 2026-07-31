@@ -353,7 +353,7 @@ void LayerUpdateController::applyTrigger(double simTime, double deltaTime) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
-      for (int k = 0; k < componentV->getBufferSizeAcrossBatch(); k++) {
+      for (long k = 0L; k < componentV->getBufferSizeAcrossBatch(); k++) {
          V[k] = resetV[k];
       }
    }
@@ -364,14 +364,14 @@ void LayerUpdateController::applyTrigger(double simTime, double deltaTime) {
       PVLayerLoc const *loc = resetComponentA->getLayerLoc();
       PVHalo const *halo    = &loc->halo;
       for (int b = 0; b < loc->nbatch; b++) {
-         float const *resetABatch = resetA + (b * resetComponentA->getBufferSize());
-         int const numNeurons     = componentV->getBufferSize();
-         float *VBatch            = V + (b * numNeurons);
+         float const *resetABatch = &resetA[b * resetComponentA->getBufferSize()];
+         long const numNeurons    = componentV->getBufferSize();
+         float *VBatch            = &V[b * numNeurons];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
-         for (int k = 0; k < numNeurons; k++) {
-            int kex = kIndexExtended(
+         for (long k = 0L; k < numNeurons; k++) {
+            long kex = kIndexExtended(
                   k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
             VBatch[k] = resetABatch[kex];
          }

@@ -122,7 +122,7 @@ class LocalPatchWeightsIO {
    int getPatchSizeY() const { return mPatchSizeY; }
    int getPatchSizeF() const { return mPatchSizeF; }
    long getPatchSizeOverall() const {
-      return static_cast<long>(mPatchSizeX * mPatchSizeY * mPatchSizeF);
+      return (long)mPatchSizeX * (long)mPatchSizeY * (long)mPatchSizeF;
    }
 
    int getNxRestrictedPre() const { return mNxRestrictedPre; }

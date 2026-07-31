@@ -114,9 +114,9 @@ int NormalizeContrastZeroMean::normalizeWeights() {
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
-            float sum           = 0.0f;
-            float sumsq         = 0.0f;
-            long weightsPerPatch = 0;
+            float sum            = 0.0f;
+            float sumsq          = 0.0f;
+            long weightsPerPatch = 0L;
             for (auto &weights : mWeightsList) {
                weightsPerPatch += weights0->getPatchSizeOverall();
                float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
@@ -132,24 +132,25 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                      (double)minSumTolerated);
                continue;
             }
-            float mean = sum / weightsPerPatch;
-            float var  = sumsq / weightsPerPatch - mean * mean;
+            float fNumWeights = static_cast<float>(weightsPerPatch);
+            float mean = sum / fNumWeights;
+            float var  = sumsq / fNumWeights - mean * mean;
             for (auto &weights : mWeightsList) {
                float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                subtractOffsetAndNormalize(
                      dataStartPatch,
                      weightsPerPatch,
-                     sum / weightsPerPatch,
-                     sqrtf(var) / scale_factor);
+                     sum / fNumWeights,
+                     std::sqrt(var) / scale_factor);
             }
          }
       }
    }
    else {
-      for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
-         float sum           = 0.0f;
-         float sumsq         = 0.0f;
-         long weightsPerPatch = 0;
+      for (long patchindex = 0L; patchindex < numDataPatches; patchindex++) {
+         float sum            = 0.0f;
+         float sumsq          = 0.0f;
+         long weightsPerPatch = 0L;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
                weightsPerPatch += weights0->getPatchSizeOverall();
@@ -159,21 +160,21 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          }
          if (fabsf(sum) <= minSumTolerated) {
             WarnLog().printf(
-                  "for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d is within "
+                  "for NormalizeContrastZeroMean \"%s\": sum of weights in patch %ld is within "
                   "minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
                   getName(),
                   patchindex,
                   (double)minSumTolerated);
             continue;
          }
-         int count  = weightsPerPatch * nArbors;
-         float mean = sum / count;
-         float var  = sumsq / count - mean * mean;
+         float countf = static_cast<float>(weightsPerPatch * nArbors);
+         float mean   = sum / countf;
+         float var    = sumsq / countf - mean * mean;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
-               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               float *dataStartPatch = &weights->getData(arborID)[patchindex * weightsPerPatch];
                subtractOffsetAndNormalize(
-                     dataStartPatch, weightsPerPatch, mean, sqrtf(var) / scale_factor);
+                     dataStartPatch, weightsPerPatch, mean, std::sqrt(var) / scale_factor);
             }
          }
       }

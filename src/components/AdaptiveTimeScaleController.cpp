@@ -156,7 +156,12 @@ void CheckpointEntryTimeScaleInfo::read(
       auto fileStream = fileManager->open(filename.c_str(), std::ios_base::in, false);
       fileStream->read(gatheredData.data(), sizeof(double) * gatheredData.size());
    }
-   MPI_Bcast(gatheredData.data(), gatheredData.size(), MPI_DOUBLE, 0, mpiBlock->getComm());
+   int numValues = static_cast<int>(gatheredData.size());
+   FatalIf(
+         static_cast<std::size_t>(numValues) != gatheredData.size(),
+         "Reading from \"%s\" must broadcast %zu bytes, which is too big for MPI_Bcast\n",
+         getName().c_str(), gatheredData.size());
+   MPI_Bcast(gatheredData.data(), numValues, MPI_DOUBLE, 0, mpiBlock->getComm());
    int batchProcessIndex = mpiBlock->getBatchIndex();
    pvAssert(batchProcessIndex >= 0 and batchProcessIndex < numBatchProcesses);
    for (int b = 0; b < mBatchSize; b++) {

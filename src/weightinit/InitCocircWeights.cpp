@@ -116,7 +116,7 @@ float InitCocircWeights::calcKurveAndSigmaKurve(
    int iKv          = kf % nKurve;
    iPosKurve        = false;
    iSaddle          = false;
-   float radKurv    = mDeltaRadiusCurvature + iKv * mDeltaRadiusCurvature;
+   float radKurv    = mDeltaRadiusCurvature + (float)iKv * mDeltaRadiusCurvature;
    sigma_kurve_temp = mSigmaKurve * radKurv;
 
    kurve_tmp = (radKurv != 0.0f) ? 1 / radKurv : 1.0f;
@@ -134,7 +134,7 @@ float InitCocircWeights::calcKurveAndSigmaKurve(
          iKvPostAdj = (iKv % (nKurve / 2));
       }
    } // mPosKurveFlag
-   radKurv   = mDeltaRadiusCurvature + iKvPostAdj * mDeltaRadiusCurvature;
+   radKurv   = mDeltaRadiusCurvature + (float)iKvPostAdj * mDeltaRadiusCurvature;
    kurve_tmp = (radKurv != 0.0f) ? 1 / radKurv : 1.0f;
    return radKurv;
 }

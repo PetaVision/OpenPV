@@ -6,28 +6,28 @@
 using PV::kyPos;
 
 int main(int argc, char *argv[]) {
-   int kl;
+   long kl;
 
    int nf   = 3;
-   float nx = 64;
-   float ny = 128;
+   int nx = 64;
+   int ny = 128;
 
-   float nxLocal = nx;
-   float nyLocal = ny;
+   int nxLocal = nx;
+   int nyLocal = ny;
 
    int inx = (int)nx;
    int iny = (int)ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kk = (kl / inx) % iny;
+      int kk = (int)((kl / inx) % iny);
 #else
-      int kk = kl / (nf * nx);
+      int kk = (int)(kl / (nf * nx));
 #endif
-      float ky = kyPos(kl, nxLocal, nyLocal, nf);
+      int ky = kyPos(kl, nxLocal, nyLocal, nf);
 
-      if (ky != (float)kk) {
-         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, (double)ky);
+      if (ky != kk) {
+         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%ld,%d)\n", kl, ky);
       }
    }
 
@@ -39,16 +39,16 @@ int main(int argc, char *argv[]) {
    inx = nx;
    iny = ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kk = (kl / inx) % iny;
+      int kk = (int)((kl / inx) % iny);
 #else
-      int kk = kl / (nf * nx);
+      int kk = (int)(kl / (nf * nx));
 #endif
-      float ky = kyPos(kl, nxLocal, nyLocal, nf);
+      int ky = kyPos(kl, nxLocal, nyLocal, nf);
 
-      if ((int)ky - kk != 0) {
-         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, (double)ky);
+      if (ky - kk != 0) {
+         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%ld,%d)\n", kl, ky);
       }
    }
 
@@ -61,16 +61,16 @@ int main(int argc, char *argv[]) {
    inx = nx;
    iny = ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kk = (kl / inx) % iny;
+      int kk = (int)((kl / inx) % iny);
 #else
-      int kk = kl / (nf * nx);
+      int kk = (int)(kl / (nf * nx));
 #endif
-      float ky = kyPos(kl, nxLocal, nyLocal, nf);
+      int ky = kyPos(kl, nxLocal, nyLocal, nf);
 
-      if ((int)ky - kk != 0) {
-         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, (double)ky);
+      if (ky - kk != 0) {
+         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%ld,%d)\n", kl, ky);
       }
    }
 
@@ -84,16 +84,16 @@ int main(int argc, char *argv[]) {
    inx = nx;
    iny = ny;
 
-   for (kl = 0; kl < inx * iny * nf; kl++) {
+   for (kl = 0; kl < (long)inx * (long)iny * (long)nf; kl++) {
 #ifdef FEATURES_LAST
-      int kk = (kl / inx) % iny;
+      int kk = (int)((kl / inx) % iny);
 #else
-      int kk = kl / (nf * nx);
+      int kk = (int)(kl / (nf * nx));
 #endif
-      float ky = kyPos(kl, nxLocal, nyLocal, nf);
+      int ky = kyPos(kl, nxLocal, nyLocal, nf);
 
-      if ((int)ky - kk != 0) {
-         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, (double)ky);
+      if (ky - kk != 0) {
+         Fatal().printf("FAILED:TEST_KYPOS: (k,ky) = (%ld,%d)\n", kl, ky);
       }
    }
 

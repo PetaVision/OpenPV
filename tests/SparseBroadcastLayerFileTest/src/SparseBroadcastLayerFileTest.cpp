@@ -33,9 +33,9 @@ std::vector<SparseList<float>> makeSparseBroadcastLayerData(
       std::shared_ptr<MPIBlock const> mpiBlock,
       int numFeatures,
       int globalBatchWidth,
-      float start,
-      float step,
-      float batchStep);
+      int start,
+      int step,
+      int batchStep);
 
 // Read data from a layer .pvp file using only FileStream methods.
 // On entry, layerData is a vector of the expected localBatchWidth
@@ -222,9 +222,9 @@ std::vector<SparseList<float>> makeSparseBroadcastLayerData(
       std::shared_ptr<MPIBlock const> mpiBlock,
       int numFeatures,
       int globalBatchWidth,
-      float start,
-      float step,
-      float batchStep) {
+      int start,
+      int step,
+      int batchStep) {
    int status = PV_SUCCESS;
    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
    pvAssert(localBatchWidth * mpiBlock->getGlobalBatchDimension() == globalBatchWidth);
@@ -232,10 +232,10 @@ std::vector<SparseList<float>> makeSparseBroadcastLayerData(
    std::vector<SparseList<float>> result(localBatchWidth);
    for (int b = 0; b < localBatchWidth; ++b) {
       int globalBatchIndex = b + kb0;
-      float batchOffset = batchStep * static_cast<float>(globalBatchIndex);
+      int batchOffset = batchStep * globalBatchIndex;
       result[b].reset(1, 1, numFeatures);
       for (int f = start; f < numFeatures; f += step) {
-         float value = start + step * static_cast<float>(f) + batchOffset;
+         float value = static_cast<float>(start + step * f + batchOffset);
          result[b].addEntry(f, value);
       }
    }
@@ -466,9 +466,9 @@ int testRead(
       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
    int status = PV_SUCCESS;
    std::string filename("testRead.pvp");
-   float start      = 1.0f;
-   float step       = 3.0f;
-   float batchStep  = 16.0f;
+   int start      = 1;
+   int step       = 3;
+   int batchStep  = 16;
    double timestamp = 11.0;
    auto mpiBlock    = fileManager->getMPIBlock();
 
@@ -508,9 +508,9 @@ int testReadMultipleFrames(
    auto mpiBlock = fileManager->getMPIBlock();
    std::string filename("testReadMultipleFrames.pvp");
    std::vector<double> timestamps{20.0, 22.0, 24.0, 26.0};
-   std::vector<float> starts{10.0f, 11.0f, 12.0f, 13.0f};
-   float step = 3.0f;
-   float batchStep = 16.0f;
+   std::vector<int> starts{10, 11, 12, 13};
+   int step = 3;
+   int batchStep = 16;
 
    // Make test data using FileStream primitive functions, without using SparseBroadcastLayerFile.
    std::vector<std::vector<SparseList<float>>> testData(4);
@@ -567,9 +567,9 @@ int testReadRandomAccess(
    auto mpiBlock = fileManager->getMPIBlock();
    std::string filename("testReadRandomAccess.pvp");
    std::vector<double> timestamps{28.0, 30.0, 32.0, 34.0};
-   std::vector<float> starts{14.0f, 15.0f, 16.0f, 17.0f};
-   float step = 3.0f;
-   float batchStep = 16.0f;
+   std::vector<int> starts{14, 15, 16, 17};
+   int step = 3;
+   int batchStep = 16;
 
    // Make test data using FileStream primitive functions, without using SparseBroadcastLayerFile.
    std::vector<std::vector<SparseList<float>>> testData(4);
@@ -637,9 +637,9 @@ int testReadRandomAccess(
 int testWrite(
       std::shared_ptr<FileManager const> fileManager, int numFeatures, int globalBatchWidth) {
    int status = PV_SUCCESS;
-   float start      = 2.0f;
-   float step       = 3.0f;
-   float batchStep  = 16.0f;
+   int start      = 2;
+   int step       = 3;
+   int batchStep  = 16;
    double timestamp = 20.0;
 
    // Create a test file using SparseBroadcastLayerFile
@@ -684,10 +684,10 @@ int testWriteMultipleFrames(
    std::string filename("testWriteMultipleFrames.pvp");
    auto mpiBlock = fileManager->getMPIBlock();
    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
-   std::vector<float> starts{10.0f, 15.0f, 20.0f, 25.0f};
-   float step        = 3.0f;
-   float batchStep   = 16.0f;
-   std::vector<double> timestamps{21.0f, 22.0f, 23.0f, 24.0f};
+   std::vector<int> starts{10, 15, 20, 25};
+   int step        = 3;
+   int batchStep   = 16;
+   std::vector<double> timestamps{21.0, 22.0, 23.0, 24.0};
 
    // Create a test file using SparseBroadcastLayerFile
    SparseBroadcastLayerFile testFile(
@@ -743,8 +743,8 @@ int testWriteMultipleFrames(
 
    // Test random-access
    if (status == PV_SUCCESS) {
-      starts[1] = 7.0f;
-      timestamps[1] = 100.0f;
+      starts[1] = 7;
+      timestamps[1] = 100.0;
       testFile.setIndex(1);
       auto layerData = makeSparseBroadcastLayerData(
             mpiBlock, numFeatures, globalBatchWidth, starts[1], step, batchStep);
@@ -788,10 +788,10 @@ int testTruncate(
    std::string filename("testTruncate.pvp");
    auto mpiBlock = fileManager->getMPIBlock();
    int localBatchWidth = globalBatchWidth / mpiBlock->getGlobalBatchDimension();
-   std::vector<float> starts{10.0f, 15.0f, 20.0f, 25.0f};
-   float step        = 3.0f;
-   float batchStep   = 12.0f;
-   std::vector<double> timestamps{25.0f, 26.0f, 27.0f, 28.0f};
+   std::vector<int> starts{10, 15, 20, 25};
+   int step        = 3;
+   int batchStep   = 12;
+   std::vector<double> timestamps{25.0, 26.0, 27.0, 28.0};
 
    // Create a test file with four frames.
    SparseBroadcastLayerFile testFile(
@@ -943,14 +943,14 @@ int writeUsingFileStreamPrimitives(
             }
             MPI_Send(
                   dataIndices.data(),
-                  numEntries,
+                  (int)numEntries,
                   MPI_UNSIGNED,
                   0 /*dest rank*/,
                   333 + b /*tag*/,
                   mpiBlock->getComm());
             MPI_Send(
                   dataValues.data(),
-                  numEntries,
+                  (int)numEntries,
                   MPI_UNSIGNED,
                   0 /*dest rank*/,
                   1333 + b /*tag*/,

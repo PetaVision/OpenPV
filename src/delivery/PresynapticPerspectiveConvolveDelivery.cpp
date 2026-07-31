@@ -71,17 +71,17 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
-   int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
-   int const nyPreExtended  = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int const numPreExtended = nxPreExtended * nyPreExtended * preLoc->nf;
+   int const nxPreExtended   = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
+   int const nyPreExtended   = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+   long const numPreExtended = (long)nxPreExtended * (long)nyPreExtended * (long)preLoc->nf;
 
-   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+   long const numPostRestricted = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
 
    int nbatch = preLoc->nbatch;
    pvAssert(nbatch == postLoc->nbatch);
 
-   const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
-   const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
+   long const sy  = (long)postLoc->nx * (long)postLoc->nf; // stride in restricted layer
+   long const syw = (long)weights->getGeometry()->getPatchStrideY(); // stride in patch
 
    bool const preLayerIsSparse = mPreData->getSparseLayerFlag();
 
@@ -92,10 +92,10 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
 
       for (int b = 0; b < nbatch; b++) {
          size_t batchOffset                                 = b * numPreExtended;
-         float const *activityBatch                         = activityCube.data + batchOffset;
+         float const *activityBatch                         = &activityCube.data[batchOffset];
          float *gSynPatchHeadBatch                          = postChannel + b * numPostRestricted;
          SparseList<float>::Entry const *activeIndicesBatch = nullptr;
-         int numNeurons;
+         long numNeurons;
          if (preLayerIsSparse) {
             activeIndicesBatch =
                   (SparseList<float>::Entry *)activityCube.activeIndices + batchOffset;
@@ -115,8 +115,8 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-               for (int idx = 0; idx < numNeurons; idx++) {
-                  int kPreExt = idx;
+               for (long idx = 0; idx < numNeurons; idx++) {
+                  long kPreExt = idx;
 
                   // Weight
                   Patch const *patch = &weights->getPatch(kPreExt);
@@ -140,8 +140,8 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
                   float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
                   float const *weightDataStart = &weightDataHead[patch->offset];
 
-                  float *v                  = postPatchStart + y * sy;
-                  float const *weightValues = weightDataStart + y * syw;
+                  float *v                  = &postPatchStart[y * sy];
+                  float const *weightValues = &weightDataStart[y * syw];
                   for (int k = 0; k < nk; k++) {
                      v[k] += a * weightValues[k];
                   }
@@ -154,8 +154,8 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-               for (int idx = 0; idx < numNeurons; idx++) {
-                  int kPreExt = activeIndicesBatch[idx].index;
+               for (long idx = 0; idx < numNeurons; idx++) {
+                  long kPreExt = activeIndicesBatch[idx].index;
 
                   // Weight
                   Patch const *patch = &weights->getPatch(kPreExt);
@@ -179,8 +179,8 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
                   float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
                   float const *weightDataStart = &weightDataHead[patch->offset];
 
-                  float *v                  = postPatchStart + y * sy;
-                  float const *weightValues = weightDataStart + y * syw;
+                  float *v                  = &postPatchStart[y * sy];
+                  float const *weightValues = &weightDataStart[y * syw];
                   for (int k = 0; k < nk; k++) {
                      v[k] += a * weightValues[k];
                   }
@@ -200,20 +200,20 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
    PVLayerLoc const *preLoc = mPreData->getLayerLoc();
    int const nxPreExt       = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    int const nyPreExt       = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int const numPreExt      = nxPreExt * nyPreExt * preLoc->nf;
+   long const numPreExt     = (long)nxPreExt * (long)nyPreExt * (long)preLoc->nf;
 
-   PVLayerLoc const *postLoc   = mPostGSyn->getLayerLoc();
-   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
-   int nbatch                  = postLoc->nbatch;
-   const int sy                = postLoc->nx * postLoc->nf; // stride in restricted layer
+   PVLayerLoc const *postLoc    = mPostGSyn->getLayerLoc();
+   long const numPostRestricted = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
+   int nbatch                   = postLoc->nbatch;
+   long const sy                = (long)postLoc->nx * (long)postLoc->nf; // stride in restricted layer
 
    Weights *weights = mWeightsPair->getPreWeights();
-   const int syw    = weights->getGeometry()->getPatchStrideY(); // stride in patch
+   long const syw   = (long)weights->getGeometry()->getPatchStrideY(); // stride in patch
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
-         float *recvBatch = recvBuffer + b * numPostRestricted;
+         float *recvBatch = &recvBuffer[b * numPostRestricted];
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();
@@ -224,8 +224,8 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-            for (int idx = 0; idx < numPreExt; idx++) {
-               int kPreExt = idx;
+            for (long idx = 0; idx < numPreExt; idx++) {
+               long kPreExt = idx;
 
                // Weight
                Patch const *patch = &weights->getPatch(kPreExt);
@@ -242,8 +242,8 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
                float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
                float const *weightDataStart = &weightDataHead[patch->offset];
 
-               float *v                  = postPatchStart + y * sy;
-               float const *weightValues = weightDataStart + y * syw;
+               float *v                  = &postPatchStart[y * sy];
+               float const *weightValues = &weightDataStart[y * syw];
                for (int k = 0; k < nk; k++) {
                   v[k] += mDeltaTimeFactor * weightValues[k];
                }

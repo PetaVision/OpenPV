@@ -52,14 +52,14 @@ void HyPerInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime)
             deltaTime);
       return;
    }
-   int const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
+   long const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
    pvAssert(numNeuronsAcrossBatch == mAccumulatedGSyn->getBufferSizeAcrossBatch());
 
    float const *gSyn = mAccumulatedGSyn->getBufferData();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
       V[k] = gSyn[k];
    }
 }

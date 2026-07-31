@@ -502,7 +502,7 @@ void PVParams::ioParamValue(
       bool warnIfAbsent) {
    switch (ioFlag) {
       case PARAMS_IO_READ:
-         *paramValue = (T)value(groupName, paramName, defaultValue, warnIfAbsent);
+         *paramValue = (T)value(groupName, paramName, (double)defaultValue, warnIfAbsent);
          break;
       case PARAMS_IO_WRITE: writeParam(paramName, *paramValue); break;
    }

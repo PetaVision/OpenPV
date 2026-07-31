@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ios>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -58,8 +59,8 @@ int checkAggregatedNorms(
       std::vector<double> const &allPartialNorms,
       ProbeDataBuffer<double> const &aggregatedStore) {
    // Make sure all elements of aggregatedStore have the same size, this size is the local nbatch.
-   auto batchSizeMin = static_cast<std::vector<double>::size_type>(-1);
-   auto batchSizeMax = static_cast<std::vector<double>::size_type>(0);
+   auto batchSizeMin = std::numeric_limits<unsigned int>::max();
+   auto batchSizeMax = 0U;
 
    int numTimestamps = static_cast<int>(aggregatedStore.size());
    for (int t = 0; t < numTimestamps; ++t) {

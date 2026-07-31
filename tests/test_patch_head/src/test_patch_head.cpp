@@ -8,16 +8,15 @@
  * The preferred patch size is even for a > 1 and odd for a <= 1
  */
 
-using PV::nearby_neighbor;
 using PV::zPatchHead;
 
 // not used, zPatchHead called directly instead
 int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post) {
    int shift;
 
-   float a = powf(2.0f, (float)(zScaleLog2Pre - zScaleLog2Post));
+   float a = std::pow(2.0f, (float)(zScaleLog2Pre - zScaleLog2Post));
 
-   if ((int)a == 1) {
+   if (a == 1.0f) {
       shift = -(int)(0.5f * (float)nzPatch);
       return shift + kzPre; // nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
    }
@@ -32,16 +31,16 @@ int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post
       //
 
       int kpos = (kzPre < 0) ? -(1 + kzPre) : kzPre;
-      int l    = (int)(2 * a * kpos) % 2;
+      int l    = (int)(2.0f * a * (float)kpos) % 2;
       shift -= (kzPre < 0) ? l == 1 : l == 0;
    }
    else if (nzPatch % 2 == 1 && a < 1) {
       // density decreases in post-synaptic layer
       shift = -(int)(0.5f * (float)nzPatch);
-      return shift + nearby_neighbor(kzPre, zScaleLog2Post - zScaleLog2Pre);
+      return shift + PV::nearby_neighbor(kzPre, zScaleLog2Post - zScaleLog2Pre);
    }
 
-   int neighbor = nearby_neighbor(kzPre, zScaleLog2Post - zScaleLog2Pre);
+   int neighbor = PV::nearby_neighbor(kzPre, zScaleLog2Post - zScaleLog2Pre);
 
    // added if nzPatch == 1
    if (nzPatch == 1) {
@@ -59,7 +58,7 @@ int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post
 int main(int argc, char *argv[]) {
    float a;
    int scaleLog2Pre, scaleLog2Post, ans;
-   int kpre, kh, kBack, nPatch, test;
+   int kpre, kh, kBack, nPatch, test, b;
 
    // keep pre-synaptic scale fixed
    //
@@ -244,11 +243,11 @@ int main(int argc, char *argv[]) {
 
    nPatch = 2;
    test   = 8;
+   b      = (int)std::nearbyint((float)nPatch / a);
    ans    = -18; // head starts at -18, increases by 2
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
-              + (kpre % 2 == 0);
+      kBack = zPatchHead(kh, b, scaleLog2Pre - scaleLog2Post) + b - 2 + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -261,16 +260,16 @@ int main(int argc, char *argv[]) {
       ans += 2;
    }
 
-   a             = 2;
+   a             = 2.0f;
    scaleLog2Post = -1;
 
    nPatch = 4;
    test   = 9;
+   b      = (int)std::nearbyint((float)nPatch / a);
    ans    = -18 - 1; // head starts at -19, increases by 2
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
-              + (kpre % 2 == 0);
+      kBack = zPatchHead(kh, b, scaleLog2Pre - scaleLog2Post) + b - 2 + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -283,16 +282,16 @@ int main(int argc, char *argv[]) {
       ans += 2;
    }
 
-   a             = 2;
+   a             = 2.0f;
    scaleLog2Post = -1;
 
    nPatch = 8;
    test   = 10;
+   b      = (int)std::nearbyint((float)nPatch / a);
    ans    = -18 - 3; // head starts at -21, increases by 2
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
-              + (kpre % 2 == 0);
+      kBack = zPatchHead(kh, b, scaleLog2Pre - scaleLog2Post) + b - 2 + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -308,16 +307,16 @@ int main(int argc, char *argv[]) {
    // common usage tests, nPatch even, relative scale==-2 (more dense)
    //
 
-   a             = 4;
+   a             = 4.0f;
    scaleLog2Post = -2;
 
    nPatch = 2;
    test   = 11;
+   b      = (int)std::nearbyint((float)nPatch / a);
    ans    = -35; // head starts at -35, increases by 4
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
-              + (kpre % 2 == 0);
+      kBack = zPatchHead(kh, b, scaleLog2Pre - scaleLog2Post) + b - 2 + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -332,11 +331,11 @@ int main(int argc, char *argv[]) {
 
    nPatch = 4;
    test   = 12;
+   b      = (int)std::nearbyint((float)nPatch / a);
    ans    = -35 - 1; // head starts at -36, increases by 4
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
-              + (kpre % 2 == 0);
+      kBack = zPatchHead(kh, b, scaleLog2Pre - scaleLog2Post) + b - 2 + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -351,11 +350,11 @@ int main(int argc, char *argv[]) {
 
    nPatch = 8;
    test   = 13;
+   b      = (int)std::nearbyint((float)nPatch / a);
    ans    = -35 - 3; // head starts at -38, increases by 4
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
-              + (kpre % 2 == 0);
+      kBack = zPatchHead(kh, b, scaleLog2Pre - scaleLog2Post) + b - 2 + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(

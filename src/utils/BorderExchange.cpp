@@ -165,7 +165,7 @@ void BorderExchange::exchange(float *data, std::vector<MPI_Request> &req) {
 }
 
 int BorderExchange::wait(std::vector<MPI_Request> &req) {
-   int status = MPI_Waitall(req.size(), req.data(), MPI_STATUSES_IGNORE);
+   int status = MPI_Waitall((int)req.size(), req.data(), MPI_STATUSES_IGNORE);
    req.clear();
    return status;
 }
@@ -396,17 +396,17 @@ int BorderExchange::reverseDirection(int commId, int direction) {
    return revdir;
 }
 
-std::size_t BorderExchange::recvOffset(int direction) {
+long BorderExchange::recvOffset(int direction) {
    // This check should make sure n is a local rank
    const int nx         = mLayerLoc.nx;
    const int ny         = mLayerLoc.ny;
    const int leftBorder = mLayerLoc.halo.lt;
    const int topBorder  = mLayerLoc.halo.dn;
 
-   const int sx = strideXExtended(&mLayerLoc);
-   const int sy = strideYExtended(&mLayerLoc);
+   const long sx = strideXExtended(&mLayerLoc);
+   const long sy = strideYExtended(&mLayerLoc);
 
-   int offset;
+   long offset;
 
    switch (direction) {
       case LOCAL: offset     = sx * leftBorder + sy * topBorder; break;
@@ -419,37 +419,37 @@ std::size_t BorderExchange::recvOffset(int direction) {
       case SOUTH: offset     = sx * leftBorder + sy * (topBorder + ny); break;
       case SOUTHEAST: offset = sx * leftBorder + sx * nx + sy * (topBorder + ny); break;
       default:
-         offset = -1; // Suppresses g++ maybe-uninitialized warning
+         offset = -1L; // Suppresses g++ maybe-uninitialized warning
          pvAssert(0); /* All allowable directions handled in above cases */
          break;
    }
-   return (std::size_t)offset;
+   return offset;
 }
 
 /**
  * Returns the send data offset for the given neighbor
  *  - send from interior
  */
-std::size_t BorderExchange::sendOffset(int direction) {
-   const size_t nx         = mLayerLoc.nx;
-   const size_t ny         = mLayerLoc.ny;
-   const size_t leftBorder = mLayerLoc.halo.lt;
-   const size_t topBorder  = mLayerLoc.halo.up;
-
-   const size_t sx = strideXExtended(&mLayerLoc);
-   const size_t sy = strideYExtended(&mLayerLoc);
-
-   const int numRows = mMPIBlock->getNumRows();
-   const int numCols = mMPIBlock->getNumColumns();
-   const int row     = mMPIBlock->getRowIndex();
-   const int col     = mMPIBlock->getColumnIndex();
+long BorderExchange::sendOffset(int direction) {
+   int const nx         = mLayerLoc.nx;
+   int const ny         = mLayerLoc.ny;
+   int const leftBorder = mLayerLoc.halo.lt;
+   int const topBorder  = mLayerLoc.halo.up;
+             
+   long const sx = strideXExtended(&mLayerLoc);
+   long const sy = strideYExtended(&mLayerLoc);
+             
+   int const numRows = mMPIBlock->getNumRows();
+   int const numCols = mMPIBlock->getNumColumns();
+   int const row     = mMPIBlock->getRowIndex();
+   int const col     = mMPIBlock->getColumnIndex();
 
    bool hasNorthNeighbor = row > 0;
    bool hasWestNeighbor  = col > 0;
    bool hasEastNeighbor  = col < numCols - 1;
    bool hasSouthNeighbor = row < numRows - 1;
 
-   int offset;
+   long offset;
    switch (direction) {
       case LOCAL: offset = sx * leftBorder + sy * topBorder; break;
       case NORTHWEST:
@@ -470,11 +470,11 @@ std::size_t BorderExchange::sendOffset(int direction) {
                 + sy * (ny + !hasSouthNeighbor * topBorder);
          break;
       default:
-         offset = -1; // Suppresses g++ maybe-uninitialized warning
+         offset = -1L; // Suppresses g++ maybe-uninitialized warning
          pvAssert(0); /* All allowable directions handled in above cases */
          break;
    }
-   return (std::size_t)offset;
+   return offset;
 }
 
 // NW and SE corners have tag 33; edges have tag 34; NE and SW have tag 35.

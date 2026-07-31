@@ -40,9 +40,14 @@ void CheckpointEntryData<T>::read(
    }
    if (mBroadcastingFlag) {
       // TODO: Pack all MPI_Bcasts into a single broadcast.
+      int numBytes = static_cast<int>(mNumValues * sizeof(T));
+      FatalIf(
+            static_cast<std::size_t>(numBytes) != mNumValues * sizeof(T),
+            "Reading from \"%s\" must broadcast %zu bytes, which is too big for MPI_Bcast\n",
+            getName().c_str(), mNumValues * sizeof(T));
       MPI_Bcast(
             mDataPointer,
-            mNumValues * sizeof(T),
+            numBytes,
             MPI_CHAR,
             0,
             fileManager->getMPIBlock()->getComm());

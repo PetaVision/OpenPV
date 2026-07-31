@@ -106,12 +106,12 @@ void IdentDelivery::deliver(float *destBuffer) {
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
 
-   int const nx       = preLoc.nx;
-   int const ny       = preLoc.ny;
-   int const nf       = preLoc.nf;
-   int nxPreExtended  = nx + preLoc.halo.lt + preLoc.halo.rt;
-   int nyPreExtended  = ny + preLoc.halo.dn + preLoc.halo.up;
-   int numPreExtended = nxPreExtended * nyPreExtended * nf;
+   int const nx        = preLoc.nx;
+   int const ny        = preLoc.ny;
+   int const nf        = preLoc.nf;
+   int nxPreExtended   = nx + preLoc.halo.lt + preLoc.halo.rt;
+   int nyPreExtended   = ny + preLoc.halo.dn + preLoc.halo.up;
+   long numPreExtended = (long)nxPreExtended * (long)nyPreExtended * (long)nf;
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    long numPostRestricted = (long)nx * (long)ny * (long)nf;
 
@@ -127,11 +127,11 @@ void IdentDelivery::deliver(float *destBuffer) {
       if (preActivityCube.isSparse) {
          SparseList<float>::Entry const *activeIndices =
                (SparseList<float>::Entry *)preActivityCube.activeIndices + b * numPreExtended;
-         int numActive = preActivityCube.numActive[b];
+         long numActive = preActivityCube.numActive[b];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int loopIndex = 0; loopIndex < numActive; loopIndex++) {
+         for (long loopIndex = 0; loopIndex < numActive; loopIndex++) {
             int kPre = activeIndices[loopIndex].index;
             int kx   = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
             int ky   = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
@@ -169,11 +169,11 @@ void IdentDelivery::deliverUnitInput(float *recvBuffer) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
-   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
+   long const numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int k = 0; k < numNeuronsPost; k++) {
+   for (long k = 0L; k < numNeuronsPost; k++) {
       recvBuffer[k] += 1.0f;
    }
 }

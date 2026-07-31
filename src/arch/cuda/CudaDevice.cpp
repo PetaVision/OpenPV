@@ -106,7 +106,7 @@ int CudaDevice::query_device_info() {
    return 0;
 }
 
-CudaBuffer *CudaDevice::createBuffer(size_t size, std::string const *str) {
+CudaBuffer *CudaDevice::createBuffer(std::size_t size, std::string const *str) {
    long memLeft = reserveMem(size);
    InfoLog() << "Reserving " << size << " bytes of VRAM";
    if (str) {

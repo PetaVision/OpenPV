@@ -70,11 +70,11 @@ int NormalizeSum::normalizeWeights() {
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and
    // symmetrizeWeights
 
-   int nArbors        = weights0->getNumArbors();
+   int nArbors         = weights0->getNumArbors();
    long numDataPatches = weights0->getNumDataPatchesOverall();
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
-         for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+         for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sum = 0.0;
             for (auto &weights : mWeightsList) {
                long weightsPerPatch  = weights->getPatchSizeOverall();
@@ -100,7 +100,7 @@ int NormalizeSum::normalizeWeights() {
       }
    }
    else {
-      for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+      for (long patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float sum = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {

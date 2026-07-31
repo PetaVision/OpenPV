@@ -55,7 +55,7 @@ class StatsProbeLocal : public ProbeComponent {
    float const *calculateBatchElementStart(int localBatchIndex) const;
 
    template <StatsBufferType bufferType>
-   int calculateOffset(int k) const;
+   long calculateOffset(long k) const;
 
    void calculateStats(double simTime, ProbeData<LayerStats> &values) const;
 
@@ -75,15 +75,15 @@ class StatsProbeLocal : public ProbeComponent {
 template <StatsBufferType bufferType>
 void StatsProbeLocal::calculateValues(LayerStats &stats, int localBatchIndex) const {
    PVLayerLoc const *loc = getLayerLoc();
-   int numNeurons        = loc->nx * loc->ny * loc->nf;
+   long numNeurons       = (long)loc->nx * (long)loc->ny * (long)loc->nf;
    float const *data     = calculateBatchElementStart<bufferType>(localBatchIndex);
    double sum            = 0.0;
    double sumSquared     = 0.0;
    float min             = FLT_MAX;
    float max             = -FLT_MAX;
-   int numNonzero        = 0;
-   for (int k = 0; k < numNeurons; k++) {
-      int kOffset       = calculateOffset<bufferType>(k);
+   long numNonzero       = 0;
+   for (long k = 0; k < numNeurons; k++) {
+      long kOffset      = calculateOffset<bufferType>(k);
       float const a     = data[kOffset];
       double const aDbl = static_cast<double>(a);
       sum += aDbl;

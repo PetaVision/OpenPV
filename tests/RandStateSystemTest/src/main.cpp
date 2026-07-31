@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
    }
 
-   float tolerance = 1.0e-7;
+   float tolerance = 1.0e-7f;
 
    initObj.setParams(paramfile1);
    HyPerCol *hc1 = build(&initObj);

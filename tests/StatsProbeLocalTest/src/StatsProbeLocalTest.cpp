@@ -97,7 +97,7 @@ ProbeData<LayerStats> calcCorrectValues(
    ProbeData<LayerStats> result(timestamp, loc->nbatch);
 
    pvAssert(static_cast<int>(dataBuffer.size()) % loc->nbatch == 0);
-   int elementSize = static_cast<int>(dataBuffer.size()) / loc->nbatch;
+   long elementSize = static_cast<long>(dataBuffer.size()) / loc->nbatch;
    PVHalo halo; // Use given halo if extended; set halo to zero if not extended.
    // This way, we can use the same kIndexExtended() call in either case.
    switch (bufferType) {
@@ -113,10 +113,10 @@ ProbeData<LayerStats> calcCorrectValues(
       double correctSumSquared = 0.0f;
       float correctMin         = FLT_MAX;
       float correctMax         = -FLT_MAX;
-      int correctNumNeurons    = loc->nx * loc->ny * loc->nf;
-      int correctNumNonzero    = 0;
-      for (int k = 0; k < correctNumNeurons; ++k) {
-         int kExt =
+      long correctNumNeurons    = (long)loc->nx * (long)loc->ny * (long)loc->nf;
+      long correctNumNonzero    = 0;
+      for (long k = 0; k < correctNumNeurons; ++k) {
+         long kExt =
                PV::kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo.lt, halo.rt, halo.dn, halo.up);
          pvAssert(kExt >= 0 and kExt < elementSize);
          float value     = data[kExt];
@@ -202,18 +202,18 @@ int compareStatsBatch(
       }
 
       try {
-         int observed = observedStats.mNumNeurons;
-         int correct  = correctStats.mNumNeurons;
-         checkValue(messageHead, std::string("NumNeurons"), observed, correct, 0);
+         long observed = observedStats.mNumNeurons;
+         long correct  = correctStats.mNumNeurons;
+         checkValue(messageHead, std::string("NumNeurons"), observed, correct, 0L);
       } catch (std::exception const &e) {
          ErrorLog() << e.what();
          status = PV_FAILURE;
       }
 
       try {
-         int observed = observedStats.mNumNonzero;
-         int correct  = correctStats.mNumNonzero;
-         checkValue(messageHead, std::string("NumNonzero"), observed, correct, 0);
+         long observed = observedStats.mNumNonzero;
+         long correct  = correctStats.mNumNonzero;
+         checkValue(messageHead, std::string("NumNonzero"), observed, correct, 0L);
       } catch (std::exception const &e) {
          ErrorLog() << e.what();
          status = PV_FAILURE;

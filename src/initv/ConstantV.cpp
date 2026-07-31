@@ -39,8 +39,8 @@ void ConstantV::calcV(float *V, PVLayerLoc const *loc) {
    if (V == NULL) {
       Fatal().printf("%s: calcV called but membrane potential V is null.\n", getDescription_c());
    }
-   int const numNeurons = loc->nx * loc->ny * loc->nf * loc->nbatch;
-   for (int k = 0; k < numNeurons; k++) {
+   long const numNeurons = (long)loc->nx * (long)loc->ny * (long)loc->nf * (long)loc->nbatch;
+   for (long k = 0; k < numNeurons; k++) {
       V[k] = mValueV;
    }
 }

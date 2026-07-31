@@ -49,7 +49,7 @@ int buildandrun(
       return 0;
    }
    PVParams *params = initObj->getParams();
-   if (params == NULL) {
+   if (params == nullptr) {
       if (initObj->getWorldRank() == 0) {
          std::string progName = initObj->returnProgramName();
          if (progName.empty()) {
@@ -104,12 +104,12 @@ int buildandrun1paramset(
 
    int status  = PV_SUCCESS;
    int argc    = 0;
-   char **argv = NULL;
+   char **argv = nullptr;
    if (custominit || customexit) {
       argc = initObj->getNumArgs();
       argv = initObj->getArgsCopy();
    }
-   if (custominit != NULL) {
+   if (custominit != nullptr) {
       status = (*custominit)(hc, argc, argv);
       if (status != PV_SUCCESS) {
          ErrorLog().printf("custominit function failed with return value %d\n", status);
@@ -127,7 +127,7 @@ int buildandrun1paramset(
          ErrorLog().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if (status == PV_SUCCESS && customexit != NULL) {
+   if (status == PV_SUCCESS && customexit != nullptr) {
       status = (*customexit)(hc, argc, argv);
       if (status != PV_SUCCESS) {
          ErrorLog().printf("customexit function failed with return value %d\n", status);

@@ -213,7 +213,7 @@ void testReadFromSparseBinaryPvp() {
    for (int frame = 0; frame < 3; ++frame) {
       vector<float> testData(3 * 2 * 1);
       for (int i = 0; i < 3 * 2 * 1; ++i) {
-         testData.at(i) = (1 + i + frame) % 2;
+         testData.at(i) = (float)((1 + i + frame) % 2);
       }
 
       SparseList<float> list;

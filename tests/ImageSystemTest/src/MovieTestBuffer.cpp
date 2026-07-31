@@ -17,7 +17,7 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int ny                = loc->ny;
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
-   int numNeurons        = nx * ny * nf;
+   long numNeurons       = (long)nx * (long)ny * (long)nf;
    int batchIndexerData[2 * nbatch];
    auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
    if (ioMPIBlock->getRank() == 0) {
@@ -65,9 +65,9 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
                2 * b);
       }
 
-      for (int nkRes = 0; nkRes < numNeurons; nkRes++) {
+      for (long nkRes = 0; nkRes < numNeurons; nkRes++) {
          // Calculate extended index
-         int nkExt = kIndexExtended(
+         long nkExt = kIndexExtended(
                nkRes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          // checkVal is the value from batch index 0
          float checkVal = dataBatch[nkExt] * 255;
@@ -76,8 +76,8 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
          int kyGlobal = kyPos(nkRes, nx, ny, nf) + loc->ky0;
          int kf       = featureIndex(nkRes, nx, ny, nf);
 
-         float expectedVal =
-               kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + 10 * frameIdx;
+         long globalIndex = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf);
+         float expectedVal = (float)(globalIndex + 10 * frameIdx);
          if (std::fabs(checkVal - expectedVal) >= 1e-4f) {
             Fatal() << getName() << " time: " << simTime << " batch: " << b
                     << " Expected: " << expectedVal << " Actual: " << checkVal << "\n";

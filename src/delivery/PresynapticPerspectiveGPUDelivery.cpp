@@ -156,8 +156,8 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
 
    int const nxPreExt = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    int const nyPreExt = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int numPreExt      = nxPreExt * nyPreExt * preLoc->nf;
-   int numPostRes     = mPostGSyn->getBufferSize();
+   long numPreExt     = (long)nxPreExt * (long)nyPreExt * (long)preLoc->nf;
+   long numPostRes    = mPostGSyn->getBufferSize();
 
    int nbatch = postLoc->nbatch;
 
@@ -260,10 +260,10 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       }
 
       if (maxTotalActiveNeuron > 0) {
-         long totPatchSize   = (long)weights->getPatchSizeOverall();
+         long totPatchSize   = weights->getPatchSizeOverall();
          long totThreads     = maxTotalActiveNeuron * totPatchSize;
          int maxThreads      = mCudaDevice->get_max_threads();
-         int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
+         int numLocalThreads = totPatchSize < maxThreads ? (int)totPatchSize : maxThreads;
 
          mRecvKernel->run_nocheck(totThreads, numLocalThreads);
       }
@@ -277,10 +277,10 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
    PVLayerLoc const *preLoc = mPreData->getLayerLoc();
    int const nxPreExt       = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    int const nyPreExt       = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int const numPreExt      = nxPreExt * nyPreExt * preLoc->nf;
+   long const numPreExt     = (long)nxPreExt * (long)nyPreExt * (long)preLoc->nf;
 
-   PVLayerLoc const *postLoc   = mPostGSyn->getLayerLoc();
-   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+   PVLayerLoc const *postLoc    = mPostGSyn->getLayerLoc();
+   long const numPostRestricted = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
    int nbatch                  = postLoc->nbatch;
    int const sy                = postLoc->nx * postLoc->nf; // stride in restricted layer
 
@@ -290,7 +290,7 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
-         float *recvBatch = recvBuffer + b * numPostRestricted;
+         float *recvBatch = &recvBuffer[b * numPostRestricted];
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();
@@ -301,8 +301,8 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-            for (int idx = 0; idx < numPreExt; idx++) {
-               int kPreExt = idx;
+            for (long idx = 0; idx < numPreExt; idx++) {
+               long kPreExt = idx;
 
                // Weight
                Patch const *patch = &weights->getPatch(kPreExt);

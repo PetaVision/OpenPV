@@ -55,7 +55,7 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
          "%s does not have a BasePublisherComponent.\n",
          correctValuesLayer->getDescription_c());
 
-   int const N       = correctValuesLayer->getNumExtended();
+   long const N      = correctValuesLayer->getNumExtended();
    auto *weightsPair = conn->getComponentByType<WeightsPair>();
    FatalIf(
          weightsPair == nullptr,
@@ -63,12 +63,12 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
          conn->getDescription_c());
    auto *preWeights = weightsPair->getPreWeights();
    FatalIf(
-         preWeights->getNumDataPatchesOverall() != (long)N,
+         preWeights->getNumDataPatchesOverall() != N,
          "Connection InputToOutput and layer SumInputs have different sizes.\n");
    float const *weights       = preWeights->getData(0);
    float const *correctValues = correctValuesPublisher->getLayerData(0);
    int status                 = PV_SUCCESS;
-   for (int k = 0; k < N; k++) {
+   for (long k = 0; k < N; k++) {
       if (weights[k] != correctValues[k]) {
          status = PV_FAILURE;
          ErrorLog() << "Weight index " << k << ": expected " << correctValues[k] << "; value was "

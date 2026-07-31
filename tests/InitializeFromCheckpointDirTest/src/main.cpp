@@ -83,10 +83,10 @@ int main(int argc, char *argv[]) {
    PVLayerLoc const *loc  = outputLayer->getLayerLoc();
    for (int b = 0; b < loc->nbatch; b++) {
       int const globalBatchIndex = loc->kb0 + b;
-      int const N                = outputPublisher->getNumExtended();
+      long const N               = outputPublisher->getNumExtended();
       float const *A             = &outputPublisher->getLayerData()[b * N];
-      float const correct        = totalTime * (double)(globalBatchIndex + 1);
-      for (int k = 0; k < N; k++) {
+      float const correct        = (float)(totalTime * (double)(globalBatchIndex + 1));
+      for (long k = 0; k < N; k++) {
          if (A[k] != correct) {
             status = PV_FAILURE;
             ErrorLog() << "Batch index " << globalBatchIndex << ", neuron " << k << ": expected "

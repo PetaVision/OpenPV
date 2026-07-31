@@ -19,19 +19,16 @@
 
 namespace PV {
 
-// uint64_t get_cpu_time();
-// static double cpu_time_to_sec(uint64_t cpu_elapsed);
-
 class Timer {
   public:
-   Timer(const char *timermessage, double init_time = 0.0);
-   Timer(const char *objname, const char *objtype, const char *timertype, double init_time = 0.0);
+   Timer(const char *timermessage, uint64_t init_time = 0);
+   Timer(const char *objname, const char *objtype, const char *timertype, uint64_t init_time = 0);
    virtual ~Timer();
-   void reset(double init_time = 0.0);
+   void reset(uint64_t init_time = 0);
 
    virtual double start();
    virtual double stop();
-   inline double elapsed_time() const;
+   inline uint64_t elapsed_time() const;
    virtual int fprint_time(PrintStream &stream) const;
 
    static void stringPad(

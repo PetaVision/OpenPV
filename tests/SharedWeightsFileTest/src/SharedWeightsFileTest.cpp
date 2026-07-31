@@ -314,9 +314,9 @@ int copyWeights(
       return PV_FAILURE;
    }
    int numArbors = srcWeights->getNumArbors();
-   int numValuesPerArbor = srcWeights->getNumValuesPerArbor();
+   long numValuesPerArbor = srcWeights->getNumValuesPerArbor();
    for (int a = 0; a < numArbors; ++a) {
-      for (int i = 0; i < numValuesPerArbor; ++i) {
+      for (long i = 0; i < numValuesPerArbor; ++i) {
          destWeights->getData(a)[i] = srcWeights->getData(a)[i];
       }
    }
@@ -336,7 +336,7 @@ std::shared_ptr<WeightData> createWgts1(
    for (int a = 0; a < numArbors; ++a) {
       float *arbor = weightData->getData(a);
       for (long k = 0; k < elemsPerArbor; ++k) {
-         int index = a * elemsPerArbor + k;
+         long index = a * elemsPerArbor + k;
          arbor[k] = static_cast<float>(index + 1);
       }
    }
@@ -352,7 +352,7 @@ std::shared_ptr<WeightData> createWgts2(
    for (int a = 0; a < numArbors; ++a) {
       float *arbor = weightData->getData(a);
       for (long k = 0; k < elemsPerArbor; ++k) {
-         int index = a * elemsPerArbor + k;
+         long index = a * elemsPerArbor + k;
          arbor[k] = std::sqrt(static_cast<float>(index + 1));
       }
    }
@@ -368,7 +368,7 @@ std::shared_ptr<WeightData> createWgts3(
    for (int a = 0; a < numArbors; ++a) {
       float *arbor = weightData->getData(a);
       for (long k = 0; k < elemsPerArbor; ++k) {
-         int index = a * elemsPerArbor + k;
+         long index = a * elemsPerArbor + k;
          arbor[k] = 1.0f - static_cast<float>(index)/static_cast<float>(numArbors * elemsPerArbor);
       }
    }
@@ -384,7 +384,7 @@ std::shared_ptr<WeightData> createWgts4(
    for (int a = 0; a < numArbors; ++a) {
       float *arbor = weightData->getData(a);
       for (long k = 0; k < elemsPerArbor; ++k) {
-         int index = a * elemsPerArbor + k;
+         long index = a * elemsPerArbor + k;
          arbor[k] = -static_cast<float>(index + 1)/static_cast<float>(numArbors * elemsPerArbor);
       }
    }
@@ -439,7 +439,11 @@ std::shared_ptr<WeightData> readFromFileStream(
             fileStream->read(patchAddress, patchSizeBytes); 
          }
       }
-      long arborSizeBytes = numPatches * patchSizeBytes;
+      long arborSizeBytesL = numPatches * patchSizeBytes;
+      int arborSizeBytes   = static_cast<int>(arborSizeBytesL);
+      FatalIf(
+            static_cast<long>(arborSizeBytes) != arborSizeBytesL,
+            "Number of weights (%ld) too large for MPI_Bcast", arborSizeBytesL);
       float *arborAddress = weightData->getData(a);
       MPI_Bcast(arborAddress, arborSizeBytes, MPI_BYTE, rootProc, mpiBlock->getComm());
    }

@@ -42,8 +42,8 @@ void LayerBatchGatherScatter::gather(
          gatheredBuffer = gatheredBuffer.extract(
             mLayerLoc.halo.lt, mLayerLoc.halo.up, rootWidth, rootHeight);
       }
-      int numElements = gatheredBuffer.getTotalElements();
-      for (int k = 0; k < numElements; ++k) {
+      long numElements = gatheredBuffer.getTotalElements();
+      for (long k = 0; k < numElements; ++k) {
          rootDataLocation[k] = gatheredBuffer.at(k);
       }
    }
@@ -100,8 +100,8 @@ void LayerBatchGatherScatter::copyToDataLocation(
    pvAssert(localDataBuffer.getHeight() == dataLocationHeight);
    pvAssert(localDataBuffer.getFeatures() == numFeatures);
 
-   int const nk = dataLocationWidth * dataLocationHeight * numFeatures;
-   for (int k = 0; k < nk; ++k) {
+   long const nk = (long)dataLocationWidth * (long)dataLocationHeight * (long)numFeatures;
+   for (long k = 0L; k < nk; ++k) {
       dataLocation[k] = localDataBuffer.at(k);
    }
 }

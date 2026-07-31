@@ -42,7 +42,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
    void gauss2DCalcWeights(
          Patch const &wp,
          float *dataStart,
-         int kPre,
+         long kPre,
          int noPost,
          int numFlanks,
          float shift,
@@ -91,8 +91,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float phi);
    void initializeGaborWeights(float *dataStart, long numPatches);
 
-   int
-   dataIndexToUnitCellIndex(
+   int dataIndexToUnitCellIndex(
          long dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
 
   protected:

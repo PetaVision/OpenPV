@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
    setMargins(preLayerInh1, xMargin, yMargin);
 
    // IdentConn should check that pre and post have the same # of neurons, but let's make sure.
-   int const numNeurons = postLayer->getNumNeurons();
+   long const numNeurons = postLayer->getNumNeurons();
    FatalIf(
          preLayerExc0->getNumNeurons() != numNeurons,
          "%s does not have the same number of neurons as %s\n",
@@ -82,15 +82,15 @@ int main(int argc, char *argv[]) {
    int const nf            = preLoc.nf;
    // All pre layers should have this nx, ny, nf; and halo of lt=3, rt=3, dn=2, up=2
 
-   for (int k = 0; k < numNeurons; k++) {
-      int const kGlobal = globalIndexFromLocal(k, preLoc);
-      int const kExt    = kIndexExtended(k, nx, ny, nf, xMargin, xMargin, yMargin, yMargin);
+   for (long k = 0; k < numNeurons; k++) {
+      long const kGlobal = globalIndexFromLocal(k, preLoc);
+      long const kExt    = kIndexExtended(k, nx, ny, nf, xMargin, xMargin, yMargin, yMargin);
 
       float const observedExc0Value = preExc0Publisher->getLayerData(0)[kExt];
       float const correctExc0Value  = (float)(kGlobal * kGlobal);
       if (observedExc0Value != (float)(correctExc0Value)) {
          ErrorLog().printf(
-               "Rank %d, restricted neuron %d: expected %f in %s, but observed %f\n",
+               "Rank %d, restricted neuron %ld: expected %f in %s, but observed %f\n",
                pv_init.getWorldRank(),
                k,
                (double)(correctExc0Value),
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
       float const correctExc1Value  = (float)(kGlobal + kGlobal + 1);
       if (observedExc1Value != (float)(correctExc1Value)) {
          ErrorLog().printf(
-               "Rank %d, restricted neuron %d: expected %f in %s, but observed %f\n",
+               "Rank %d, restricted neuron %ld: expected %f in %s, but observed %f\n",
                pv_init.getWorldRank(),
                k,
                (double)(correctExc0Value),
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
       float const correctExcSum  = correctExc0Value + correctExc1Value;
       if (observedExcSum != correctExcSum) {
          ErrorLog().printf(
-               "Rank %d, restricted neuron %d: expected %f but observed %f\n",
+               "Rank %d, restricted neuron %ld: expected %f but observed %f\n",
                pv_init.getWorldRank(),
                k,
                (double)correctExcSum,
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
       float const correctInh0Value  = (float)(kGlobal * kGlobal / 2 /* integer division */);
       if (observedInh0Value != (float)(correctInh0Value)) {
          ErrorLog().printf(
-               "Rank %d, restricted neuron %d: expected %f in %s, but observed %f\n",
+               "Rank %d, restricted neuron %ld: expected %f in %s, but observed %f\n",
                pv_init.getWorldRank(),
                k,
                (double)(correctInh0Value),
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
       float const correctInh1Value  = (float)((kGlobal + 1) / 2 /* integer division */);
       if (observedInh1Value != (float)(correctInh1Value)) {
          ErrorLog().printf(
-               "Rank %d, restricted neuron %d: expected %f in %s, but observed %f\n",
+               "Rank %d, restricted neuron %ld: expected %f in %s, but observed %f\n",
                pv_init.getWorldRank(),
                k,
                (double)(correctInh0Value),
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
       float const correctInhSum  = correctInh0Value + correctInh1Value;
       if (observedInhSum != correctInhSum) {
          ErrorLog().printf(
-               "Rank %d, restricted neuron %d: expected %f but observed %f\n",
+               "Rank %d, restricted neuron %ld: expected %f but observed %f\n",
                pv_init.getWorldRank(),
                k,
                (double)correctInhSum,

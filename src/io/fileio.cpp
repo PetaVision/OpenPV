@@ -53,17 +53,19 @@ int PV_stat(const char *path, struct stat *buf) {
 }
 
 static inline int makeDirectory(char const *dir) {
+   FatalIf(dir == nullptr or dir[0] == '\0', "makeDirectory() called with empty argument.\n");
    mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
    int status     = 0;
 
    char *workingDir = strdup(dir);
    FatalIf(workingDir == nullptr, "makeDirectory: unable to duplicate path \"%s\".\n", dir);
 
-   int len = strlen(workingDir);
+   std::size_t len = strlen(workingDir);
+   assert(len > 0); // If workingDir is empty, code exited at the FatalIf above
    if (workingDir[len - 1] == '/')
       workingDir[len - 1] = '\0';
 
-   for (char *p = workingDir + 1; *p; p++)
+   for (char *p = &workingDir[1]; *p; p++) {
       if (*p == '/') {
          *p = '\0';
          status |= mkdir(workingDir, dirmode);
@@ -72,6 +74,7 @@ static inline int makeDirectory(char const *dir) {
          }
          *p = '/';
       }
+   }
    status |= mkdir(workingDir, dirmode);
    if (errno == EEXIST) {
       status = 0;

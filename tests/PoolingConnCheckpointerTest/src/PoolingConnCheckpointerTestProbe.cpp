@@ -254,28 +254,34 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
    int const nx           = loc.nx;
    int const ny           = loc.ny;
    int const nf           = loc.nf;
-   int const numNeurons   = nx * ny * nf;
-   std::vector<int> badIndices(numNeurons, -1);
-   for (int k = 0; k < numNeurons; k++) {
+   long const numNeuronsL = (long)nx * (long)ny * (long)nf;
+   int const numNeurons   = static_cast<int>(numNeuronsL);
+   FatalIf(
+         static_cast<long>(numNeurons) != numNeuronsL,
+         "Probe \"%s\" must send/receive %ld values over MPI, which is too large.\n",
+         getName(), numNeuronsL);
+   std::vector<long> badIndices(numNeurons, -1);
+   for (long k = 0; k < numNeurons; k++) {
       int const x = kxPos(k, nx, ny, nf);
       int const y = kyPos(k, nx, ny, nf);
       int const f = featureIndex(k, nx, ny, nf);
       if (layerData[k] != correctValueBuffer.at(x, y, f)) {
-         int const kGlobal = globalIndexFromLocal(k, loc);
+         long const kGlobal = globalIndexFromLocal(k, loc);
          badIndices[k]     = kGlobal;
          failed            = 1;
       }
    }
    Communicator const *comm = mCommunicator;
-   std::vector<int> badIndicesGlobal;
    if (comm->commRank() == 0) {
-      badIndicesGlobal.resize(loc.nxGlobal * loc.nyGlobal * loc.nf);
+      std::vector<long> badIndicesGlobal((long)loc.nxGlobal * (long)loc.nyGlobal * (long)loc.nf);
+      std::copy(badIndices.begin(), badIndices.end(), badIndicesGlobal.begin()); // local slice
       std::vector<MPI_Request> requests(comm->commSize() - 1);
       for (int r = 1; r < comm->commSize(); r++) {
-         int *recvBuffer = &badIndicesGlobal.at(r * numNeurons);
-         MPI_Irecv(recvBuffer, numNeurons, MPI_INT, r, 211, comm->communicator(), &requests[r - 1]);
+         long *recvBuffer = &badIndicesGlobal.at(r * numNeurons);
+         MPI_Irecv(
+               recvBuffer, numNeurons, MPI_LONG, r, 211, comm->communicator(), &requests[r - 1]);
       }
-      MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
+      MPI_Waitall(static_cast<int>(requests.size()), requests.data(), MPI_STATUSES_IGNORE);
       badIndicesGlobal.erase(
             std::remove_if(
                   badIndicesGlobal.begin(), badIndicesGlobal.end(), [](int j) { return j < 0; }),
@@ -283,7 +289,7 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
       std::sort(badIndicesGlobal.begin(), badIndicesGlobal.end());
    }
    else {
-      MPI_Send(badIndices.data(), numNeurons, MPI_INT, 0, 211, comm->communicator());
+      MPI_Send(badIndices.data(), numNeurons, MPI_LONG, 0, 211, comm->communicator());
    }
 
    MPI_Allreduce(MPI_IN_PLACE, &failed, 1, MPI_INT, MPI_LOR, comm->communicator());

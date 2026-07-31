@@ -124,7 +124,7 @@ FilenameParsingProbe::outputState(std::shared_ptr<PV::LayerOutputStateMessage co
    int const globalBatchWidth = localBatchWidth * ioMPIBlock->getGlobalBatchDimension();
    int const localBatchStart  = mpiBatchIndex * localBatchWidth;
    int const numCategories    = (int)mCategories.size();
-   int const numExtended      = publisherComponent->getNumExtended();
+   long const numExtended     = publisherComponent->getNumExtended();
    int const nxExt            = loc->nx + loc->halo.lt + loc->halo.rt;
    int const nyExt            = loc->ny + loc->halo.dn + loc->halo.up;
    bool failed                = false;
@@ -134,7 +134,7 @@ FilenameParsingProbe::outputState(std::shared_ptr<PV::LayerOutputStateMessage co
       int imageIndex        = (globalBatchIndex + displayNumber * globalBatchWidth) % numCategories;
       int expectedCategory  = mCategories[imageIndex];
 
-      for (int k = 0; k < numExtended; k++) {
+      for (long k = 0; k < numExtended; k++) {
          int f               = featureIndex(k, nxExt, nyExt, loc->nf);
          float expectedValue = f == expectedCategory ? 1.0f : 0.0f;
          float observedValue = activity[k];

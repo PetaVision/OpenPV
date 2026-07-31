@@ -59,7 +59,7 @@ void testRestricted(Communicator const *comm) {
       for (size_t i = 0; i < result.size(); ++i) {
          // We expect 0s and 1s on rank 0, 2s and 3s on rank 1
          FatalIf(
-               result.at(i) != rank * 2 + expected.at(i),
+               result.at(i) != (float)(rank * 2) + expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                rank * 2 + (int)expected.at(i),
                (int)result.at(i));
@@ -69,7 +69,7 @@ void testRestricted(Communicator const *comm) {
       FatalIf(result.size() != 4, "Failed. Expected 4 values, found %d.\n", result.size());
       for (size_t i = 0; i < result.size(); ++i) {
          FatalIf(
-               result.at(i) != rank,
+               result.at(i) != (float)rank,
                "Failed. Expected to find %d, found %d instead.\n",
                rank,
                (int)result.at(i));

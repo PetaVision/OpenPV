@@ -42,7 +42,7 @@ ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
 void ShrunkenPatchTestProbe::checkStats() {
    HyPerLayer *l         = getTargetLayer();
    const PVLayerLoc *loc = l->getLayerLoc();
-   int num_neurons       = l->getNumNeurons();
+   long numNeurons       = l->getNumNeurons();
 
    // NxpShrunken must be an integer multiple of the layer's nxScale, and nxScale must be a positive
    // integral power of 2.
@@ -72,30 +72,30 @@ void ShrunkenPatchTestProbe::checkStats() {
          Fatal().printf(
                "%s: layer \"%s\" must have nxScale > 1.\n", getDescription_c(), l->getName());
       }
-      int cell_size = (int)nearbyintf(powf(2.0f, -xScaleLog2));
-      int kx0       = (loc->kx0) / cell_size;
-      FatalIf(!(kx0 * cell_size == loc->kx0), "Test failed.\n");
-      int half_cell_size = cell_size / 2;
-      FatalIf(!(half_cell_size * 2 == cell_size), "Test failed.\n");
-      int num_half_cells = nx / half_cell_size;
-      FatalIf(!(num_half_cells * half_cell_size == nx), "Test failed.\n");
-      int cells_in_patch = mNxpShrunken / cell_size;
-      if (mNxpShrunken != cells_in_patch * cell_size) {
+      int cellSize = (int)std::nearbyint(std::pow(2, -xScaleLog2));
+      int kx0       = (loc->kx0) / cellSize;
+      FatalIf(kx0 * cellSize != loc->kx0, "Test failed.\n");
+      int halfCellSize = cellSize / 2;
+      FatalIf(halfCellSize * 2 != cellSize, "Test failed.\n");
+      int numHalfCells = nx / halfCellSize;
+      FatalIf(numHalfCells * halfCellSize != nx, "Test failed.\n");
+      int cellsInPatch = mNxpShrunken / cellSize;
+      if (mNxpShrunken != cellsInPatch * cellSize) {
          Fatal().printf(
                "ShrunkenPatchTestProbe \"%s\" error: NxpShrunken must be an integer multiple of "
                "layer \"%s\" nxScale=%d.\n",
                getName(),
                l->getName(),
-               cell_size);
+               cellSize);
       }
-      int nxp_size_parity = cells_in_patch % 2;
+      int nxpSizeParity = cellsInPatch % 2;
 
       int idx = 0;
-      for (int hc = 0; hc < num_half_cells; hc++) {
-         int m               = 2 * ((hc + 1 - nxp_size_parity) / 2) + nxp_size_parity;
-         float correct_value = kx0 + 0.5f * (float)m;
-         for (int k = 0; k < half_cell_size; k++) {
-            mCorrectValues[idx++] = correct_value;
+      for (int hc = 0; hc < numHalfCells; hc++) {
+         int m               = 2 * ((hc + 1 - nxpSizeParity) / 2) + nxpSizeParity;
+         float correctValue = (float)kx0 + 0.5f * (float)m;
+         for (int k = 0; k < halfCellSize; k++) {
+            mCorrectValues[idx++] = correctValue;
          }
       }
       FatalIf(!(idx == nx), "Test failed.\n");
@@ -114,8 +114,8 @@ void ShrunkenPatchTestProbe::checkStats() {
 
    double simTime = stats.getTimestamp();
    if (simTime >= 3.0) {
-      for (int k = 0; k < num_neurons; k++) {
-         int kex = kIndexExtended(
+      for (long k = 0; k < numNeurons; k++) {
+         long kex = kIndexExtended(
                k,
                loc->nx,
                loc->ny,
@@ -125,7 +125,7 @@ void ShrunkenPatchTestProbe::checkStats() {
                loc->halo.dn,
                loc->halo.up);
          int x = kxPos(k, loc->nx, loc->ny, loc->nf);
-         if (fabsf(buf[kex] - mCorrectValues[x]) > tol) {
+         if (std::fabs(buf[kex] - mCorrectValues[x]) > tol) {
             int y = kyPos(k, loc->nx, loc->ny, loc->nf);
             int f = featureIndex(k, loc->nx, loc->ny, loc->nf);
             Fatal().printf(

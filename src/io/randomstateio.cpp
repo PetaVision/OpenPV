@@ -29,7 +29,7 @@ double readRandState(
       nxLocal += loc->halo.lt + loc->halo.rt;
       nyLocal += loc->halo.dn + loc->halo.up;
    }
-   int const numLocal   = nxLocal * nyLocal * nf;
+   long const numLocal  = (long)nxLocal * (long)nyLocal * (long)nf;
    std::size_t numBytes = sizeof(taus_uint4) * (std::size_t)numLocal;
 
    for (int m = 0; m < mpiBlock->getBatchDimension(); m++) {
@@ -75,8 +75,8 @@ void writeRandState(
       nxLocal += loc->halo.lt + loc->halo.rt;
       nyLocal += loc->halo.dn + loc->halo.up;
    }
-   int const nf       = loc->nf;
-   int const numLocal = nxLocal * nyLocal * nf;
+   int const nf        = loc->nf;
+   long const numLocal = (long)nxLocal * (long)nyLocal * (long)nf;
    for (int m = 0; m < mpiBlock->getBatchDimension(); m++) {
       for (int b = 0; b < loc->nbatch; b++) {
          auto localData = &randState[b * numLocal];

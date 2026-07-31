@@ -47,7 +47,7 @@ void GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {
    GaussianRandom randState{&flatLoc, false /*not extended*/};
    const int nxny = flatLoc.nx * flatLoc.ny;
    for (int b = 0; b < loc->nbatch; b++) {
-      float *VBatch = V + b * loc->nx * loc->ny * loc->nf;
+      float *VBatch = &V[b * (long)loc->nx * (long)loc->ny * (long)loc->nf];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

@@ -264,7 +264,7 @@ void InputActivityBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag
       if (ioFlag == PARAMS_IO_READ) {
          assert(aspectRatioAdjustment);
          for (char *c = aspectRatioAdjustment; *c; c++) {
-            *c = tolower(*c);
+            *c = (char)std::tolower(*c);
          }
       }
       if (strcmp(aspectRatioAdjustment, "crop") == 0) {
@@ -300,7 +300,7 @@ void InputActivityBuffer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) 
                true /*warn if absent*/);
          assert(interpolationMethodString);
          for (char *c = interpolationMethodString; *c; c++) {
-            *c = tolower(*c);
+            *c = static_cast<char>(std::tolower(*c));
          }
          if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
             mInterpolationMethod = BufferUtils::BICUBIC;
@@ -409,7 +409,7 @@ void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    int *paramsStartFrameIndex;
    int length = 0;
    if (ioFlag == PARAMS_IO_WRITE) {
-      length                = mStartFrameIndex.size();
+      length                = static_cast<int>(mStartFrameIndex.size());
       paramsStartFrameIndex = static_cast<int *>(calloc(length, sizeof(int)));
       for (int i = 0; i < length; ++i) {
          paramsStartFrameIndex[i] = mStartFrameIndex.at(i);
@@ -438,8 +438,8 @@ void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    int *paramsSkipFrameIndex = nullptr;
    int length                = 0;
    if (ioFlag == PARAMS_IO_WRITE) {
-      length               = mSkipFrameIndex.size();
-      paramsSkipFrameIndex = static_cast<int *>(calloc(length, sizeof(int)));
+      length               = static_cast<int>(mSkipFrameIndex.size());
+      paramsSkipFrameIndex = static_cast<int *>(std::calloc(length, sizeof(int)));
       for (int i = 0; i < length; ++i) {
          paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
       }
@@ -802,9 +802,9 @@ Response::Status InputActivityBuffer::processCheckpointRead(double simTime) {
 Response::Status InputActivityBuffer::prepareCheckpointWrite(double simTime) {
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       auto &frameNumbers = mBatchIndexer->getIndices();
-      unsigned int N = frameNumbers.size();
-      assert(static_cast<unsigned int>(mFrameNumbers.size()) == N);
-      for (unsigned int n = 0; n < N; ++n) {
+      unsigned long N = frameNumbers.size();
+      assert(static_cast<unsigned long>(mFrameNumbers.size()) == N);
+      for (unsigned long n = 0; n < N; ++n) {
          mFrameNumbers[n] = frameNumbers[n];
       }
       if (mBatchMethod == RANDOM) {
@@ -870,7 +870,7 @@ bool InputActivityBuffer::readyForNextFile(double simTime, double deltaT) {
 void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
    auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
    if (ioMPIBlock->getRank() == 0 and mJitterChangeIntervalInTimesteps > 0) {
-      long timestep = std::nearbyint(simTime / deltaTime);
+      long timestep = (long)std::nearbyint(simTime / deltaTime);
       if (timestep % mJitterChangeIntervalInTimesteps == 0) {
          for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
             mRandomShiftX[b] = -mMaxShiftX + (mJitterRNG->randomUInt() % (2 * mMaxShiftX + 1));
@@ -903,12 +903,12 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
                   getName(),
                   features,
                   getLayerLoc()->nf);
-            mInputRegion.at(b)    = Buffer<float>(width, height, features);
-            int const N           = mInputRegion.at(b).getTotalElements();
+            mInputRegion.at(b) = Buffer<float>(width, height, features);
+            long const N       = mInputRegion.at(b).getTotalElements();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
-            for (int k = 0; k < N; k++) {
+            for (long k = 0; k < N; k++) {
                mInputRegion.at(b).set(k, 1.0f);
             }
             fitBufferToGlobalLayer(mInputData.at(b), blockBatchElement);
@@ -986,22 +986,22 @@ void InputActivityBuffer::fitBufferToGlobalLayer(Buffer<float> &buffer, int bloc
 void InputActivityBuffer::normalizePixels(int batchElement) {
    Buffer<float> &dataBuffer         = mInputData.at(batchElement);
    Buffer<float> const &regionBuffer = mInputRegion.at(batchElement);
-   int const totalElements           = dataBuffer.getTotalElements();
+   long const totalElements          = dataBuffer.getTotalElements();
    pvAssert(totalElements == regionBuffer.getTotalElements());
-   int validRegionCount = 0;
-   for (int k = 0; k < totalElements; k++) {
+   long validRegionCount = 0L;
+   for (long k = 0; k < totalElements; k++) {
       if (regionBuffer.at(k) > 0.0f) {
          validRegionCount++;
       }
    }
-   if (validRegionCount == 0) {
+   if (validRegionCount == 0L) {
       return;
    }
    if (mNormalizeLuminanceFlag) {
       if (mNormalizeStdDev) {
          float imageSum   = 0.0f;
          float imageSumSq = 0.0f;
-         for (int k = 0; k < totalElements; k++) {
+         for (long k = 0; k < totalElements; k++) {
             if (regionBuffer.at(k) > 0.0f) {
                float const v = dataBuffer.at(k);
                imageSum += v;
@@ -1010,8 +1010,8 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
          }
 
          // set mean to zero
-         float imageAverage = imageSum / validRegionCount;
-         for (int k = 0; k < totalElements; k++) {
+         float imageAverage = imageSum / (float)validRegionCount;
+         for (long k = 0; k < totalElements; k++) {
             if (regionBuffer.at(k) > 0.0f) {
                float const v = dataBuffer.at(k);
                dataBuffer.set(k, v - imageAverage);
@@ -1019,11 +1019,11 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
          }
 
          // set std dev to 1
-         float imageVariance = imageSumSq / validRegionCount - imageAverage * imageAverage;
+         float imageVariance = imageSumSq / (float)validRegionCount - imageAverage * imageAverage;
          pvAssert(imageVariance >= 0);
          if (imageVariance > 0) {
             float imageStdDev = std::sqrt(imageVariance);
-            for (int k = 0; k < totalElements; k++) {
+            for (long k = 0; k < totalElements; k++) {
                if (regionBuffer.at(k) > 0.0f) {
                   float const v = dataBuffer.at(k) / imageStdDev;
                   dataBuffer.set(k, v);
@@ -1034,7 +1034,7 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
             // Image is flat; set to identically zero.
             // This may not be necessary since we subtracted the mean,
             // but maybe there could be roundoff issues?
-            for (int k = 0; k < totalElements; k++) {
+            for (long k = 0; k < totalElements; k++) {
                if (regionBuffer.at(k) > 0.0f) {
                   dataBuffer.set(k, 0.0f);
                }
@@ -1044,7 +1044,7 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
       else { // mNormalizeStdDev is false; normalize so max is one and min is zero.
          float imageMax = -std::numeric_limits<float>::max();
          float imageMin = std::numeric_limits<float>::max();
-         for (int k = 0; k < totalElements; k++) {
+         for (long k = 0; k < totalElements; k++) {
             if (regionBuffer.at(k) > 0.0f) {
                float const v = dataBuffer.at(k);
                imageMax      = v > imageMax ? v : imageMax;
@@ -1053,7 +1053,7 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
          }
          if (imageMax > imageMin) {
             float imageStretch = 1.0f / (imageMax - imageMin);
-            for (int k = 0; k < totalElements; k++) {
+            for (long k = 0; k < totalElements; k++) {
                if (regionBuffer.at(k) > 0.0f) {
                   float const v = (dataBuffer.at(k) - imageMin) * imageStretch;
                   dataBuffer.set(k, v);
@@ -1061,7 +1061,7 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
             }
          }
          else {
-            for (int k = 0; k < totalElements; k++) {
+            for (long k = 0; k < totalElements; k++) {
                if (regionBuffer.at(k) > 0.0f) {
                   dataBuffer.set(k, 0.0f);
                }
@@ -1071,7 +1071,7 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
    }
    if (mInverseFlag) {
       if (mNormalizeLuminanceFlag) {
-         for (int k = 0; k < totalElements; k++) {
+         for (long k = 0; k < totalElements; k++) {
             if (regionBuffer.at(k) > 0.0f) {
                float const v = -dataBuffer.at(k);
                dataBuffer.set(k, v);
@@ -1081,14 +1081,14 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
       else {
          float imageMax = -std::numeric_limits<float>::max();
          float imageMin = std::numeric_limits<float>::max();
-         for (int k = 0; k < totalElements; k++) {
+         for (long k = 0; k < totalElements; k++) {
             if (regionBuffer.at(k) > 0.0f) {
                float const v = dataBuffer.at(k);
                imageMax      = v > imageMax ? v : imageMax;
                imageMin      = v < imageMin ? v : imageMin;
             }
          }
-         for (int k = 0; k < totalElements; k++) {
+         for (long k = 0; k < totalElements; k++) {
             if (regionBuffer.at(k) > 0.0f) {
                float const v = imageMax + imageMin - dataBuffer.at(k);
                dataBuffer.set(k, v);
@@ -1155,7 +1155,7 @@ void InputActivityBuffer::broadcastInput(int localBatchIndex, int mpiBatchIndex)
    // and dataBuffer has the correct data for the indicated batch index.
    // We now copy the data into the activity buffer.
    float *activityData  = getReadWritePointer();
-   int const bufferSize = getBufferSize();
+   long const bufferSize = getBufferSize();
 
    Buffer<float> &dataBuffer = mInputData.at(localBatchIndex);
    // Sanity checks on buffer sizes
@@ -1167,8 +1167,8 @@ void InputActivityBuffer::broadcastInput(int localBatchIndex, int mpiBatchIndex)
          "Buffer from disk should have nx=1, but it is %d\n", dataBuffer.getHeight());
    FatalIf(
          dataBuffer.getFeatures() != bufferSize,
-         "Buffer from disk should have %d features, but it has %d\n",
-         dataBuffer.getHeight(), bufferSize);
+         "Buffer from disk should have %d features, but it has %ld\n",
+         dataBuffer.getFeatures(), bufferSize);
    float *activityBatch = &activityData[localBatchIndex * bufferSize];
    for (int n = 0; n < bufferSize; ++n) {
       activityBatch[n] = dataBuffer.at(0,0,n);
@@ -1217,9 +1217,9 @@ void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    // and dataBuffer has the correct data for the indicated batch index.
    // Clear the current activity for this batch element; then copy the input data over row by row.
    float *activityData  = getReadWritePointer();
-   int const bufferSize = getBufferSize();
+   long const bufferSize = getBufferSize();
    float *activityBatch = &activityData[localBatchIndex * bufferSize];
-   for (int n = 0; n < bufferSize; ++n) {
+   for (long n = 0; n < bufferSize; ++n) {
       activityBatch[n] = mPadValue;
    }
 

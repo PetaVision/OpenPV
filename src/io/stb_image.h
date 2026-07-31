@@ -3074,7 +3074,7 @@ static void stbi__jpeg_dequantize(short *data, stbi__uint16 *dequant)
 {
    int i;
    for (i=0; i < 64; ++i)
-      data[i] *= dequant[i];
+      data[i] *= (short)dequant[i];
 }
 
 static void stbi__jpeg_finish(stbi__jpeg *z)
@@ -3561,8 +3561,8 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       // of next block of 8 pixels added in.
       __m128i prv0 = _mm_slli_si128(curr, 2);
       __m128i nxt0 = _mm_srli_si128(curr, 2);
-      __m128i prev = _mm_insert_epi16(prv0, t1, 0);
-      __m128i next = _mm_insert_epi16(nxt0, 3*in_near[i+8] + in_far[i+8], 7);
+      __m128i prev = _mm_insert_epi16(prv0, (short int)t1, 0);
+      __m128i next = _mm_insert_epi16(nxt0, (short int)(3*in_near[i+8] + in_far[i+8]), 7);
 
       // horizontal filter, polyphase implementation since it's convenient:
       // even pixels = 3*cur + prev = cur*4 + (prev - cur)
@@ -5052,9 +5052,9 @@ static void stbi__de_iphone(stbi__png *z)
             stbi_uc t = p[0];
             if (a) {
                stbi_uc half = a / 2;
-               p[0] = (p[2] * 255 + half) / a;
-               p[1] = (p[1] * 255 + half) / a;
-               p[2] = ( t   * 255 + half) / a;
+               p[0] = (stbi_uc)((p[2] * 255 + half) / a);
+               p[1] = (stbi_uc)((p[1] * 255 + half) / a);
+               p[2] = (stbi_uc)(( t   * 255 + half) / a);
             } else {
                p[0] = p[2];
                p[2] = t;
@@ -7135,7 +7135,7 @@ static void stbi__hdr_convert(float *output, stbi_uc *input, int req_comp)
       // Exponent
       f1 = (float) ldexp(1.0f, input[3] - (int)(128 + 8));
       if (req_comp <= 2)
-         output[0] = (input[0] + input[1] + input[2]) * f1 / 3;
+         output[0] = (float)(input[0] + input[1] + input[2]) * f1 / 3;
       else {
          output[0] = input[0] * f1;
          output[1] = input[1] * f1;

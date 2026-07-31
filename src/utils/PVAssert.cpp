@@ -52,7 +52,7 @@ void print_stacktrace(unsigned int max_frames) {
    void *addrlist[max_frames + 1];
 
    // retrieve current stack addresses
-   int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void *));
+   int addrlen = backtrace(addrlist, (int)(sizeof(addrlist) / sizeof(void *)));
 
    if (addrlen == 0) {
       StackTrace() << "  <empty, possibly corrupt>" << std::endl;

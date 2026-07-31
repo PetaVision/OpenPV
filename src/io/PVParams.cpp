@@ -1264,7 +1264,7 @@ double PVParams::value(const char *groupName, const char *paramName) {
       if (mWorldRank == 0) {
          ErrorLog().printf("PVParams::value: ERROR, couldn't find a group for %s\n", groupName);
       }
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
    }
 
    return g->value(paramName);
@@ -1842,8 +1842,8 @@ void PVParams::action_parameter_group_name(char *keyword, char *name) {
    if (mDisable)
       return;
    // remove surrounding quotes
-   int len       = strlen(++name);
-   name[len - 1] = '\0';
+   std::size_t len  = strlen(++name);
+   name[len - 1]    = '\0';
 
    if (mDebugParsing && mWorldRank == 0) {
       InfoLog().printf(
@@ -2254,11 +2254,11 @@ char *PVParams::stripQuotationMarks(const char *s) {
    if (s == nullptr) {
       return nullptr;
    }
-   char *noquotes = nullptr;
-   int len        = strlen(s);
+   char *noquotes  = nullptr;
+   std::size_t len = strlen(s);
    if (len >= 2 && s[0] == '"' && s[len - 1] == '"') {
       noquotes = (char *)calloc(len - 1, sizeof(char));
-      memcpy(noquotes, s + 1, len - 2);
+      memcpy(noquotes, &s[1], len - 2);
       noquotes[len - 2] = '\0'; // Not strictly necessary since noquotes was calloc'ed
    }
    return noquotes;
@@ -2266,11 +2266,11 @@ char *PVParams::stripQuotationMarks(const char *s) {
 
 char *PVParams::stripOverwriteTag(const char *s) {
    // Strips the @ tag to any overwritten params
-   int len     = strlen(s);
-   char *notag = nullptr;
+   std::size_t len = strlen(s);
+   char *notag     = nullptr;
    if (len >= 1 && s[0] == '@') {
       notag = (char *)calloc(len, sizeof(char));
-      memcpy(notag, s + 1, len - 1);
+      memcpy(notag, &s[1], len - 1);
       notag[len - 1] = '\0';
    }
    return notag;

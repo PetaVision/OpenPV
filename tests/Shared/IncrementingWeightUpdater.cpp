@@ -29,7 +29,7 @@ int IncrementingWeightUpdater::updateWeights(int arborId) {
    for (long patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
       float *Wdata  = mWeights->getDataFromDataIndex(arborId, patchIndex);
       float *dWdata = mDeltaWeights->getDataFromDataIndex(arborId, patchIndex);
-      for (long k = 0; k < nPatch; k++) {
+      for (long k = 0L; k < nPatch; k++) {
          float const dw = 1.0f;
          dWdata[k]      = dw;
          Wdata[k] += dw;

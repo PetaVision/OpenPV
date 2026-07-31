@@ -88,13 +88,16 @@ int check_activity(HyPerLayer *l) {
    const int ny = l->getLayerLoc()->ny;
    const int nf = l->getLayerLoc()->nf;
 
-   const int nk = l->getNumNeurons();
-   FatalIf(nk != nx * ny * nf, "%s NumNeurons does not match nx*ny*nf.\n", l->getDescription_c());
+   const long nk = l->getNumNeurons();
+   FatalIf(
+         nk != (long)nx * (long)ny * (long)nf,
+         "%s NumNeurons does not match nx*ny*nf.\n",
+         l->getDescription_c());
 
    auto *activityComponent = l->getComponentByType<ActivityComponent>();
    auto *activityBuffer    = activityComponent->getComponentByType<ActivityBuffer>();
    float const *activity   = activityBuffer->getBufferData();
-   for (int k = 0; k < nk; k++) {
+   for (long k = 0; k < nk; k++) {
       int a = (int)activity[k];
       if (a != UNIFORM_ACTIVITY_VALUE) {
          status = -1;

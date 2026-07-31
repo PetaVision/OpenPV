@@ -21,28 +21,27 @@ RandomSeed::RandomSeed() {
    }
 }
 
-void RandomSeed::initialize(unsigned int initialSeed) {
-   if (initialSeed < RandomSeed::minSeed) {
-      Fatal() << "random seed " << initialSeed << ""
-                                                  " is too small. Use a seed of at least "
-              << minSeed << ".\n";
+void RandomSeed::initialize(unsigned long initialSeed) {
+   if (initialSeed < RandomSeed::mMinSeed) {
+      Fatal() << "random seed " << initialSeed << " is too small. Use a seed of at least "
+              << mMinSeed << ".\n";
    }
    mInitialized = true;
    mInitialSeed = initialSeed;
    mNextSeed    = initialSeed;
 }
 
-unsigned int RandomSeed::allocate(unsigned long numRequested) {
+unsigned long RandomSeed::allocate(unsigned long numRequested) {
    if (!mInitialized) {
       Fatal() << "RandomSeed has not been initialized.\n";
    }
-   unsigned int allocation = mNextSeed;
+   unsigned long allocation = mNextSeed;
    mNextSeed += numRequested;
-   if (mNextSeed < minSeed) {
-      mNextSeed += minSeed;
+   if (mNextSeed < mMinSeed) {
+      mNextSeed += mMinSeed;
    }
    return allocation;
 }
 
-unsigned int constexpr RandomSeed::minSeed;
+unsigned long constexpr RandomSeed::mMinSeed;
 } /* namespace PV */

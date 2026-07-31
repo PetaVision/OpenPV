@@ -321,7 +321,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    // Grab postIdxLayer's data
    float const *postIdxData = nullptr;
-   int postIdxNumExtended   = 0;
+   long postIdxNumExtended  = 0;
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
       pvAssert(mOriginalPostIndexData);
       PVLayerCube cube   = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
@@ -334,16 +334,17 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          postLoc->nbatch != nbatch,
          "%s has different presynaptic and postsynaptic batch sizes.\n",
          getDescription_c());
+   long numPostRestricted = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
    for (int b = 0; b < nbatch; b++) {
       float const *activityBatch    = activityCube.data + b * mPreData->getNumExtended();
-      float *gSynPatchHeadBatch     = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
+      float *gSynPatchHeadBatch     = &gSyn[b * numPostRestricted];
       float const *postIdxDataBatch = nullptr;
       if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-         postIdxDataBatch = postIdxData + b * postIdxNumExtended;
+         postIdxDataBatch = &postIdxData[b * postIdxNumExtended];
       }
 
       SparseList<float>::Entry const *activeIndicesBatch = nullptr;
-      int numLoop;
+      long numLoop;
       if (activityCube.isSparse) {
          activeIndicesBatch = (SparseList<float>::Entry *)activityCube.activeIndices
                               + b * mPreData->getNumExtended();
@@ -364,9 +365,9 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
+      for (long loopIndex = 0L; loopIndex < numLoop; loopIndex++) {
          float a     = 0.0f;
-         int kPreExt = loopIndex;
+         long kPreExt = loopIndex;
          if (activityCube.isSparse) {
             a       = activeIndicesBatch[loopIndex].value;
             kPreExt = activeIndicesBatch[loopIndex].index;
@@ -392,16 +393,16 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          gSynPatchHead = gSynPatchHeadBatch;
 #endif // PV_USE_OPENMP_THREADS
 
-         const int kxPreExt =
-               kxPos(kPreExt,
-                     preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
-                     preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
-                     preLoc->nf);
-         const int kyPreExt =
-               kyPos(kPreExt,
-                     preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
-                     preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
-                     preLoc->nf);
+         const int kxPreExt = kxPos(
+               kPreExt,
+               preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
+               preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
+               preLoc->nf);
+         const int kyPreExt = kyPos(
+               kPreExt,
+               preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
+               preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
+               preLoc->nf);
          const int kfPre = featureIndex(
                kPreExt,
                preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
@@ -419,7 +420,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             }
 
             // Convert stored global extended index into local extended index
-            int postGlobalExtIdx = (int)postIdxDataBatch[kPreExt];
+            long postGlobalExtIdx = (long)postIdxDataBatch[kPreExt];
 
             // If all inputs are zero and input layer is sparse, postGlobalExtIdx will still be
             // -1.
@@ -465,19 +466,20 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             }
          }
          else {
-            Patch const *patch    = &preWeights->getPatch(kPreExt);
-            const int nk          = patch->nx * preWeights->getPatchSizeF();
-            const int ny          = patch->ny;
-            const int sy          = postLoc->nx * postLoc->nf; // stride in restricted layer
+            Patch const *patch = &preWeights->getPatch(kPreExt);
+            const int nk       = patch->nx * preWeights->getPatchSizeF();
+            const int ny       = patch->ny;
+            const long sy      =
+                  (long)postLoc->nx * (long)postLoc->nf; // stride in restricted layer
             float *postPatchStart = &gSynPatchHead[gSynPatchStart[kPreExt]];
 
             int offset = kfPre;
             int sf     = preWeights->getPatchSizeF();
 
             float w      = 1.0f;
-            void *auxPtr = NULL;
+            void *auxPtr = nullptr;
             for (int y = 0; y < ny; y++) {
-               pvpatch_max_pooling(0, nk, postPatchStart + y * sy + offset, a, &w, auxPtr, sf);
+               pvpatch_max_pooling(0, nk, &postPatchStart[y * sy + offset], a, &w, auxPtr, sf);
             }
          }
       }
@@ -487,10 +489,10 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
       int const numThreads = (int)mThreadGSyn.size();
       if (numThreads > 1) {
          float *gSynPatchHead = gSynPatchHeadBatch;
-         int numNeurons       = mPostGSyn->getBufferSize();
+         long numNeurons      = mPostGSyn->getBufferSize();
 // Looping over neurons first to be thread safe
 #pragma omp parallel for
-         for (int ni = 0; ni < numNeurons; ni++) {
+         for (long ni = 0; ni < numNeurons; ni++) {
             if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
                // Grab maxumum magnitude of this thread's ThreadGSyn and set that value
                float maxMag  = -INFINITY;

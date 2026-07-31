@@ -33,9 +33,9 @@ class LIFGapActivityComponent : public LIFActivityComponent {
 
    void updateActivityOriginal(
          int const nbatch,
-         int const numNeurons,
-         float const simTime,
-         float const deltaTime,
+         long const numNeurons,
+         double const simTime,
+         double const deltaTime,
 
          int const nx,
          int const ny,
@@ -60,9 +60,9 @@ class LIFGapActivityComponent : public LIFActivityComponent {
 
    void updateActivityBeginning(
          int const nbatch,
-         int const numNeurons,
-         float const simTime,
-         float const deltaTime,
+         long const numNeurons,
+         double const simTime,
+         double const deltaTime,
 
          int const nx,
          int const ny,
@@ -87,9 +87,9 @@ class LIFGapActivityComponent : public LIFActivityComponent {
 
    void updateActivityArma(
          int const nbatch,
-         int const numNeurons,
-         float const simTime,
-         float const deltaTime,
+         long const numNeurons,
+         double const simTime,
+         double const deltaTime,
 
          int const nx,
          int const ny,

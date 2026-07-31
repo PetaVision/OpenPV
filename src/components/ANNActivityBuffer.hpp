@@ -165,7 +165,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
 
    static void applyVerticesList(
          int nbatch,
-         int numNeurons,
+         long numNeurons,
          float *A,
          float const *V,
          int nx,
@@ -182,7 +182,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
 
    static void applyVThresh(
          int nbatch,
-         int numNeurons,
+         long numNeurons,
          float const *V,
          float AMin,
          float VThresh,
@@ -199,7 +199,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
 
    static void applyAMax(
          int nbatch,
-         int numNeurons,
+         long numNeurons,
          float AMax,
          float *activity,
          int nx,

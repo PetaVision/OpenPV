@@ -23,7 +23,7 @@ void CorrectState::update() {
    mTimestamp++;
    mCorrectInput  = std::ceil((float)mTimestamp / 4.0f);
    mCorrectOutput = mCorrectInput * mCorrectWeight;
-   if (doesWeightUpdate(mTimestamp)) {
+   if (doesWeightUpdate((double)mTimestamp)) {
       auto base_dw = mCorrectInput * mCorrectOutput;
       mCorrect_dw  = (1 - mTimeConstantTau) * base_dw + mTimeConstantTau * mCorrect_dw;
       mCorrectWeight += mCorrect_dw;
