@@ -4,7 +4,6 @@
 
 #include "CPTestInputLayer.hpp"
 #include "CPTestInputInternalStateBuffer.hpp"
-#include <components/GSynAccumulator.hpp>
 #include <components/HyPerActivityBuffer.hpp>
 #include <components/HyPerActivityComponent.hpp>
 
@@ -21,9 +20,8 @@ void CPTestInputLayer::initialize(const char *name, PVParams *params, Communicat
 }
 
 ActivityComponent *CPTestInputLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     CPTestInputInternalStateBuffer,
-                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<CPTestInputInternalStateBuffer, HyPerActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

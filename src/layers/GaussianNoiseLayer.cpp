@@ -1,7 +1,6 @@
 #include "GaussianNoiseLayer.hpp"
 #include "components/ActivityComponentActivityOnly.hpp"
 #include "components/GaussianNoiseActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "components/HyPerActivityComponent.hpp"
 
@@ -18,9 +17,7 @@ void GaussianNoiseLayer::initialize(char const *name, PVParams *params, Communic
 }
 
 ActivityComponent *GaussianNoiseLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     GaussianNoiseActivityBuffer>(
+   return new HyPerActivityComponent<HyPerInternalStateBuffer, GaussianNoiseActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

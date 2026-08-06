@@ -1,5 +1,4 @@
 #include "RotateLayer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "components/RotateActivityBuffer.hpp"
@@ -15,10 +14,8 @@ void RotateLayer::initialize(const char *name, PVParams *params, Communicator co
 }
 
 ActivityComponent *RotateLayer::createActivityComponent() {
-   return new HyPerActivityComponent<
-         GSynAccumulator,
-         HyPerInternalStateBuffer,
-         RotateActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<HyPerInternalStateBuffer, RotateActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

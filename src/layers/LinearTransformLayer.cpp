@@ -1,5 +1,4 @@
 #include "LinearTransformLayer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "components/RotateActivityBuffer.hpp"
@@ -22,22 +21,16 @@ ActivityComponent *LinearTransformLayer::createActivityComponent() {
    std::string const &groupKeyword = parameters()->groupKeywordFromName(getName());
 
    if (groupKeyword == "RotateLayer") {
-      return new HyPerActivityComponent<
-            GSynAccumulator,
-            HyPerInternalStateBuffer,
-            RotateActivityBuffer>(getName(), parameters(), mCommunicator);
+      return new HyPerActivityComponent<HyPerInternalStateBuffer, RotateActivityBuffer>(
+            getName(), parameters(), mCommunicator);
    }
    if (groupKeyword == "ScaleXLayer") {
-      return new HyPerActivityComponent<
-            GSynAccumulator,
-            HyPerInternalStateBuffer,
-            ScaleXActivityBuffer>(getName(), parameters(), mCommunicator);
+      return new HyPerActivityComponent<HyPerInternalStateBuffer, ScaleXActivityBuffer>(
+            getName(), parameters(), mCommunicator);
    }
    if (groupKeyword == "ScaleYLayer") {
-      return new HyPerActivityComponent<
-            GSynAccumulator,
-            HyPerInternalStateBuffer,
-            ScaleYActivityBuffer>(getName(), parameters(), mCommunicator);
+      return new HyPerActivityComponent<HyPerInternalStateBuffer, ScaleYActivityBuffer>(
+            getName(), parameters(), mCommunicator);
    }
    Fatal().printf(
          "LinearTransformLayer \"%s\" has unrecognized group keyword \"%s\"\n",

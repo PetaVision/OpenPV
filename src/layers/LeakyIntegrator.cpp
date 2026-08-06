@@ -7,7 +7,6 @@
 
 #include "LeakyIntegrator.hpp"
 #include "components/ANNActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/LeakyIntegratorBuffer.hpp"
 
@@ -24,7 +23,7 @@ void LeakyIntegrator::initialize(const char *name, PVParams *params, Communicato
 }
 
 ActivityComponent *LeakyIntegrator::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator, LeakyIntegratorBuffer, ANNActivityBuffer>(
+   return new HyPerActivityComponent<LeakyIntegratorBuffer, ANNActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

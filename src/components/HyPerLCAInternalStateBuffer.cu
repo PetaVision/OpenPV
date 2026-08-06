@@ -8,8 +8,7 @@ namespace PV {
 void HyPerLCAInternalStateBuffer::runKernel() {
    PVLayerLoc const *loc            = getLayerLoc();
    long const numNeurons            = getBufferSize();
-   int const nbatch                 = loc->nbatch;
-   long const numNeuronsAcrossBatch = numNeurons * nbatch;
+   long const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
    int currBlockSize                = mCudaDevice->get_max_threads();
    cudaStream_t cudaStream          = mCudaDevice->getStream();
    // Ceil to get all weights
@@ -17,8 +16,11 @@ void HyPerLCAInternalStateBuffer::runKernel() {
          (unsigned int)std::ceil(((float)numNeuronsAcrossBatch) / (float)currBlockSize);
    // Call function
    PVCuda::updateHyPerLCAOnGPU<<<currGridSize, currBlockSize, 0, cudaStream>>>(
-         nbatch,
+         loc->nbatch,
          numNeurons,
+         mNumChannelIndices,
+         (int const *)mCudaChannelIndices->getPointer(),
+         (float const *)mCudaChannelCoefficients->getPointer(),
          loc->nx,
          loc->ny,
          loc->nf,
@@ -29,7 +31,7 @@ void HyPerLCAInternalStateBuffer::runKernel() {
          mSelfInteract,
          (double const *)mCudaDtAdapt->getPointer(),
          mScaledTimeConstantTau,
-         (float const *)mAccumulatedGSyn->getCudaBuffer()->getPointer(),
+         (float const *)mGSyn->getCudaBuffer()->getPointer(),
          (float const *)mActivity->getCudaBuffer()->getPointer(),
          (float *)getCudaBuffer()->getPointer());
 }

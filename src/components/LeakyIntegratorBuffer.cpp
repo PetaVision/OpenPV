@@ -45,14 +45,22 @@ void LeakyIntegratorBuffer::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
 }
 
 void LeakyIntegratorBuffer::updateBufferCPU(double simTime, double deltaTime) {
-   float const *gSyn = mAccumulatedGSyn->getBufferData();
    float *V          = mBufferData.data();
+   float const *GSyn = mGSyn->getBufferData();
+   float decayfactor = std::exp(-(float)deltaTime / mIntegrationTime);
 
-   float decayfactor                 = std::exp(-(float)deltaTime / mIntegrationTime);
    long const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
-   for (long k = 0; k < numNeuronsAcrossBatch; k++) {
-      V[k] *= decayfactor;
-      V[k] += gSyn[k];
+   for (long k = 0; k < numNeuronsAcrossBatch; ++k) {
+      float accumulatedGSyn = 0.0f;
+      for (int chIdx = 0; chIdx < mNumChannelIndices; ++chIdx) {
+         int channel     = mChannelIndices[chIdx];
+         float gSynValue = GSyn[channel * numNeuronsAcrossBatch + k];
+         accumulatedGSyn += mChannelCoefficients[channel] * gSynValue;
+      }
+      float value = V[k];
+      value *= decayfactor;
+      value += accumulatedGSyn;
+      V[k] = value;
    }
 }
 

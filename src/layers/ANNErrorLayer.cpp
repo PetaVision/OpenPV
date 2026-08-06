@@ -8,7 +8,6 @@
 #include "ANNErrorLayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
 #include "components/ErrScaleInternalStateBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 
 namespace PV {
@@ -24,9 +23,8 @@ void ANNErrorLayer::initialize(const char *name, PVParams *params, Communicator 
 }
 
 ActivityComponent *ANNErrorLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     ErrScaleInternalStateBuffer,
-                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<ErrScaleInternalStateBuffer, ANNActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

@@ -13,8 +13,7 @@
 #include "PtwiseProductLayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
 #include "components/HyPerActivityComponent.hpp"
-#include "components/HyPerInternalStateBuffer.hpp"
-#include "components/PtwiseProductGSynAccumulator.hpp"
+#include "components/PtwiseProductInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -34,9 +33,8 @@ void PtwiseProductLayer::initialize(const char *name, PVParams *params, Communic
 }
 
 ActivityComponent *PtwiseProductLayer::createActivityComponent() {
-   return new HyPerActivityComponent<PtwiseProductGSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<PtwiseProductInternalStateBuffer, ANNActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 Response::Status PtwiseProductLayer::allocateDataStructures() {

@@ -10,11 +10,11 @@ void MomentumLCAInternalStateBuffer::runKernel() {
    long const numNeurons  = getBufferSize();
    int const nbatch       = loc->nbatch;
 
-   double const *dtAdapt        = (double const *)mCudaDtAdapt->getPointer();
-   float const *accumulatedGSyn = (float const *)mAccumulatedGSyn->getCudaBuffer()->getPointer();
-   float const *A               = (float const *)mActivity->getCudaBuffer()->getPointer();
-   float *prevDrive             = (float *)mPrevDrive->getCudaBuffer()->getPointer();
-   float *V                     = (float *)getCudaBuffer()->getPointer();
+   double const *dtAdapt = (double const *)mCudaDtAdapt->getPointer();
+   float const *GSyn     = (float const *)mGSyn->getCudaBuffer()->getPointer();
+   float const *A        = (float const *)mActivity->getCudaBuffer()->getPointer();
+   float *prevDrive      = (float *)mPrevDrive->getCudaBuffer()->getPointer();
+   float *V              = (float *)getCudaBuffer()->getPointer();
 
    long const numNeuronsAcrossBatch = numNeurons * nbatch;
    int currBlockSize                = mCudaDevice->get_max_threads();
@@ -26,6 +26,9 @@ void MomentumLCAInternalStateBuffer::runKernel() {
    PVCuda::updateMomentumLCAOnGPU<<<currGridSize, currBlockSize, 0, cudaStream>>>(
          nbatch,
          numNeurons,
+         mNumChannelIndices,
+         (int const *)mCudaChannelIndices->getPointer(),
+         (float const *)mCudaChannelCoefficients->getPointer(),
          loc->nx,
          loc->ny,
          loc->nf,
@@ -37,7 +40,7 @@ void MomentumLCAInternalStateBuffer::runKernel() {
          mLCAMomentumRate,
          dtAdapt,
          mScaledTimeConstantTau,
-         accumulatedGSyn,
+         GSyn,
          A,
          prevDrive,
          V);

@@ -96,8 +96,8 @@ void MomentumLCAInternalStateBuffer::allocateUpdateKernel() {
 
 void MomentumLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) {
    pvAssert(isUsingGPU()); // if not using GPU, should be in updateBufferCPU() method instead.
-   if (!mAccumulatedGSyn->isUsingGPU()) {
-      mAccumulatedGSyn->copyToCuda();
+   if (!mGSyn->isUsingGPU()) {
+      mGSyn->copyToCuda();
    }
 
    // Copy over mCudaDtAdapt
@@ -110,23 +110,26 @@ void MomentumLCAInternalStateBuffer::updateBufferGPU(double simTime, double delt
 void MomentumLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_CUDA
    pvAssert(!isUsingGPU()); // if using GPU, should be in updateBufferGPU() method instead.
-   if (mAccumulatedGSyn->isUsingGPU()) {
-      mAccumulatedGSyn->copyFromCuda();
+   if (mGSyn->isUsingGPU()) {
+      mGSyn->copyFromCuda();
    }
 #endif // PV_USE_CUDA
 
    const PVLayerLoc *loc = getLayerLoc();
    long numNeurons       = getBufferSize();
 
-   double const *dtAdapt        = deltaTimes(simTime, deltaTime);
-   float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();
-   float const *A               = mActivity->getBufferData();
-   float *prevDrive             = mPrevDrive->getReadWritePointer();
-   float *V                     = mBufferData.data();
+   double const *dtAdapt = deltaTimes(simTime, deltaTime);
+   float const *GSyn     = mGSyn->getBufferData();
+   float const *A        = mActivity->getBufferData();
+   float *prevDrive      = mPrevDrive->getReadWritePointer();
+   float *V              = mBufferData.data();
 
    updateMomentumLCAOnCPU(
          loc->nbatch,
          numNeurons,
+         mNumChannelIndices,
+         mChannelIndices.data(),
+         mChannelCoefficients.data(),
          loc->nx,
          loc->ny,
          loc->nf,
@@ -138,7 +141,7 @@ void MomentumLCAInternalStateBuffer::updateBufferCPU(double simTime, double delt
          mLCAMomentumRate,
          dtAdapt,
          mScaledTimeConstantTau,
-         accumulatedGSyn,
+         GSyn,
          A,
          prevDrive,
          V);
