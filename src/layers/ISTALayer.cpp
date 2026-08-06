@@ -7,7 +7,6 @@
 
 #include "ISTALayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/ISTAInternalStateBuffer.hpp"
 #include "components/LayerInputBuffer.hpp"
@@ -29,7 +28,7 @@ LayerInputBuffer *ISTALayer::createLayerInput() {
 }
 
 ActivityComponent *ISTALayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator, ISTAInternalStateBuffer, ANNActivityBuffer>(
+   return new HyPerActivityComponent<ISTAInternalStateBuffer, ANNActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

@@ -20,6 +20,9 @@ inline void updateISTAInternalStateBufferOnCPU
 #endif // PV_RUN_ON_GPU
       (int const nbatch,
        long const numNeurons,
+       int numChannels,
+       int const *channelIndices,
+       float const *channelCoeffs,
        int const nx,
        int const ny,
        int const nf,
@@ -30,7 +33,7 @@ inline void updateISTAInternalStateBufferOnCPU
        float const VThresh,
        double const *dtAdapt,
        float const tau,
-       float const *accumulatedGSyn,
+       float const *GSyn,
        float const *A,
        float *V) {
 #ifdef PV_RUN_ON_GPU
@@ -45,19 +48,23 @@ inline void updateISTAInternalStateBufferOnCPU
    {
       long b                            = index / numNeurons;
       long k                            = index % numNeurons;
+
+      float accumulatedGSyn = 0.0f;
+      for (int chIdx = 0; chIdx < numChannels; chIdx++) {
+         int channel = channelIndices[chIdx];
+         float gSynValue = GSyn[channel * numNeurons * nbatch + index];
+         accumulatedGSyn += channelCoeffs[channel] * gSynValue;
+      }
+
       float *VBatch                     = &V[b * numNeurons];
-      float const *accumulatedGSynBatch = &accumulatedGSyn[b * numNeurons];
       // Activity is an extended buffer.
       long numExtended = (long)(nx + rt + lt) * (long)(ny + up + dn) * (long)nf;
       float const *ABatch = &A[b * numExtended];
 
-      float const gSyn = accumulatedGSynBatch[k];
-      long kex         = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      float sign       = 0.0f;
-      if (ABatch[kex] != 0.0f) {
-         sign = ABatch[kex] / std::fabs(ABatch[kex]);
-      }
-      VBatch[k] += ((float)dtAdapt[b] / tau) * (gSyn - (VThresh * sign));
+      long kex     = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      float AValue = ABatch[kex];
+      float sign   = (float)( (AValue > 0.0f) - (AValue < 0.0f) );
+      VBatch[k] += ((float)dtAdapt[b] / tau) * (accumulatedGSyn - (VThresh * sign));
    }
 }
 

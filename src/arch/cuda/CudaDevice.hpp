@@ -54,7 +54,7 @@ class CudaDevice {
     * @param str  A string used in the message logging the buffer creation.
     * @return The CudaBuffer object from creating the buffer
     */
-   CudaBuffer *createBuffer(size_t size, std::string const *str);
+   CudaBuffer *createBuffer(std::size_t size, std::string const *str);
 
    /**
     * A function to return the cuda stream the device is using

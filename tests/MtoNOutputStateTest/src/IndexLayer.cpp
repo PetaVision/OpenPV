@@ -10,7 +10,6 @@
 
 #include "IndexInternalState.hpp"
 #include <components/CloneActivityComponent.hpp>
-#include <components/GSynAccumulator.hpp>
 #include <components/HyPerActivityBuffer.hpp>
 
 namespace PV {

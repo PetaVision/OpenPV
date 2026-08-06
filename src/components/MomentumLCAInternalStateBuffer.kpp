@@ -22,6 +22,9 @@ inline void updateMomentumLCAOnCPU
 #endif // PV_RUN_ON_GPU
       (int const nbatch,
        long const numNeurons,
+       int numChannels,
+       int const *channelIndices,
+       float const *channelCoeffs,
        int const nx,
        int const ny,
        int const nf,
@@ -33,7 +36,7 @@ inline void updateMomentumLCAOnCPU
        float const momentumRate,
        double const *dtAdapt,
        double const tau,
-       float const *accumulatedGSyn,
+       float const *GSyn,
        float const *A,
        float *prevDrive,
        float *V) {
@@ -50,16 +53,22 @@ inline void updateMomentumLCAOnCPU
       long b = index / numNeurons;
       long k = index % numNeurons;
 
+      float accumulatedGSyn = 0.0f;
+      for (int chIdx = 0; chIdx < numChannels; chIdx++) {
+         int channel = channelIndices[chIdx];
+         float gSynValue = GSyn[channel * numNeurons * nbatch + index];
+         accumulatedGSyn += channelCoeffs[channel] * gSynValue;
+      }
+
       float exp_tau          = static_cast<float>(std::exp(-dtAdapt[b] / (double)tau));
       float *VBatch          = &V[b * numNeurons];
-      float const *gSynBatch = &accumulatedGSyn[b * numNeurons];
       float *prevDriveBatch  = &prevDrive[b * numNeurons];
       // Activity is an extended buffer.
       long numExtended = (long)(nx + rt + lt) * (long)(ny + up + dn) * (long)nf;
       float const *ABatch = &A[b * numExtended];
 
       long kex           = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      float currentDrive = (1.0f - exp_tau) * (gSynBatch[k] + selfInteract * ABatch[kex]);
+      float currentDrive = (1.0f - exp_tau) * (accumulatedGSyn + selfInteract * ABatch[kex]);
       // Accumulate into VBatch with decay and momentum
       VBatch[k] = exp_tau * VBatch[k] + currentDrive + momentumRate * prevDriveBatch[k];
       // Update momentum buffer

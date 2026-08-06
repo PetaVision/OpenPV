@@ -9,17 +9,15 @@
 #define HYPERACTIVITYCOMPONENT_HPP_
 
 #include "components/ActivityComponent.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/InternalStateBuffer.hpp"
 
 namespace PV {
 
 /**
- * The class template for ActivityComponent classes that use an accumulated-GSyn component,
- * V component, and A component (derived from GSynAccumulator, InternalStateBuffer,
- * and ActivityBuffer, respectively).
+ * The class template for ActivityComponent classes that use a V component and A component
+ * (derived from InternalStateBuffer and ActivityBuffer, respectively).
  */
-template <typename G, typename V, typename A>
+template <typename V, typename A>
 class HyPerActivityComponent : public ActivityComponent {
   public:
    HyPerActivityComponent(char const *name, PVParams *params, Communicator const *comm);
@@ -39,8 +37,6 @@ class HyPerActivityComponent : public ActivityComponent {
 
    virtual InternalStateBuffer *createInternalState();
 
-   virtual GSynAccumulator *createAccumulatedGSyn();
-
    /**
     * Calls the initializeState methods of AccumulatedGSyn, InternalState, and Activity,
     * in that order.
@@ -56,7 +52,6 @@ class HyPerActivityComponent : public ActivityComponent {
 
   protected:
    InternalStateBuffer *mInternalState = nullptr;
-   GSynAccumulator *mAccumulatedGSyn   = nullptr;
 };
 
 } // namespace PV

@@ -4,7 +4,6 @@
 
 #include "DropoutLayer.hpp"
 #include "components/DropoutActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 
@@ -21,9 +20,8 @@ void DropoutLayer::initialize(const char *name, PVParams *params, Communicator c
 }
 
 ActivityComponent *DropoutLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     DropoutActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<HyPerInternalStateBuffer, DropoutActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

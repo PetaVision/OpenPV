@@ -170,9 +170,8 @@ LayerInputBuffer *HyPerLayer::createLayerInput() {
 }
 
 ActivityComponent *HyPerLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<HyPerInternalStateBuffer, HyPerActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 BasePublisherComponent *HyPerLayer::createPublisher() {

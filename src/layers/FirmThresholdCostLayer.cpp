@@ -7,7 +7,6 @@
 
 #include "FirmThresholdCostLayer.hpp"
 #include "components/FirmThresholdCostActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 
@@ -30,9 +29,7 @@ void FirmThresholdCostLayer::initialize(
 }
 
 ActivityComponent *FirmThresholdCostLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     FirmThresholdCostActivityBuffer>(
+   return new HyPerActivityComponent<HyPerInternalStateBuffer, FirmThresholdCostActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

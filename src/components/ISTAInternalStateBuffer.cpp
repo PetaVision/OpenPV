@@ -118,8 +118,8 @@ void ISTAInternalStateBuffer::allocateUpdateKernel() {
 
 void ISTAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) {
    pvAssert(isUsingGPU()); // or should be in updateBufferCPU() method.
-   if (!mAccumulatedGSyn->isUsingGPU()) {
-      mAccumulatedGSyn->copyToCuda();
+   if (!mGSyn->isUsingGPU()) {
+      mGSyn->copyToCuda();
    }
 
    // Copy over mCudaDtAdapt
@@ -132,20 +132,23 @@ void ISTAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) 
 void ISTAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_CUDA
    pvAssert(!isUsingGPU()); // or should be in updateBufferGPU() method.
-   if (mAccumulatedGSyn->isUsingGPU()) {
-      mAccumulatedGSyn->copyFromCuda();
+   if (mGSyn->isUsingGPU()) {
+      mGSyn->copyFromCuda();
    }
 #endif // PV_USE_CUDA
 
    const PVLayerLoc *loc = getLayerLoc();
    double const *dtAdapt = deltaTimes(simTime, deltaTime);
-   float const *gSyn     = mAccumulatedGSyn->getBufferData();
+   float const *GSyn     = mGSyn->getBufferData();
    float const *A        = mActivity->getBufferData();
    float *V              = mBufferData.data();
 
    updateISTAInternalStateBufferOnCPU(
          loc->nbatch,
          getBufferSize() /*numNeurons*/,
+         mNumChannelIndices,
+         mChannelIndices.data(),
+         mChannelCoefficients.data(),
          loc->nx,
          loc->ny,
          loc->nf,
@@ -156,7 +159,7 @@ void ISTAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) 
          mActivity->getVThresh(),
          dtAdapt,
          mScaledTimeConstantTau,
-         gSyn,
+         GSyn,
          A,
          V);
 }

@@ -9,7 +9,6 @@
 #define CLONEACTIVITYCOMPONENT_HPP_
 
 #include "components/ActivityComponent.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/InternalStateBuffer.hpp"
 
 namespace PV {

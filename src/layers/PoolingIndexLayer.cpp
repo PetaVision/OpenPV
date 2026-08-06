@@ -10,7 +10,6 @@
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "components/PoolingIndexLayerInputBuffer.hpp"
-#include "components/SingleChannelGSynAccumulator.hpp"
 
 namespace PV {
 
@@ -38,9 +37,8 @@ LayerInputBuffer *PoolingIndexLayer::createLayerInput() {
 }
 
 ActivityComponent *PoolingIndexLayer::createActivityComponent() {
-   return new HyPerActivityComponent<SingleChannelGSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<HyPerInternalStateBuffer, HyPerActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

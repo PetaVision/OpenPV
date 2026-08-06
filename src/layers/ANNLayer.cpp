@@ -7,7 +7,6 @@
 
 #include "ANNLayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 
@@ -24,7 +23,7 @@ void ANNLayer::initialize(const char *name, PVParams *params, Communicator const
 }
 
 ActivityComponent *ANNLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, ANNActivityBuffer>(
+   return new HyPerActivityComponent<HyPerInternalStateBuffer, ANNActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

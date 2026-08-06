@@ -31,7 +31,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FirmThresholdCostActivityBuffer.cpp
    ${SUBDIR}/GapActivityBuffer.cpp
    ${SUBDIR}/GaussianNoiseActivityBuffer.cpp
-   ${SUBDIR}/GSynAccumulator.cpp
    ${SUBDIR}/HyPerActivityBuffer.cpp
    ${SUBDIR}/HyPerInternalStateBuffer.cpp
    ${SUBDIR}/HyPerLCAInternalStateBuffer.cpp
@@ -61,8 +60,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PatchSize.cpp
    ${SUBDIR}/PhaseParam.cpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
-   ${SUBDIR}/PtwiseProductGSynAccumulator.cpp
-   ${SUBDIR}/PtwiseQuotientGSynAccumulator.cpp
+   ${SUBDIR}/PtwiseProductInternalStateBuffer.cpp
+   ${SUBDIR}/PtwiseQuotientInternalStateBuffer.cpp
    ${SUBDIR}/PublisherComponent.cpp
    ${SUBDIR}/PvpActivityBuffer.cpp
    ${SUBDIR}/PvpListActivityBuffer.cpp
@@ -77,8 +76,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/SharedWeights.cpp
    ${SUBDIR}/SigmoidActivityBuffer.cpp
    ${SUBDIR}/SingleArbor.cpp
-   ${SUBDIR}/SingleChannelGSynAccumulator.cpp
-   ${SUBDIR}/SquaredGSynAccumulator.cpp
+   ${SUBDIR}/SquaredInputInternalStateBuffer.cpp
    ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TimerLayerUpdateController.cpp
    ${SUBDIR}/TransposePatchSize.cpp
@@ -123,7 +121,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FirmThresholdCostActivityBuffer.hpp
    ${SUBDIR}/GapActivityBuffer.hpp
    ${SUBDIR}/GaussianNoiseActivityBuffer.hpp
-   ${SUBDIR}/GSynAccumulator.hpp
    ${SUBDIR}/HyPerActivityBuffer.hpp
    ${SUBDIR}/HyPerActivityComponent.hpp
    ${SUBDIR}/HyPerInternalStateBuffer.hpp
@@ -154,8 +151,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PatchSize.hpp
    ${SUBDIR}/PhaseParam.hpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp
-   ${SUBDIR}/PtwiseProductGSynAccumulator.hpp
-   ${SUBDIR}/PtwiseQuotientGSynAccumulator.hpp
+   ${SUBDIR}/PtwiseProductInternalStateBuffer.hpp
+   ${SUBDIR}/PtwiseQuotientInternalStateBuffer.hpp
    ${SUBDIR}/PublisherComponent.hpp
    ${SUBDIR}/PvpActivityBuffer.hpp
    ${SUBDIR}/PvpListActivityBuffer.hpp
@@ -170,9 +167,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SharedWeights.hpp
    ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
-   ${SUBDIR}/SingleChannelGSynAccumulator.hpp
+   ${SUBDIR}/SquaredInputInternalStateBuffer.hpp
    ${SUBDIR}/SpecifiedSharedWeights.hpp
-   ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TimerLayerUpdateController.hpp
    ${SUBDIR}/TransposePatchSize.hpp
@@ -184,8 +180,10 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 
 set (PVLibSrcHpp ${PVLibSrcKpp}
      ${SUBDIR}/ANNActivityBuffer.kpp
-     ${SUBDIR}/GSynAccumulator.kpp
+     ${SUBDIR}/HyPerInternalStateBuffer.kpp
      ${SUBDIR}/HyPerLCAInternalStateBuffer.kpp
+     ${SUBDIR}/ISTAInternalStateBuffer.kpp
+     ${SUBDIR}/MomentumLCAInternalStateBuffer.kpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcTpp}
@@ -197,7 +195,7 @@ set (PVLibSrcHpp ${PVLibSrcTpp}
 if(PV_USE_CUDA)
   set (PVLibSrcCu ${PVLibSrcCu}
      ${SUBDIR}/ANNActivityBuffer.cu
-     ${SUBDIR}/GSynAccumulator.cu
+     ${SUBDIR}/HyPerInternalStateBuffer.cu
      ${SUBDIR}/HyPerLCAInternalStateBuffer.cu
      ${SUBDIR}/ISTAInternalStateBuffer.cu
      ${SUBDIR}/MomentumLCAInternalStateBuffer.cu

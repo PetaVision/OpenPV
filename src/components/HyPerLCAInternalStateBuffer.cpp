@@ -113,16 +113,17 @@ Response::Status HyPerLCAInternalStateBuffer::initializeState(
 
 #ifdef PV_USE_CUDA
 void HyPerLCAInternalStateBuffer::allocateUpdateKernel() {
-   PVCuda::CudaDevice *device = mCudaDevice;
+   HyPerInternalStateBuffer::allocateUpdateKernel();
 
-   size_t size  = getLayerLoc()->nbatch * sizeof(double);
-   mCudaDtAdapt = device->createBuffer(size, &getDescription());
+   std::size_t size  = getLayerLoc()->nbatch * sizeof(double);
+   std::string description = getDescription() + " dtAdapt";
+   mCudaDtAdapt = mCudaDevice->createBuffer(size, &description);
 }
 
 void HyPerLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) {
    pvAssert(isUsingGPU()); // or should be in updateBufferCPU() method.
-   if (!mAccumulatedGSyn->isUsingGPU()) {
-      mAccumulatedGSyn->copyToCuda();
+   if (!mGSyn->isUsingGPU()) {
+      mGSyn->copyToCuda();
    }
 
    // Copy over mCudaDtAdapt
@@ -135,21 +136,24 @@ void HyPerLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTi
 void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_CUDA
    pvAssert(!isUsingGPU()); // if using GPU, should be in updateBufferGPU() method instead.
-   if (mAccumulatedGSyn->isUsingGPU()) {
-      mAccumulatedGSyn->copyFromCuda();
+   if (mGSyn->isUsingGPU()) {
+      mGSyn->copyFromCuda();
    }
 #endif // PV_USE_CUDA
 
-   PVLayerLoc const *loc        = getLayerLoc();
-   long const numNeurons        = getBufferSize();
-   double const *dtAdapt        = deltaTimes(simTime, deltaTime);
-   float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();
-   float const *A               = mActivity->getBufferData();
-   float *V                     = mBufferData.data();
+   PVLayerLoc const *loc = getLayerLoc();
+   long const numNeurons = getBufferSize();
+   double const *dtAdapt = deltaTimes(simTime, deltaTime);
+   float const *GSyn     = mGSyn->getBufferData();
+   float const *A        = mActivity->getBufferData();
+   float *V              = mBufferData.data();
 
    updateHyPerLCAOnCPU(
          loc->nbatch,
          numNeurons,
+         mNumChannelIndices,
+         mChannelIndices.data(),
+         mChannelCoefficients.data(),
          loc->nx,
          loc->ny,
          loc->nf,
@@ -160,7 +164,7 @@ void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTi
          mSelfInteract,
          dtAdapt,
          mScaledTimeConstantTau,
-         accumulatedGSyn,
+         GSyn,
          A,
          V);
 }

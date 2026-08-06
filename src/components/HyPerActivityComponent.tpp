@@ -12,64 +12,52 @@
 
 namespace PV {
 
-template <typename G, typename V, typename A>
-HyPerActivityComponent<G, V, A>::HyPerActivityComponent(
+template <typename V, typename A>
+HyPerActivityComponent<V, A>::HyPerActivityComponent(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-template <typename G, typename V, typename A>
-HyPerActivityComponent<G, V, A>::~HyPerActivityComponent() {}
+template <typename V, typename A>
+HyPerActivityComponent<V, A>::~HyPerActivityComponent() {}
 
-template <typename G, typename V, typename A>
-void HyPerActivityComponent<G, V, A>::initialize(
+template <typename V, typename A>
+void HyPerActivityComponent<V, A>::initialize(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
    ActivityComponent::initialize(name, params, comm);
 }
 
-template <typename G, typename V, typename A>
-void HyPerActivityComponent<G, V, A>::setObjectType() {
+template <typename V, typename A>
+void HyPerActivityComponent<V, A>::setObjectType() {
    mObjectType = "HyPerActivityComponent";
 }
 
-template <typename G, typename V, typename A>
-void HyPerActivityComponent<G, V, A>::fillComponentTable() {
+template <typename V, typename A>
+void HyPerActivityComponent<V, A>::fillComponentTable() {
    ActivityComponent::fillComponentTable(); // creates Activity
    mInternalState = createInternalState();
    if (mInternalState) {
       addUniqueComponent(mInternalState);
    }
-   mAccumulatedGSyn = createAccumulatedGSyn();
-   if (mAccumulatedGSyn) {
-      addUniqueComponent(mAccumulatedGSyn);
-   }
 }
 
-template <typename G, typename V, typename A>
-ActivityBuffer *HyPerActivityComponent<G, V, A>::createActivity() {
+template <typename V, typename A>
+ActivityBuffer *HyPerActivityComponent<V, A>::createActivity() {
    return new A(getName(), parameters(), mCommunicator);
 }
 
-template <typename G, typename V, typename A>
-InternalStateBuffer *HyPerActivityComponent<G, V, A>::createInternalState() {
+template <typename V, typename A>
+InternalStateBuffer *HyPerActivityComponent<V, A>::createInternalState() {
    return new V(getName(), parameters(), mCommunicator);
 }
 
-template <typename G, typename V, typename A>
-GSynAccumulator *HyPerActivityComponent<G, V, A>::createAccumulatedGSyn() {
-   return new G(getName(), parameters(), mCommunicator);
-}
-
-template <typename G, typename V, typename A>
-Response::Status HyPerActivityComponent<G, V, A>::initializeState(
+template <typename V, typename A>
+Response::Status HyPerActivityComponent<V, A>::initializeState(
       std::shared_ptr<InitializeStateMessage const> message) {
-   if (mAccumulatedGSyn) {
-      mAccumulatedGSyn->respond(message);
-   }
    if (mInternalState) {
       mInternalState->respond(message);
    }
@@ -77,11 +65,8 @@ Response::Status HyPerActivityComponent<G, V, A>::initializeState(
    return Response::SUCCESS;
 }
 
-template <typename G, typename V, typename A>
-Response::Status HyPerActivityComponent<G, V, A>::updateActivity(double simTime, double deltaTime) {
-   if (mAccumulatedGSyn) {
-      mAccumulatedGSyn->updateBuffer(simTime, deltaTime);
-   }
+template <typename V, typename A>
+Response::Status HyPerActivityComponent<V, A>::updateActivity(double simTime, double deltaTime) {
    if (mInternalState) {
       mInternalState->updateBuffer(simTime, deltaTime);
    }

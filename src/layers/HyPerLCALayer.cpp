@@ -7,7 +7,6 @@
 
 #include "HyPerLCALayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerLCAInternalStateBuffer.hpp"
 #include "components/LayerInputBuffer.hpp"
@@ -29,9 +28,8 @@ LayerInputBuffer *HyPerLCALayer::createLayerInput() {
 }
 
 ActivityComponent *HyPerLCALayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     HyPerLCAInternalStateBuffer,
-                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<HyPerLCAInternalStateBuffer, ANNActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

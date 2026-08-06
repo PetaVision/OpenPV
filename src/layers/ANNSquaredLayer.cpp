@@ -8,8 +8,7 @@
 #include "ANNSquaredLayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
 #include "components/HyPerActivityComponent.hpp"
-#include "components/HyPerInternalStateBuffer.hpp"
-#include "components/SquaredGSynAccumulator.hpp"
+#include "components/SquaredInputInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -24,9 +23,8 @@ void ANNSquaredLayer::initialize(const char *name, PVParams *params, Communicato
 }
 
 ActivityComponent *ANNSquaredLayer::createActivityComponent() {
-   return new HyPerActivityComponent<SquaredGSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<SquaredInputInternalStateBuffer, ANNActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 Response::Status ANNSquaredLayer::allocateDataStructures() {

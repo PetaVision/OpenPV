@@ -23,6 +23,9 @@ inline void updateHyPerLCAOnCPU
 #endif // PV_RUN_ON_GPU
       (int const nbatch,
        long const numNeurons,
+       int numChannels,
+       int const *channelIndices,
+       float const *channelCoeffs,
        int const nx,
        int const ny,
        int const nf,
@@ -33,7 +36,7 @@ inline void updateHyPerLCAOnCPU
        bool const selfInteract,
        double const *dtAdapt,
        double const tau,
-       float const *accumulatedGSyn,
+       float const *GSyn,
        float const *A,
        float *V) {
 #ifdef PV_RUN_ON_GPU
@@ -49,18 +52,23 @@ inline void updateHyPerLCAOnCPU
       long b = index / numNeurons; // batch index
       long k = index % numNeurons; // neuron index within batch element
 
+      float accumulatedGSyn = 0.0f;
+      for (int chIdx = 0; chIdx < numChannels; chIdx++) {
+         int channel = channelIndices[chIdx];
+         float gSynValue = GSyn[channel * numNeurons * nbatch + index];
+         accumulatedGSyn += channelCoeffs[channel] * gSynValue;
+      }
+
       double exponent                   = - dtAdapt[b] / tau;
       float one_m_exp                   = -static_cast<float>(std::expm1(exponent));
       float exp_tau                     = 1.0f - one_m_exp;
       float *VBatch                     = &V[b * numNeurons];
-      float const *accumulatedGSynBatch = &accumulatedGSyn[b * numNeurons];
-      float const gSyn                  = accumulatedGSynBatch[k];
       // Activity is an extended buffer.
       long numExtended    = (long)(nx + rt + lt) * (long)(ny + up + dn) * (long)nf;
       float const *ABatch = &A[b * numExtended];
 
       long kex  = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      VBatch[k] = exp_tau * VBatch[k] + one_m_exp * (gSyn + selfInteract * ABatch[kex]);
+      VBatch[k] = exp_tau * VBatch[k] + one_m_exp * (accumulatedGSyn + selfInteract * ABatch[kex]);
    }
 }
 

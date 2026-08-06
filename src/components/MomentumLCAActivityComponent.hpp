@@ -11,13 +11,12 @@
 #include "components/HyPerActivityComponent.hpp"
 
 #include "components/ANNActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
 #include "components/MomentumLCAInternalStateBuffer.hpp"
 #include "components/RestrictedBuffer.hpp"
 
 namespace PV {
 
-typedef HyPerActivityComponent<GSynAccumulator, MomentumLCAInternalStateBuffer, ANNActivityBuffer>
+typedef HyPerActivityComponent<MomentumLCAInternalStateBuffer, ANNActivityBuffer>
       BaseMomentumActivityComponent;
 
 /**
