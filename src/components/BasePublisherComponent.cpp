@@ -135,7 +135,11 @@ Response::Status BasePublisherComponent::registerData(
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
-   mPublisher->checkpointDataStore(checkpointer, getName(), "Delays");
+   if (mNumDelayLevels > 1) {
+      // If only one delay level, _Delays.pvp file will be the same as _A.pvp file, so we don't
+      // waste resources saving it. When reading from checkpoint, we'll need to copy from activity
+      mPublisher->checkpointDataStore(checkpointer, getName(), "Delays");
+   }
 
    // Timers
 
@@ -151,6 +155,12 @@ Response::Status BasePublisherComponent::registerData(
 }
 
 Response::Status BasePublisherComponent::processCheckpointRead(double simTime) {
+   if (mNumDelayLevels == 1) {
+      // We didn't write a _Delays.pvp file to checkpoint, so we have to copy it from activity.
+      mPublisher->publish(simTime);
+      mPublisher->wait(0 /*delay*/);
+      // Publish::publish() does nonblocking MPI border exchange, so we have to clear the requests.
+   }
    updateAllActiveIndices();
    return Response::SUCCESS;
 }
@@ -160,7 +170,15 @@ Response::Status BasePublisherComponent::readStateFromCheckpoint(Checkpointer *c
    if (!Response::completed(status)) {
       return status;
    }
-   checkpointer->readNamedCheckpointEntry(std::string(mName), std::string("Delays"), false);
+   if (mNumDelayLevels == 1) {
+      checkpointer->readNamedCheckpointEntry(std::string(mName), std::string("A"), false);
+      mPublisher->publish(0.0 /*simTime*/);
+      mPublisher->wait(0 /*delay*/);
+      // Publish::publish() does nonblocking MPI border exchange, so we have to clear the requests.
+   }
+   else {
+      checkpointer->readNamedCheckpointEntry(std::string(mName), std::string("Delays"), false);
+   }
    return Response::SUCCESS;
 }
 
