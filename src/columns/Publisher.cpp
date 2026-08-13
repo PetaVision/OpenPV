@@ -114,7 +114,7 @@ int Publisher::publish(double lastUpdateTime) {
    float const *sendBuf = mLayerCube->data;
    float *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
 
-   memcpy(recvBuf, sendBuf, dataSize);
+   std::memcpy(recvBuf, sendBuf, dataSize);
    exchangeBorders(&mLayerCube->loc, 0);
    mStore->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
 
