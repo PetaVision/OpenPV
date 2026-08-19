@@ -95,17 +95,17 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    return status;
 }
 
-void DependentPatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
+void DependentPatchSize::setPatchSizeX(BaseLayer *pre, BaseLayer *post) {
    mPatchSizeX = mOriginalPatchSize->getPatchSizeX();
    parameters()->handleUnnecessaryParameter(getName(), "nxp", mNxp);
 }
 
-void DependentPatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) { 
+void DependentPatchSize::setPatchSizeY(BaseLayer *pre, BaseLayer *post) { 
    mPatchSizeY = mOriginalPatchSize->getPatchSizeY();
    parameters()->handleUnnecessaryParameter(getName(), "nyp", mNyp);
 }
 
-void DependentPatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
+void DependentPatchSize::setPatchSizeF(BaseLayer *pre, BaseLayer *post) {
    mPatchSizeF = mOriginalPatchSize->getPatchSizeF();
    parameters()->handleUnnecessaryParameter(getName(), "nfp", mNfp);
 }

@@ -66,7 +66,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    auto objectTable = message->mObjectTable;
 
    bool failed = false;
-   mPre        = objectTable->findObject<HyPerLayer>(getPreLayerName());
+   mPre        = objectTable->findObject<BaseLayer>(getPreLayerName());
    if (getPre() == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -77,7 +77,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       failed = true;
    }
 
-   mPost = objectTable->findObject<HyPerLayer>(getPostLayerName());
+   mPost = objectTable->findObject<BaseLayer>(getPostLayerName());
    if (getPost() == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(

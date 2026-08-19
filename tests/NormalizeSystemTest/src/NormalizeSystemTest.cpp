@@ -8,6 +8,7 @@
 
 #include <columns/buildandrun.hpp>
 #include <connections/HyPerConn.hpp>
+#include <layers/BaseLayer.hpp>
 #include <normalizers/NormalizeBase.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
@@ -26,20 +27,20 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    baseObject                            = getObject(hc, "NormalizeSumConnection");
    NormalizeBase *normalizeSumNormalizer = baseObject->getComponentByType<NormalizeBase>();
    FatalIf(!normalizeSumNormalizer, "%s has no normalizer.\n", baseObject->getDescription_c());
-   float normalizeSumStrength    = normalizeSumNormalizer->getStrength();
-   baseObject                    = getObject(hc, "NormalizeSumCheck");
-   HyPerLayer *normalizeSumCheck = dynamic_cast<HyPerLayer *>(baseObject);
-   auto *normalizeSumCheckData   = normalizeSumCheck->getComponentByType<BasePublisherComponent>();
-   float normalizeSumValue       = normalizeSumCheckData->getLayerData()[0];
+   float normalizeSumStrength   = normalizeSumNormalizer->getStrength();
+   baseObject                   = getObject(hc, "NormalizeSumCheck");
+   BaseLayer *normalizeSumCheck = dynamic_cast<BaseLayer *>(baseObject);
+   auto *normalizeSumCheckData  = normalizeSumCheck->getComponentByType<BasePublisherComponent>();
+   float normalizeSumValue      = normalizeSumCheckData->getLayerData()[0];
    FatalIf(std::fabs(normalizeSumValue - normalizeSumStrength) >= tol, "Test failed.\n");
 
    // check normalizeL2
    baseObject                           = getObject(hc, "NormalizeL2Connection");
    NormalizeBase *normalizeL2Normalizer = baseObject->getComponentByType<NormalizeBase>();
    FatalIf(!normalizeL2Normalizer, "%s has no normalizer.\n", baseObject->getDescription_c());
-   float normalizeL2Strength    = normalizeL2Normalizer->getStrength();
-   baseObject                   = getObject(hc, "NormalizeL2Check");
-   HyPerLayer *normalizeL2Check = dynamic_cast<HyPerLayer *>(baseObject);
+   float normalizeL2Strength   = normalizeL2Normalizer->getStrength();
+   baseObject                  = getObject(hc, "NormalizeL2Check");
+   BaseLayer *normalizeL2Check = dynamic_cast<BaseLayer *>(baseObject);
    FatalIf(normalizeL2Check == nullptr, "No layer named NormalizeL2Check.\n");
    auto *normalizeL2CheckData = normalizeL2Check->getComponentByType<BasePublisherComponent>();
    float normalizeL2Value     = std::sqrt(normalizeL2CheckData->getLayerData()[0]);
@@ -49,9 +50,9 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    baseObject                            = getObject(hc, "NormalizeMaxConnection");
    NormalizeBase *normalizeMaxNormalizer = baseObject->getComponentByType<NormalizeBase>();
    FatalIf(!normalizeMaxNormalizer, "%s has no normalizer.\n", baseObject->getDescription_c());
-   float normalizeMaxStrength    = normalizeMaxNormalizer->getStrength();
-   baseObject                    = getObject(hc, "NormalizeMaxCheck");
-   HyPerLayer *normalizeMaxCheck = dynamic_cast<HyPerLayer *>(baseObject);
+   float normalizeMaxStrength   = normalizeMaxNormalizer->getStrength();
+   baseObject                   = getObject(hc, "NormalizeMaxCheck");
+   BaseLayer *normalizeMaxCheck = dynamic_cast<BaseLayer *>(baseObject);
    FatalIf(normalizeMaxCheck == nullptr, "No layer named NormalizeMaxCheck.\n");
    auto *normalizeMaxCheckData = normalizeMaxCheck->getComponentByType<BasePublisherComponent>();
    float normalizeMaxValue     = -FLT_MAX;
@@ -79,7 +80,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    // check normalizeConstransZeroMean mean
    baseObject = getObject(hc, "NormalizeContrastZeroMeanCheckMean");
-   HyPerLayer *normalizeContrastZeroMeanCheckMean = dynamic_cast<HyPerLayer *>(baseObject);
+   BaseLayer *normalizeContrastZeroMeanCheckMean = dynamic_cast<BaseLayer *>(baseObject);
    FatalIf(
          !normalizeContrastZeroMeanCheckMean,
          "No layer named \"NormalizeContrastZeroMeanCheckMean\".\n");
@@ -90,7 +91,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    // check normalizeConstransZeroMean variance
    baseObject = getObject(hc, "NormalizeContrastZeroMeanCheckVariance");
-   HyPerLayer *normalizeContrastZeroMeanCheckVariance = dynamic_cast<HyPerLayer *>(baseObject);
+   BaseLayer *normalizeContrastZeroMeanCheckVariance = dynamic_cast<BaseLayer *>(baseObject);
    FatalIf(
          !normalizeContrastZeroMeanCheckVariance,
          "No layer named \"NormalizeContrastZeroMeanCheckVariance\".\n");

@@ -24,7 +24,7 @@ class LayerUpdateController : public BaseObject {
   protected:
    /**
     * List of parameters needed from the LayerUpdateController class
-    * @name HyPerLayer Parameters
+    * @name BaseLayer Parameters
     * @{
     */
 

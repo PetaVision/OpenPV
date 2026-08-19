@@ -22,13 +22,11 @@
 namespace PV {
 
 /**
- * A component to hold a HyPerLayer's activity ring buffer and to publish the
- * layer's activity to be used by delivery objects, probes, etc.
- * During initialization, indicate how many timesteps in the past will be needed
- * by calling the increaseDelayLevels(int) method, with the needed number of
- * timesteps. The activity is retrieved by calling the getLayerData(int) method,
- * where the argument is the number of timesteps in the past, and the default
- * is zero.
+ * A component to hold a layer's activity ring buffer and to publish the layer's activity to be
+ * used by delivery objects, probes, etc. During initialization, indicate how many timesteps in
+ * the past will be needed by calling the increaseDelayLevels(int) method, with the needed number
+ * of timesteps. The activity is retrieved by calling the getLayerData(int) method, where the
+ * argument is the number of timesteps in the past, and the default is zero.
  */
 class BasePublisherComponent : public BaseObject {
   public:

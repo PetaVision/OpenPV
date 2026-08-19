@@ -9,9 +9,9 @@
 #define BACKGROUNDACTIVITYBUFFER_HPP_
 
 #include "components/ActivityBuffer.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "components/ComponentBuffer.hpp"
 #include "components/InternalStateBuffer.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 

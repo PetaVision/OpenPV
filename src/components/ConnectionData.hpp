@@ -9,7 +9,7 @@
 #define CONNECTIONDATA_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 
 namespace PV {
 
@@ -51,12 +51,12 @@ class ConnectionData : public BaseObject {
    /**
     * Returns a pointer to the connection's presynaptic layer.
     */
-   HyPerLayer *getPre() { return mPre; }
+   BaseLayer *getPre() { return mPre; }
 
    /**
     * Returns a pointer to the connection's postsynaptic layer.
     */
-   HyPerLayer *getPost() { return mPost; }
+   BaseLayer *getPost() { return mPost; }
 
    bool getPreIsBroadcast() const { return mPreIsBroadcast; }
 
@@ -88,8 +88,8 @@ class ConnectionData : public BaseObject {
   protected:
    char *mPreLayerName   = nullptr;
    char *mPostLayerName  = nullptr;
-   HyPerLayer *mPre      = nullptr;
-   HyPerLayer *mPost     = nullptr;
+   BaseLayer *mPre      = nullptr;
+   BaseLayer *mPost     = nullptr;
    bool mPreIsBroadcast  = false;
 
 }; // class ConnectionData

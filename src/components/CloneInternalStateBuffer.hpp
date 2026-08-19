@@ -22,7 +22,7 @@ class CloneInternalStateBuffer : public InternalStateBuffer {
   protected:
    /**
     * List of parameters needed from the CloneInternalStateBuffer class
-    * @name HyPerLayer Parameters
+    * @name CloneVLayer Parameters
     * @{
     */
 

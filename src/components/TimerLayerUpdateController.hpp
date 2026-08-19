@@ -19,7 +19,7 @@ class TimerLayerUpdateController : public LayerUpdateController {
   protected:
    /**
     * List of parameters needed from the TimerLayerUpdateController class
-    * @name HyPerLayer Parameters
+    * @name TimerLayer Parameters
     * @{
     */
 

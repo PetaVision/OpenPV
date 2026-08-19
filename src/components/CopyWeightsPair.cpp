@@ -102,7 +102,7 @@ void CopyWeightsPair::synchronizeMarginsPre() {
       status = PV_FAILURE;
    }
 
-   HyPerLayer *origPre = nullptr;
+   BaseLayer *origPre = nullptr;
    if (mOriginalWeightsPair == nullptr) {
       ErrorLog().printf(
             "synchronzedMarginsPre called for %s, but this connection has not set its "
@@ -139,7 +139,7 @@ void CopyWeightsPair::synchronizeMarginsPost() {
       status = PV_FAILURE;
    }
 
-   HyPerLayer *origPost = nullptr;
+   BaseLayer *origPost = nullptr;
    if (mOriginalWeightsPair == nullptr) {
       ErrorLog().printf(
             "synchronzedMarginsPre called for %s, but this connection has not set its "

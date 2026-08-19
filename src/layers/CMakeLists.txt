@@ -3,6 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNLayer.cpp
    ${SUBDIR}/ANNSquaredLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
+   ${SUBDIR}/BaseLayer.cpp
    ${SUBDIR}/BinningLayer.cpp
    ${SUBDIR}/DependentFirmThresholdCostLayer.cpp
    ${SUBDIR}/DropoutLayer.cpp
@@ -43,6 +44,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNLayer.hpp
    ${SUBDIR}/ANNSquaredLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
+   ${SUBDIR}/BaseLayer.hpp
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
    ${SUBDIR}/DependentFirmThresholdCostLayer.hpp

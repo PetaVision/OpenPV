@@ -13,7 +13,7 @@
 namespace PV {
 
 /**
- * A component to contain the activity buffer of a HyPerLayer.
+ * A component to contain the activity buffer of a layer.
  * It sets the label to "A" and the extended flag to true, but has no
  * update method defined.
  */

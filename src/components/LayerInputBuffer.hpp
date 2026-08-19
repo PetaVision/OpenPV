@@ -19,13 +19,13 @@
 namespace PV {
 
 /**
- * A component to contain the input buffers (GSyn) of a HyPerLayer.
+ * A component to contain the input buffers (GSyn) of a layer.
  */
 class LayerInputBuffer : public ComponentBuffer {
   protected:
    /**
     * List of parameters needed from the LayerInputBuffer class
-    * @name HyPerLayer Parameters
+    * @name BaseLayer Parameters
     * @{
     */
 

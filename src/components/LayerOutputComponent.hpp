@@ -34,7 +34,7 @@ class LayerOutputComponent : public BaseObject {
   protected:
    /**
     * List of parameters needed from the LayerOutputComponent class
-    * @name HyPerLayer Parameters
+    * @name BaseLayer Parameters
     * @{
     */
 

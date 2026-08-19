@@ -10,7 +10,7 @@
 #include "io/BroadcastPreWeightsFile.hpp"
 #include "io/LocalPatchWeightsFile.hpp"
 #include "io/SharedWeightsFile.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
@@ -160,8 +160,8 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 
 void WeightsPair::createPreWeights(std::string const &weightsName) {
    pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);
-   HyPerLayer *pre  = mConnectionData->getPre();
-   HyPerLayer *post = mConnectionData->getPost();
+   BaseLayer *pre  = mConnectionData->getPre();
+   BaseLayer *post = mConnectionData->getPost();
    mPreWeights = new Weights(
          weightsName,
          mPatchSize->getPatchSizeX(),
@@ -176,8 +176,8 @@ void WeightsPair::createPreWeights(std::string const &weightsName) {
 
 void WeightsPair::createPostWeights(std::string const &weightsName) {
    pvAssert(mPostWeights == nullptr and mInitInfoCommunicatedFlag);
-   HyPerLayer *pre  = mConnectionData->getPre();
-   HyPerLayer *post = mConnectionData->getPost();
+   BaseLayer *pre  = mConnectionData->getPre();
+   BaseLayer *post = mConnectionData->getPost();
    auto *preLoc     = pre->getLayerLoc();
    auto *postLoc    = post->getLayerLoc();
    int nxpPre       = mPatchSize->getPatchSizeX();

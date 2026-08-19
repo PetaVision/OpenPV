@@ -7,7 +7,7 @@
 
 #include "ArborList.hpp"
 #include "components/ConnectionData.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 
 namespace PV {
 
@@ -77,7 +77,7 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       }
       return Response::POSTPONE;
    }
-   HyPerLayer *preLayer            = connectionData->getPre();
+   BaseLayer *preLayer            = connectionData->getPre();
    BasePublisherComponent *preData = preLayer->getComponentByType<BasePublisherComponent>();
 
    initializeDelays(message->mDeltaTime);

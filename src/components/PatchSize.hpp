@@ -106,7 +106,7 @@ class PatchSize : public BaseObject {
     *    (A positive PatchSizeX value may lead to an error elsewhere in the code, but such a
     *    case would not be flagged here.)
     */
-   virtual void setPatchSizeX(HyPerLayer *pre, HyPerLayer *post);
+   virtual void setPatchSizeX(BaseLayer *pre, BaseLayer *post);
 
    /**
     * Called during CommunicateInitInfo stage.
@@ -121,14 +121,14 @@ class PatchSize : public BaseObject {
     *    (A positive PatchSizeY value may lead to an error elsewhere in the code, but such a
     *    case would not be flagged here.)
     */
-   virtual void setPatchSizeY(HyPerLayer *pre, HyPerLayer *post);
+   virtual void setPatchSizeY(BaseLayer *pre, BaseLayer *post);
 
    /**
     * Called during CommunicateInitInfo stage. If PatchSizeF is negative, set PatchSizeF to the
     * post-synaptic layer's nf. It is a fatal error if PatchSizeF is >=0 and not equal to the
     * post-synaptic layer's nf.
     */
-   virtual void setPatchSizeF(HyPerLayer *pre, HyPerLayer *post);
+   virtual void setPatchSizeF(BaseLayer *pre, BaseLayer *post);
 
   protected:
    // Patch size. The params file specifies nxp, nyp, nfp. The default values of -1 indicate

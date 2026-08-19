@@ -10,6 +10,7 @@
 #include <columns/buildandrun.hpp>
 #include <columns/Factory.hpp>
 #include <connections/HyPerConn.hpp>
+#include <layers/BaseLayer.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -33,8 +34,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    float normalizeL3Strength = normalizeL3Normalizer->getStrength();
    float correctValue        = powf(normalizeL3Strength, 3.0f);
 
-   baseObject                   = hc->getObjectFromName("NormalizeL3Check");
-   HyPerLayer *normalizeL3Check = dynamic_cast<HyPerLayer *>(baseObject);
+   baseObject                  = hc->getObjectFromName("NormalizeL3Check");
+   BaseLayer *normalizeL3Check = dynamic_cast<BaseLayer *>(baseObject);
    FatalIf(normalizeL3Check == nullptr, "Layer \"NormalizeL3Check\" does not exist.\n");
    BasePublisherComponent *checkData =
          normalizeL3Check->getComponentByType<BasePublisherComponent>();

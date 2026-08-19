@@ -15,7 +15,7 @@
 namespace PV {
 
 /**
- * A component, used by HyPerLayer, that reads and writes the parameters
+ * A component, used by BaseLayer and derived classes, that reads and writes the parameters
  * broadcastFlag, nxScale, nyScale, and nf;
  * and creates a PVLayerLoc based on those parameter values.
  */

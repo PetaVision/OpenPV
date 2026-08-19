@@ -491,8 +491,8 @@ int HebbianUpdater::update_dW(int arborID) {
    // compute dW but don't add them to the weights yet.
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
-   HyPerLayer *pre           = mConnectionData->getPre();
-   HyPerLayer *post          = mConnectionData->getPost();
+   BaseLayer *pre           = mConnectionData->getPre();
+   BaseLayer *post          = mConnectionData->getPost();
    long nExt                 = pre->getNumExtended();
    PVLayerLoc const *preLoc  = pre->getLayerLoc();
    PVLayerLoc const *postLoc = post->getLayerLoc();
@@ -560,8 +560,8 @@ int HebbianUpdater::update_dW(int arborID) {
    // If update from clones, update dw here as well
    // Updates on all PlasticClones
    for (auto &c : mClones) {
-      HyPerLayer *clonePreLayer  = c->getPre();
-      HyPerLayer *clonePostLayer = c->getPost();
+      BaseLayer *clonePreLayer  = c->getPre();
+      BaseLayer *clonePostLayer = c->getPost();
       auto *clonePrePublisher    = clonePreLayer->getComponentByType<BasePublisherComponent>();
       auto *clonePostPublisher   = clonePostLayer->getComponentByType<BasePublisherComponent>();
       pvAssert(clonePrePublisher->getNumExtended() == nExt);
@@ -584,8 +584,8 @@ void HebbianUpdater::updateInd_dW(
       float const *preLayerData,
       float const *postLayerData,
       long kExt) {
-   HyPerLayer *pre           = mConnectionData->getPre();
-   HyPerLayer *post          = mConnectionData->getPost();
+   BaseLayer *pre           = mConnectionData->getPre();
+   BaseLayer *post          = mConnectionData->getPost();
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
    const float *preactbuf  = preLayerData + batchID * pre->getNumExtended();

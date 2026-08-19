@@ -7,7 +7,7 @@
 
 #include "LayerUpdateController.hpp"
 #include "components/InternalStateBuffer.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include <cmath>
 
 namespace PV {
@@ -187,7 +187,7 @@ void LayerUpdateController::setTriggerResetComponent(ObserverTable const *table)
       resetLayerName = mTriggerResetLayerName;
    }
 
-   auto resetLayer = table->findObject<HyPerLayer>(resetLayerName);
+   auto resetLayer = table->findObject<BaseLayer>(resetLayerName);
    FatalIf(
          resetLayer == nullptr,
          "%s triggerResetLayerName points to \"%s\", which is not a layer in the column.\n",

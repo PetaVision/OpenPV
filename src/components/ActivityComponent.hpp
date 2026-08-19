@@ -19,13 +19,13 @@
 namespace PV {
 
 /**
- * The base class for the activity component of HyPerLayer.
+ * The base class for the activity component of a layer.
  */
 class ActivityComponent : public ComponentBasedObject {
   protected:
    /**
     * List of parameters needed from the ActivityComponent class
-    * @name HyPerLayer Parameters
+    * @name BaseLayer Parameters
     * @{
     */
 

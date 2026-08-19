@@ -87,8 +87,8 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return status + Response::POSTPONE;
    }
 
-   HyPerLayer *pre  = mConnectionData->getPre();
-   HyPerLayer *post = mConnectionData->getPost();
+   BaseLayer *pre  = mConnectionData->getPre();
+   BaseLayer *post = mConnectionData->getPost();
    pvAssert(pre and post);
    LayerGeometry *preGeom  = pre->getComponentByType<LayerGeometry>();
    LayerGeometry *postGeom = post->getComponentByType<LayerGeometry>();

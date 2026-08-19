@@ -11,7 +11,7 @@
 namespace PV {
 
 /**
- * A component to contain the internal state (membrane potential) of a HyPerLayer.
+ * A component to contain the internal state (membrane potential) of an ANNSquaredLayer.
  */
 class SquaredInputInternalStateBuffer : public InternalStateBuffer {
   public:

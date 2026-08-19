@@ -14,7 +14,7 @@
 namespace PV {
 
 /**
- * A component to contain the internal state (membrane potential) of a HyPerLayer.
+ * A component to contain the internal state (membrane potential) of a layer.
  */
 class DropoutActivityBuffer : public ANNActivityBuffer {
   protected:

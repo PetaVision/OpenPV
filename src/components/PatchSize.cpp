@@ -75,7 +75,7 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       return Response::POSTPONE;
    }
 
-   HyPerLayer *pre = mConnectionData->getPre();
+   BaseLayer *pre = mConnectionData->getPre();
    if (!pre->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
@@ -86,7 +86,7 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       return Response::POSTPONE;
    }
 
-   HyPerLayer *post = mConnectionData->getPost();
+   BaseLayer *post = mConnectionData->getPost();
    if (!post->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
@@ -138,7 +138,7 @@ int PatchSize::calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeu
    }
 }
 
-void PatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
+void PatchSize::setPatchSizeX(BaseLayer *pre, BaseLayer *post) {
    bool isBroadcastPre  = pre->getComponentByType<LayerGeometry>()->getBroadcastFlag();
    bool isBroadcastPost = post->getComponentByType<LayerGeometry>()->getBroadcastFlag();
    if (isBroadcastPre) {
@@ -179,7 +179,7 @@ void PatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
    }
 }
 
-void PatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
+void PatchSize::setPatchSizeY(BaseLayer *pre, BaseLayer *post) {
    bool isBroadcastPre  = pre->getComponentByType<LayerGeometry>()->getBroadcastFlag();
    bool isBroadcastPost = post->getComponentByType<LayerGeometry>()->getBroadcastFlag();
    if (isBroadcastPre) {
@@ -220,7 +220,7 @@ void PatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
    }
 }
 
-void PatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
+void PatchSize::setPatchSizeF(BaseLayer *pre, BaseLayer *post) {
    int const nfPost = post->getLayerLoc()->nf;
 
    if (mNfp < 0) {

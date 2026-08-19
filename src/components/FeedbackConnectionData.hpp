@@ -9,7 +9,6 @@
 #define FEEDBACKCONNECTIONDATA_HPP_
 
 #include "components/ConnectionData.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 

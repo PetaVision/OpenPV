@@ -16,6 +16,7 @@
 #include <columns/Factory.hpp>
 #include "columns/HyPerCol.hpp"
 #include "components/PatchSize.hpp"
+#include "layers/BaseLayer.hpp"
 #include "layers/Retina.hpp"
 
 #include <stdio.h>
@@ -42,10 +43,9 @@ int main(int argc, char *argv[]) {
    HyPerCol *hc = new HyPerCol(initObj);
 
    TestImage *image = dynamic_cast<TestImage *>(
-         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_image")));
+         dynamic_cast<BaseLayer *>(hc->getObjectFromName("test_constant_input_image")));
 
-   HyPerLayer *retina = dynamic_cast<HyPerLayer *>(
-         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_retina")));
+   Retina *retina = dynamic_cast<Retina *>(hc->getObjectFromName("test_constant_input_retina"));
 
    ComponentBasedObject *conn = dynamic_cast<ComponentBasedObject *>(
          hc->getObjectFromName("test_constant_input_connection"));

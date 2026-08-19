@@ -19,7 +19,7 @@ namespace PV {
 class InputLayerUpdateController : public LayerUpdateController {
   protected:
    /**
-    * List of parameters needed from the HyPerLayer class
+    * List of parameters needed from the BaseLayer class
     * @name InputLayer Parameters
     * @{
     */

@@ -10,7 +10,7 @@
 #include "cMakeHeader.h"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "columns/Random.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "io/FileStreamBuilder.hpp"
 #include "structures/MPIBlock.hpp"
@@ -499,7 +499,7 @@ Response::Status InputActivityBuffer::communicateInitInfo(
    mInputCount = inputCount ? inputCount : 1;
    if (mSyncLayer != nullptr and mSyncLayer[0] != '\0' and mSyncActivityBuffer == nullptr) {
       // check that parameter string matches an input layer
-      auto syncedLayer = objectTable->findObject<HyPerLayer>(mSyncLayer);
+      auto syncedLayer = objectTable->findObject<BaseLayer>(mSyncLayer);
       FatalIf(
             syncedLayer == nullptr,
             "Input layer \"%s\" set syncLayer to \"%s\" but this is not a layer in the column.\n",

@@ -28,7 +28,7 @@ class ParamsInterface : public CheckpointerDataInterface {
     * components within an object with the same ParameterGroup. The flag will be written to the
     * output params file only if the Boolean data member mWriteInitializeFromCheckpointFlag is true.
     * Derived classes should be written so that initializeFromCheckpointFlag is only written once
-    * per parameter group. Currently, only HyPerLayer and BaseConnection set the flag.
+    * per parameter group. Currently, only BaseLayer and BaseConnection set the flag.
     */
    void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 

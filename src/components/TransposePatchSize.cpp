@@ -26,7 +26,7 @@ void TransposePatchSize::initialize(char const *name, PVParams *params, Communic
 
 void TransposePatchSize::setObjectType() { mObjectType = "TransposePatchSize"; }
 
-void TransposePatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
+void TransposePatchSize::setPatchSizeX(BaseLayer *pre, BaseLayer *post) {
    mOriginalPatchSizeX          = mOriginalPatchSize->getPatchSizeX();
    auto *originalConnectionData = mOriginalPatchSize->getConnectionData();
    pvAssert(originalConnectionData);
@@ -36,7 +36,7 @@ void TransposePatchSize::setPatchSizeX(HyPerLayer *pre, HyPerLayer *post) {
    parameters()->handleUnnecessaryParameter(getName(), "nxp", mNxp);
 }
 
-void TransposePatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
+void TransposePatchSize::setPatchSizeY(BaseLayer *pre, BaseLayer *post) {
    mOriginalPatchSizeY          = mOriginalPatchSize->getPatchSizeY();
    int const nypOrig            = mOriginalPatchSize->getPatchSizeY();
    auto *originalConnectionData = mOriginalPatchSize->getConnectionData();
@@ -47,7 +47,7 @@ void TransposePatchSize::setPatchSizeY(HyPerLayer *pre, HyPerLayer *post) {
    parameters()->handleUnnecessaryParameter(getName(), "nyp", mNyp);
 }
 
-void TransposePatchSize::setPatchSizeF(HyPerLayer *pre, HyPerLayer *post) {
+void TransposePatchSize::setPatchSizeF(BaseLayer *pre, BaseLayer *post) {
    mOriginalPatchSizeF = mOriginalPatchSize->getPatchSizeF();
    PatchSize::setPatchSizeF(pre, post);
    parameters()->handleUnnecessaryParameter(getName(), "nfp", mNfp);

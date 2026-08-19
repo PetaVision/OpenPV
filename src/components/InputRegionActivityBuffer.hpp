@@ -14,7 +14,7 @@
 namespace PV {
 
 /**
- * A component to contain the activity buffer of a HyPerLayer.
+ * A component to contain the activity buffer of an InputRegionLayer.
  */
 class InputRegionActivityBuffer : public ActivityBuffer {
 

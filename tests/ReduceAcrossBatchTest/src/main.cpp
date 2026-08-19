@@ -9,6 +9,7 @@
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
 #include <components/WeightsPair.hpp>
+#include <layers/BaseLayer.hpp>
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]);
 
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]) {
 int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    auto *conn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
    FatalIf(conn == nullptr, "No connection named \"InputToOutput\" in column.\n");
-   HyPerLayer *correctValuesLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("SumInputs"));
+   BaseLayer *correctValuesLayer = dynamic_cast<BaseLayer *>(hc->getObjectFromName("SumInputs"));
    FatalIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
    auto *correctValuesPublisher = correctValuesLayer->getComponentByType<BasePublisherComponent>();
    FatalIf(

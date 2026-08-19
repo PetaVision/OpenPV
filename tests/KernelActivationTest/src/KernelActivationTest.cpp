@@ -21,6 +21,7 @@
 #include "columns/buildandrun.hpp"
 #include "components/PatchSize.hpp"
 #include "components/WeightsPair.hpp"
+#include "layers/BaseLayer.hpp"
 #include "weightupdaters/BaseWeightUpdater.hpp"
 
 int dumpweights(HyPerCol *hc, PV_Init &initObj);
@@ -86,7 +87,7 @@ int dumponeweight(ComponentBasedObject *conn) {
    int nyp              = patchSize->getPatchSizeY();
    int nfp              = patchSize->getPatchSizeF();
    auto *connectionData = conn->getComponentByType<ConnectionData>();
-   HyPerLayer *pre      = connectionData->getPre();
+   BaseLayer *pre       = connectionData->getPre();
    bool usingMirrorBCs  = pre->getComponentByType<BoundaryConditions>()->getMirrorBCflag();
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);

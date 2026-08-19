@@ -9,6 +9,7 @@
 #include <components/ConnectionData.hpp>
 #include <components/PatchSize.hpp>
 #include <components/WeightsPair.hpp>
+#include <layers/BaseLayer.hpp>
 
 #include <cmath>
 
@@ -21,8 +22,9 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
    hc->allocateColumn();
-   auto *conn      = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
-   HyPerLayer *pre = conn->getComponentByType<ConnectionData>()->getPre();
+   auto *conn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
+
+   BaseLayer *pre          = conn->getComponentByType<ConnectionData>()->getPre();
    PVLayerLoc const preLoc = *pre->getLayerLoc();
    long const numExtended  = pre->getNumExtended();
    auto *preWeights        = conn->getComponentByType<WeightsPair>()->getPreWeights();

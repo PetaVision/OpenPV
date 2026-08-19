@@ -23,7 +23,7 @@ class PublisherComponent : public BasePublisherComponent {
   protected:
    /**
     * List of parameters needed from the PublisherComponent class
-    * @name HyPerLayer Parameters
+    * @name BaseLayer Parameters
     * @{
     */
 
