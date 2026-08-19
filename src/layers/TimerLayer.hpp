@@ -19,7 +19,7 @@
 #include "components/LayerUpdateController.hpp"
 #include "components/PhaseParam.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 
 namespace PV {
@@ -28,7 +28,7 @@ namespace PV {
  * A layer class that has no data, input, or output but has an update controller
  * with a timerPeriod parameter
  */
-class TimerLayer : public HyPerLayer {
+class TimerLayer : public BaseLayer {
   public:
    TimerLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~TimerLayer();
@@ -43,7 +43,6 @@ class TimerLayer : public HyPerLayer {
    virtual PhaseParam *createPhaseParam() override { return nullptr; }
    virtual BoundaryConditions *createBoundaryConditions() override { return nullptr; }
    virtual LayerUpdateController *createLayerUpdateController() override;
-   virtual LayerInputBuffer *createLayerInput() override { return nullptr; }
    virtual ActivityComponent *createActivityComponent() override { return nullptr; }
    virtual BasePublisherComponent *createPublisher() override { return nullptr; }
    virtual LayerOutputComponent *createLayerOutput() override { return nullptr; }
