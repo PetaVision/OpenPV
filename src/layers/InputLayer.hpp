@@ -4,11 +4,11 @@
 #ifndef INPUTLAYER_HPP__
 #define INPUTLAYER_HPP__
 
-#include "HyPerLayer.hpp"
+#include "BaseLayer.hpp"
 
 namespace PV {
 
-class InputLayer : public HyPerLayer {
+class InputLayer : public BaseLayer {
   public:
    InputLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~InputLayer();
@@ -19,8 +19,6 @@ class InputLayer : public HyPerLayer {
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual LayerUpdateController *createLayerUpdateController() override;
-
-   virtual LayerInputBuffer *createLayerInput() override;
 
    /**
     * Each InputLayer-derived class typically has a corresponding ActivityBuffer subclass.

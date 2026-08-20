@@ -1,11 +1,11 @@
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
-#include <layers/HyPerLayer.hpp>
+#include <layers/InputLayer.hpp>
 #include <observerpattern/ObserverTable.hpp>
 #include <probes/ProbeTriggerComponent.hpp>
 
 using PV::HyPerCol;
-using PV::HyPerLayer;
+using PV::InputLayer;
 using PV::ProbeTriggerComponent;
 using PV::PV_Init;
 
@@ -73,7 +73,7 @@ int run(PV::PV_Init &pv_init, int offset) {
    std::string layerName("TestLayer");
    ProbeTriggerComponent triggerObject = initTriggerObject(hypercol, probeName, layerName, offset);
 
-   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hypercol.getObjectFromName(layerName));
+   InputLayer *layer = dynamic_cast<InputLayer *>(hypercol.getObjectFromName(layerName));
    pvAssert(layer != nullptr);
 
    for (int t = 1; t <= 100; ++t) {

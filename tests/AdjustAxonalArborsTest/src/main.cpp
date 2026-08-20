@@ -4,6 +4,7 @@
 
 #include <columns/buildandrun.hpp>
 #include <connections/HyPerConn.hpp>
+#include <layers/BaseLayer.hpp>
 #include <layers/HyPerLayer.hpp>
 
 int checkoutput(HyPerCol *hc, int argc, char **argv);
@@ -25,7 +26,7 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
 
    // Input layer should be 2x2 with values 1, 2, 3, 4;
    // and have margin width 1 with mirror boundary conditions off.
-   HyPerLayer *inLayer                 = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Input"));
+   BaseLayer *inLayer                  = dynamic_cast<BaseLayer *>(hc->getObjectFromName("Input"));
    BasePublisherComponent *inLayerData = inLayer->getComponentByType<BasePublisherComponent>();
    const PVLayerLoc *inLoc             = inLayerData->getLayerLoc();
    FatalIf(inLoc->nxGlobal != 2 or inLoc->nyGlobal != 2 or inLoc->nf != 1, "Test failed.\n");

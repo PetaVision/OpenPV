@@ -8,6 +8,7 @@
 #include "LIFTestProbe.hpp"
 #include "arch/mpi/mpi.h"
 #include "structures/PVLayerLoc.hpp"
+#include "layers/BaseLayer.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeData.hpp"
@@ -29,7 +30,9 @@ LIFTestProbe::LIFTestProbe() : StatsProbeImmediate() {}
 void LIFTestProbe::checkStats() {
    bool failed = false;
 
-   HyPerLayer *l         = getTargetLayer();
+   BaseLayer *lBase = getTargetLayer();
+   HyPerLayer *l    = dynamic_cast<HyPerLayer*>(lBase);
+   FatalIf(l == nullptr, "%s is not a HyPerLayer-derived object.\n", lBase->getDescription_c());
    const PVLayerLoc *loc = l->getLayerLoc();
    long n                = l->getNumNeurons();
    float xctr            = 0.5f * (float)(loc->nxGlobal - 1) - (float)loc->kx0;

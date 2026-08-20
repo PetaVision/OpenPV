@@ -5,18 +5,18 @@
 
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
-#include <layers/HyPerLayer.hpp>
+#include <layers/BaseLayer.hpp>
 
 using namespace PV;
 
-HyPerLayer *getLayerFromName(std::string const &name, HyPerCol *hc);
+BaseLayer *getLayerFromName(std::string const &name, HyPerCol *hc);
 void compare(char const *inputname, char const *outputname, HyPerCol *hc);
 
 int main(int argc, char *argv[]) {
    auto *pv_init_obj = new PV_Init(&argc, &argv, false /* do not allow unrecognized args */);
    auto *hc          = new HyPerCol(pv_init_obj);
 
-   HyPerLayer *inputLayer = getLayerFromName(std::string("Input"), hc);
+   BaseLayer *inputLayer = getLayerFromName(std::string("Input"), hc);
    pvAssert(inputLayer); // Was tested in getLayerFromName().
 
    auto *geometry = inputLayer->getComponentByType<LayerGeometry>();
@@ -43,17 +43,17 @@ int main(int argc, char *argv[]) {
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-HyPerLayer *getLayerFromName(std::string const &name, HyPerCol *hc) {
+BaseLayer *getLayerFromName(std::string const &name, HyPerCol *hc) {
    auto *object = hc->getObjectFromName(name);
    FatalIf(object == nullptr, "There is no object named \"%s\" in the column.\n", name.c_str());
-   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(object);
-   FatalIf(layer == nullptr, "%s is not a layer in the column.\n", layer->getDescription_c());
+   BaseLayer *layer = dynamic_cast<BaseLayer *>(object);
+   FatalIf(layer == nullptr, "%s is not a layer in the column.\n", object->getDescription_c());
    return layer;
 }
 
 void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
-   HyPerLayer *inputLayer  = getLayerFromName(std::string(inputname), hc);
-   HyPerLayer *outputLayer = getLayerFromName(std::string(outputname), hc);
+   BaseLayer *inputLayer  = getLayerFromName(std::string(inputname), hc);
+   BaseLayer *outputLayer = getLayerFromName(std::string(outputname), hc);
    pvAssert(inputLayer and outputLayer); // getLayerFromName() checks result for non-null.
 
    auto *inputActivityComponent  = inputLayer->getComponentByType<ActivityComponent>();

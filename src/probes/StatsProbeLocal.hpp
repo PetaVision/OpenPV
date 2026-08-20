@@ -5,7 +5,7 @@
 
 #include "structures/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "probes/BufferParamInterface.hpp"
 #include "probes/ProbeComponent.hpp"
 #include "probes/ProbeData.hpp"
@@ -28,7 +28,7 @@ class StatsProbeLocal : public ProbeComponent {
    virtual ~StatsProbeLocal() {}
 
    void clearStoredValues();
-   void initializeState(HyPerLayer *targetLayer);
+   void initializeState(BaseLayer *targetLayer);
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void storeValues(double simTime);
 
@@ -69,7 +69,7 @@ class StatsProbeLocal : public ProbeComponent {
    std::shared_ptr<BufferParamInterface> mBufferParam = nullptr;
    float mNnzThreshold;
    ProbeDataBuffer<LayerStats> mStoredValues;
-   HyPerLayer *mTargetLayer = nullptr;
+   BaseLayer *mTargetLayer = nullptr;
 };
 
 template <StatsBufferType bufferType>

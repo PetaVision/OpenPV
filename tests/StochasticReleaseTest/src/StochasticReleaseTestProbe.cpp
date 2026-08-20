@@ -15,7 +15,7 @@
 #include "components/WeightsPair.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "include/pv_common.h"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ActivityBufferStatsProbeLocal.hpp"
@@ -167,7 +167,7 @@ Response::Status StochasticReleaseTestProbe::communicateInitInfo(
 
 int StochasticReleaseTestProbe::computePValues() {
    int status                        = PV_SUCCESS;
-   HyPerLayer *layer                 = getTargetLayer();
+   BaseLayer *layer                  = getTargetLayer();
    BasePublisherComponent *publisher = layer->getComponentByType<BasePublisherComponent>();
    int nf                            = publisher->getLayerLoc()->nf;
    auto *preWeights                  = mConn->getComponentByType<WeightsPair>()->getPreWeights();

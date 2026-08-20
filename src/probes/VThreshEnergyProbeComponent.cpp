@@ -18,7 +18,7 @@ Response::Status VThreshEnergyProbeComponent::communicateInitInfo(
    return EnergyProbeComponent::communicateInitInfo(message);
 }
 
-void VThreshEnergyProbeComponent::initializeState(HyPerLayer *targetLayer) {
+void VThreshEnergyProbeComponent::initializeState(BaseLayer *targetLayer) {
    auto *activityComponent = targetLayer->getComponentByType<ActivityComponent>();
    FatalIf(
          activityComponent == nullptr,

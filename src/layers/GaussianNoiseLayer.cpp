@@ -13,7 +13,7 @@ GaussianNoiseLayer::GaussianNoiseLayer(char const *name, PVParams *params, Commu
 GaussianNoiseLayer::~GaussianNoiseLayer() {}
 
 void GaussianNoiseLayer::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+   BaseLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *GaussianNoiseLayer::createActivityComponent() {

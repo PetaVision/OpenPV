@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
    auto *inputPublisher  = inputLayer->getComponentByType<PV::BasePublisherComponent>();
    auto *regionLayer     = getObjectFromName<PV::InputRegionLayer>(std::string("InputRegion"), hc);
    auto *regionPublisher = regionLayer->getComponentByType<PV::BasePublisherComponent>();
-   auto *correctRegion   = getObjectFromName<PV::HyPerLayer>(std::string("CorrectInputRegion"), hc);
+   auto *correctRegion   = getObjectFromName<PV::InputLayer>(std::string("CorrectInputRegion"), hc);
    auto *correctPublisher = correctRegion->getComponentByType<PV::BasePublisherComponent>();
 
    verifyLayerLocs(inputPublisher, regionPublisher);
@@ -82,10 +82,6 @@ char const *objectType<PV::InputLayer>() {
 template <>
 char const *objectType<PV::InputRegionLayer>() {
    return "InputRegionLayer";
-}
-template <>
-char const *objectType<PV::HyPerLayer>() {
-   return "HyPerLayer";
 }
 
 void verifyLayerLocs(

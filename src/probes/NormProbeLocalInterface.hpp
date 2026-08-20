@@ -5,7 +5,7 @@
 #include "components/BasePublisherComponent.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeComponent.hpp"
 #include "probes/ProbeData.hpp"
@@ -30,7 +30,7 @@ class NormProbeLocalInterface : public ProbeComponent {
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
 
-   virtual void initializeState(HyPerLayer *targetLayer);
+   virtual void initializeState(BaseLayer *targetLayer);
    virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void storeValues(double simTime);
 
@@ -42,26 +42,26 @@ class NormProbeLocalInterface : public ProbeComponent {
    void initialize(char const *objName, PVParams *params);
 
    float const *getMaskBuffer() const { return mMaskBuffer; }
-   HyPerLayer *getMaskLayer() { return mMaskLayer; }
-   HyPerLayer const *getMaskLayer() const { return mMaskLayer; }
+   BaseLayer *getMaskLayer() { return mMaskLayer; }
+   BaseLayer const *getMaskLayer() const { return mMaskLayer; }
    float const *getTargetBuffer() const { return mTargetBuffer; }
-   HyPerLayer *getTargetLayer() { return mTargetLayer; }
-   HyPerLayer const *getTargetLayer() const { return mTargetLayer; }
+   BaseLayer *getTargetLayer() { return mTargetLayer; }
+   BaseLayer const *getTargetLayer() const { return mTargetLayer; }
 
   private:
    virtual void calculateNorms(double simTime, ProbeData<double> &values) const = 0;
 
    void checkMaskLayerDimensions() const;
 
-   float const *findDataBuffer(HyPerLayer *layer) const;
+   float const *findDataBuffer(BaseLayer *layer) const;
 
   private:
    float const *mMaskBuffer = nullptr;
-   HyPerLayer *mMaskLayer   = nullptr;
+   BaseLayer *mMaskLayer   = nullptr;
    char *mMaskLayerName     = nullptr;
    ProbeDataBuffer<double> mStoredValues;
    float const *mTargetBuffer = nullptr;
-   HyPerLayer *mTargetLayer   = nullptr;
+   BaseLayer *mTargetLayer   = nullptr;
 };
 
 } // namespace PV

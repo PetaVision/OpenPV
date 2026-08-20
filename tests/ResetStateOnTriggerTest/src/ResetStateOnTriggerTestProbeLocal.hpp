@@ -3,12 +3,12 @@
 
 #include "structures/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "probes/ProbeComponent.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/ProbeDataBuffer.hpp"
 
-using PV::HyPerLayer;
+using PV::BaseLayer;
 using PV::ParamsIOFlag;
 using PV::ProbeComponent;
 using PV::ProbeData;
@@ -21,7 +21,7 @@ class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
    virtual ~ResetStateOnTriggerTestProbeLocal() {}
 
    void clearStoredValues();
-   void initializeState(HyPerLayer *targetLayer);
+   void initializeState(BaseLayer *targetLayer);
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag) {}
    void storeValues(double simTime);
 
@@ -40,7 +40,7 @@ class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
   private:
    ProbeDataBuffer<int> mDiscrepancies;
    ProbeDataBuffer<int> mStoredValues;
-   HyPerLayer *mTargetLayer      = nullptr;
+   BaseLayer *mTargetLayer      = nullptr;
    float const *mTargetLayerData = nullptr;
    ;
 };

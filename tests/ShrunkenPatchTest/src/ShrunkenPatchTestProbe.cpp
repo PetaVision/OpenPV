@@ -11,7 +11,7 @@
 #include <components/LayerGeometry.hpp>
 #include <structures/PVLayerLoc.hpp>
 #include <io/PVParams.hpp>
-#include <layers/HyPerLayer.hpp>
+#include <layers/BaseLayer.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
 #include <probes/ProbeData.hpp>
 #include <probes/StatsProbeAggregator.hpp>
@@ -40,7 +40,7 @@ ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
 }
 
 void ShrunkenPatchTestProbe::checkStats() {
-   HyPerLayer *l         = getTargetLayer();
+   BaseLayer *l          = getTargetLayer();
    const PVLayerLoc *loc = l->getLayerLoc();
    long numNeurons       = l->getNumNeurons();
 

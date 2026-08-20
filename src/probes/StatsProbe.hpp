@@ -9,7 +9,7 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeTriggerComponent.hpp"
 #include "probes/StatsProbeAggregator.hpp"
@@ -35,8 +35,8 @@ class StatsProbe : public BaseObject {
    StatsProbe(char const *name, PVParams *params, Communicator const *comm);
    virtual ~StatsProbe();
 
-   HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
-   HyPerLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
+   BaseLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
+   BaseLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
    char const *getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
 
   protected:

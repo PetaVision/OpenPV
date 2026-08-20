@@ -3,7 +3,7 @@
 
 #include "columns/Messages.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
 #include "probes/ProbeComponent.hpp"
@@ -40,7 +40,7 @@ class EnergyProbeComponent : public ProbeComponent {
    virtual ~EnergyProbeComponent();
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
-   virtual void initializeState(HyPerLayer *targetLayer) {}
+   virtual void initializeState(BaseLayer *targetLayer) {}
    virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    double getCoefficient() const { return mCoefficient; }

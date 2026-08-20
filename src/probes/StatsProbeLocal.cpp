@@ -80,7 +80,7 @@ void StatsProbeLocal::initialize(char const *objName, PVParams *params) {
    setBufferParam<BufferParamUserSpecified>(objName, params);
 }
 
-void StatsProbeLocal::initializeState(HyPerLayer *targetLayer) { mTargetLayer = targetLayer; }
+void StatsProbeLocal::initializeState(BaseLayer *targetLayer) { mTargetLayer = targetLayer; }
 
 void StatsProbeLocal::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    mBufferParam->ioParam_buffer(ioFlag);

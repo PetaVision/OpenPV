@@ -5,7 +5,7 @@
 
 #include <columns/buildandrun.hpp>
 #include <components/BasePublisherComponent.hpp>
-#include <layers/HyPerLayer.hpp>
+#include <layers/InputLayer.hpp>
 
 int customexit(HyPerCol *hc, int argc, char **argv);
 
@@ -23,7 +23,7 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
       InfoLog().printf(
             "Checking whether input layer has all values equal to %f ...\n", (double)correctvalue);
    }
-   HyPerLayer *inputlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("input"));
+   InputLayer *inputlayer = dynamic_cast<InputLayer *>(hc->getObjectFromName("input"));
    FatalIf(inputlayer == nullptr, "No layer named \"input\".\n");
    auto *inputpublisher  = inputlayer->getComponentByType<BasePublisherComponent>();
    PVLayerLoc const *loc = inputpublisher->getLayerLoc();

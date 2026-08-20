@@ -8,7 +8,7 @@
  */
 
 #include <columns/buildandrun.hpp>
-#include <layers/HyPerLayer.hpp>
+#include <layers/BaseLayer.hpp>
 
 int customexit(HyPerCol *hc, int argc, char **argv);
 // customexit is for doing things after the run completes but before the HyPerCol is deleted.
@@ -32,7 +32,7 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
 }
 
 bool checkHalo(HyPerCol *hc, std::string const &layerName, int lt, int rt, int dn, int up) {
-   HyPerLayer *layer  = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(layerName));
+   BaseLayer *layer   = dynamic_cast<BaseLayer *>(hc->getObjectFromName(layerName));
    PVHalo const &halo = layer->getLayerLoc()->halo;
    bool passed        = true;
    if (halo.lt != lt) {

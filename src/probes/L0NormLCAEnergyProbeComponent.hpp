@@ -3,7 +3,7 @@
 
 #include "columns/Messages.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/EnergyProbeComponent.hpp"
 #include <memory>
@@ -32,7 +32,7 @@ class L0NormLCAEnergyProbeComponent : public EnergyProbeComponent {
    virtual ~L0NormLCAEnergyProbeComponent() {}
 
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
-   virtual void initializeState(HyPerLayer *targetLayer) override;
+   virtual void initializeState(BaseLayer *targetLayer) override;
 
   protected:
    L0NormLCAEnergyProbeComponent() {}

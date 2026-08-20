@@ -15,7 +15,7 @@
 namespace PV {
 
 /**
- * A class whose activity buffer has a nonzero value whereever an associated
+ * A class whose activity buffer has a nonzero value wherever an associated
  * InputLayer's activity buffer is occupied by pixels from the image (as opposed
  * to padding created by offsetting or resizing), and zero otherwise
  */

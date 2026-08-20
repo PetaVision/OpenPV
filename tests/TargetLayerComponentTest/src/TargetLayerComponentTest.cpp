@@ -3,7 +3,7 @@
 #include <columns/PV_Init.hpp>
 #include <include/pv_common.h>
 #include <io/PVParams.hpp>
-#include <layers/HyPerLayer.hpp>
+#include <layers/BaseLayer.hpp>
 #include <observerpattern/ObserverTable.hpp>
 #include <probes/TargetLayerComponent.hpp>
 #include <utils/PVAssert.hpp>
@@ -14,7 +14,7 @@
 #include <string>
 
 using PV::HyPerCol;
-using PV::HyPerLayer;
+using PV::BaseLayer;
 using PV::PV_Init;
 using PV::TargetLayerComponent;
 
@@ -79,10 +79,10 @@ int run(PV::PV_Init &pv_init) {
          nameFromTargetLayerObject,
          layerName.c_str());
 
-   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hypercol.getObjectFromName(layerName));
+   BaseLayer *layer = dynamic_cast<BaseLayer *>(hypercol.getObjectFromName(layerName));
    pvAssert(layer != nullptr);
 
-   HyPerLayer *layerFromTargetLayerObj = targetLayerObj.getTargetLayer();
+   BaseLayer *layerFromTargetLayerObj = targetLayerObj.getTargetLayer();
    FatalIf(
          layerFromTargetLayerObj != layer,
          "TargetLayerComponent::getTargetLayer() failed (return value %p instead of %p)\n",

@@ -3,7 +3,7 @@
 
 #include "columns/Messages.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeComponent.hpp"
 #include <memory>
@@ -22,8 +22,8 @@ class TargetLayerComponent : public ProbeComponent {
    Response::Status communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   HyPerLayer *getTargetLayer() { return mTargetLayer; }
-   HyPerLayer const *getTargetLayer() const { return mTargetLayer; }
+   BaseLayer *getTargetLayer() { return mTargetLayer; }
+   BaseLayer const *getTargetLayer() const { return mTargetLayer; }
    char const *getTargetLayerName() const { return mTargetLayerName; }
 
   protected:
@@ -32,7 +32,7 @@ class TargetLayerComponent : public ProbeComponent {
 
   private:
    char *mTargetLayerName   = nullptr;
-   HyPerLayer *mTargetLayer = nullptr;
+   BaseLayer *mTargetLayer = nullptr;
 
 }; // class TargetLayerComponent
 

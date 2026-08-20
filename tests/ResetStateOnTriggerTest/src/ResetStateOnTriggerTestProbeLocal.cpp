@@ -58,7 +58,7 @@ void ResetStateOnTriggerTestProbeLocal::initialize(char const *objName, PVParams
    ProbeComponent::initialize(objName, params);
 }
 
-void ResetStateOnTriggerTestProbeLocal::initializeState(HyPerLayer *targetLayer) {
+void ResetStateOnTriggerTestProbeLocal::initializeState(BaseLayer *targetLayer) {
    mTargetLayer          = targetLayer;
    auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(

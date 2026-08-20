@@ -9,7 +9,7 @@
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
 #include <include/pv_common.h>
-#include <layers/HyPerLayer.hpp>
+#include <layers/InputLayer.hpp>
 #include <utils/PVLog.hpp>
 
 #include <cstdlib>
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 // The problem of what to do if comparison reports zero when given
 // nonzero input is best left for a different test.
 int checkProbesOnExit(HyPerCol *hc, int argc, char *argv[]) {
-   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("OriginalMovie"));
+   InputLayer *layer = dynamic_cast<InputLayer *>(hc->getObjectFromName("OriginalMovie"));
    FatalIf(!layer, "No layer named \"OriginalMovie\".\n");
    TestNotAlwaysAllZerosProbe *testNonzero =
          dynamic_cast<TestNotAlwaysAllZerosProbe *>(hc->getObjectFromName("OriginalMovieProbe"));

@@ -7,7 +7,7 @@
 #include "structures/PVLayerLoc.hpp"
 #include "include/pv_common.h"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "probes/ProbeData.hpp"
@@ -26,20 +26,20 @@ using namespace PV;
 int checkStoredValues(
       ProbeDataBuffer<double> const &storedValues,
       std::vector<std::vector<double>> const &correctValues);
-double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer);
-double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *maskLayer);
-HyPerLayer *findLayer(std::string const &name, HyPerCol &hc);
+double computeCorrectValue(int batchIndex, BaseLayer *targetLayer);
+double computeCorrectValue(int batchIndex, BaseLayer *targetLayer, BaseLayer *maskLayer);
+BaseLayer *findLayer(std::string const &name, HyPerCol &hc);
 std::shared_ptr<LayerUpdateStateMessage>
 makeUpdateMessage(double simTime, double deltaTime, bool *isPending, bool *hasActed);
-L1NormProbeLocal makeProbeLocal(char const *name, HyPerCol &hc, HyPerLayer *targetLayer);
+L1NormProbeLocal makeProbeLocal(char const *name, HyPerCol &hc, BaseLayer *targetLayer);
 int run(PV_Init *pv_init_obj);
 int runNoMask(PV_Init *pv_init_obj);
 int runWithMask(PV_Init *pv_init_obj);
 int runWithSingleFeatureMask(PV_Init *pv_init_obj);
 void updateLayers(
       double simTime,
-      HyPerLayer *targetLayer,
-      HyPerLayer *maskLayer,
+      BaseLayer *targetLayer,
+      BaseLayer *maskLayer,
       L1NormProbeLocal &probeLocal,
       std::vector<double> &correctValues);
 
@@ -82,7 +82,7 @@ int checkStoredValues(
    return status;
 }
 
-L1NormProbeLocal makeProbeLocal(char const *name, HyPerCol &hc, HyPerLayer *targetLayer) {
+L1NormProbeLocal makeProbeLocal(char const *name, HyPerCol &hc, BaseLayer *targetLayer) {
    PVParams probeParams(
          "input/L1NormProbeLocalTest.params",
          static_cast<size_t>(3),
@@ -120,7 +120,7 @@ makeUpdateMessage(double simTime, double deltaTime, bool *isPending, bool *hasAc
    return updateMessage;
 }
 
-double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer) {
+double computeCorrectValue(int batchIndex, BaseLayer *targetLayer) {
    auto *targetLayerPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
 
    long numExtended        = targetLayer->getNumExtended();
@@ -144,7 +144,7 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer) {
    return sum;
 }
 
-double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *maskLayer) {
+double computeCorrectValue(int batchIndex, BaseLayer *targetLayer, BaseLayer *maskLayer) {
    if (maskLayer == nullptr) {
       return computeCorrectValue(batchIndex, targetLayer);
    }
@@ -226,9 +226,9 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *
    return sum;
 }
 
-HyPerLayer *findLayer(std::string const &name, HyPerCol &hc) {
+BaseLayer *findLayer(std::string const &name, HyPerCol &hc) {
    Observer *object  = hc.getObjectFromName(name);
-   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(object);
+   BaseLayer *layer = dynamic_cast<BaseLayer *>(object);
    FatalIf(layer == nullptr, "Unable to find layer named \"%s\".\n", name.c_str());
    return layer;
 }
@@ -255,7 +255,7 @@ int runNoMask(PV_Init *pv_init_obj) {
    HyPerCol hc(pv_init_obj);
    hc.allocateColumn();
 
-   HyPerLayer *targetLayer     = findLayer(std::string("TargetLayer"), hc);
+   BaseLayer *targetLayer     = findLayer(std::string("TargetLayer"), hc);
    L1NormProbeLocal probeLocal = makeProbeLocal("ProbeWithNoMask", hc, targetLayer);
    std::vector<std::vector<double>> correctValues(3);
 
@@ -274,8 +274,8 @@ int runWithMask(PV_Init *pv_init_obj) {
    HyPerCol hc(pv_init_obj);
    hc.allocateColumn();
 
-   HyPerLayer *targetLayer     = findLayer(std::string("TargetLayer"), hc);
-   HyPerLayer *maskLayer       = findLayer(std::string("Layer3Features"), hc);
+   BaseLayer *targetLayer     = findLayer(std::string("TargetLayer"), hc);
+   BaseLayer *maskLayer       = findLayer(std::string("Layer3Features"), hc);
    L1NormProbeLocal probeLocal = makeProbeLocal("ProbeWith3FeatureMask", hc, targetLayer);
    std::vector<std::vector<double>> correctValues(3);
 
@@ -294,8 +294,8 @@ int runWithSingleFeatureMask(PV_Init *pv_init_obj) {
    HyPerCol hc(pv_init_obj);
    hc.allocateColumn();
 
-   HyPerLayer *targetLayer     = findLayer(std::string("TargetLayer"), hc);
-   HyPerLayer *maskLayer       = findLayer(std::string("Layer1Feature"), hc);
+   BaseLayer *targetLayer     = findLayer(std::string("TargetLayer"), hc);
+   BaseLayer *maskLayer       = findLayer(std::string("Layer1Feature"), hc);
    L1NormProbeLocal probeLocal = makeProbeLocal("ProbeWith1FeatureMask", hc, targetLayer);
    std::vector<std::vector<double>> correctValues(3);
 
@@ -311,8 +311,8 @@ int runWithSingleFeatureMask(PV_Init *pv_init_obj) {
 
 void updateLayers(
       double simTime,
-      HyPerLayer *targetLayer,
-      HyPerLayer *maskLayer,
+      BaseLayer *targetLayer,
+      BaseLayer *maskLayer,
       L1NormProbeLocal &probeLocal,
       std::vector<double> &correctValues) {
    int phase        = 0;

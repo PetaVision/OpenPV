@@ -1,11 +1,12 @@
 #include "ANNLayerLocator.hpp"
+#include "layers/BaseLayer.hpp"
 #include "probes/TargetLayerComponent.hpp"
 
 namespace PV {
 
 ANNActivityBuffer const *
 locateANNActivityBuffer(std::shared_ptr<TargetLayerComponent> targetLayerComponent) {
-   HyPerLayer *targetLayer = targetLayerComponent->getTargetLayer();
+   BaseLayer *targetLayer = targetLayerComponent->getTargetLayer();
    if (targetLayer == nullptr) {
       ErrorLog().printf(
             "targetLayerComponent \"%s\" target layer is null\n",

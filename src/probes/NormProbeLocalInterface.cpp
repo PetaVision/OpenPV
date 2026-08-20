@@ -45,7 +45,7 @@ Response::Status NormProbeLocalInterface::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    Response::Status status;
    if (mMaskLayer == nullptr and mMaskLayerName != nullptr and mMaskLayerName[0] != '\0') {
-      mMaskLayer = message->mObjectTable->findObject<HyPerLayer>(mMaskLayerName);
+      mMaskLayer = message->mObjectTable->findObject<BaseLayer>(mMaskLayerName);
       FatalIf(
             mMaskLayer == nullptr,
             "Probe %s maskLayerName \"%s\" is not a layer in the column.\n",
@@ -59,7 +59,7 @@ Response::Status NormProbeLocalInterface::communicateInitInfo(
    return status;
 }
 
-float const *NormProbeLocalInterface::findDataBuffer(HyPerLayer *layer) const {
+float const *NormProbeLocalInterface::findDataBuffer(BaseLayer *layer) const {
    auto *layerData = layer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          layerData == nullptr,
@@ -73,7 +73,7 @@ void NormProbeLocalInterface::initialize(char const *objName, PVParams *params) 
    ProbeComponent::initialize(objName, params);
 }
 
-void NormProbeLocalInterface::initializeState(HyPerLayer *targetLayer) {
+void NormProbeLocalInterface::initializeState(BaseLayer *targetLayer) {
    mTargetLayer  = targetLayer;
    mTargetBuffer = findDataBuffer(targetLayer);
    if (mMaskLayer) {

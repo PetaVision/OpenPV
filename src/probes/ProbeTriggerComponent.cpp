@@ -1,5 +1,5 @@
 #include "ProbeTriggerComponent.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
@@ -15,7 +15,7 @@ ProbeTriggerComponent::~ProbeTriggerComponent() { free(mTriggerLayerName); }
 Response::Status ProbeTriggerComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mTriggerLayerFlag and !mTriggerControl) {
-      auto triggerLayer = message->mObjectTable->findObject<HyPerLayer>(mTriggerLayerName);
+      auto triggerLayer = message->mObjectTable->findObject<BaseLayer>(mTriggerLayerName);
       FatalIf(
             triggerLayer == nullptr,
             "Probe %s triggerLayer \"%s\" is not a layer in the HyPerCol.\n",

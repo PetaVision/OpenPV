@@ -1,11 +1,11 @@
 #ifndef GAUSSIANNOISELAYER_HPP__
 #define GAUSSIANNOISELAYER_HPP__
 
-#include "InputLayer.hpp"
+#include "BaseLayer.hpp"
 
 namespace PV {
 
-class GaussianNoiseLayer : public HyPerLayer {
+class GaussianNoiseLayer : public BaseLayer {
 
   public:
    GaussianNoiseLayer(char const *name, PVParams *params, Communicator const *comm);

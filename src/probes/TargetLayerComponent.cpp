@@ -13,7 +13,7 @@ TargetLayerComponent::~TargetLayerComponent() { free(mTargetLayerName); }
 Response::Status TargetLayerComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mTargetLayer == nullptr) {
-      mTargetLayer = message->mObjectTable->findObject<HyPerLayer>(mTargetLayerName);
+      mTargetLayer = message->mObjectTable->findObject<BaseLayer>(mTargetLayerName);
       FatalIf(
             mTargetLayer == nullptr,
             "Probe %s targetLayer \"%s\" is not a layer in the column.\n",

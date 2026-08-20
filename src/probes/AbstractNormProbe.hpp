@@ -6,7 +6,7 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/EnergyProbeComponent.hpp"
 #include "probes/NormProbeAggregator.hpp"
@@ -25,8 +25,8 @@ class AbstractNormProbe : public ProbeInterface {
    AbstractNormProbe(char const *name, PVParams *params, Communicator const *comm);
    virtual ~AbstractNormProbe() {}
 
-   HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
-   HyPerLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
+   BaseLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
+   BaseLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
    char const *getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
 
   protected:

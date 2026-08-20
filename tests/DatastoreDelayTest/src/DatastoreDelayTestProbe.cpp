@@ -7,7 +7,7 @@
 
 #include "DatastoreDelayTestProbe.hpp"
 #include "include/pv_common.h"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "probes/ProbeData.hpp"
 #include "probes/StatsProbeTypes.hpp"
 #include "probes/VMembraneBufferStatsProbeLocal.hpp"
@@ -38,7 +38,7 @@ void DatastoreDelayTestProbe::checkStats() {
    double simTime        = stats.getTimestamp();
    int status            = PV_SUCCESS;
    int nbatch            = static_cast<int>(stats.size());
-   HyPerLayer *l         = getTargetLayer();
+   BaseLayer *l          = getTargetLayer();
    double correctValue   = std::min(std::max(simTime - 1.0, 0.0), (double)numDelayLevels);
    auto ioMPIBlock       = getCommunicator()->getIOMPIBlock();
    int globalBatchOffset = nbatch * (ioMPIBlock->getStartBatch() + ioMPIBlock->getBatchIndex());

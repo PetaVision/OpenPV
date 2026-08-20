@@ -20,7 +20,7 @@ Response::Status L0NormLCAEnergyProbeComponent::communicateInitInfo(
    return EnergyProbeComponent::communicateInitInfo(message);
 }
 
-void L0NormLCAEnergyProbeComponent::initializeState(HyPerLayer *targetLayer) {
+void L0NormLCAEnergyProbeComponent::initializeState(BaseLayer *targetLayer) {
    auto *activityComponent = targetLayer->getComponentByType<ActivityComponent>();
    FatalIf(
          activityComponent == nullptr,

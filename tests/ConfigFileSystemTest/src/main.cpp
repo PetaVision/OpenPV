@@ -6,6 +6,7 @@
 #include <columns/buildandrun.hpp>
 #include <connections/HyPerConn.hpp>
 #include <layers/HyPerLayer.hpp>
+#include <layers/InputLayer.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(hc == nullptr, "%s failed to build HyPerCol.\n", argv[0]);
-   HyPerLayer *inputLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Input"));
+   InputLayer *inputLayer = dynamic_cast<InputLayer *>(hc->getObjectFromName("Input"));
    FatalIf(inputLayer == nullptr, "%s failed to build input layer.\n", argv[0]);
    HyPerLayer *outputLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Output"));
    FatalIf(outputLayer == nullptr, "%s failed to build output layer.\n", argv[0]);

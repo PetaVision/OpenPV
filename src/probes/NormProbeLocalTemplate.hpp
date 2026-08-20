@@ -5,7 +5,7 @@
 #include "components/BasePublisherComponent.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/BaseLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/NormProbeLocalInterface.hpp"
 #include "probes/ProbeData.hpp"
@@ -24,7 +24,7 @@ class NormProbeLocalTemplate : public NormProbeLocalInterface {
    NormProbeLocalTemplate(char const *objName, PVParams *params);
    virtual ~NormProbeLocalTemplate() {}
 
-   virtual void initializeState(HyPerLayer *targetLayer) override;
+   virtual void initializeState(BaseLayer *targetLayer) override;
 
   protected:
    NormProbeLocalTemplate() {}
@@ -61,7 +61,7 @@ void NormProbeLocalTemplate<C>::initialize(char const *objName, PVParams *params
 }
 
 template <class C>
-void NormProbeLocalTemplate<C>::initializeState(HyPerLayer *targetLayer) {
+void NormProbeLocalTemplate<C>::initializeState(BaseLayer *targetLayer) {
    NormProbeLocalInterface::initializeState(targetLayer);
    mCostFunctionSum = createCostFunctionSum();
 }
