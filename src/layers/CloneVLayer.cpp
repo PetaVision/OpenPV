@@ -24,11 +24,11 @@ CloneVLayer::CloneVLayer() {
 CloneVLayer::~CloneVLayer() {}
 
 void CloneVLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+   BaseLayer::initialize(name, params, comm);
 }
 
 void CloneVLayer::fillComponentTable() {
-   HyPerLayer::fillComponentTable();
+   BaseLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam);
@@ -42,8 +42,6 @@ OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
 LayerGeometry *CloneVLayer::createLayerGeometry() {
    return new CloneLayerGeometry(getName(), parameters(), mCommunicator);
 }
-
-LayerInputBuffer *CloneVLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *CloneVLayer::createActivityComponent() {
    return new CloneActivityComponent<CloneInternalStateBuffer, HyPerActivityBuffer>(
