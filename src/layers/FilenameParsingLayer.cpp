@@ -22,14 +22,12 @@ FilenameParsingLayer::FilenameParsingLayer(
 FilenameParsingLayer::~FilenameParsingLayer() {}
 
 void FilenameParsingLayer::fillComponentTable() {
-   HyPerLayer::fillComponentTable();
+   BaseLayer::fillComponentTable();
    mInputLayerNameParam = createInputLayerNameParam();
    if (mInputLayerNameParam) {
       addUniqueComponent(mInputLayerNameParam);
    }
 }
-
-LayerInputBuffer *FilenameParsingLayer::createLayerInput() { return nullptr; }
 
 LayerUpdateController *FilenameParsingLayer::createLayerUpdateController() {
    return new FilenameParsingLayerUpdateController(getName(), parameters(), mCommunicator);

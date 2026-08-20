@@ -19,18 +19,16 @@ BackgroundLayer::BackgroundLayer(const char *name, PVParams *params, Communicato
 BackgroundLayer::~BackgroundLayer() {}
 
 void BackgroundLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+   BaseLayer::initialize(name, params, comm);
 }
 
 void BackgroundLayer::fillComponentTable() {
-   HyPerLayer::fillComponentTable();
+   BaseLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam);
    }
 }
-
-LayerInputBuffer *BackgroundLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *BackgroundLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<BackgroundActivityBuffer>(

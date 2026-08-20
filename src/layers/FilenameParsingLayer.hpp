@@ -7,15 +7,15 @@
 #ifndef FILENAMEPARSINGLAYER_HPP_
 #define FILENAMEPARSINGLAYER_HPP_
 
-#include "layers/HyPerLayer.hpp"
 
 #include "components/InputLayerNameParam.hpp"
+#include "layers/BaseLayer.hpp"
 #include "layers/InputLayer.hpp"
 #include <string>
 
 namespace PV {
 
-class FilenameParsingLayer : public HyPerLayer {
+class FilenameParsingLayer : public BaseLayer {
   public:
    FilenameParsingLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~FilenameParsingLayer();
@@ -26,7 +26,6 @@ class FilenameParsingLayer : public HyPerLayer {
   protected:
    virtual void fillComponentTable() override;
    virtual LayerUpdateController *createLayerUpdateController() override;
-   virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual InputLayerNameParam *createInputLayerNameParam();
 }; // end class FilenameParsingLayer

@@ -6,7 +6,7 @@
 #ifndef BINNINGLAYER_HPP_
 #define BINNINGLAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "BaseLayer.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 
 namespace PV {
@@ -26,7 +26,7 @@ namespace PV {
  * in the documentation for those parameters.
  */
 
-class BinningLayer : public HyPerLayer {
+class BinningLayer : public BaseLayer {
   public:
    BinningLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~BinningLayer();
@@ -36,7 +36,6 @@ class BinningLayer : public HyPerLayer {
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual void fillComponentTable() override;
-   virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
 }; // class BinningLayer

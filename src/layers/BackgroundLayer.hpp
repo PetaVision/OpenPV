@@ -10,7 +10,7 @@
 #ifndef BACKGROUNDLAYER_HPP_
 #define BACKGROUNDLAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "BaseLayer.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 
 namespace PV {
@@ -19,7 +19,7 @@ namespace PV {
  * Background layer clones a layer, adds 1 more feature in the 0 feature idx, and sets the activity
  * to the NOR of everything of that feature (none of the above category)
  */
-class BackgroundLayer : public HyPerLayer {
+class BackgroundLayer : public BaseLayer {
   public:
    BackgroundLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~BackgroundLayer();
@@ -29,7 +29,6 @@ class BackgroundLayer : public HyPerLayer {
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual void fillComponentTable() override;
-   virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
 }; // class BackgroundLayer

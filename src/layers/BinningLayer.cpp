@@ -17,18 +17,16 @@ BinningLayer::BinningLayer(const char *name, PVParams *params, Communicator cons
 BinningLayer::~BinningLayer() {}
 
 void BinningLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+   BaseLayer::initialize(name, params, comm);
 }
 
 void BinningLayer::fillComponentTable() {
-   HyPerLayer::fillComponentTable();
+   BaseLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam);
    }
 }
-
-LayerInputBuffer *BinningLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *BinningLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<BinningActivityBuffer>(

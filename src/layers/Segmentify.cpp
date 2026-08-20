@@ -16,11 +16,11 @@ Segmentify::Segmentify() {
 Segmentify::~Segmentify() {}
 
 void Segmentify::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+   BaseLayer::initialize(name, params, comm);
 }
 
 void Segmentify::fillComponentTable() {
-   HyPerLayer::fillComponentTable();
+   BaseLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam);
@@ -30,8 +30,6 @@ void Segmentify::fillComponentTable() {
 OriginalLayerNameParam *Segmentify::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
 }
-
-LayerInputBuffer *Segmentify::createLayerInput() { return nullptr; }
 
 ActivityComponent *Segmentify::createActivityComponent() {
    return new ActivityComponentActivityOnly<SegmentifyBuffer>(

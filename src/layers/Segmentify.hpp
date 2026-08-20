@@ -1,12 +1,12 @@
 #ifndef SEGMENTIFY_HPP_
 #define SEGMENTIFY_HPP_
 
-#include "HyPerLayer.hpp"
+#include "BaseLayer.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 
 namespace PV {
 
-class Segmentify : public HyPerLayer {
+class Segmentify : public BaseLayer {
   public:
    Segmentify(const char *name, PVParams *params, Communicator const *comm);
    virtual ~Segmentify();
@@ -16,7 +16,6 @@ class Segmentify : public HyPerLayer {
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void fillComponentTable() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
 
 }; // class Segmentify
