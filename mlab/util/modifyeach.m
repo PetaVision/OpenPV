@@ -20,10 +20,15 @@
 %
 % Note that Octave will not allow you to pass @makeFinite directly,
 % so the preceding line is required.
+%
+% progressInterval is an integer argument; if positive, it outputs a progress
+% message after processing [progressInterval] frames. Default is 10.
 
 
 
-function modifyeach(inputFileName, outputFileName, callbackFunction, progressInterval = 10)
+function modifyeach(inputFileName, outputFileName, callbackFunction, progressInterval)
+   isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0; % for compatibility
+   if nargin < 4, progressInterval = 10; end
 
    [data, header] = readpvpfile(inputFileName, 0, 1, 1);
    if header.filetype ~= 4
@@ -35,7 +40,7 @@ function modifyeach(inputFileName, outputFileName, callbackFunction, progressInt
    ny     = header.ny;
    nf     = header.nf;
 
-   printf('Opening %s for writing...\n', outputFileName); fflush(stdout);
+   fprintf('Opening %s for writing...\n', outputFileName); if isOctave, fflush(stdout); end
    fid = fopen(outputFileName, 'w');
    if fid < 0
        error('Unable to open %s', outputFileName);
@@ -67,11 +72,11 @@ function modifyeach(inputFileName, outputFileName, callbackFunction, progressInt
 
    % End copied section
 
-   printf('Starting.\n'); fflush(stdout);
+   fprintf('Starting.\n'); if isOctave, fflush(stdout); end
 
    for index=1:frames
       if ~mod(index, progressInterval)
-         printf('Frame %d of %d\n', index, frames); fflush(stdout);
+         fprintf('Frame %d of %d\n', index, frames); if isOctave, fflush(stdout); end
       end
       
       % Read one frame of data
@@ -91,6 +96,6 @@ function modifyeach(inputFileName, outputFileName, callbackFunction, progressInt
    end
 
    fclose(fid); clear fid;
-   printf('Finished writing %s.\n', outputFileName); fflush(stdout);
+   fprintf('Finished writing %s.\n', outputFileName); if isOctave, fflush(stdout); end
 
 end

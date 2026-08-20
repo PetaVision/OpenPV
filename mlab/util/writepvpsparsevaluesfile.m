@@ -21,6 +21,8 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress)
    % show_progress is a boolean variable; if true, it prints the percentage completed
    % after each PVP frame is written. The default is false.
    
+   isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0; % for compatibility
+
    if nargin < 5 || nargin > 6
        error('writepvpsparsevaluesfile:missingargs', 'writepvpsparsevaluesfile requires 5 or 6 arguments');
    end%if
@@ -120,11 +122,14 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress)
            if progress_timer <= 0
               progress_amount = progress_amount + 1;
               progress_timer = length(data) / 100;
-              printf("%d%% ", progress_amount);
-              fflush(stdout);
+              fprintf("%d%% ", progress_amount);
+              if isOctave, fflush(stdout); end
            end
        end
    end%for
+   if show_progress
+       fprintf("\n"); if isOctave, fflush(stdout); end
+   end%if
    
    fclose(fid); clear fid;
    

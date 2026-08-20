@@ -1,12 +1,17 @@
 %
-% append(inputFileNameA, inputFileNameB, outputFileName, progressInterval)
+% appendpvpfile(inputFileNameA, inputFileNameB, outputFileName, progressInterval)
 % Austin Thresher
 %
 % Appends file B to the end of file A and writes the result to a new file.
 % The operation is performed one frame at a time to avoid memory issues.
 % Only works on filetypes 4 and 6 (Activity and Sparse Values)
+%
+% progressInterval is an integer argument; if positive, it outputs a progress
+% message after processing [progressInterval] frames. Default is 100.
 
-function append(inputFileNameA, inputFileNameB, outputFileName, progressInterval = 100)
+function appendpvpfile(inputFileNameA, inputFileNameB, outputFileName, progressInterval)
+   isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0; % for compatibility
+   if nargin < 4, progressInterval = 100; end
 
    [data, headerA] = readpvpfile(inputFileNameA, 0, 1, 1);
    if headerA.filetype ~= 4 && headerA.filetype ~= 6
@@ -25,13 +30,13 @@ function append(inputFileNameA, inputFileNameB, outputFileName, progressInterval
    ny     = headerA.ny;
    nf     = headerA.nf;
 
-   printf('Opening %s for writing...\n', outputFileName); fflush(stdout);
+   fprintf('Opening %s for writing...\n', outputFileName); if isOctave, fflush(stdout); end
    fid = fopen(outputFileName, 'w');
    if fid < 0
        error('Unable to open %s', outputFileName);
    end
 
-   printf('Starting.\n'); fflush(stdout);
+   fprintf('Starting.\n'); if isOctave, fflush(stdout); end
 
    % Write the correct header for the given filetype
 
@@ -94,7 +99,7 @@ function append(inputFileNameA, inputFileNameB, outputFileName, progressInterval
 
    for index=1:headerA.nbands
       if ~mod(index, progressInterval)
-         printf('File A: Frame %d of %d\n', index, headerA.nbands); fflush(stdout);
+         fprintf('File A: Frame %d of %d\n', index, headerA.nbands); if isOctave, fflush(stdout); end
       end
       
       % Read one frame of data
@@ -118,7 +123,7 @@ function append(inputFileNameA, inputFileNameB, outputFileName, progressInterval
    end
    for index=1:headerB.nbands
       if ~mod(index, progressInterval)
-         printf('File B: Frame %d of %d\n', index, headerB.nbands); fflush(stdout);
+         fprintf('File B: Frame %d of %d\n', index, headerB.nbands); fflush(stdout);
       end
       
       % Read one frame of data
@@ -142,6 +147,6 @@ function append(inputFileNameA, inputFileNameB, outputFileName, progressInterval
    end
 
    fclose(fid); clear fid;
-   printf('Finished writing %s.\n', outputFileName); fflush(stdout);
+   fprintf('Finished writing %s.\n', outputFileName); fflush(stdout);
 
 end
