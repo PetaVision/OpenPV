@@ -1,8 +1,8 @@
-function writepvpactivityfile(filename, data, show_progress = false)
+function writepvpactivityfile(filename, data, show_progress)
    %  writepvpactivityfile.m
    %    Dylan Paiton
    % 
-   % Usage: writepvpactivityfile(filename, data)
+   % Usage: writepvpactivityfile(filename, data, show_progress)
    % filename is the pvp file to be created.  If the file already
    % exists it will be clobbered.
    %
@@ -13,6 +13,11 @@ function writepvpactivityfile(filename, data, show_progress = false)
    % data{k}.time is the timestamp of frame k.
    % data{k}.values is a double array.
    % data{k}.values(x,y,f) is the activity of the neuron at location (x,y,f)
+   %
+   % show_progress is a boolean variable; if true, it prints the percentage completed
+   % after each PVP frame is written. The default is false.
+
+   if nargin < 3, show_progress = false; end
    
    filename = matlabstringtochararray(filename) % hack for compatibility with matlab double-quoted strings
    if isempty(filename) || ~isrow(filename)
@@ -67,9 +72,9 @@ function writepvpactivityfile(filename, data, show_progress = false)
        fwrite(fid,permute(data{frameno}.values(:,:,:),[3 1 2]),'single');
 
        if show_progress
-           progress_timer -= 1;
+           progress_timer = progress_timer - 1;
            if progress_timer <= 0
-              progress_amount += 1;
+              progress_amount = progress_amount + 1;
               progress_timer = length(data) / 100;
               printf("%d%% ", progress_amount);
               fflush(stdout);

@@ -20,7 +20,7 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
          ny = header.ny;
          nf = header.nf;
          num_frames = size(source_data)(1);
-         total_found += num_frames;
+         total_found = total_found + num_frames;
          printf("%d frames.\n", num_frames);
          fflush(stdout);
          source_index = 1;
@@ -38,7 +38,7 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
                result_index++;
             else
                per_batch_left = per_batch;
-               result_index += num_batch - per_batch + 1;
+               result_index = result_index + num_batch - per_batch + 1;
             end%if
          end%for
          i--;
@@ -57,7 +57,7 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
          ny = header.ny;
          nf = header.nf;
          num_frames = size(source_data)(1);
-         total_found += num_frames;
+         total_found = total_found + num_frames;
          printf("%d frames.\n", num_frames);
          fflush(stdout);
          source_index = 1;

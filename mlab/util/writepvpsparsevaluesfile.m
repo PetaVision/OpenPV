@@ -1,4 +1,4 @@
-function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress = false)
+function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress)
    %  writepvpsparsevaluesfile.m
    %    Pete Schultz
    % 
@@ -17,10 +17,15 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress = fa
    % If data{k}.values(j,1)==n and data{k}.values(j,2)==x, then neuron n has activity x.
    %     The neuron with zero-indexed coordinates (x,y,f) in a layer with
    %     dimensions (nx,ny,nf) has index y*(nx*nf)+x*(nf)+f
+   %
+   % show_progress is a boolean variable; if true, it prints the percentage completed
+   % after each PVP frame is written. The default is false.
    
    if nargin < 5 || nargin > 6
        error('writepvpsparsevaluesfile:missingargs', 'writepvpsparsevaluesfile requires 5 or 6 arguments');
    end%if
+
+   if nargin < 6, show_progress = false; end
    
    filename = matlabstringtochararray(filename); % hack for compatibility with matlab double-quoted strings
    if isempty(filename) || ~isrow(filename)
@@ -111,9 +116,9 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress = fa
        end%if
 
        if show_progress
-           progress_timer -= 1;
+           progress_timer = progress_timer - 1;
            if progress_timer <= 0
-              progress_amount += 1;
+              progress_amount = progress_amount + 1;
               progress_timer = length(data) / 100;
               printf("%d%% ", progress_amount);
               fflush(stdout);

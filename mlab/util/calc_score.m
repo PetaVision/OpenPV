@@ -10,7 +10,7 @@ function score = calc_score(estPvp, gtPvp)
       [estVal, estInd] = max(est{i}.values);
       [gtVal, gtInd]   = max(gt{i}.values);
       if estInd == gtInd
-         score += 1;
+         score = score + 1;
       end
    end
    score = (score / total * 100.0);
