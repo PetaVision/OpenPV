@@ -114,9 +114,9 @@ function appendpvpfile(inputFileNameA, inputFileNameB, outputFileName, progressI
          fwrite(fid,count,'uint32');
          if count > 0
             fwrite(fid, data{1}.values(:, 2), 'float32', 4);
-            fseek(fid, -count * 8 - 4, SEEK_CUR);
+            fseek(fid, -count * 8 - 4, 'cof');
             fwrite(fid, data{1}.values(:, 1), 'uint32', 4);
-            fseek(fid, 4, SEEK_CUR);
+            fseek(fid, 4, 'cof');
          end
       end
       clear data;
@@ -138,9 +138,9 @@ function appendpvpfile(inputFileNameA, inputFileNameB, outputFileName, progressI
          fwrite(fid,count,'uint32');
          if count > 0
             fwrite(fid, data{1}.values(:, 2), 'float32', 4);
-            fseek(fid, -count * 8 - 4, SEEK_CUR);
+            fseek(fid, -count * 8 - 4, 'cof');
             fwrite(fid, data{1}.values(:, 1), 'uint32', 4);
-            fseek(fid, 4, SEEK_CUR);
+            fseek(fid, 4, 'cof');
          end
       end
       clear data;

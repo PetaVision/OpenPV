@@ -112,9 +112,9 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress)
        fwrite(fid,count,'uint32');
        if count > 0
           fwrite(fid, data{frameno}.values(:, 2), 'float32', 4);
-          fseek(fid, -count * 8 - 4, SEEK_CUR);
+          fseek(fid, -count * 8 - 4, 'cof');
           fwrite(fid, data{frameno}.values(:, 1), 'uint32', 4);
-          fseek(fid, 4, SEEK_CUR);
+          fseek(fid, 4, 'cof');
        end%if
 
        if show_progress
