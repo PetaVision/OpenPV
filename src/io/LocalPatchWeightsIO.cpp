@@ -463,7 +463,6 @@ std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
    int beginMargin       = (nExtendedPre - nRestrictedPre) / 2;
    int endMargin         = nExtendedPre - nRestrictedPre - beginMargin;
    int start, dim;
-   int dummy1, dummy2, dummy3;
    for (int k = 0; k < nExtendedPre; ++k) {
       PatchGeometry::calcPatchData(
             k,
@@ -476,9 +475,9 @@ std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
             patchSize,
             &dim,
             &start,
-            &dummy1,
-            &dummy2,
-            &dummy3);
+            nullptr,
+            nullptr,
+            nullptr);
       result[0].at(k) = start;
       result[1].at(k) = start + dim;
    }
