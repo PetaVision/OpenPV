@@ -152,6 +152,17 @@ class LocalPatchWeightsIO {
    long calcArborSizeBytes() const;
    long calcFrameSizeBytes() const;
    long calcPatchSizeBytes() const;
+
+   /**
+    * @brief calculates the 1-D locations of starting and stopping indices of
+    * shrunken patches, in postsynaptic patch space.
+    * @details Inputs:
+    *    nExtendedPre     local dimensions of extended presynaptic space
+    *    nRestrictedPre   local dimensions of restricted presynaptic space
+    *    nPreRef          global dimensions of restricted presynaptic space
+    *    nPostRef         global dimensions of restricted postsynaptic space
+    *    patchSize        patch size in postsynaptic space
+    */
    static std::array<std::vector<int>, 2> calcPatchStartsAndStops(
          int nExtendedPre,
          int nRestrictedPre,
