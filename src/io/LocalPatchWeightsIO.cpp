@@ -459,10 +459,11 @@ std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
    float nPreRefFloat    = static_cast<float>(nPreRef);
    float nRestrictedPreF = static_cast<float>(nRestrictedPre);
    float nPostFloat      = std::round(nPostRefFloat / nPreRefFloat * nRestrictedPreF);
-   //quick fix to hopefully resolve the round down error
-   if (nPostFloat<1){
-      nPostFloat=1.0;
-   }
+   // NOTE: revert hotfix
+   // //quick fix to hopefully resolve the round down error
+   // if (nPostFloat<1){
+   //    nPostFloat=1.0;
+   // }
    int nPost             = static_cast<int>(nPostFloat);
    int beginMargin       = (nExtendedPre - nRestrictedPre) / 2;
    int endMargin         = nExtendedPre - nRestrictedPre - beginMargin;
