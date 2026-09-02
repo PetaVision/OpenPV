@@ -68,27 +68,29 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
 
 void LocalPatchWeightsIO::calcExtremeWeights(
       WeightData const &weightDataRegion,
-      int nxRestrictedRegion,
-      int nyRestrictedRegion,
+      int nxPreRestrictedRegion,
+      int nyPreRestrictedRegion,
+      int nxPostRestrictedRegion,
+      int nyPostRestrictedRegion,
       float &minWeight,
       float &maxWeight) const {
-   int nxExtended = nxRestrictedRegion + 2 * getXMargin();
-   int nyExtended = nyRestrictedRegion + 2 * getYMargin();
+   int nxPreExtended = nxPreRestrictedRegion + 2 * getXMargin();
+   int nyPreExtended = nyPreRestrictedRegion + 2 * getYMargin();
    int status     = PV_SUCCESS;
-   if (nxExtended > weightDataRegion.getNumDataPatchesX()) {
+   if (nxPreExtended > weightDataRegion.getNumDataPatchesX()) {
       ErrorLog().printf(
             "calcExtremeWeights() called with NxRestrictedRegion = %d and required margin %d on "
             "either side, but weightDataRegion has only %d patches in the x-direction.\n",
-            nxRestrictedRegion,
+            nxPreRestrictedRegion,
             getXMargin(),
             weightDataRegion.getNumDataPatchesX());
       status = PV_FAILURE;
    }
-   if (nyExtended > weightDataRegion.getNumDataPatchesY()) {
+   if (nyPreExtended > weightDataRegion.getNumDataPatchesY()) {
       ErrorLog().printf(
             "calcExtremeWeights() called with NyRestrictedRegion = %d and required margin %d on "
             "either side, but weightDataRegion has only %d patches in the y-direction.\n",
-            nyRestrictedRegion,
+            nyPreRestrictedRegion,
             getYMargin(),
             weightDataRegion.getNumDataPatchesY());
       status = PV_FAILURE;
@@ -98,13 +100,15 @@ void LocalPatchWeightsIO::calcExtremeWeights(
 
    auto xStartsAndStops = calcPatchStartsAndStops(
          weightDataRegion.getNumDataPatchesX(),
-         nxRestrictedRegion,
+         nxPreRestrictedRegion,
+         nxPostRestrictedRegion,
          getNxRestrictedPre(),
          getNxRestrictedPost(),
          weightDataRegion.getPatchSizeX());
    auto yStartsAndStops = calcPatchStartsAndStops(
          weightDataRegion.getNumDataPatchesY(),
-         nyRestrictedRegion,
+         nyPreRestrictedRegion,
+         nyPostRestrictedRegion,
          getNyRestrictedPre(),
          getNyRestrictedPost(),
          weightDataRegion.getPatchSizeY());
@@ -112,8 +116,8 @@ void LocalPatchWeightsIO::calcExtremeWeights(
    minWeight = FLT_MAX;
    maxWeight = -FLT_MAX;
    for (int a = 0; a < weightDataRegion.getNumArbors(); ++a) {
-      for (int y = 0; y < nyRestrictedRegion + 2 * getYMargin(); ++y) {
-         for (int x = 0; x < nxRestrictedRegion + 2 * getXMargin(); ++x) {
+      for (int y = 0; y < nyPreRestrictedRegion + 2 * getYMargin(); ++y) {
+         for (int x = 0; x < nxPreRestrictedRegion + 2 * getXMargin(); ++x) {
             for (int f = 0; f < nf; ++f) {
                long kIndexInRegion = kIndex(
                      x,
@@ -203,6 +207,8 @@ void LocalPatchWeightsIO::readRegion(
       BufferUtils::WeightHeader const &header,
       int regionNxRestrictedPre,
       int regionNyRestrictedPre,
+      int regionNxRestrictedPost,
+      int regionNyRestrictedPost,
       int regionXStartRestricted,
       int regionYStartRestricted,
       int regionFStartRestricted,
@@ -234,12 +240,14 @@ void LocalPatchWeightsIO::readRegion(
    auto xStartsAndStops = calcPatchStartsAndStops(
          weightData.getNumDataPatchesX(),
          regionNxRestrictedPre,
+         regionNxRestrictedPost,
          getNxRestrictedPre(),
          getNxRestrictedPost(),
          getPatchSizeX());
    auto yStartsAndStops = calcPatchStartsAndStops(
          weightData.getNumDataPatchesY(),
          regionNyRestrictedPre,
+         regionNyRestrictedPost,
          getNyRestrictedPre(),
          getNyRestrictedPost(),
          getPatchSizeY());
@@ -312,6 +320,8 @@ void LocalPatchWeightsIO::writeRegion(
       BufferUtils::WeightHeader const &header,
       int regionNxRestrictedPre,
       int regionNyRestrictedPre,
+      int regionNxRestrictedPost,
+      int regionNyRestrictedPost,
       int regionXStartRestricted,
       int regionYStartRestricted,
       int regionFStartRestricted,
@@ -343,12 +353,14 @@ void LocalPatchWeightsIO::writeRegion(
    auto xStartsAndStops = calcPatchStartsAndStops(
          weightData.getNumDataPatchesX(),
          regionNxRestrictedPre,
+         regionNxRestrictedPost,
          getNxRestrictedPre(),
          getNxRestrictedPost(),
          getPatchSizeX());
    auto yStartsAndStops = calcPatchStartsAndStops(
          weightData.getNumDataPatchesY(),
          regionNyRestrictedPre,
+         regionNyRestrictedPost,
          getNyRestrictedPre(),
          getNyRestrictedPost(),
          getPatchSizeY());
@@ -448,6 +460,7 @@ long LocalPatchWeightsIO::calcPatchSizeBytes() const {
 std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
       int nExtendedPre,
       int nRestrictedPre,
+      int nRestrictedPost,
       int nPreRef,
       int nPostRef,
       int patchSize) {
@@ -455,11 +468,6 @@ std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
    result[0].resize(nExtendedPre);
    result[1].resize(nExtendedPre);
 
-   float nPostRefFloat   = static_cast<float>(nPostRef);
-   float nPreRefFloat    = static_cast<float>(nPreRef);
-   float nRestrictedPreF = static_cast<float>(nRestrictedPre);
-   float nPostFloat      = std::round(nPostRefFloat / nPreRefFloat * nRestrictedPreF);
-   int nPost             = static_cast<int>(nPostFloat);
    int beginMargin       = (nExtendedPre - nRestrictedPre) / 2;
    int endMargin         = nExtendedPre - nRestrictedPre - beginMargin;
    int start, dim;
@@ -469,7 +477,7 @@ std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
             nRestrictedPre,
             beginMargin,
             endMargin,
-            nPost,
+            nRestrictedPost,
             0,
             0,
             patchSize,

@@ -75,8 +75,10 @@ class LocalPatchWeightsIO {
     */
    void calcExtremeWeights(
          WeightData const &weightRegion,
-         int nxRestrictedRegion,
-         int nyRestrictedRegion,
+         int nxPreRestrictedRegion,
+         int nyPreRestrictedRegion,
+         int nxPostRestrictedRegion,
+         int nyPostRestrictedRegion,
          float &minWeight,
          float &maxWeight) const;
    long calcFilePositionFromFrameNumber(int frameNumber) const;
@@ -94,8 +96,10 @@ class LocalPatchWeightsIO {
    void readRegion(
          WeightData &weightData,
          BufferUtils::WeightHeader const &header,
-         int regionNxRestricted,
-         int regionNyRestricted,
+         int regionNxRestrictedPre,
+         int regionNyRestrictedPre,
+         int regionNxRestrictedPost,
+         int regionNyRestrictedPost,
          int regionXStartRestricted,
          int regionYStartRestricted,
          int regionFStartRestricted,
@@ -106,8 +110,10 @@ class LocalPatchWeightsIO {
    void writeRegion(
          WeightData const &weightData,
          BufferUtils::WeightHeader const &header,
-         int regionNxRestricted,
-         int regionNyRestricted,
+         int regionNxRestrictedPre,
+         int regionNyRestrictedPre,
+         int regionNxRestrictedPost,
+         int regionNyRestrictedPost,
          int regionXStartRestricted,
          int regionYStartRestricted,
          int regionFStartRestricted,
@@ -159,6 +165,7 @@ class LocalPatchWeightsIO {
     * @details Inputs:
     *    nExtendedPre     local dimensions of extended presynaptic space
     *    nRestrictedPre   local dimensions of restricted presynaptic space
+    *    nRestrictedPost  local dimensions of restricted postsynaptic space
     *    nPreRef          global dimensions of restricted presynaptic space
     *    nPostRef         global dimensions of restricted postsynaptic space
     *    patchSize        patch size in postsynaptic space
@@ -166,6 +173,7 @@ class LocalPatchWeightsIO {
    static std::array<std::vector<int>, 2> calcPatchStartsAndStops(
          int nExtendedPre,
          int nRestrictedPre,
+         int nRestrictedPost,
          int nPreRef,
          int nPostRef,
          int patchSize);
