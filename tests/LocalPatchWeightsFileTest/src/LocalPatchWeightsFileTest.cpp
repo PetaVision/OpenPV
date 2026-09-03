@@ -439,7 +439,7 @@ int compareWeights(
                float const *patch2 =
                      weights2->getDataFromXYF(a, x + xStartIndex2, y + yStartIndex2, f);
                // Need to compute valid region; should be same for weights 1 and 2
-               int xPatchDim, xPatchStart, yPatchDim, yPatchStart, dummy1, dummy2, dummy3;
+               int xPatchDim, xPatchStart, yPatchDim, yPatchStart;
                PatchGeometry::calcPatchData(
                      x + xStartIndex1,
                      nxRestrictedPre,
@@ -448,7 +448,7 @@ int compareWeights(
                      nxRestrictedPost,
                      0, 0,
                      patchSizeX,
-                     &xPatchDim, &xPatchStart, &dummy1, &dummy2, &dummy3);
+                     &xPatchDim, &xPatchStart, nullptr, nullptr, nullptr);
                PatchGeometry::calcPatchData(
                      y + yStartIndex1,
                      nyRestrictedPre,
@@ -457,7 +457,7 @@ int compareWeights(
                      nyRestrictedPost,
                      0, 0,
                      patchSizeY,
-                     &yPatchDim, &yPatchStart, &dummy1, &dummy2, &dummy3);
+                     &yPatchDim, &yPatchStart, nullptr, nullptr, nullptr);
                for (int ky = yPatchStart; ky < yPatchStart + yPatchDim; ++ky) {
                   for (int kx = xPatchStart; kx < xPatchStart + xPatchDim; ++kx) {
                      for (int kf = 0; kf < patchSizeF; ++kf) {

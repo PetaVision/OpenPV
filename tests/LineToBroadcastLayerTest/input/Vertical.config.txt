@@ -1,0 +1,6 @@
+ParamsFile:input/Vertical.params
+LogFile:Vertical.log
+NumThreads:1
+NumRows:4
+NumColumns:1
+BatchWidth:1

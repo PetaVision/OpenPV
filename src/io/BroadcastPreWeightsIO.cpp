@@ -272,53 +272,8 @@ long BroadcastPreWeightsIO::calcArborSizeBytes() const {
    return sizeBytes;
 }
 
-long BroadcastPreWeightsIO::calcFrameSizeBytes() const {
-   long sizeBytes = mHeaderSize + static_cast<long>(mNumArbors) * calcArborSizeBytes();
-   return sizeBytes;
-}
-
 long BroadcastPreWeightsIO::calcPatchSizeBytes() const {
    return mDataSize * getPatchSizeOverall() + mPatchHeaderSize;
-}
-
-std::array<std::vector<int>, 2> BroadcastPreWeightsIO::calcPatchStartsAndStops(
-      int nExtendedPre,
-      int nRestrictedPre,
-      int nPreRef,
-      int nPostRef,
-      int patchSize) {
-   std::array<std::vector<int>, 2> result;
-   result[0].resize(nExtendedPre);
-   result[1].resize(nExtendedPre);
-
-   float nPostRefFloat   = static_cast<float>(nPostRef);
-   float nPreRefFloat    = static_cast<float>(nPreRef);
-   float nRestrictedPreF = static_cast<float>(nRestrictedPre);
-   float nPostFloat      = std::round(nPostRefFloat / nPreRefFloat * nRestrictedPreF);
-   int nPost             = static_cast<int>(nPostFloat);
-   int beginMargin       = (nExtendedPre - nRestrictedPre) / 2;
-   int endMargin         = nExtendedPre - nRestrictedPre - beginMargin;
-   int start, dim;
-   int dummy1, dummy2, dummy3;
-   for (int k = 0; k < nExtendedPre; ++k) {
-      PatchGeometry::calcPatchData(
-            k,
-            nRestrictedPre,
-            beginMargin,
-            endMargin,
-            nPost,
-            0,
-            0,
-            patchSize,
-            &dim,
-            &start,
-            &dummy1,
-            &dummy2,
-            &dummy3);
-      result[0].at(k) = start;
-      result[1].at(k) = start + dim;
-   }
-   return result;
 }
 
 int BroadcastPreWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) const {

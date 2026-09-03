@@ -98,7 +98,7 @@ class BroadcastPreWeightsIO {
 
    /**
     * Calculate the file position from the indicated frameNumber, which is the frameNumber times
-    * the size of one frame in bytes (see the private function member calcFrameSizeBytes()).
+    * the size of one frame in bytes.
     * @details This is useful when writing checkpoints, because we checkpoint the file position
     * as a byte offset, not the frame number.
     */
@@ -107,7 +107,6 @@ class BroadcastPreWeightsIO {
    /**
     * Calculate the frame number from the indicated filePosition, which is the filePosition
     * divided by the size of one frame in bytes, discarding any remainder.
-    * For the frame size, see the private function member calcFrameSizeBytes().
     * @details This is useful when reading checkpoints, because we checkpoint the file position
     * as a byte offset, not the frame number.
     */
@@ -258,14 +257,7 @@ class BroadcastPreWeightsIO {
 
   private:
    long calcArborSizeBytes() const;
-   long calcFrameSizeBytes() const;
    long calcPatchSizeBytes() const;
-   static std::array<std::vector<int>, 2> calcPatchStartsAndStops(
-         int nExtendedPre,
-         int nRestrictedPre,
-         int nPreRef,
-         int nPostRef,
-         int patchSize);
    int checkHeader(BufferUtils::WeightHeader const &header) const;
    int checkHeaderField(
          int expected, int observed, std::string const &fieldLabel, int oldStatus) const;

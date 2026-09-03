@@ -430,7 +430,9 @@ void PatchGeometry::calcPatchData(
    int restrictedIndex = index - preStartBorder;
    int lPostPatchStartRes =
          calcPatchStartInPost(restrictedIndex, patchSize, numPreRestricted, numPostRestricted);
-   *postPatchUnshrunkenStart = lPostPatchStartRes + postStartBorder;
+   if (postPatchUnshrunkenStart) {
+      *postPatchUnshrunkenStart = lPostPatchStartRes + postStartBorder;
+   }
    int lPostPatchEndRes      = lPostPatchStartRes + patchSize;
 
    if (lPostPatchEndRes < 0) {
@@ -469,10 +471,10 @@ void PatchGeometry::calcPatchData(
    pvAssert(lPostPatchStartRes <= lPostPatchEndRes);
    pvAssert(lPostPatchEndRes <= numPostRestricted);
 
-   *patchDim                 = lPatchDim;
-   *patchStart               = lPatchStart;
-   *postPatchStartRestricted = lPostPatchStartRes;
-   *postPatchStartExtended   = lPostPatchStartRes + postStartBorder;
+   if (patchDim) { *patchDim = lPatchDim; }
+   if (patchStart) { *patchStart = lPatchStart; }
+   if (postPatchStartRestricted) { *postPatchStartRestricted = lPostPatchStartRes; }
+   if (postPatchStartExtended) { *postPatchStartExtended = lPostPatchStartRes + postStartBorder; }
 }
 
 } // end namespace PV

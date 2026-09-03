@@ -220,12 +220,48 @@ class PatchGeometry {
     */
    bool getSelfConnectionFlag() const { return mSelfConnectionFlag; }
 
+   /**
+    * @brief 1-D calculation (x- or y- dimension) for the start of a patch in postsynaptic space,
+    * given the presynaptic index. The calculation does not take shrunken patches into account.
+    * @details
+    * Inputs:
+    * indexRestrictedPre   index in restricted presynaptic coordinates (may be negative)
+    * patchSize            Number of neurons in postsynaptic space of an unshrunken patch
+    * numNeuronsPre        Number of neurons in presynaptic restricted space
+    * numNeuronsPost       Number of neurons in postsynaptic restricted space
+    *
+    * Return value is the index in postsynaptic restricted space of the start of an unshrunken patch
+    * (therefore the value can be negative if the patch size is large and indexRestrictedPre is close
+    * to zero relative to numNeuronsPre).
+    */
    static int calcPatchStartInPost(
          int indexRestrictedPre,
          int patchSize,
          int numNeuronsPre,
          int numNeuronsPost);
 
+   /**
+    * @brief 1-D calculations (x- or y- dimension) for the size and location of a patch in
+    * postsynaptic space, given the presynaptic extended index. The computation takes shrunken
+    * patches into account.
+    * @details Inputs:
+    * index              Presynaptic extended index (0 is the start of the extended region)
+    * numPreRestricted   Number of neurons in presynaptic restricted space
+    * preStartBorder     Number of neurons in the border at the beginning of the extended pre region
+    * preEndBorder       Number of neurons in the border at the end of the extended region
+    * numPostRestricted  Number of neurons in postsynaptic restricted space
+    * postStartBorder    Number of neurons in the border at the beginning of the extended post region
+    * postEndBorder      Number of neurons in the border at the end of the extended post region
+    * patchSize          Number of neurons in postsynaptic space of an unshrunken patch
+    *
+    * Results are placed in pointers to int variables passed as input arguments. Any of the result
+    * pointers may be null, in which case that result is skipped.
+    * patchDim                 Number of postsynaptic neurons in the shrunken patch
+    * patchStart               Index within the unshrunken patch where the shrunken patch begins
+    * postPatchStartRestricted Index in postsynaptic restricted space of the shrunken patch start
+    * postPatchStartExtended   Index in postsynaptic extended space of the shrunken patch start
+    * postPatchUnshrunkenStart Index of start of unshrunken patch, in postsynaptic extended space
+    */
    static void calcPatchData(
          int index,
          int numPreRestricted,
