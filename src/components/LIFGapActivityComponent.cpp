@@ -108,81 +108,28 @@ Response::Status LIFGapActivityComponent::updateActivity(double simTime, double 
    float *V    = mInternalState->getReadWritePointer();
    float *A    = mActivity->getReadWritePointer();
 
-   switch (mMethod) {
-      case 'a':
-         updateActivityArma(
-               nbatch,
-               (long)nx * (long)ny * (long)nf,
-               simTime,
-               deltaTime,
-               nx,
-               ny,
-               nf,
-               getLayerLoc()->halo.lt,
-               getLayerLoc()->halo.rt,
-               getLayerLoc()->halo.dn,
-               getLayerLoc()->halo.up,
-               &mLIFParams,
-               mRandState->getRNG(0),
-               V,
-               Vth,
-               G_E,
-               G_I,
-               G_IB,
-               GSynHead,
-               A,
-               gapStrength);
-         break;
-      case 'b':
-         updateActivityBeginning(
-               nbatch,
-               (long)nx *(long) ny *(long) nf,
-               simTime,
-               deltaTime,
-               nx,
-               ny,
-               nf,
-               getLayerLoc()->halo.lt,
-               getLayerLoc()->halo.rt,
-               getLayerLoc()->halo.dn,
-               getLayerLoc()->halo.up,
-               &mLIFParams,
-               mRandState->getRNG(0),
-               V,
-               Vth,
-               G_E,
-               G_I,
-               G_IB,
-               GSynHead,
-               A,
-               gapStrength);
-         break;
-      case 'o':
-         updateActivityOriginal(
-               nbatch,
-               (long)nx *(long) ny *(long) nf,
-               simTime,
-               deltaTime,
-               nx,
-               ny,
-               nf,
-               getLayerLoc()->halo.lt,
-               getLayerLoc()->halo.rt,
-               getLayerLoc()->halo.dn,
-               getLayerLoc()->halo.up,
-               &mLIFParams,
-               mRandState->getRNG(0),
-               V,
-               Vth,
-               G_E,
-               G_I,
-               G_IB,
-               GSynHead,
-               A,
-               gapStrength);
-         break;
-      default: break;
-   }
+   updateActivityArma(
+         nbatch,
+         (long)nx * (long)ny * (long)nf,
+         simTime,
+         deltaTime,
+         nx,
+         ny,
+         nf,
+         getLayerLoc()->halo.lt,
+         getLayerLoc()->halo.rt,
+         getLayerLoc()->halo.dn,
+         getLayerLoc()->halo.up,
+         &mLIFParams,
+         mRandState->getRNG(0),
+         V,
+         Vth,
+         G_E,
+         G_I,
+         G_IB,
+         GSynHead,
+         A,
+         gapStrength);
    return Response::SUCCESS;
 }
 

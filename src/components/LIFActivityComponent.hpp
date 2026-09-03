@@ -74,6 +74,8 @@ class LIFActivityComponent : public ActivityComponent {
 
    /** @brief tauIB: the time constant for the after-hyperpolarization. */
    virtual void ioParam_tauIB(enum ParamsIOFlag ioFlag);
+
+   // string parameter "method" was marked obsolete on Sep 3, 2026. Only the arma method is used.
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
 
   public:
@@ -196,8 +198,6 @@ class LIFActivityComponent : public ActivityComponent {
 
   protected:
    LIFParams mLIFParams; // used in update state
-   char *mMethodString = nullptr; // 'arma', 'before', or 'original'
-   char mMethod        = 'a'; // 'a', 'b', or 'o', the first character of methodString
 
    RestrictedBuffer *mConductanceE     = nullptr;
    RestrictedBuffer *mConductanceI     = nullptr;

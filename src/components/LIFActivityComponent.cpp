@@ -160,47 +160,30 @@ void LIFActivityComponent::ioParam_tauIB(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "tauIB", &mLIFParams.tauIB, mLIFParams.tauIB);
 }
 
+// string parameter "method" was marked obsolete on Sep 3, 2026. Only the arma method is used.
 void LIFActivityComponent::ioParam_method(enum ParamsIOFlag ioFlag) {
-   // Read the integration method: one of 'arma' (preferred), 'beginning' (deprecated), or
-   // 'original' (deprecated).
-   char const *defaultMethod = "arma";
-   parameters()->ioParamString(
-         ioFlag, getName(), "method", &mMethodString, defaultMethod, true /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(mMethodString);
-      if (mMethodString[0] == '\0') {
-         free(mMethodString);
-         mMethodString = strdup(defaultMethod);
-         if (mMethodString == nullptr) {
+   if (ioFlag == PARAMS_IO_READ and parameters()->stringPresent(getName(), "method")) {
+      char *methodString = nullptr;
+      parameters()->ioParamString(ioFlag, getName(), "method", &methodString, "arma");
+      if (methodString) {
+         if (methodString[0] == 'a') {
+            WarnLog().printf(
+                  "LIF layer \"%s\" parameter \"method\" is obsolete. "
+                  "The arma method is always used.\n", getName());
+         }
+         else {
             Fatal().printf(
-                  "%s: unable to set method string: %s\n", getDescription_c(), strerror(errno));
+                  "LIF layer \"%s\" parameter \"method\" is obsolete. "
+                  "The arma method is always used. Method \"%s\" is invalid.\n",
+                  getName(), methodString);
+   
          }
       }
-      checkMethodString();
-   }
-}
-
-void LIFActivityComponent::checkMethodString() {
-   pvAssert(mMethodString);
-   mMethod = mMethodString[0];
-   if (mMethod != 'o' && mMethod != 'b' && mMethod != 'a') {
-      if (mCommunicator->commRank() == 0) {
-         ErrorLog().printf(
-               "LIFActivityComponent::ioParam_method error.  Layer \"%s\" has method \"%s\".  "
-               "Allowable values are \"arma\", \"beginning\" and \"original\".\n",
-               getName(),
-               mMethodString);
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
-   if (mMethod != 'a') {
-      if (mCommunicator->globalCommRank() == 0) {
+      else {
          WarnLog().printf(
-               "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
-               "preferred.\n",
-               getName(),
-               mMethodString);
+               "LIF layer \"%s\" parameter \"method\" is obsolete. "
+               "Setting \"method = NULL\" is ignored.\n",
+               getName());
       }
    }
 }
@@ -343,246 +326,29 @@ Response::Status LIFActivityComponent::updateActivity(double simTime, double del
    float *V              = mInternalState->getReadWritePointer();
    float *A              = mActivity->getReadWritePointer();
 
-   switch (mMethod) {
-      case 'a':
-         updateActivityArma(
-               nbatch,
-               (long)nx * (long)ny * (long)nf,
-               simTime,
-               deltaTime,
-               nx,
-               ny,
-               nf,
-               getLayerLoc()->halo.lt,
-               getLayerLoc()->halo.rt,
-               getLayerLoc()->halo.dn,
-               getLayerLoc()->halo.up,
-               &mLIFParams,
-               mRandState->getRNG(0),
-               V,
-               Vth,
-               G_E,
-               G_I,
-               G_IB,
-               GSynHead,
-               A);
-         break;
-      case 'b':
-         updateActivityBeginning(
-               nbatch,
-               (long)nx * (long)ny * (long)nf,
-               simTime,
-               deltaTime,
-               nx,
-               ny,
-               nf,
-               getLayerLoc()->halo.lt,
-               getLayerLoc()->halo.rt,
-               getLayerLoc()->halo.dn,
-               getLayerLoc()->halo.up,
-               &mLIFParams,
-               mRandState->getRNG(0),
-               V,
-               Vth,
-               G_E,
-               G_I,
-               G_IB,
-               GSynHead,
-               A);
-         break;
-      case 'o':
-         updateActivityOriginal(
-               nbatch,
-               (long)nx * (long)ny * (long)nf,
-               simTime,
-               deltaTime,
-               nx,
-               ny,
-               nf,
-               getLayerLoc()->halo.lt,
-               getLayerLoc()->halo.rt,
-               getLayerLoc()->halo.dn,
-               getLayerLoc()->halo.up,
-               &mLIFParams,
-               mRandState->getRNG(0),
-               V,
-               Vth,
-               G_E,
-               G_I,
-               G_IB,
-               GSynHead,
-               A);
-         break;
-      default: assert(0); break;
-   }
+   updateActivityArma(
+         nbatch,
+         (long)nx * (long)ny * (long)nf,
+         simTime,
+         deltaTime,
+         nx,
+         ny,
+         nf,
+         getLayerLoc()->halo.lt,
+         getLayerLoc()->halo.rt,
+         getLayerLoc()->halo.dn,
+         getLayerLoc()->halo.up,
+         &mLIFParams,
+         mRandState->getRNG(0),
+         V,
+         Vth,
+         G_E,
+         G_I,
+         G_IB,
+         GSynHead,
+         A);
+
    return Response::SUCCESS;
-}
-
-// updateActivityOriginal uses an Euler scheme for V where the conductances over the entire
-// timestep are taken to be the values calculated at the end of the timestep
-// updateActivityBeginning uses a Heun scheme for V, using values of the conductances at both the
-// beginning and end of the timestep.  Spikes in the input are applied at the beginning of the
-// timestep.
-// updateActivityArma uses an auto-regressive moving average filter for V, applying the GSyn at
-// the start of the timestep and assuming that tau_inf and V_inf vary linearly over the timestep.
-// See van Hateren, Journal of Vision (2005), p. 331.
-//
-void LIFActivityComponent::updateActivityOriginal(
-      const int nbatch,
-      const long numNeurons,
-      const double simTime,
-      const double dt,
-
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      LIFParams *params,
-      taus_uint4 *rnd,
-      float *V,
-      float *Vth,
-      float *G_E,
-      float *G_I,
-      float *G_IB,
-      float const *GSynHead,
-      float *A) {
-   long k;
-
-   float const dtFloat    = static_cast<float>(dt);
-   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
-   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
-   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
-   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
-
-   float const dt_sec = 0.001f * dtFloat; // convert to seconds
-
-   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
-   for (k = 0; k < numNeuronsAcrossBatch; k++) {
-      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
-
-      //
-      // kernel (nonheader part) begins here
-      //
-
-      // local param variables
-      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
-
-      float const GMAX = 10.0f;
-
-      // local variables
-      float l_activ;
-
-      taus_uint4 l_rnd = rnd[k];
-
-      float l_V   = V[k];
-      float l_Vth = Vth[k];
-
-      float l_G_E  = G_E[k];
-      float l_G_I  = G_I[k];
-      float l_G_IB = G_IB[k];
-
-      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float l_GSynExc       = GSynExc[k];
-      float l_GSynInh       = GSynInh[k];
-      float l_GSynInhB      = GSynInhB[k];
-
-      // temporary arrays
-      float tauInf, VmemInf;
-
-      //
-      // start of LIF2_update_exact_linear
-      //
-
-      // define local param variables
-      //
-      tau   = params->tau;
-      Vexc  = params->Vexc;
-      Vinh  = params->Vinh;
-      VinhB = params->VinhB;
-      Vrest = params->Vrest;
-
-      VthRest  = params->VthRest;
-      deltaVth = params->deltaVth;
-      deltaGIB = params->deltaGIB;
-
-      // add noise
-      //
-
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqE) {
-         l_rnd     = cl_random_get(l_rnd);
-         l_GSynExc = l_GSynExc + params->noiseAmpE * cl_random_prob(l_rnd);
-      }
-
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqI) {
-         l_rnd     = cl_random_get(l_rnd);
-         l_GSynInh = l_GSynInh + params->noiseAmpI * cl_random_prob(l_rnd);
-      }
-
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqIB) {
-         l_rnd      = cl_random_get(l_rnd);
-         l_GSynInhB = l_GSynInhB + params->noiseAmpIB * cl_random_prob(l_rnd);
-      }
-
-      l_G_E  = l_GSynExc + l_G_E * exp_tauE;
-      l_G_I  = l_GSynInh + l_G_I * exp_tauI;
-      l_G_IB = l_GSynInhB + l_G_IB * exp_tauIB;
-
-      l_G_E  = (l_G_E > GMAX) ? GMAX : l_G_E;
-      l_G_I  = (l_G_I > GMAX) ? GMAX : l_G_I;
-      l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
-
-      tauInf  = (dtFloat / tau) * (1.0f + l_G_E + l_G_I + l_G_IB);
-      VmemInf = (Vrest + l_G_E * Vexc + l_G_I * Vinh + l_G_IB * VinhB)
-                / (1.0f + l_G_E + l_G_I + l_G_IB);
-
-      l_V = VmemInf + (l_V - VmemInf) * std::exp(-tauInf);
-
-      //
-      // start of LIF2_update_finish
-      //
-
-      l_Vth = VthRest + (l_Vth - VthRest) * exp_tauVth;
-
-      //
-      // start of update_f
-      //
-
-      bool fired_flag = (l_V > l_Vth);
-
-      l_activ = fired_flag ? 1.0f : 0.0f;
-      l_V     = fired_flag ? Vrest : l_V;
-      l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
-      l_G_IB  = fired_flag ? l_G_IB + deltaGIB : l_G_IB;
-
-      //
-      // These actions must be done outside of kernel
-      //    1. set activity to 0 in boundary (if needed)
-      //    2. update active indices
-      //
-
-      // store local variables back to global memory
-      //
-      rnd[k] = l_rnd;
-
-      A[kex] = l_activ;
-
-      V[k]   = l_V;
-      Vth[k] = l_Vth;
-
-      G_E[k]  = l_G_E;
-      G_I[k]  = l_G_I;
-      G_IB[k] = l_G_IB;
-
-   } // loop over k
 }
 
 inline float LIF_Vmem_derivative(
@@ -598,175 +364,6 @@ inline float LIF_Vmem_derivative(
    float totalconductance = 1.0f + G_E + G_I + G_IB;
    float Vmeminf          = (Vrest + V_E * G_E + V_I * G_I + V_IB * G_IB) / totalconductance;
    return totalconductance * (Vmeminf - Vmem) / tau;
-}
-
-void LIFActivityComponent::updateActivityBeginning(
-      const int nbatch,
-      const long numNeurons,
-      const double simTime,
-      const double dt,
-
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      LIFParams *params,
-      taus_uint4 *rnd,
-      float *V,
-      float *Vth,
-      float *G_E,
-      float *G_I,
-      float *G_IB,
-      float const *GSynHead,
-      float *A) {
-   long k;
-
-   float const dtFloat    = static_cast<float>(dt);
-   float const exp_tauE   = std::exp(-dtFloat / params->tauE);
-   float const exp_tauI   = std::exp(-dtFloat / params->tauI);
-   float const exp_tauIB  = std::exp(-dtFloat / params->tauIB);
-   float const exp_tauVth = std::exp(-dtFloat / params->tauVth);
-
-   float const dt_sec = 0.001f * dtFloat; // convert to seconds
-
-   long numNeuronsAcrossBatch = (long)nx * (long)ny * (long)nf * (long)nbatch;
-   for (k = 0; k < numNeuronsAcrossBatch; k++) {
-
-      long kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
-
-      //
-      // kernel (nonheader part) begins here
-      //
-
-      // local param variables
-      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
-
-      float const GMAX = 10.0f;
-
-      // local variables
-      float l_activ;
-
-      taus_uint4 l_rnd = rnd[k];
-
-      float l_V   = V[k];
-      float l_Vth = Vth[k];
-
-      // The correction factors to the conductances are so that if l_GSyn_* is the same every
-      // timestep,
-      // then the asymptotic value of l_G_* will be l_GSyn_*
-      float l_G_E  = G_E[k];
-      float l_G_I  = G_I[k];
-      float l_G_IB = G_IB[k];
-
-      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float l_GSynExc       = GSynExc[k];
-      float l_GSynInh       = GSynInh[k];
-      float l_GSynInhB      = GSynInhB[k];
-
-      //
-      // start of LIF2_update_exact_linear
-      //
-
-      // define local param variables
-      //
-      tau   = params->tau;
-      Vexc  = params->Vexc;
-      Vinh  = params->Vinh;
-      VinhB = params->VinhB;
-      Vrest = params->Vrest;
-
-      VthRest  = params->VthRest;
-      deltaVth = params->deltaVth;
-      deltaGIB = params->deltaGIB;
-
-      // add noise
-      //
-
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqE) {
-         l_rnd     = cl_random_get(l_rnd);
-         l_GSynExc = l_GSynExc + params->noiseAmpE * cl_random_prob(l_rnd);
-      }
-
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqI) {
-         l_rnd     = cl_random_get(l_rnd);
-         l_GSynInh = l_GSynInh + params->noiseAmpI * cl_random_prob(l_rnd);
-      }
-
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqIB) {
-         l_rnd      = cl_random_get(l_rnd);
-         l_GSynInhB = l_GSynInhB + params->noiseAmpIB * cl_random_prob(l_rnd);
-      }
-
-      // The portion of code below uses the newer method of calculating l_V.
-      float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
-      float dV1, dV2, dV;
-
-      G_E_initial  = l_G_E + l_GSynExc;
-      G_I_initial  = l_G_I + l_GSynInh;
-      G_IB_initial = l_G_IB + l_GSynInhB;
-
-      G_E_initial  = (G_E_initial > GMAX) ? GMAX : G_E_initial;
-      G_I_initial  = (G_I_initial > GMAX) ? GMAX : G_I_initial;
-      G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
-
-      G_E_final  = G_E_initial * exp_tauE;
-      G_I_final  = G_I_initial * exp_tauI;
-      G_IB_final = G_IB_initial * exp_tauIB;
-
-      dV1 = LIF_Vmem_derivative(
-            l_V, G_E_initial, G_I_initial, G_IB_initial, Vexc, Vinh, VinhB, Vrest, tau);
-      dV2 = LIF_Vmem_derivative(
-            l_V + dtFloat * dV1, G_E_final, G_I_final, G_IB_final, Vexc, Vinh, VinhB, Vrest, tau);
-      dV  = (dV1 + dV2) * 0.5f;
-      l_V = l_V + dtFloat * dV;
-
-      l_G_E  = G_E_final;
-      l_G_I  = G_I_final;
-      l_G_IB = G_IB_final;
-
-      l_Vth = VthRest + (l_Vth - VthRest) * exp_tauVth;
-      // End of code unique to newer method.
-
-      //
-      // start of update_f
-      //
-
-      bool fired_flag = (l_V > l_Vth);
-
-      l_activ = fired_flag ? 1.0f : 0.0f;
-      l_V     = fired_flag ? Vrest : l_V;
-      l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
-      l_G_IB  = fired_flag ? l_G_IB + deltaGIB : l_G_IB;
-
-      //
-      // These actions must be done outside of kernel
-      //    1. set activity to 0 in boundary (if needed)
-      //    2. update active indices
-      //
-
-      // store local variables back to global memory
-      //
-      rnd[k] = l_rnd;
-
-      A[kex] = l_activ;
-
-      V[k]   = l_V;
-      Vth[k] = l_Vth;
-
-      G_E[k]  = l_G_E;
-      G_I[k]  = l_G_I;
-      G_IB[k] = l_G_IB;
-
-   } // loop over k
 }
 
 void LIFActivityComponent::updateActivityArma(

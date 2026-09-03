@@ -151,8 +151,6 @@ LIFGap "LIFTest" = {
     noiseFreqE                      =  0.;     // spontaneous transmitter release/channel openings
     noiseFreqI                      =  0.;     // correlation to time step size !!!
     noiseFreqIB                     =   0.;    // should be scaled by the time constant - look at LIF model
-    
-    method                          = "a";
 };
 
 LeakyIntegrator "LIFTestSpikeCounter" = {
@@ -224,8 +222,6 @@ LIFGap "LIFGapTest" = {
     noiseFreqE                      =  0.;     // spontaneous transmitter release/channel openings
     noiseFreqI                      =  0.;     // correlation to time step size !!!
     noiseFreqIB                     =   0.;    // should be scaled by the time constant - look at LIF model
-    
-    method                          = "a";
 };
 
 LeakyIntegrator "LIFGapTestSpikeCounter" = {
