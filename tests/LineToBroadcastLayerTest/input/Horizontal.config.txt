@@ -1,0 +1,6 @@
+ParamsFile:input/Horizontal.params
+LogFile:Horizontal.log
+NumThreads:1
+NumRows:1
+NumColumns:4
+BatchWidth:1

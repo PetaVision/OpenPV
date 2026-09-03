@@ -1,0 +1,156 @@
+// Vertical.params
+//
+//  A params file for testing a connection from a 1-by-ny-by-nf input layer
+//  to a broacast layer.
+//  A 1-by-16-by-1 input layer is connected to a 1-by-1-by-16 broadcast layer,
+//  with a (non-shared) HyPerConn with nxp=1, nyp=1, nfp=16, and 1*16*1 patches.
+//
+//  The input layer values are integers in the range 1..16.
+//  The output is a LeakyIntegrator with infinite time constant, (i.e. no leakiness) that is
+//  initially all ones.
+//
+//  The connection is a plastic HyPerConn with Hebbian learning rule, initally the identity matrix
+//  when represented as a 16x16 matrix.
+//
+//  The run goes for 2 timesteps. The correct values for the 1-by-1-by-16 output layer are
+//  as follows:
+//   t=1     t=2
+//     2     2995
+//     3     4493
+//     4     5991
+//     5     7489
+//     6     8987
+//     7    10485
+//     8    11983
+//     9    13481
+//    10    14979
+//    11    16477
+//    12    17975
+//    13    19473
+//    14    20971
+//    15    22469
+//    16    23967
+//    17    25465
+//
+//  These values are in the input/Correct.pvp file. A RequireAllZeroActivityProbe verifies
+//  that the values are correct. Since everything is an integer small enough to fit into single-
+//  precision floats, the threshold can be zero.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 1;
+   ny = 16;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 2.0;
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/Vertical";
+   printParamsFilename = "Vertical.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Vertical/Last";
+};
+
+//
+// layers
+//
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/VerticalInput.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    updateGpu = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+};
+
+LeakyIntegrator "Output" = {
+    broadcastFlag = true;
+    nf = 16;
+    phase = 1;
+    triggerLayerName = NULL;
+    InitVType = "ConstantV";
+    valueV = 1.0;
+    integrationTime = infinity;
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+};
+
+PvpLayer "Correct" = {
+    broadcastFlag = true;
+    nf = 16;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/Correct.pvp";
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    updateGpu = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+};
+
+HyPerLayer "Comparison" = {
+    broadcastFlag = true;
+    nf = 16;
+    phase = 2;
+    InitVType = "ZeroV";
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    sparseLayer = false;
+    updateGpu = false;
+};
+
+HyPerConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
+    channelCode = 0;
+
+    nxp = 1;
+    nyp = 1;
+    nfp = 16;
+    numAxonalArbors = 1;
+    sharedWeights = false;
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/VerticalInitialWeights.pvp";
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = 1.0;
+    dWMax = 1.0;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+};
