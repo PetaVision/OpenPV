@@ -28,7 +28,8 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
       int nyRestrictedPost,
       int numArbors,
       bool fileExtendedFlag,
-      bool compressedFlag)
+      bool compressedFlag,
+      bool writePermissionFlag)
       : mFileStream(fileStream),
         mPatchSizeX(patchSizeX),
         mPatchSizeY(patchSizeY),
@@ -40,7 +41,8 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
         mNyRestrictedPost(nyRestrictedPost),
         mNumArbors(numArbors),
         mFileExtendedFlag(fileExtendedFlag),
-        mCompressedFlag(compressedFlag) {
+        mCompressedFlag(compressedFlag),
+        mWritePermissionFlag(writePermissionFlag) {
    FatalIf(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a LocalPatchWeightsIO object.\n",
@@ -179,6 +181,7 @@ void LocalPatchWeightsIO::finishWrite() {
    // If the last patch in the frame is shrunken, calls to writeRegion may not have
    // written all the way to the end of the frame. Fill the rest of the frame with zeros
    // if necessary.
+   if (!mWritePermissionFlag) { return; }
    getFileStream()->setOutPos(0L, std::ios_base::end);
    long eofPos        = getFileStream()->getOutPos();
    long correctEOFPos = calcFilePositionFromFrameNumber(getNumFrames() + 1);
@@ -306,11 +309,13 @@ void LocalPatchWeightsIO::readRegion(
 }
 
 void LocalPatchWeightsIO::writeHeader(BufferUtils::WeightHeader const &header) {
+   if (!mWritePermissionFlag) { return; }
    mFrameIndexer->moveFilePosToFrameStart();
    getFileStream()->write(&header, mHeaderSize);
 }
 
 void LocalPatchWeightsIO::writeHeader(BufferUtils::WeightHeader const &header, int frameNumber) {
+   if (!mWritePermissionFlag) { return; }
    setFrameNumber(frameNumber);
    writeHeader(header);
 }
@@ -326,6 +331,7 @@ void LocalPatchWeightsIO::writeRegion(
       int regionYStartRestricted,
       int regionFStartRestricted,
       int arborIndexStart) {
+   if (!mWritePermissionFlag) { return; }
    if (!mFileStream) {
       return;
    }
@@ -432,7 +438,7 @@ void LocalPatchWeightsIO::open() {
    }
 }
 
-void LocalPatchWeightsIO::close() { mFileStream->close(); }
+void LocalPatchWeightsIO::close() { if (mFileStream) { mFileStream->close(); } }
 
 long LocalPatchWeightsIO::getNumPatchesFile() const {
    long nx = getNxRestrictedPre() + 2 * getXMargin();

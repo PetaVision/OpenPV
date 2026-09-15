@@ -2,7 +2,7 @@
 OutputPath:output/config_1
 ParamsFile:
 NumThreads:-
-LogFile:LocalPatchFileTest_1.log
+LogFile:LocalPatchWeightsFileTest_1.log
 NumRows:1
 NumColumns:1
 BatchWidth:1

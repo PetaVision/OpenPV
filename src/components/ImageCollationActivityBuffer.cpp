@@ -29,7 +29,7 @@ Response::Status ImageCollationActivityBuffer::allocateDataStructures() {
       return status;
    }
    auto outputFileManager = getCommunicator()->getOutputFileManager();
-   mURLDownloadTemplate = outputFileManager->makeBlockFilename(std::string("temp.XXXXXX"));
+   mURLDownloadTemplate = outputFileManager->convertToEffectivePath(std::string("temp.XXXXXX"));
    return Response::SUCCESS;
 }
 

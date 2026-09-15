@@ -42,6 +42,10 @@ namespace PV {
  * It is an error for the buffer width and NxRestrictedPre to differ by an odd amount; similarly
  * for the buffer height and NyRestrictedPre. Also, the margins must be at least as large as
  * required by the patch sizes and FileExtended setting.
+ *
+ * If the file stream is writeable and the WritePermissionFlag is false, the write functions have
+ * no effect. This flag is implemented so that under MPI, weights files that are identical between
+ * processes that see the same filesystem do not have to write duplicate files.
  */
 class LocalPatchWeightsIO {
   public:
@@ -58,7 +62,8 @@ class LocalPatchWeightsIO {
          // nfRestrictedPost would be the same as patchSizeF
          int numArbors,
          bool fileExtendedFlag,
-         bool compressedFlag);
+         bool compressedFlag,
+         bool writePermissionFlag);
 
    virtual ~LocalPatchWeightsIO() {}
 
@@ -266,6 +271,7 @@ class LocalPatchWeightsIO {
    int mNumArbors;
    bool mFileExtendedFlag;
    bool mCompressedFlag;
+   bool mWritePermissionFlag;
 
    std::shared_ptr<PVPFrameIndexer> mFrameIndexer = nullptr;
 

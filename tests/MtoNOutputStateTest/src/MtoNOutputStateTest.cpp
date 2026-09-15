@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
        communicator->getOutputFileManager()->changeBaseDirectory(outputPath);
    }
    std::string const outputDirectory =
-         communicator->getOutputFileManager()->makeBlockFilename(std::string(""));
+         communicator->getOutputFileManager()->convertToEffectivePath(std::string(""));
 
    int const rankInBlock = mpiBlock->getRank();
 

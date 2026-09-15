@@ -2,7 +2,7 @@
 OutputPath:output/config_4flat
 ParamsFile:
 NumThreads:-
-LogFile:LocalPatchFileTest_4flat.log
+LogFile:LocalPatchWeightsFileTest_4flat.log
 NumRows:2
 NumColumns:2
 BatchWidth:1

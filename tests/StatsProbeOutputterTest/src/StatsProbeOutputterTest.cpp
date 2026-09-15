@@ -230,7 +230,7 @@ void deleteOldFiles(HyPerCol *hypercol) {
    auto const ioMPIBlock = hypercol->getPV_InitObj()->getCommunicator()->getIOMPIBlock();
    FileManager fileManager(ioMPIBlock, std::string(hypercol->getOutputPath()));
    if (ioMPIBlock->getRank() == 0) {
-      std::string outputBlockDir = fileManager.makeBlockFilename(".");
+      std::string outputBlockDir = fileManager.convertToEffectivePath(".");
       std::string rmrfcommand("rm -rf ");
       rmrfcommand.append(outputBlockDir).append("/");
       rmrfcommand.append("StatsProbeOutputter_batchElement_*.txt");

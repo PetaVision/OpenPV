@@ -38,9 +38,35 @@ void PVPFrameIndexer::initializeNumFrames() {
    long currentPos = mFileStream->getInPos();
    mFileStream->setInPos(0L, std::ios_base::end);
    long fileSize = mFileStream->getInPos();
+   InfoLog().printf(
+         "PVPFrameIndexer::initializeNumFrames: filename = %s: fileSize = %ld, frameSize = %ld\n",
+         mFileStream->getFileName().c_str(), fileSize, mFrameSize);
+   std::string lscommand("ls -l \"#1\"");
+   lscommand.replace(lscommand.find("#1"), 2, mFileStream->getFileName());
+   InfoLog() << lscommand << "\n";
+   std::string lsresult;
+   FILE *lsstream = popen(lscommand.c_str(), "r");
+   FatalIf(
+         lsstream == nullptr,
+         "Opening pipe for command \"%s\" failed: error %d (%s)\n",
+         lscommand.c_str(), errno, strerror(errno));
+   pvAssert(lsstream != nullptr);
+   char lsbuf[256];
+   std::size_t numRead = 256UL;
+   while (numRead == 256UL) {
+       numRead = std::fread(lsbuf, 1UL, 256UL, lsstream);
+       lsresult.append(lsbuf, numRead);
+   }
+   int pclosestatus = pclose(lsstream);
+   FatalIf(
+         pclosestatus !=0,
+         "Closing pipe for command \"%s\" failed: error %d (%s)\n",
+         lscommand.c_str(), errno, strerror(errno));
+   InfoLog() << lsresult; // lack of final end-of-line is deliberate
    mFileStream->setInPos(currentPos, std::ios_base::beg);
    if (fileSize > 0L) {
       mNumFrames = static_cast<int>((fileSize - mExternalHeaderSize) / mFrameSize);
+#ifdef VEGAVIS
       if (mNumFrames * mFrameSize != fileSize) {
          std::string errMsg(
                "PVPFrameIndexer file \"#1\" has length #2, incompatible with FrameSize #3");
@@ -49,6 +75,7 @@ void PVPFrameIndexer::initializeNumFrames() {
          errMsg.replace(errMsg.find("#3"), 2, std::to_string(mFrameSize));
          throw std::invalid_argument(errMsg);
       }
+#endif // VEGAVIS
    }
    else {
       mNumFrames = 0;
@@ -94,6 +121,11 @@ int PVPFrameIndexer::convertToLogicalFrameNumber(int frameNumber) {
    // outside of usual limits means wrap around.
    int logicalFrameNumber = frameNumber;
    if (mReadOnlyFlag) {
+      if (mNumFrames <= 0) {
+         Fatal().printf(
+               "PVPFrameIndexer::convertToLogicalFrameNumber() called with %d frames.\n",
+               mNumFrames);
+      }
       if (logicalFrameNumber < 0 or logicalFrameNumber >= mNumFrames) {
          logicalFrameNumber = logicalFrameNumber % mNumFrames;
       }
@@ -130,6 +162,7 @@ void PVPFrameIndexer::moveFilePosToFrameStart() {
 
 void PVPFrameIndexer::setFrameNumber(int frameNumber) {
    if (mFileStream == nullptr) { return; }
+   InfoLog().printf("setFrameNumber(%d)\n", frameNumber);
    initializeNumFrames();
    mFrameNumber = convertToLogicalFrameNumber(frameNumber);
    moveFilePosToFrameStart();

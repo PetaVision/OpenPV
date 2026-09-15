@@ -3,7 +3,9 @@
 #include "io/FileStreamBuilder.hpp"
 #include "structures/Patch.hpp"
 
-#include <algorithm> // std::copy
+#include <algorithm> // std::copy()
+#include <sys/stat.h>   // stat()
+#include <sys/unistd.h> // sync()
 
 namespace PV {
 
@@ -29,7 +31,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
         mNumArbors(weightData->getNumArbors()),
         mFileExtendedFlag(fileExtendedFlag),
         mCompressedFlag(compressedFlag),
-        mReadOnly(readOnlyFlag),
+        mReadOnlyFlag(readOnlyFlag),
         mVerifyWrites(verifyWrites) {
    initializeCheckpointerDataInterface();
    initializeWeightsIO(clobberFlag);
@@ -49,7 +51,6 @@ void LocalPatchWeightsFile::read(double &timestamp) {
 }
 
 void LocalPatchWeightsFile::write(double timestamp) {
-   pvAssert(mLocalPatchWeightsIO != nullptr and mSharedWeightsIO == nullptr);
    float extremeValues[2]; // extremeValues[0] is the min; extremeValues[1] is the max.
    mLocalPatchWeightsIO->calcExtremeWeights(
          *mWeightData,
@@ -122,8 +123,7 @@ void LocalPatchWeightsFile::write(double timestamp) {
             yStartRestricted,
             0 /*regionFStartRestricted*/,
             0 /*arborIndexStart*/);
-      mLocalPatchWeightsIO->finishWrite();
-   }
+   } // if (isRoot())
    else {
       for (int a = 0; a < getNumArbors(); ++a) {
          float const *arbor = mWeightData->getData(a);
@@ -131,12 +131,24 @@ void LocalPatchWeightsFile::write(double timestamp) {
          MPI_Send(arbor, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm());
       }
    }
+   if (isRoot()) {
+      mLocalPatchWeightsIO->finishWrite();
+   }
+   MPI_Barrier(mpiBlock->getGlobalComm());
+   pvAssert(mLocalPatchWeightsIO != nullptr);
+   if (mSeesElemZeroFlag) {
+      mLocalPatchWeightsIO->close();
+      mLocalPatchWeightsIO->open();
+   }
    setIndex(getIndex() + 1);
+   InfoLog().printf(
+         "Writing to \"%s\" finished; file has %d frames\n",
+         mPath.c_str(), mLocalPatchWeightsIO->getNumFrames());
 }
 
 void LocalPatchWeightsFile::truncate(int index) {
    FatalIf(
-         mReadOnly,
+         mReadOnlyFlag,
          "LocalPatchWeightsFile \"%s\" is read-only and cannot be truncated.\n",
          mPath.c_str());
    pvAssert(mLocalPatchWeightsIO != nullptr and mSharedWeightsIO == nullptr);
@@ -171,7 +183,7 @@ void LocalPatchWeightsFile::setIndex(int index) {
       mLocalPatchWeightsIO->setFrameNumber(index);
       frameNumber = mLocalPatchWeightsIO->getFrameNumber();
       mFileStreamReadPos = mLocalPatchWeightsIO->getFileStream()->getInPos();
-      if (!mReadOnly) {
+      if (!mReadOnlyFlag) {
          mFileStreamWritePos = mLocalPatchWeightsIO->getFileStream()->getOutPos();
       }
       else {
@@ -180,7 +192,7 @@ void LocalPatchWeightsFile::setIndex(int index) {
    }
    else {
       pvAssert(mSharedWeightsIO != nullptr);
-      pvAssert(mReadOnly);
+      pvAssert(mReadOnlyFlag);
       mSharedWeightsIO->setFrameNumber(index);
       frameNumber = mSharedWeightsIO->getFrameNumber();
       mFileStreamReadPos = mSharedWeightsIO->getFileStream()->getInPos();
@@ -221,7 +233,7 @@ Response::Status LocalPatchWeightsFile::processCheckpointRead(double simTime) {
    if (!Response::completed(status)) {
       return status;
    }
-   long pos  = mReadOnly ? mFileStreamReadPos : mFileStreamWritePos;
+   long pos  = mReadOnlyFlag ? mFileStreamReadPos : mFileStreamWritePos;
    int index = mLocalPatchWeightsIO->calcFrameNumberFromFilePosition(pos);
    setIndex(index);
    if (isRoot() and mLocalPatchWeightsIO->getFrameNumber() < mLocalPatchWeightsIO->getNumFrames()) {
@@ -267,7 +279,7 @@ int LocalPatchWeightsFile::initializeCheckpointerDataInterface() {
 }
 
 void LocalPatchWeightsFile::initializeWeightsIO(bool clobberFlag) {
-   if (mReadOnly) {
+   if (mReadOnlyFlag) {
       // The file must exist, and it must be a weights PVP file, but it could be
       // either SharedWeights or LocalPatchWeights.
       BufferUtils::WeightHeader weightHeader;
@@ -312,10 +324,6 @@ void LocalPatchWeightsFile::initializeWeightsIO(bool clobberFlag) {
 }
 
 void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
-   auto fileStream =
-         FileStreamBuilder(
-               mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites)
-               .get();
    auto mpiBlock             = mFileManager->getMPIBlock();
    int nxRestrictedPreBlock  = getNxRestrictedPre() * mpiBlock->getNumColumns();
    int nyRestrictedPreBlock  = getNyRestrictedPre() * mpiBlock->getNumRows();
@@ -329,6 +337,90 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
       nyRestrictedPostBlock = getNyRestrictedPost() * mpiBlock->getNumRows();
    }
 
+   std::shared_ptr<FileStream> fileStream = nullptr;
+
+   if (mpiBlock->getStartBatch() == 0) {
+      fileStream = FileStreamBuilder(
+            mFileManager, mPath, false /*isTextFlag*/, mReadOnlyFlag, clobberFlag, mVerifyWrites)
+            .get();
+      mSeesElemZeroFlag = false;
+      sync();
+   }
+   // Make sure the batch-zero process has created the file before other processes check for
+   // its existence.
+   MPI_Barrier(mpiBlock->getGlobalComm());
+   if (mpiBlock->getStartBatch() != 0) {
+      if (isRoot()) {
+         std::string effectivePath = mFileManager->convertToEffectivePath(mPath);
+         std::string const &baseDirectory = mFileManager->getBaseDirectory();
+         int col  = mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
+         int row  = mpiBlock->getStartRow() / mpiBlock->getNumRows();
+         int elem = mpiBlock->getStartBatch() / mpiBlock->getBatchDimension();
+
+         std::string elem0Dir =
+               FileManager::createBlockDirNameFromColRowElem(baseDirectory, col, row, 0);
+         std::string elem0Path = elem0Dir + mPath;
+         struct stat statbuf;
+         int status = ::stat(elem0Path.c_str(), &statbuf);
+         if (status == 0) {
+            InfoLog().printf("<LocalPatchWeightsFile.cpp:%d> Setting SeesElemZeroFlag to TRUE\n", __LINE__);
+            mSeesElemZeroFlag = true;
+         }
+         else {
+            InfoLog().printf(
+                  "<LocalPatchWeightsFile.cpp:%d> Setting SeesElemZeroFlag to FALSE (error %d: %s)\n",
+                  __LINE__, errno, std::strerror(errno));
+            mSeesElemZeroFlag = false;
+            if (errno == ENOENT) {
+               errno = 0;
+            }
+            else {
+               ErrorLog().printf(
+                     "Unable to query existence of file \"%s\": error %d (%s).\n",
+                     elem0Dir.c_str(), errno, std::strerror(errno));
+            }
+         }
+         if (mSeesElemZeroFlag) {
+            if ((statbuf.st_mode & S_IFREG) != S_IFREG) {
+               ErrorLog().printf("File \"%s\" exists but is not a regular file.\n", elem0Dir.c_str());
+               InfoLog().printf("<LocalPatchWeightsFile.cpp:%d> Setting SeesElemZeroFlag to FALSE\n", __LINE__);
+               mSeesElemZeroFlag = false;
+            }
+         }
+         if (mSeesElemZeroFlag) {
+            mElemZeroPath = elem0Path;
+            InfoLog().printf(
+                  "Using batch-zero file \"%s\" instead of \"%s\"\n",
+                  elem0Path.c_str(), effectivePath.c_str());
+         }
+         if (mSeesElemZeroFlag) {
+            if (isRoot()) {
+               std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary;
+               if (!mReadOnlyFlag) { mode |= std::ios_base::out; }
+               fileStream = std::make_shared<FileStream>(
+                     mElemZeroPath.c_str(), mode, mVerifyWrites);
+            }
+            else {
+               fileStream = nullptr;
+            }
+         }
+         else {
+            fileStream = FileStreamBuilder(
+               mFileManager, mPath, false /*isTextFlag*/, mReadOnlyFlag, clobberFlag, mVerifyWrites)
+               .get();
+         }
+      } // if (isRoot())
+      else {
+         mSeesElemZeroFlag = false;
+      }
+      int seesElemZeroInt = mSeesElemZeroFlag ? 1 : 0;
+      MPI_Bcast(&seesElemZeroInt, 1 /*count*/, MPI_INT, 0 /*root*/, mpiBlock->getComm());
+      mSeesElemZeroFlag = (seesElemZeroInt != 0);
+   } // mpiBlock->getStartBatch() != 0
+   InfoLog().printf("SeesElemZeroFlag = %s\n", mSeesElemZeroFlag ? "TRUE" : "FALSE");
+   InfoLog().printf(
+         "Opening LocalPatchWeightsIO with fileStream = %s\n",
+         fileStream ? fileStream->getFileName().c_str() : "(null)");
    mLocalPatchWeightsIO = std::unique_ptr<LocalPatchWeightsIO>(new LocalPatchWeightsIO(
          fileStream,
          mPatchSizeX,
@@ -341,14 +433,18 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
          nyRestrictedPostBlock,
          mNumArbors,
          mFileExtendedFlag,
-         mCompressedFlag));
+         mCompressedFlag,
+         !mSeesElemZeroFlag));
+   // If a process with nonzero batch index sees the file with batch index == 0 and the ReadOnlyFlag
+   // is false, we never write, and we open the file anew on each read since batch-zero file might
+   // have changed the contents.
 }
 
 void LocalPatchWeightsFile::initializeSharedWeightsIO(
       bool clobberFlag, BufferUtils::WeightHeader weightHeader) {
    auto fileStream =
          FileStreamBuilder(
-               mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites)
+               mFileManager, mPath, false /*not text*/, mReadOnlyFlag, clobberFlag, mVerifyWrites)
                .get();
    mSharedWeightsIO = std::unique_ptr<SharedWeightsIO>(new SharedWeightsIO(
             fileStream,

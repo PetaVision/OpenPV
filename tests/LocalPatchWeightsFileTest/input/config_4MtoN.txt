@@ -2,7 +2,7 @@
 OutputPath:output/config_4MtoN
 ParamsFile:
 NumThreads:-
-LogFile:LocalPatchFileTest_4MtoN.log
+LogFile:LocalPatchWeightsFileTest_4MtoN.log
 NumRows:2
 NumColumns:2
 BatchWidth:1

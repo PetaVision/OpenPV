@@ -8,9 +8,9 @@
 #ifndef FILESTREAM_HPP__
 #define FILESTREAM_HPP__
 
-#include "PrintStream.hpp"
-
 #include <fstream>
+#include <ios>
+#include "PrintStream.hpp"
 
 namespace PV {
 
