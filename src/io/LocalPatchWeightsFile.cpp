@@ -324,6 +324,12 @@ void LocalPatchWeightsFile::initializeWeightsIO(bool clobberFlag) {
 }
 
 void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
+   InfoLog().printf(
+         "%s:%d initializeLocalPatchWeightsIO(%s), path \"%s\"\n",
+         __FILE__,
+         __LINE__,
+         clobberFlag ? "TRUE" : "FALSE",
+         mPath.c_str());
    auto mpiBlock             = mFileManager->getMPIBlock();
    int nxRestrictedPreBlock  = getNxRestrictedPre() * mpiBlock->getNumColumns();
    int nyRestrictedPreBlock  = getNyRestrictedPre() * mpiBlock->getNumRows();
