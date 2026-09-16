@@ -141,9 +141,6 @@ void LocalPatchWeightsFile::write(double timestamp) {
       mLocalPatchWeightsIO->open();
    }
    setIndex(getIndex() + 1);
-   InfoLog().printf(
-         "Writing to \"%s\" finished; file has %d frames\n",
-         mPath.c_str(), mLocalPatchWeightsIO->getNumFrames());
 }
 
 void LocalPatchWeightsFile::truncate(int index) {
@@ -324,12 +321,6 @@ void LocalPatchWeightsFile::initializeWeightsIO(bool clobberFlag) {
 }
 
 void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
-   InfoLog().printf(
-         "%s:%d initializeLocalPatchWeightsIO(%s), path \"%s\"\n",
-         __FILE__,
-         __LINE__,
-         clobberFlag ? "TRUE" : "FALSE",
-         mPath.c_str());
    auto mpiBlock             = mFileManager->getMPIBlock();
    int nxRestrictedPreBlock  = getNxRestrictedPre() * mpiBlock->getNumColumns();
    int nyRestrictedPreBlock  = getNyRestrictedPre() * mpiBlock->getNumRows();
@@ -369,13 +360,9 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
          struct stat statbuf;
          int status = ::stat(elem0Path.c_str(), &statbuf);
          if (status == 0) {
-            InfoLog().printf("<LocalPatchWeightsFile.cpp:%d> Setting SeesElemZeroFlag to TRUE\n", __LINE__);
             mSeesElemZeroFlag = true;
          }
          else {
-            InfoLog().printf(
-                  "<LocalPatchWeightsFile.cpp:%d> Setting SeesElemZeroFlag to FALSE (error %d: %s)\n",
-                  __LINE__, errno, std::strerror(errno));
             mSeesElemZeroFlag = false;
             if (errno == ENOENT) {
                errno = 0;
@@ -389,7 +376,6 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
          if (mSeesElemZeroFlag) {
             if ((statbuf.st_mode & S_IFREG) != S_IFREG) {
                ErrorLog().printf("File \"%s\" exists but is not a regular file.\n", elem0Dir.c_str());
-               InfoLog().printf("<LocalPatchWeightsFile.cpp:%d> Setting SeesElemZeroFlag to FALSE\n", __LINE__);
                mSeesElemZeroFlag = false;
             }
          }
@@ -423,10 +409,6 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
       MPI_Bcast(&seesElemZeroInt, 1 /*count*/, MPI_INT, 0 /*root*/, mpiBlock->getComm());
       mSeesElemZeroFlag = (seesElemZeroInt != 0);
    } // mpiBlock->getStartBatch() != 0
-   InfoLog().printf("SeesElemZeroFlag = %s\n", mSeesElemZeroFlag ? "TRUE" : "FALSE");
-   InfoLog().printf(
-         "Opening LocalPatchWeightsIO with fileStream = %s\n",
-         fileStream ? fileStream->getFileName().c_str() : "(null)");
    mLocalPatchWeightsIO = std::unique_ptr<LocalPatchWeightsIO>(new LocalPatchWeightsIO(
          fileStream,
          mPatchSizeX,
