@@ -24,7 +24,7 @@ BroadcastPreWeightsFile::BroadcastPreWeightsFile(
         mNumArbors(weightData->getNumArbors()),
         mPostIsBroadcastFlag(postIsBroadcastFlag),
         mCompressedFlag(compressedFlag),
-        mReadOnly(readOnlyFlag),
+        mReadOnlyFlag(readOnlyFlag),
         mVerifyWrites(verifyWrites) {
    initializeCheckpointerDataInterface();
    initializeBroadcastPreWeightsIO(clobberFlag);
@@ -147,7 +147,7 @@ void BroadcastPreWeightsFile::writePostIsNotBroadcast(double timestamp) {
 
 void BroadcastPreWeightsFile::truncate(int index) {
    FatalIf(
-         mReadOnly,
+         mReadOnlyFlag,
          "BroadcastPreWeightsFile \"%s\" is read-only and cannot be truncated.\n",
          mPath.c_str());
    if (isRoot()) {
@@ -177,12 +177,12 @@ void BroadcastPreWeightsFile::setIndex(int index) {
       return;
    }
    int frameNumber = index;
-   if (mReadOnly) {
+   if (mReadOnlyFlag) {
       frameNumber = index % mBroadcastPreWeightsIO->getNumFrames();
    }
    mBroadcastPreWeightsIO->setFrameNumber(frameNumber);
    mFileStreamReadPos = mBroadcastPreWeightsIO->getFileStream()->getInPos();
-   if (!mReadOnly) {
+   if (!mReadOnlyFlag) {
       mFileStreamWritePos = mBroadcastPreWeightsIO->getFileStream()->getOutPos();
    }
    else {
@@ -222,7 +222,7 @@ Response::Status BroadcastPreWeightsFile::processCheckpointRead(double simTime) 
    if (!Response::completed(status)) {
       return status;
    }
-   long pos  = mReadOnly ? mFileStreamReadPos : mFileStreamWritePos;
+   long pos  = mReadOnlyFlag ? mFileStreamReadPos : mFileStreamWritePos;
    int index = mBroadcastPreWeightsIO->calcFrameNumberFromFilePosition(pos);
    setIndex(index);
    if (isRoot() and mBroadcastPreWeightsIO->getFrameNumber() < mBroadcastPreWeightsIO->getNumFrames()) {
@@ -240,7 +240,7 @@ int BroadcastPreWeightsFile::initializeCheckpointerDataInterface() {
 void BroadcastPreWeightsFile::initializeBroadcastPreWeightsIO(bool clobberFlag) {
    auto fileStream =
          FileStreamBuilder(
-               mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites)
+               mFileManager, mPath, false /*not text*/, mReadOnlyFlag, clobberFlag, mVerifyWrites)
                .get();
 
    int ioPatchSizeX = mPatchSizePerProcX;

@@ -58,7 +58,7 @@ class BroadcastPreWeightsFile : public WeightsFile {
    int getNumArbors() const { return mNumArbors; }
    bool getPostIsBroadcastFlag() const { return mPostIsBroadcastFlag; }
    bool getCompressedFlag() const { return mCompressedFlag; }
-   bool getReadOnly() const { return mReadOnly; }
+   bool getReadOnlyFlag() const { return mReadOnlyFlag; }
    bool getVerifyWrites() const { return mVerifyWrites; }
    int getNumFrames() const { return mBroadcastPreWeightsIO->getNumFrames(); }
 
@@ -101,7 +101,7 @@ class BroadcastPreWeightsFile : public WeightsFile {
    int mNumArbors;
    bool mPostIsBroadcastFlag;
    bool mCompressedFlag;
-   bool mReadOnly;
+   bool mReadOnlyFlag;
    bool mVerifyWrites;
 
    std::unique_ptr<BroadcastPreWeightsIO> mBroadcastPreWeightsIO;
