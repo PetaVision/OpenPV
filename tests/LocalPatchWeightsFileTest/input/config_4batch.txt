@@ -2,7 +2,7 @@
 OutputPath:output/config_4batch
 ParamsFile:
 NumThreads:-
-LogFile:LocalPatchFileTest_4batch.log
+LogFile:LocalPatchWeightsFileTest_4batch.log
 NumRows:1
 NumColumns:1
 BatchWidth:4

@@ -41,14 +41,6 @@ void PVPFrameIndexer::initializeNumFrames() {
    mFileStream->setInPos(currentPos, std::ios_base::beg);
    if (fileSize > 0L) {
       mNumFrames = static_cast<int>((fileSize - mExternalHeaderSize) / mFrameSize);
-      if (mNumFrames * mFrameSize != fileSize) {
-         std::string errMsg(
-               "PVPFrameIndexer file \"#1\" has length #2, incompatible with FrameSize #3");
-         errMsg.replace(errMsg.find("#1"), 2, mFileStream->getFileName());
-         errMsg.replace(errMsg.find("#2"), 2, std::to_string(fileSize));
-         errMsg.replace(errMsg.find("#3"), 2, std::to_string(mFrameSize));
-         throw std::invalid_argument(errMsg);
-      }
    }
    else {
       mNumFrames = 0;
@@ -94,6 +86,11 @@ int PVPFrameIndexer::convertToLogicalFrameNumber(int frameNumber) {
    // outside of usual limits means wrap around.
    int logicalFrameNumber = frameNumber;
    if (mReadOnlyFlag) {
+      if (mNumFrames <= 0) {
+         Fatal().printf(
+               "PVPFrameIndexer::convertToLogicalFrameNumber() called with %d frames.\n",
+               mNumFrames);
+      }
       if (logicalFrameNumber < 0 or logicalFrameNumber >= mNumFrames) {
          logicalFrameNumber = logicalFrameNumber % mNumFrames;
       }

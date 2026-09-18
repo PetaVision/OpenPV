@@ -25,7 +25,7 @@ std::string CheckpointEntry::generatePath(
       std::shared_ptr<FileManager const> fileManager,
       std::string const &extension) const {
    std::string filename = generateFilename(extension);
-   std::string path = fileManager->makeBlockFilename(filename);
+   std::string path = fileManager->convertToEffectivePath(filename);
    return path;
 }
 

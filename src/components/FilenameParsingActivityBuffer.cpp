@@ -121,7 +121,7 @@ Response::Status FilenameParsingActivityBuffer::registerData(
    }
    else {
       auto fileManager = getCommunicator()->getOutputFileManager();
-      classListPath += fileManager->makeBlockFilename(std::string("classes.txt"));
+      classListPath += fileManager->convertToEffectivePath(std::string("classes.txt"));
    }
 
    inputFile.open(classListPath.c_str(), std::ifstream::in);

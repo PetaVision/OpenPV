@@ -21,14 +21,16 @@ BroadcastPreWeightsIO::BroadcastPreWeightsIO(
       int patchSizeF,
       int nfPre,
       int numArbors,
-      bool compressedFlag)
+      bool compressedFlag,
+      bool writePermissionFlag)
       : mFileStream(fileStream),
         mPatchSizeX(patchSizeX),
         mPatchSizeY(patchSizeY),
         mPatchSizeF(patchSizeF),
         mNfPre(nfPre),
         mNumArbors(numArbors),
-        mCompressedFlag(compressedFlag) {
+        mCompressedFlag(compressedFlag),
+        mWritePermissionFlag(writePermissionFlag) {
    FatalIf(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a BroadcastPreWeightsIO object.\n",
@@ -74,6 +76,7 @@ int BroadcastPreWeightsIO::calcFrameNumberFromFilePosition(long filePosition) co
     */
 
 void BroadcastPreWeightsIO::finishWrite() {
+   if (!mWritePermissionFlag) { return; }
    setFrameNumber(getFrameNumber() + 1);
    getFileStream()->setOutPos(0L, std::ios_base::end);
    long eofPos        = getFileStream()->getOutPos();
@@ -170,11 +173,13 @@ void BroadcastPreWeightsIO::readRegion(
 }
 
 void BroadcastPreWeightsIO::writeHeader() {
+   if (!mWritePermissionFlag) { return; }
    setFrameNumber(getFrameNumber());
    getFileStream()->write(&mHeader, mHeaderSize);
 }
 
 void BroadcastPreWeightsIO::writeHeader(int frameNumber) {
+   if (!mWritePermissionFlag) { return; }
    setFrameNumber(frameNumber);
    writeHeader();
 }
@@ -186,13 +191,9 @@ void BroadcastPreWeightsIO::writeRegion(
       int fStart,
       int fPreStart,
       int arborIndexStart) {
-   if (!mFileStream) {
-      return;
-   }
-
-   if (weightData.getNumArbors() == 0) {
-      return;
-   }
+   if (!mWritePermissionFlag) { return; }
+   if (!mFileStream) { return; }
+   if (weightData.getNumArbors() == 0) { return; }
 
    int nxpLocal   = weightData.getPatchSizeX();
    int nypLocal   = weightData.getPatchSizeY();

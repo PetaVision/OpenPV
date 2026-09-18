@@ -154,7 +154,7 @@ void SparseLayerFile::setIndex(int index) {
             "SparseLayerFile::setIndex called for \"%s\" with index %d out of bounds. "
             "Allowed values for this file are 0 through %d (or -%d through 0, counting backwards "
             "from the end.)\n",
-            mFileManager->makeBlockFilename(getPath()).c_str(),
+            mFileManager->convertToEffectivePath(getPath()).c_str(),
             index,
             maxIndex,
             maxIndex);

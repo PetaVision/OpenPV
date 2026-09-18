@@ -274,7 +274,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
                   int globalBatchIndex = b + localBatchOffset;
                   auto batchPath       = pathRoot + std::to_string(globalBatchIndex) + ext;
                   std::string checkpointPath(batchPath + "_filepos");
-                  batchPath = fileManager->makeBlockFilename(batchPath);
+                  batchPath = fileManager->convertToEffectivePath(batchPath);
                   mMPIRecvStreams.emplace_back(
                         batchPath, ioMPIBlock->getComm(), sendingRank, createFlag);
                   auto checkpointEntry = std::make_shared<CheckpointEntryMPIRecvStream>(

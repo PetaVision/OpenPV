@@ -619,7 +619,7 @@ void HyPerCol::processParams(char const *path) {
       if (path[0] != '/') {
          // If using relative path, create a path for each MPIBlock.
          printParamsPath =
-               getCommunicator()->getOutputFileManager()->makeBlockFilename(std::string(path));
+               getCommunicator()->getOutputFileManager()->convertToEffectivePath(std::string(path));
       }
       else {
          // If using absolute path, only global rank 0 writes, to avoid collisions.
@@ -850,7 +850,7 @@ HyPerCol::respondWriteParamsFile(std::shared_ptr<WriteParamsFileMessage const> m
 
 Response::Status HyPerCol::writeParamsFile(std::shared_ptr<WriteParamsFileMessage const> message) {
    auto fileManager = message->mFileManager;
-   auto path        = fileManager->makeBlockFilename(message->mParamsFilePath);
+   auto path        = fileManager->convertToEffectivePath(message->mParamsFilePath);
    switch (message->mAction) {
       case WriteParamsFileMessage::WRITE: outputParams(path.c_str()); break;
       case WriteParamsFileMessage::DELETE:

@@ -8,6 +8,7 @@
 #ifndef LOCALPATCHWEIGHTSFILE_HPP_
 #define LOCALPATCHWEIGHTSFILE_HPP_
 
+#include <memory>
 #include "checkpointing/CheckpointerDataInterface.hpp"
 #include "io/FileManager.hpp"
 #include "io/LocalPatchWeightsIO.hpp"
@@ -81,7 +82,7 @@ class LocalPatchWeightsFile : public WeightsFile {
    int getNumArbors() const { return mNumArbors; }
    bool getFileExtendedFlag() const { return mFileExtendedFlag; }
    bool getCompressedFlag() const { return mCompressedFlag; }
-   bool getReadOnly() const { return mReadOnly; }
+   bool getReadOnlyFlag() const { return mReadOnlyFlag; }
    bool getVerifyWrites() const { return mVerifyWrites; }
 
    void setIndex(int index) override;
@@ -123,8 +124,10 @@ class LocalPatchWeightsFile : public WeightsFile {
    int mNumArbors;
    bool mFileExtendedFlag;
    bool mCompressedFlag;
-   bool mReadOnly;
+   bool mReadOnlyFlag;
    bool mVerifyWrites;
+   bool mSeesElemZeroFlag;
+   std::string mElemZeroPath;
 
    std::unique_ptr<LocalPatchWeightsIO> mLocalPatchWeightsIO = nullptr;
    std::unique_ptr<SharedWeightsIO> mSharedWeightsIO         = nullptr;

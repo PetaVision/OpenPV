@@ -35,7 +35,7 @@ Response::Status ImageActivityBuffer::registerData(
       return status;
    }
    mURLDownloadTemplate =
-         getCommunicator()->getOutputFileManager()->makeBlockFilename(std::string("temp.XXXXXX"));
+         getCommunicator()->getOutputFileManager()->convertToEffectivePath(std::string("temp.XXXXXX"));
    return Response::SUCCESS;
 }
 

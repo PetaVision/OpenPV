@@ -127,7 +127,11 @@ void CheckpointEntryWeightPvp::read(
 }
 
 void CheckpointEntryWeightPvp::remove(std::shared_ptr<FileManager const> fileManager) const {
-   deleteFile(fileManager, std::string("pvp"));
+   std::string filename = generateFilename("pvp");
+   bool exists = fileManager->queryFileExists(filename);
+   if (exists) {
+      fileManager->deleteFile(filename);
+   }
 }
 
 } // end namespace PV

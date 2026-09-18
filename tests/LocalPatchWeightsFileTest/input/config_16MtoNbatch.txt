@@ -2,7 +2,7 @@
 OutputPath:output/config_16MtoNbatch
 ParamsFile:
 NumThreads:-
-LogFile:LocalPatchFileTest_16MtoNbatch.log
+LogFile:LocalPatchWeightsFileTest_16MtoNbatch.log
 NumRows:2
 NumColumns:2
 BatchWidth:4

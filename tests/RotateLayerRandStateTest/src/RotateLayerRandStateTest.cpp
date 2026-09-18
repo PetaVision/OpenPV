@@ -145,7 +145,7 @@ int deleteOldOutputDirectory(PV_Init &pv_init_obj) {
 int deletePath(std::shared_ptr<MPIBlock const> &ioMPIBlock, std::string const &path) {
    FileManager fileManager(ioMPIBlock, path);
    if (!fileManager.isRoot()) { return PV_SUCCESS; }
-   std::string blockFilename   = fileManager.makeBlockFilename(".");
+   std::string blockFilename   = fileManager.convertToEffectivePath(".");
    char *resolvedBlockFilename = ::realpath(blockFilename.c_str(), nullptr);
    if (!resolvedBlockFilename) {
       if (errno == ENOENT) {

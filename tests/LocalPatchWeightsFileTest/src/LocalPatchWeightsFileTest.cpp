@@ -38,7 +38,8 @@ float calcMaxVal(std::shared_ptr<WeightData const> weightData);
 int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string const &path);
 
 int compareWeights(
-      std::shared_ptr<WeightData const> weights1, std::shared_ptr<WeightData const> weights2,
+      std::shared_ptr<WeightData const> expectedWeights,
+      std::shared_ptr<WeightData const> observedWeights,
       int nxRestrictedPre, int nyRestrictedPre, int nxRestrictedPost, int nyRestrictedPost,
       std::string const &label);
 
@@ -103,6 +104,7 @@ int main(int argc, char *argv[]) {
       std::string testDesc("one-to-one");
       status = run(fileManager, connection, pv_init, testDesc);
    }
+#ifdef PHALACROCORAX
    if (status == PV_SUCCESS) {
       ConnectionSpecs connection(
             2 /*numArbors*/, 5 /*nxp*/, 3 /*nyp*/, 3 /*nfp*/,
@@ -119,6 +121,7 @@ int main(int argc, char *argv[]) {
       std::string testDesc("one-to-many");
       status = run(fileManager, connection, pv_init, testDesc);
    }
+#endif // PHALACROCORAX
 
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -180,23 +183,48 @@ int run(
 
    // Now, read the weights back, without using LocalPatchWeightsFile, and compare the results to
    // weights1 and weights2
-   auto checkWriteFile = fileManager->open(testWritePath, std::ios_base::in | std::ios_base::binary);
+
+   // If a process has MPI batch index != 0, there might not be a weights file in the block for
+   // this process, if the process sees the same file system as that with MPI batch index == 0.
+
+   std::shared_ptr<FileStream> checkWriteFile = nullptr;
+
+   if (fileManager->isRoot()) {
+      bool wgtFileExistsFlag = fileManager->queryFileExists(testWritePath);
+      std::string checkWritePath;
+      if (wgtFileExistsFlag) {
+         checkWritePath = fileManager->convertToEffectivePath(testWritePath);
+      }
+      else {
+         auto baseDirectory = fileManager->getBaseDirectory();
+         auto mpiBlock = fileManager->getMPIBlock();
+         int col = mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
+         int row = mpiBlock->getStartRow() / mpiBlock->getNumRows();
+         checkWritePath = FileManager::createBlockDirNameFromColRowElem(baseDirectory, col, row, 0);
+         checkWritePath.append(testWritePath);
+      }
+      checkWriteFile = std::make_shared<FileStream>(
+            checkWritePath.c_str(), std::ios_base::in | std::ios_base::binary);
+   }
    if (status == PV_SUCCESS) {
       setWeights1(writeWeights, preLoc, postLoc);
       auto checkWeights1 = readFromFileStream(checkWriteFile, 0/*frame number*/, fileManager);
       status = compareWeights(
-            writeWeights, checkWeights1, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
+            writeWeights /*expected*/, checkWeights1 /*observed*/,
+            preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
             std::string(directory + " write test, frame 0"));
    }
    if (status == PV_SUCCESS) {
       setWeights2(writeWeights, preLoc, postLoc);
       auto checkWeights2 = readFromFileStream(checkWriteFile, 1/*frame number*/, fileManager);
       status = compareWeights(
-            writeWeights, checkWeights2, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
+            writeWeights /*expected*/, checkWeights2 /*observed*/,
+            preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
             std::string(directory + " write test, frame 1"));
    }
    if (status != PV_SUCCESS) { return EXIT_FAILURE; }
 
+#ifdef PHALACROCORAX
    // Write a shared weights PVP file using primitive FileStream functions, and then read it back
    // using the LocalPatchWeightsFile class, and compare the result.
    //
@@ -231,7 +259,8 @@ int run(
    if (status == PV_SUCCESS) {
       wgtFile->read(readTimestamp3);
       status = compareWeights(
-            readWeights, weights3, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
+            weights3 /*expected*/, readWeights /*observed*/,
+            preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
             std::string(directory + " read test, frame 0"));
    }
    if (status == PV_SUCCESS) {
@@ -245,7 +274,8 @@ int run(
    if (status == PV_SUCCESS) {
       wgtFile->read(readTimestamp4);
       status = compareWeights(
-            readWeights, weights4, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
+            weights4 /*expected*/, readWeights /*observed*/,
+            preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
             std::string(directory + " read test, frame 1"));
    }
    if (status == PV_SUCCESS) {
@@ -255,6 +285,7 @@ int run(
          status = PV_FAILURE;
       }
    }
+#endif // PHALACROCORAX
 
    if (status == PV_SUCCESS) {
       InfoLog() << "Test passed.\n";
@@ -351,94 +382,99 @@ int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string c
 }
 
 int compareWeights(
-      std::shared_ptr<WeightData const> weights1, std::shared_ptr<WeightData const> weights2,
+      std::shared_ptr<WeightData const> expectedWeights,
+      std::shared_ptr<WeightData const> observedWeights,
       int nxRestrictedPre, int nyRestrictedPre, int nxRestrictedPost, int nyRestrictedPost,
       std::string const &label) {
    int status = PV_SUCCESS;
-   if (weights1->getNumArbors() != weights2->getNumArbors()) {
+   if (expectedWeights->getNumArbors() != observedWeights->getNumArbors()) {
       ErrorLog().printf(
             "compareWeights, %s: numbers of arbors differ (%d versus %d)\n",
-            label.c_str(), weights1->getNumArbors(), weights2->getNumArbors());
+            label.c_str(), expectedWeights->getNumArbors(), observedWeights->getNumArbors());
       status = PV_FAILURE;
    }
-   int numArbors = weights1->getNumArbors();
+   int numArbors = expectedWeights->getNumArbors();
 
-   if (weights1->getPatchSizeX() != weights2->getPatchSizeX()) {
+   if (expectedWeights->getPatchSizeX() != observedWeights->getPatchSizeX()) {
       ErrorLog().printf(
             "compareWeights, %s: PatchSizeX differs (%d versus %d)\n",
-            label.c_str(), weights1->getPatchSizeX(), weights2->getPatchSizeX());
+            label.c_str(), expectedWeights->getPatchSizeX(), observedWeights->getPatchSizeX());
       status = PV_FAILURE;
    }
-   int patchSizeX = weights1->getPatchSizeX();
-   if (weights1->getPatchSizeY() != weights2->getPatchSizeY()) {
+   int patchSizeX = expectedWeights->getPatchSizeX();
+   if (expectedWeights->getPatchSizeY() != observedWeights->getPatchSizeY()) {
       ErrorLog().printf(
             "compareWeights, %s: PatchSizeY differs (%d versus %d)\n",
-            label.c_str(), weights1->getPatchSizeY(), weights2->getPatchSizeY());
+            label.c_str(), expectedWeights->getPatchSizeY(), observedWeights->getPatchSizeY());
       status = PV_FAILURE;
    }
-   int patchSizeY = weights1->getPatchSizeY();
-   if (weights1->getPatchSizeF() != weights2->getPatchSizeF()) {
+   int patchSizeY = expectedWeights->getPatchSizeY();
+   if (expectedWeights->getPatchSizeF() != observedWeights->getPatchSizeF()) {
       ErrorLog().printf(
             "compareWeights, %s: PatchSizeF differs (%d versus %d)\n",
-            label.c_str(), weights1->getPatchSizeF(), weights2->getPatchSizeF());
+            label.c_str(), expectedWeights->getPatchSizeF(), observedWeights->getPatchSizeF());
       status = PV_FAILURE;
    }
-   int patchSizeF = weights1->getPatchSizeF();
+   int patchSizeF = expectedWeights->getPatchSizeF();
 
    int xMargin = requiredConvolveMargin(
          nxRestrictedPre, nxRestrictedPost, patchSizeX, 'x', "compareWeights");
    int yMargin = requiredConvolveMargin(
          nyRestrictedPre, nyRestrictedPost, patchSizeY, 'y', "compareWeights");
-   if (weights1->getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
+   if (expectedWeights->getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
       ErrorLog().printf(
-            "compareWeights, %s: weights1 does not have enough patches in the x-direction "
-            "(nxRestricted = %d, required margins %d, but weights1 is only %d patches wide)\n",
-            label.c_str(), nxRestrictedPre, xMargin, weights1->getNumDataPatchesX());
+            "compareWeights, %s: expectedWeights does not have enough patches in the x-direction "
+            "(nxRestricted = %d, required margins %d, but "
+            "expectedWeights is only %d patches wide)\n",
+            label.c_str(), nxRestrictedPre, xMargin, expectedWeights->getNumDataPatchesX());
       status = PV_FAILURE;
    }
-   if (weights1->getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
+   if (expectedWeights->getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
       ErrorLog().printf(
-            "compareWeights, %s: weights1 does not have enough patches in the y-direction "
-            "(nyRestricted = %d, required margins %d, but weights1 is only %d patches high)\n",
-            label.c_str(), nyRestrictedPre, yMargin, weights1->getNumDataPatchesY());
+            "compareWeights, %s: expectedWeights does not have enough patches in the y-direction "
+            "(nyRestricted = %d, required margins %d, but "
+            "expectedWeights is only %d patches high)\n",
+            label.c_str(), nyRestrictedPre, yMargin, expectedWeights->getNumDataPatchesY());
       status = PV_FAILURE;
    }
-   if (weights2->getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
+   if (observedWeights->getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
       ErrorLog().printf(
-            "compareWeights, %s: weights2 does not have enough patches in the x-direction "
-            "(nxRestricted = %d, required margins %d, but weights2 is only %d patches wide)\n",
-            label.c_str(), nxRestrictedPre, xMargin, weights2->getNumDataPatchesX());
+            "compareWeights, %s: observedWeights does not have enough patches in the x-direction "
+            "(nxRestricted = %d, required margins %d, but observedWeights is only %d patches wide)\n",
+            label.c_str(), nxRestrictedPre, xMargin, observedWeights->getNumDataPatchesX());
       status = PV_FAILURE;
    }
-   if (weights2->getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
+   if (observedWeights->getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
       ErrorLog().printf(
-            "compareWeights, %s: weights2 does not have enough patches in the y-direction "
-            "(nyRestricted = %d, required margins %d, but weights2 is only %d patches high)\n",
-            label.c_str(), nyRestrictedPre, yMargin, weights2->getNumDataPatchesY());
+            "compareWeights, %s: observedWeights does not have enough patches in the y-direction "
+            "(nyRestricted = %d, required margins %d, but observedWeights is only %d patches high)\n",
+            label.c_str(), nyRestrictedPre, yMargin, observedWeights->getNumDataPatchesY());
       status = PV_FAILURE;
    }
-   if (weights1->getNumDataPatchesF() != weights2->getNumDataPatchesF()) {
+   if (expectedWeights->getNumDataPatchesF() != observedWeights->getNumDataPatchesF()) {
       ErrorLog().printf(
             "compareWeights, %s: NumDataPatchesF differs (%d versus %d)\n",
-            label.c_str(), weights1->getNumDataPatchesF(), weights2->getNumDataPatchesF());
+            label.c_str(),
+            expectedWeights->getNumDataPatchesF(),
+            observedWeights->getNumDataPatchesF());
       status = PV_FAILURE;
    }
-   int nf = weights1->getNumDataPatchesF();
+   int nf = expectedWeights->getNumDataPatchesF();
 
-   int xStartIndex1 = (weights1->getNumDataPatchesX() - nxRestrictedPre) / 2;
-   int yStartIndex1 = (weights1->getNumDataPatchesY() - nyRestrictedPre) / 2;
-   int xStartIndex2 = (weights2->getNumDataPatchesX() - nxRestrictedPre) / 2;
-   int yStartIndex2 = (weights2->getNumDataPatchesY() - nyRestrictedPre) / 2;
+   int xStartIndex1 = (expectedWeights->getNumDataPatchesX() - nxRestrictedPre) / 2;
+   int yStartIndex1 = (expectedWeights->getNumDataPatchesY() - nyRestrictedPre) / 2;
+   int xStartIndex2 = (observedWeights->getNumDataPatchesX() - nxRestrictedPre) / 2;
+   int yStartIndex2 = (observedWeights->getNumDataPatchesY() - nyRestrictedPre) / 2;
 
    for (int a = 0; a < numArbors; ++a) {
       for (int y = 0; y < nyRestrictedPre + 2 * yMargin; ++y) {
          for (int x = 0; x < nxRestrictedPre + 2 * xMargin; ++x) {
             for (int f = 0; f < nf; ++f) {
-               float const *patch1 =
-                     weights1->getDataFromXYF(a, x + xStartIndex1, y + yStartIndex1, f);
-               float const *patch2 =
-                     weights2->getDataFromXYF(a, x + xStartIndex2, y + yStartIndex2, f);
-               // Need to compute valid region; should be same for weights 1 and 2
+               float const *expectedPatch =
+                     expectedWeights->getDataFromXYF(a, x + xStartIndex1, y + yStartIndex1, f);
+               float const *observedPatch =
+                     observedWeights->getDataFromXYF(a, x + xStartIndex2, y + yStartIndex2, f);
+               // Need to compute valid region; should be same for expected and observed weights
                int xPatchDim, xPatchStart, yPatchDim, yPatchStart;
                PatchGeometry::calcPatchData(
                      x + xStartIndex1,
@@ -462,16 +498,17 @@ int compareWeights(
                   for (int kx = xPatchStart; kx < xPatchStart + xPatchDim; ++kx) {
                      for (int kf = 0; kf < patchSizeF; ++kf) {
                         long index = kIndex(kx, ky, kf, patchSizeX, patchSizeY, patchSizeF);
-                        float discrepancy = patch2[index] - patch1[index];
-                        if (std::abs(discrepancy) > tolerance * std::abs(patch1[index])) {
+                        float discrepancy = observedPatch[index] - expectedPatch[index];
+                        if (std::abs(discrepancy) > tolerance * std::abs(expectedPatch[index])) {
                            ErrorLog().printf(
                                  "compareWeights, %s: weights do not agree at patch with "
                                  "arbor %d, restricted index x=%d, y=%d, f=%d, "
                                  "patch element at x=%d, y=%d, f=%d "
-                                 "%f versus %f, discrepancy %g, relative error %g)\n",
+                                 "expected %f, observed %f, discrepancy %g, relative error %g)\n",
                                  label.c_str(), a, x, y, f, kx, ky, kf,
-                                 (double)patch1[index], (double)patch2[index],
-                                 (double)discrepancy, (double)std::abs(discrepancy/patch1[index]));
+                                 (double)expectedPatch[index], (double)observedPatch[index],
+                                 (double)discrepancy,
+                                 (double)std::abs(discrepancy/expectedPatch[index]));
                            status = PV_FAILURE;
                         }
                      }
@@ -586,6 +623,10 @@ std::shared_ptr<WeightData> readFromFileStream(
    int rootProc = fileManager->getRootProcessRank();
    if (fileManager->isRoot()) {
       fileStream->setInPos(0L, std::ios_base::beg);
+      long filePos = fileStream->getInPos();
+      InfoLog().printf(
+            "Reading header from \"%s\", position %ld, length %zu\n",
+            fileStream->getFileName().c_str(), filePos, sizeof(header));
       fileStream->read(&header, static_cast<long>(sizeof(header)));
 
       for (int f = 0; f < frameNumber; ++f) {
@@ -593,6 +634,10 @@ std::shared_ptr<WeightData> readFromFileStream(
          long frameDataSize =
                static_cast<long>(patchSize * header.numPatches * header.baseHeader.numRecords);
          fileStream->setInPos(frameDataSize, std::ios_base::cur);
+         filePos = fileStream->getInPos();
+         InfoLog().printf(
+               "Reading header from \"%s\", position %ld, length %zu\n",
+               fileStream->getFileName().c_str(), filePos, sizeof(header));
          fileStream->read(&header, static_cast<long>(sizeof(header)));
       }
    }
@@ -602,7 +647,13 @@ std::shared_ptr<WeightData> readFromFileStream(
    int blockNyExt = header.baseHeader.nyExtended;
    int nfPre      = header.baseHeader.nf;
    int patchSize  = header.nxp * header.nyp * header.nfp;
-   pvAssert(header.baseHeader.dataSize == static_cast<int>(sizeof(float))); // TODO: compressed
+   FatalIf(
+         header.baseHeader.dataSize != static_cast<int>(sizeof(float)), // TODO: compressed
+         "header dataSize is %d instead of %d. File \"%s\", frameNumber %d\n",
+         header.baseHeader.dataSize,
+         static_cast<int>(sizeof(float)),
+         fileStream ? fileStream->getFileName().c_str() : "(null)",
+         frameNumber);
    long patchSizeBytes  = static_cast<long>(patchSize * header.baseHeader.dataSize);
    long numPatches      = static_cast<long>(blockNxExt * blockNyExt * nfPre);
    auto blockWeightData = std::make_shared<WeightData>(

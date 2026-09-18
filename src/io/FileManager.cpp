@@ -34,10 +34,10 @@ std::shared_ptr<FileStream> FileManager::open(
       bool verifyWrites) const {
     std::shared_ptr<FileStream> stream = nullptr;
     if (isRoot()) {
-       std::string modifiedPath = modifyPathForMtoN(path);
+       std::string modifiedPath = convertToEffectivePath(path);
        stream = std::make_shared<FileStream>(modifiedPath.c_str(), mode, verifyWrites);
     }
-    return stream;   
+    return stream;
 }
 
 void FileManager::ensureDirectoryExists(std::string const &path) const {
@@ -105,10 +105,6 @@ void FileManager::changeBaseDirectory(std::string const &newBaseDirectory) {
     createBlockDirectoryName(newBaseDirectory);
 }
 
-std::string FileManager::makeBlockFilename(std::string const &path) const {
-   return modifyPathForMtoN(path);
-}
-
 std::vector<std::string> FileManager::listDirectory() const {
    return listDirectory(".");
 }
@@ -117,7 +113,7 @@ std::vector<std::string> FileManager::listDirectory(std::string const &path) con
    std::vector<std::string> result;
    if (!isRoot()) { return result; }
    int status = PV_SUCCESS;
-   std::string modifiedPath = modifyPathForMtoN(path);
+   std::string modifiedPath = convertToEffectivePath(path);
    DIR *dir = opendir(modifiedPath.c_str());
    if (dir == nullptr) {
       ErrorLog().printf("listDirectory(\"%s\") failed: %s\n", path.c_str(), std::strerror(errno));
@@ -142,14 +138,14 @@ std::vector<std::string> FileManager::listDirectory(std::string const &path) con
          status != PV_SUCCESS,
          "FileManager failed to list directory \"%s\" in \"%s\"\n",
          path.c_str(),
-         mBlockDirectoryName.c_str()); 
+         mBlockDirectory.c_str());
 
    status = closedir(dir);
    FatalIf(
          status != 0,
          "FileManager failed to close directory \"%s\" in \"%s\": %s\n",
          path.c_str(),
-         mBlockDirectoryName.c_str(),
+         mBlockDirectory.c_str(),
          std::strerror(errno));
    return result;
 }
@@ -159,7 +155,7 @@ int FileManager::makeDirectory(std::string const &path) const {
    if (!isRoot()) { return status; }
 
    mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
-   std::string modifiedPath = modifyPathForMtoN(path);
+   std::string modifiedPath = convertToEffectivePath(path);
    pvAssert(!modifiedPath.empty());
    std::string::size_type pos = modifiedPath.find('/', 1);
    while (pos != std::string::npos) {
@@ -176,7 +172,7 @@ int FileManager::makeDirectory(std::string const &path) const {
 
 void FileManager::deleteDirectory(std::string const &path) const {
    if (!isRoot()) { return; }
-   std::string modifiedPath = modifyPathForMtoN(path);
+   std::string modifiedPath = convertToEffectivePath(path);
    for (int attemptNum = 0; attemptNum < mMaxAttempts; ++attemptNum) {
       int rmdirstatus = rmdir(modifiedPath.c_str());
       if (rmdirstatus != 0) {
@@ -206,9 +202,9 @@ void FileManager::deleteDirectory(std::string const &path) const {
 
 void FileManager::deleteFile(std::string const &path) const {
    if (!isRoot()) { return; }
-   std::string modifiedPath = modifyPathForMtoN(path);
+   std::string modifiedPath = convertToEffectivePath(path);
    for (int attemptNum = 0; attemptNum < mMaxAttempts; ++attemptNum) {
-      int unlinkstatus = unlink(modifiedPath.c_str());
+      int unlinkstatus = ::unlink(modifiedPath.c_str());
       if (unlinkstatus != 0) {
          if (attemptNum == mMaxAttempts - 1) {
             Fatal().printf(
@@ -258,7 +254,7 @@ bool FileManager::queryFileExists(std::string const &path) const {
 
 int FileManager::stat(std::string const &path, struct stat &statbuf) const {
    if (!isRoot()) { return 0; }
-   std::string modifiedPath = modifyPathForMtoN(path);
+   std::string modifiedPath = convertToEffectivePath(path);
    int status = ::stat(modifiedPath.c_str(), &statbuf);
    return status;
 }
@@ -285,7 +281,7 @@ int FileManager::statRetry(std::string const &path, struct stat &statbuf, int ma
 int FileManager::truncate(std::string const &path, long length) const {
    int status = 0;
    if (isRoot()) {
-      std::string modifiedPath = modifyPathForMtoN(path);
+      std::string modifiedPath = convertToEffectivePath(path);
       status = ::truncate(modifiedPath.c_str(), static_cast<off_t>(length));
       FatalIf(status, "Unable to truncate \"%s\" to length %ld: %s\n",
             path.c_str(), length, std::strerror(errno));
@@ -293,33 +289,54 @@ int FileManager::truncate(std::string const &path, long length) const {
    return status;
 }
 
-std::string FileManager::modifyPathForMtoN(std::string const &path) const {
-   std::string modifiedPath(mBlockDirectoryName);
+std::string FileManager::convertToEffectivePath(std::string const &path) const {
+   std::string modifiedPath(mBlockDirectory);
    assert(!modifiedPath.empty() and modifiedPath.back() == '/');
    modifiedPath.append(path);
    return modifiedPath;
 }
 
-void FileManager::createBlockDirectoryName(std::string const &baseDirectory) {
-   mBaseDirectory      = baseDirectory;
-   mBlockDirectoryName = baseDirectory.empty() ? "." : expandLeadingTilde(baseDirectory);
-   assert(!mBlockDirectoryName.empty());
 
-   if (mBlockDirectoryName.back() != '/') {
-      mBlockDirectoryName += '/';
+std::string FileManager::createBlockDirNameFromColRowElem(
+         std::string const &baseDirectory, int col, int row, int elem) {
+   std::string result = baseDirectory;
+   result = baseDirectory.empty() ? "." : expandLeadingTilde(baseDirectory);
+   assert(!result.empty());
+
+   if (result.back() != '/') {
+      result += '/';
    }
 
+   result.append("block_");
+   result.append("col" + std::to_string(col));
+   result.append("row" + std::to_string(row));
+   result.append("elem" + std::to_string(elem));
+   result.append("/");
+
+   return result;
+}
+
+void FileManager::createBlockDirectoryName(std::string const &baseDirectory) {
+   mBaseDirectory  = baseDirectory.empty() ? "." : expandLeadingTilde(baseDirectory);
+   mBlockDirectory = mBaseDirectory;
    if (mMPIBlock->getGlobalNumRows() != mMPIBlock->getNumRows()
-       or mMPIBlock->getGlobalNumColumns() != mMPIBlock->getNumColumns()
-       or mMPIBlock->getGlobalBatchDimension() != mMPIBlock->getBatchDimension()) {
-      int const blockColumnIndex = mMPIBlock->getStartColumn() / mMPIBlock->getNumColumns();
-      int const blockRowIndex    = mMPIBlock->getStartRow() / mMPIBlock->getNumRows();
-      int const blockBatchIndex  = mMPIBlock->getStartBatch() / mMPIBlock->getBatchDimension();
-      mBlockDirectoryName.append("block_");
-      mBlockDirectoryName.append("col" + std::to_string(blockColumnIndex));
-      mBlockDirectoryName.append("row" + std::to_string(blockRowIndex));
-      mBlockDirectoryName.append("elem" + std::to_string(blockBatchIndex));
-      mBlockDirectoryName.append("/");
+         or mMPIBlock->getGlobalNumColumns() != mMPIBlock->getNumColumns()
+         or mMPIBlock->getGlobalBatchDimension() != mMPIBlock->getBatchDimension()) {
+      int col  = mMPIBlock->getStartColumn() / mMPIBlock->getNumColumns();
+      int row  = mMPIBlock->getStartRow() / mMPIBlock->getNumRows();
+      int elem = mMPIBlock->getStartBatch() / mMPIBlock->getBatchDimension();
+      mBlockDirectory = createBlockDirNameFromColRowElem(baseDirectory, col, row, elem);
+      assert(!mBlockDirectory.empty() and mBlockDirectory.back() == '/');
+   }
+   else {
+      assert(!mBlockDirectory.empty());
+      if (mBlockDirectory.back() != '/') {
+         mBlockDirectory += '/';
+      }
+   }
+   assert(!mBaseDirectory.empty());
+   if (mBaseDirectory.back() != '/') {
+      mBaseDirectory += '/';
    }
 }
 

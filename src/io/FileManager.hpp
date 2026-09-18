@@ -61,14 +61,13 @@ class FileManager {
    void changeBaseDirectory(std::string const &newBaseDirectory);
 
    /**
-    * Given a relative path, returns a full path consisting of the effective
+    * Given a relative path, returns a full path consisting of the base directory
+    * followed by the block directory, followed by the given path.
     * output directory for the process's checkpoint cell, followed by "/",
     * followed by the given relative path. It is a fatal error for the path to
     * be an absolute path (i.e. starting with '/').
-    * This is deprecated, as objects should never need to know the full paths
-    * of the files managed by the FileManager object
     */
-   std::string makeBlockFilename(std::string const &path) const;
+   std::string convertToEffectivePath(std::string const &path) const;
 
    std::string const &getBaseDirectory() const { return mBaseDirectory; }
 
@@ -76,17 +75,18 @@ class FileManager {
 
    int getRootProcessRank() const { return mRootProcessRank; }
 
-  private:
-   std::string modifyPathForMtoN(std::string const &path) const;
+   static std::string createBlockDirNameFromColRowElem(
+         std::string const &baseDirectory, int col, int row, int elem);
 
+  private:
    void createBlockDirectoryName(std::string const &baseDirectory);
 
   private:
    std::string mBaseDirectory;
-   std::string mBlockDirectoryName;
+   std::string mBlockDirectory;
    std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
    int const mMaxAttempts = 5;
-   int mRootProcessRank = 0;
+   int mRootProcessRank   = 0;
 };
 
 } /* namespace PV */
