@@ -204,7 +204,7 @@ void FileManager::deleteFile(std::string const &path) const {
    if (!isRoot()) { return; }
    std::string modifiedPath = convertToEffectivePath(path);
    for (int attemptNum = 0; attemptNum < mMaxAttempts; ++attemptNum) {
-      int unlinkstatus = unlink(modifiedPath.c_str());
+      int unlinkstatus = ::unlink(modifiedPath.c_str());
       if (unlinkstatus != 0) {
          if (attemptNum == mMaxAttempts - 1) {
             Fatal().printf(
