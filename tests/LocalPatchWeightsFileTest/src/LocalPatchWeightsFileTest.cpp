@@ -203,8 +203,6 @@ int run(
          checkWritePath = FileManager::createBlockDirNameFromColRowElem(baseDirectory, col, row, 0);
          checkWritePath.append(testWritePath);
       }
-      InfoLog().printf(
-            "<LocalPatchWeightsFileTest.cpp:%d> Reading %s\n", __LINE__, checkWritePath.c_str());
       checkWriteFile = std::make_shared<FileStream>(
             checkWritePath.c_str(), std::ios_base::in | std::ios_base::binary);
    }

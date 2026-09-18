@@ -142,6 +142,7 @@ void BroadcastPreWeightsFile::writePostIsNotBroadcast(double timestamp) {
       int tag                 = 136;
       MPI_Send(weightData, numValuesMPI, MPI_FLOAT, root, tag, mpiBlock->getComm());
    }
+   MPI_Barrier(mpiBlock->getGlobalComm());
    setIndex(getIndex() + 1);
 }
 
@@ -151,24 +152,27 @@ void BroadcastPreWeightsFile::truncate(int index) {
          "BroadcastPreWeightsFile \"%s\" is read-only and cannot be truncated.\n",
          mPath.c_str());
    if (isRoot()) {
-      int curFrameNumber  = mBroadcastPreWeightsIO->getFrameNumber();
-      int lastFrameNumber = mBroadcastPreWeightsIO->getNumFrames();
-      if (index >= lastFrameNumber) {
-         WarnLog().printf(
-               "Attempt to truncate \"%s\" to index %d, but file's max index is only %d\n",
-               mPath.c_str(),
-               index,
-               lastFrameNumber);
-         return;
+      if (!mSeesElemZeroFlag) {
+         int lastFrameNumber = mBroadcastPreWeightsIO->getNumFrames();
+         if (index >= lastFrameNumber) {
+            WarnLog().printf(
+                  "Attempt to truncate \"%s\" to index %d, but file's max index is only %d\n",
+                  mPath.c_str(),
+                  index,
+                  lastFrameNumber);
+            return;
+         }
       }
-      int newFrameNumber = curFrameNumber > index ? index : curFrameNumber;
-      long eofPosition   = mBroadcastPreWeightsIO->calcFilePositionFromFrameNumber(index);
-      mBroadcastPreWeightsIO->close();
-      mFileManager->truncate(mPath, eofPosition);
-      mBroadcastPreWeightsIO->open();
-      int newIndex = index < getIndex() ? index : getIndex();
-      setIndex(newIndex);
    }
+   long newEof = mBroadcastPreWeightsIO->calcFilePositionFromFrameNumber(index);
+   mBroadcastPreWeightsIO->close();
+   if (!mSeesElemZeroFlag) {
+      mFileManager->truncate(mPath, newEof);
+   }
+   MPI_Barrier(mFileManager->getMPIBlock()->getGlobalComm());
+   mBroadcastPreWeightsIO->open();
+   int newIndex = index < getIndex() ? index : getIndex();
+   setIndex(newIndex);
 }
 
 void BroadcastPreWeightsFile::setIndex(int index) {
@@ -238,10 +242,80 @@ int BroadcastPreWeightsFile::initializeCheckpointerDataInterface() {
 }
 
 void BroadcastPreWeightsFile::initializeBroadcastPreWeightsIO(bool clobberFlag) {
-   auto fileStream =
-         FileStreamBuilder(
-               mFileManager, mPath, false /*not text*/, mReadOnlyFlag, clobberFlag, mVerifyWrites)
+   auto mpiBlock             = mFileManager->getMPIBlock();
+   std::shared_ptr<FileStream> fileStream = nullptr;
+   if (mpiBlock->getStartBatch() == 0) {
+      fileStream = FileStreamBuilder(
+            mFileManager, mPath, false /*isTextFlag*/, mReadOnlyFlag, clobberFlag, mVerifyWrites)
+            .get();
+      mSeesElemZeroFlag = false;
+      sync();
+   }
+   // Make sure the batch-zero process has created the file before other processes check for
+   // its existence.
+   MPI_Barrier(mpiBlock->getGlobalComm());
+   if (mpiBlock->getStartBatch() != 0) {
+      if (isRoot()) {
+         std::string effectivePath = mFileManager->convertToEffectivePath(mPath);
+         std::string const &baseDirectory = mFileManager->getBaseDirectory();
+         int col  = mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
+         int row  = mpiBlock->getStartRow() / mpiBlock->getNumRows();
+
+         std::string elem0Dir =
+               FileManager::createBlockDirNameFromColRowElem(baseDirectory, col, row, 0);
+         std::string elem0Path = elem0Dir + mPath;
+         struct stat statbuf;
+         int status = ::stat(elem0Path.c_str(), &statbuf);
+         if (status == 0) {
+            if ((statbuf.st_mode & S_IFREG) == S_IFREG) {
+               mSeesElemZeroFlag = true;
+            }
+            else {
+               ErrorLog().printf("File \"%s\" exists but is not a regular file.\n", elem0Dir.c_str());
+               mSeesElemZeroFlag = false;
+            }
+         }
+         else {
+            mSeesElemZeroFlag = false;
+            if (errno == ENOENT) {
+               errno = 0;
+            }
+            else {
+               ErrorLog().printf(
+                     "Unable to query existence of file \"%s\": error %d (%s).\n",
+                     elem0Dir.c_str(), errno, std::strerror(errno));
+            }
+         }
+         if (mSeesElemZeroFlag) {
+            mElemZeroPath = elem0Path;
+            InfoLog().printf(
+                  "Using batch-zero file \"%s\" instead of \"%s\"\n",
+                  elem0Path.c_str(), effectivePath.c_str());
+         }
+         if (mSeesElemZeroFlag) {
+            if (isRoot()) {
+               std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary;
+               if (!mReadOnlyFlag) { mode |= std::ios_base::out; }
+               fileStream = std::make_shared<FileStream>(
+                     mElemZeroPath.c_str(), mode, mVerifyWrites);
+            }
+            else {
+               fileStream = nullptr;
+            }
+         }
+         else {
+            fileStream = FileStreamBuilder(
+               mFileManager, mPath, false /*isTextFlag*/, mReadOnlyFlag, clobberFlag, mVerifyWrites)
                .get();
+         }
+      } // if (isRoot())
+      else {
+         mSeesElemZeroFlag = false; // eliminate uninitialized variable warning
+      }
+      int seesElemZeroInt = mSeesElemZeroFlag ? 1 : 0;
+      MPI_Bcast(&seesElemZeroInt, 1 /*count*/, MPI_INT, 0 /*root*/, mpiBlock->getComm());
+      mSeesElemZeroFlag = (seesElemZeroInt != 0);
+   }
 
    int ioPatchSizeX = mPatchSizePerProcX;
    int ioPatchSizeY = mPatchSizePerProcY;
@@ -258,7 +332,8 @@ void BroadcastPreWeightsFile::initializeBroadcastPreWeightsIO(bool clobberFlag) 
          mPatchSizeF,
          mNfPre,
          mNumArbors,
-         mCompressedFlag));
+         mCompressedFlag,
+         !mSeesElemZeroFlag));
 }
 
 void BroadcastPreWeightsFile::readInternal(double &timestamp) {

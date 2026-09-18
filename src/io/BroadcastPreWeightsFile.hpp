@@ -103,6 +103,8 @@ class BroadcastPreWeightsFile : public WeightsFile {
    bool mCompressedFlag;
    bool mReadOnlyFlag;
    bool mVerifyWrites;
+   bool mSeesElemZeroFlag;
+   std::string mElemZeroPath;
 
    std::unique_ptr<BroadcastPreWeightsIO> mBroadcastPreWeightsIO;
 

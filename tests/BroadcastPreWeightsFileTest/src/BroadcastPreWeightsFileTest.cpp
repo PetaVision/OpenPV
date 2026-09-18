@@ -159,6 +159,10 @@ int main(int argc, char *argv[]) {
          status = PV_SUCCESS;
       }
    }
+   // To test whether IO root processes with nonzero batch index sees the same file system as the
+   // process with zero batch index, we'll look for the row0col0elem0 directory. We need to ensure
+   // that we don't check until after the row0col0elem0 directory is created.
+   MPI_Barrier(fileManager->getMPIBlock()->getGlobalComm());
 
    Dimensions dimensions(pv_init->getCommunicator());
    if (status == PV_SUCCESS) {
@@ -765,13 +769,25 @@ std::shared_ptr<WeightData> readUsingFileStreamPrimitives(
       1 /*numArbors*/,
       dimensions.nxPost, dimensions.nyPost, dimensions.nfPost,
       1 /*numDataPatchesX*/, 1 /*numDataPatchesY*/, dimensions.nfPre);
-   auto fileStream = FileStreamBuilder(
-      fileManager,
-      path,
-      false /*isTextFlag*/,
-      true /*readOnlyFlag*/,
-      false /*clobberFlag*/,
-      false /*verifyWritesFlag*/).get();
+
+   std::shared_ptr<FileStream> fileStream = nullptr;
+   if (fileManager->isRoot()) {
+      bool pathExistsLocallyFlag = fileManager->queryFileExists(path);
+      std::string effectivePath;
+      if (pathExistsLocallyFlag) {
+         effectivePath = fileManager->convertToEffectivePath(path);
+      }
+      else {
+         auto baseDirectory = fileManager->getBaseDirectory();
+         auto mpiBlock = fileManager->getMPIBlock();
+         int col = mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
+         int row = mpiBlock->getStartRow() / mpiBlock->getNumRows();
+         effectivePath = FileManager::createBlockDirNameFromColRowElem(baseDirectory, col, row, 0);
+         effectivePath.append(path);
+      }
+      fileStream = std::make_shared<FileStream>(
+            effectivePath.c_str(), std::ios_base::in | std::ios_base::binary);
+   }
    auto mpiBlock = fileManager->getMPIBlock();
    std::shared_ptr<WeightData> gatheredWeightData = nullptr;
    if (fileStream) {
@@ -879,14 +895,31 @@ void writeUsingFileStreamPrimitives(
          weightData->getNumArbors() != 1,
          "writeUsingFileStreamPrimitives() called with multiple arbors.\n");
 
-   auto fileStream = FileStreamBuilder(
-      fileManager,
-      path,
-      false /*isTextFlag*/,
-      false /*readOnlyFlag*/,
-      false /*clobberFlag*/,
-      false /*verifyWritesFlag*/).get();
+   std::shared_ptr<FileStream> fileStream = nullptr;
    auto mpiBlock = fileManager->getMPIBlock();
+   int seesElemZeroFlag = 0;
+   if (fileManager->isRoot()) {
+      std::string dirName = PV::dirName(path);
+      auto baseDirectory = fileManager->getBaseDirectory();
+      int col = mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
+      int row = mpiBlock->getStartRow() / mpiBlock->getNumRows();
+      std::string elem0Dir =
+            FileManager::createBlockDirNameFromColRowElem(baseDirectory, col, row, 0);
+      elem0Dir.append(dirName);
+      seesElemZeroFlag = fileManager->queryFileExists(elem0Dir) ? 1 : 0;
+      if (!seesElemZeroFlag) {
+         fileStream = FileStreamBuilder(
+               fileManager,
+               path,
+               false /*isTextFlag*/,
+               false /*readOnlyFlag*/,
+               false /*clobberFlag*/,
+               false /*verifyWritesFlag*/).get();
+      }
+   }
+   MPI_Bcast(&seesElemZeroFlag, 1, MPI_INT, 0, mpiBlock->getComm());
+   if (seesElemZeroFlag) { return; }
+
    auto gatheredWeightData = gatherWeightsByBlock(weightData, mpiBlock);
    if (fileStream) {
       pvAssert(gatheredWeightData->getNumArbors() == weightData->getNumArbors());

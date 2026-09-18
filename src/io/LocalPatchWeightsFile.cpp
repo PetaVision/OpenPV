@@ -352,7 +352,6 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
          std::string const &baseDirectory = mFileManager->getBaseDirectory();
          int col  = mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
          int row  = mpiBlock->getStartRow() / mpiBlock->getNumRows();
-         int elem = mpiBlock->getStartBatch() / mpiBlock->getBatchDimension();
 
          std::string elem0Dir =
                FileManager::createBlockDirNameFromColRowElem(baseDirectory, col, row, 0);

@@ -314,13 +314,6 @@ void MomentumUpdater::openOutputStateFile(
    std::string outputStatePath(getName());
    outputStatePath.append(".prevDelta.pvp");
 
-   // If the file exists and CheckpointReadDirectory is empty, we need to
-   // clobber the file.
-   if (checkpointer->getCheckpointReadDirectory().empty()) {
-      outputFileManager->open(
-            outputStatePath, std::ios_base::out, checkpointer->doesVerifyWrites());
-   }
-
    auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
    auto *postLoc = mConnectionData->getPost()->getLayerLoc();
    if (mPrevDeltaWeights->getSharedWeightsFlag()) {

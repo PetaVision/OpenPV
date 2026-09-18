@@ -92,7 +92,8 @@ class BroadcastPreWeightsIO {
          int patchSizeF,
          int nfPre,
          int numArbors,
-         bool compressedFlag);
+         bool compressedFlag,
+         bool writePermissionFlag);
 
    virtual ~BroadcastPreWeightsIO() {}
 
@@ -273,6 +274,7 @@ class BroadcastPreWeightsIO {
    int mNfPre;
    int mNumArbors;
    bool mCompressedFlag;
+   bool mWritePermissionFlag;
 
    std::shared_ptr<PVPFrameIndexer> mFrameIndexer = nullptr;
 
