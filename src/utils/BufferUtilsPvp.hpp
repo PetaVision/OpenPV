@@ -201,26 +201,6 @@ double readDenseFromSparsePvp(
       int frameReadIndex,
       SparseFileTable *sparseFileTable);
 
-template <typename T>
-double readSparseBinaryFromPvp(
-      const char *fName,
-      SparseList<T> *list,
-      int frameReadIndex,
-      T oneVal,
-      SparseFileTable *cachedTable = nullptr);
-
-/**
- * Reads a frame from a sparse-binary pvp file into a (nonsparse) buffer.
- * Neither the list of active indices nor the SparseFileTable is returned.
- * Use the readSparseBinaryFromPvp function to get the SparseList or SparseFileTable.
- */
-template <typename T>
-double readDenseFromSparseBinaryPvp(
-      char const *fName,
-      Buffer<T> *buffer,
-      int frameReadIndex,
-      SparseFileTable *sparseFileTable);
-
 void writeActivityHeader(FileStream &fStream, ActivityHeader const &header);
 
 /**

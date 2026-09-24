@@ -83,13 +83,16 @@ end
 if (~exist('skip_frames','var') || isempty(skip_frames)) || skip_frames < 1
     skip_frames = 1;
 end
+
 %% allow user to override value of numframes
-if (exist('last_frame','var') && ~isempty(last_frame))
-    lastframe = min(last_frame, numframes);
-else
-    lastframe = numframes;
+if isempty(errorstring)
+    if (exist('last_frame','var') && ~isempty(last_frame))
+        lastframe = min(last_frame, numframes);
+    else
+        lastframe = numframes;
+    end%if
+    tot_frames = floor((lastframe - start_frame) / skip_frames + 1);
 end%if
-tot_frames = floor((lastframe - start_frame) / skip_frames + 1);
 
 if isempty(errorstring)
     if(lastframe ~= round(lastframe) || lastframe <= 0)

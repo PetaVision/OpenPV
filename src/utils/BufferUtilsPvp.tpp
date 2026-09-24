@@ -233,8 +233,9 @@ double readActivityFromPvp(
                fName, buffer, frameReadIndex, sparseFileTable);
          break;
       case PVP_ACT_FILE_TYPE:
-         timestamp = BufferUtils::readDenseFromSparseBinaryPvp<T>(
-               fName, buffer, frameReadIndex, sparseFileTable);
+         Fatal().printf(
+               "readActivityFromPvp: \"%s\" has file type %d, which is obsolete.\n",
+               fName, PVP_ACT_FILE_TYPE);
          break;
       default:
          Fatal().printf(
@@ -411,57 +412,6 @@ double readDenseFromSparsePvp(
       SparseFileTable *sparseFileTable) {
    SparseList<T> list;
    double timestamp = readSparseFromPvp(fName, &list, frameReadIndex, sparseFileTable);
-
-   FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
-   ActivityHeader header = readActivityHeader(fStream);
-   buffer->resize(header.nx, header.ny, header.nf);
-   list.toBuffer(*buffer, (T)0);
-
-   return timestamp;
-}
-
-template <typename T>
-double readSparseBinaryFromPvp(
-      const char *fName,
-      SparseList<T> *list,
-      int frameReadIndex,
-      T oneVal,
-      SparseFileTable *cachedTable) {
-   FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
-
-   ActivityHeader header = readActivityHeader(fStream);
-   FatalIf(
-         header.fileType != PVP_ACT_FILE_TYPE,
-         "readSparseBinaryFromPvp() can only be used on sparse binary pvps "
-         "(PVP_ACT_FILE_TYPE)\n");
-   FatalIf(header.nBands <= 0, "\"%s\" header does not have a positive nbands field.\n", fName);
-   FatalIf(
-         header.dataSize != sizeof(int),
-         "Error: Expected data size %d, found %d.\n",
-         sizeof(int),
-         header.dataSize);
-
-   SparseFileTable table;
-   if (cachedTable == nullptr) {
-      table = buildSparseFileTable(fStream, frameReadIndex);
-   }
-   else {
-      table = *cachedTable;
-   }
-
-   long frameOffset = table.frameStartOffsets.at(frameReadIndex);
-   fStream.setInPos(frameOffset, true);
-   return readSparseBinaryFrame<T>(fStream, list, oneVal);
-}
-
-template <typename T>
-double readDenseFromSparseBinaryPvp(
-      char const *fName,
-      Buffer<T> *buffer,
-      int frameReadIndex,
-      SparseFileTable *sparseFileTable) {
-   SparseList<T> list;
-   double timestamp = readSparseBinaryFromPvp(fName, &list, frameReadIndex, (T)1, sparseFileTable);
 
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
    ActivityHeader header = readActivityHeader(fStream);
