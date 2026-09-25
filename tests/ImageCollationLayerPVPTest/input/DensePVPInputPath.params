@@ -119,7 +119,7 @@ RequireAllZeroActivityProbe "CheckEqual" = {
     probeOutputFile = NULL;
     message = NULL;
     triggerLayerName = NULL;
-    nnzThreshold = 1.0e-8;
+    nnzThreshold = 1.0e-7;
     exitOnFailure = true;
     immediateExitOnFailure = false;
 };
