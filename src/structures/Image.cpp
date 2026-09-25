@@ -193,7 +193,7 @@ void Image::read(std::string const &filename, int frameNumber) {
       if (frameNumber != 0) {
          WarnLog().printf(
                "Reading TIFF file \"%s\": frameNumber %d is being ignored.\n",
-               filename, frameNumber);
+               filename.c_str(), frameNumber);
       }
       readTIFF(filename);
       return;
@@ -202,7 +202,7 @@ void Image::read(std::string const &filename, int frameNumber) {
    if (frameNumber != 0) {
       WarnLog().printf(
             "Reading TIFF file \"%s\": frameNumber %d is being ignored.\n",
-            filename, frameNumber);
+            filename.c_str(), frameNumber);
    }
    readSTB(filename);
 }
