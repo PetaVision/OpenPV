@@ -82,7 +82,7 @@ def showErrorPlot(image, *args):
       plt.show()
 
 def showNumActivePlot(data):
-   data = inpterpret(data)
+   data = interpret(data)
    plt.figure()
    plt.plot(getActive(data))
    plt.show()

@@ -166,7 +166,7 @@ for objname, ttype, ttime in zip(objectNames, timerTypes, timerTimes):
 timesByObject["Untimed Overhead"] = runoverhead
 timesByType["untimed overhead"] = runoverhead
 
-pieceThreshold = cutoffpct * runtime;
+pieceThreshold = cutoffpct * runtime
 
 otherObjectTimes = 0.0
 significantTimesByObject = {}
