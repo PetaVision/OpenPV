@@ -152,7 +152,7 @@ void Weights::allocateCudaBuffers() {
          static_cast<long>(numPatches) != numPatchesL,
          "Connection \"%s\" has %ld patches, which is bigger than INT_MAX=%d. Cuda implementation "
          "has not yet been updated to allow the number of patches to be this large.\n",
-         getName(), numPatchesL);
+         getName().c_str(), numPatchesL);
    std::size_t size;
 
    if (getNumDataPatchesOverall() > 0L) {
@@ -366,7 +366,7 @@ void Weights::copyToGPU() {
          static_cast<long>(numDataPatches) != numDataPatchesL,
          "Connection \"%s\" has %ld patches, which is bigger than INT_MAX=%d. Cuda implementation "
          "has not yet been updated to allow the number of patches to be this large.\n",
-         getName(), numDataPatchesL);
+         getName().c_str(), numDataPatchesL);
    mCUDNNData->permuteWeightsPVToCudnn(
          mDeviceData->getPointer(),
          mNumArbors,
