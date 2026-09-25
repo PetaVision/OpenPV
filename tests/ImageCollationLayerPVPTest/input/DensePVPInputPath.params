@@ -1,0 +1,125 @@
+
+//
+// DensePVPInputPath.params
+//
+//  A params file to test the ability of ImageCollationLayer to
+//  read a dense PVP file.
+//
+//  An ImageCollationLayer has as its inputPath parameter a dense .pvp file
+//  with dimensions 32x32x3 with 8 frames. Another ImageCollationLayer has as
+//  its inputPath a text file listing 8 32x32x3 .png files. Each PNG file has
+//  the same information as the corresponding frame of the PVP file. These
+//  layers are compared in a ComparisonLayer, and a RequireAllZeroActivityProbe
+//  verifies they are equal (to within floating-point roundoff, as the
+//  3-channel images are converted to grayscale).
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   dt = 1.0;
+   stopTime = 10.0;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   printParamsFilename = "DensePVPInputPath.params";
+   randomSeed = 3724297235;
+   nx = 32;
+   ny = 32;
+   nbatch = 2;
+   errorOnNotANumber = true;
+   outputPath = "output/DensePVPInputPath";
+   verifyWrites = false;
+   checkpointWrite = false;
+   lastCheckpointDir = "output/DensePVPInputPath/Last";
+   initializeFromCheckpointDir = "";
+};
+
+ImageCollationLayer "FromPVP" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/DensePVPInputPath.pvp";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 5;
+    initialWriteTime = 1;
+};
+
+ImageCollationLayer "FromImages" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/DenseImageListInputPath.txt";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 5;
+    initialWriteTime = 1;
+};
+
+HyPerLayer "Comparison" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+};
+
+IdentConn "FromPVPToComparison" = {
+    preLayerName = "FromPVP";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "FromImagesToComparison" = {
+    preLayerName = "FromImages";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual" = {
+    targetLayer = "Comparison";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-8;
+    exitOnFailure = true;
+    immediateExitOnFailure = false;
+};

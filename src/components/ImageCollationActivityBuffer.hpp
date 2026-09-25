@@ -5,8 +5,11 @@
 #ifndef IMAGECOLLATIONACTIVITYBUFFER_HPP_
 #define IMAGECOLLATIONACTIVITYBUFFER_HPP_
 
+#include <string>
+#include <vector>
 #include "components/InputActivityBuffer.hpp"
 #include "structures/Image.hpp"
+#include "structures/ImageFrameNumber.hpp"
 
 namespace PV {
 
@@ -18,9 +21,6 @@ class ImageCollationActivityBuffer : public InputActivityBuffer {
    ImageCollationActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~ImageCollationActivityBuffer();
-
-   virtual std::string const &
-   getCurrentFilename(int localBatchIndex, int mpiBatchIndex) const override;
 
   protected:
    ImageCollationActivityBuffer() {}
@@ -45,10 +45,12 @@ class ImageCollationActivityBuffer : public InputActivityBuffer {
    virtual int countInputImages() override;
 
    /**
-    * Fills the FileList with either the filenames appearing in InputPath if it is a list of files,
+    * Fills the ImageList with either the filenames appearing in InputPath if it is a list of files,
     * or the InputPath filename if it is a single image.
     */
-   void populateFileList();
+   void populateFromPVP(std::string const &path);
+   void populateFromTextFile(std::string const &path);
+   void populateImageList();
 
    /**
     * Returns the lines within the list of input files corresponding to the indicated
@@ -67,19 +69,16 @@ class ImageCollationActivityBuffer : public InputActivityBuffer {
     */
    virtual Buffer<float> retrieveData(int inputIndex) override;
 
-   std::shared_ptr<Image> readImageChannel(std::string const &filename);
+   std::shared_ptr<Image> readImageChannel(std::string const &filename, int channel = 0);
 
    std::string downloadURL(std::string const &url);
 
   protected:
    std::unique_ptr<Buffer<float>> mImage = nullptr;
 
-   // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a
-   // collection of files.
-   bool mUsingFileList = false;
+   // List of filename/frame numbers to iterate over
 
-   // List of filenames to iterate over
-   std::vector<std::string> mFileList;
+   std::vector<ImageFrameNumber> mImageList;
 
    // Template for a temporary path for downloading URLs that appear in file list.
    std::string mURLDownloadTemplate;

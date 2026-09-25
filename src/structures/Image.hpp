@@ -25,13 +25,14 @@ class Image : public Buffer<float> {
    float getPixelA(int x, int y);
    void convertToColor(bool alphaChannelFlag);
    void convertToGray(bool alphaChannelFlag);
-   void read(std::string const &filename);
+   void read(std::string const &filename, int framenumber = 0);
    void write(std::string const &filename);
    static constexpr const float mRToGray = 0.30f;
    static constexpr const float mGToGray = 0.59f;
    static constexpr const float mBToGray = 0.11f;
 
   protected:
+   void readPVP(std::string const &filename, int framenumber);
    void readSTB(std::string const &filename);
    void readTIFF(std::string const &filename);
 

@@ -1,13 +1,14 @@
 #ifndef BUFFERUTILSPVP_HPP_
 #define BUFFERUTILSPVP_HPP_
 
+#include <cstdlib>
+#include <string>
+#include <vector>
+
 #include "structures/PVLayerLoc.hpp"
 #include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "structures/SparseList.hpp"
-
-#include <cstdlib>
-#include <vector>
 
 // File type of activities where there are no timestamps in the individual frames.  No longer used
 #define PVP_FILE_TYPE 1
@@ -97,6 +98,15 @@ struct WeightHeader {
    float minVal, maxVal;
    int numPatches;
 };
+
+/**
+ * @brief Returns true if the file is a layer pvp file (file type 4 or 6); false otherwise
+ * (including if it's a .pvp file but not of layer type).
+ * @details Checks the header_size, num_params, and file_type values of the header. Additional
+ * checks may be added later if they prove to be necessary.
+ */
+bool checkIfActivityPVPFile(std::string const &path);
+bool checkIfActivityPVPFile(char const *path);
 
 template <typename T>
 void writeFrame(FileStream &fStream, Buffer<T> *buffer, double timeStamp);

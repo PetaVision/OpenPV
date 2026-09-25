@@ -1,0 +1,125 @@
+
+//
+// SparsePVPInputPath.params
+//
+//  A params file to test the ability of ImageCollationLayer to
+//  read a dense PVP file.
+//
+//  An ImageCollationLayer has as its inputPath parameter a dense .pvp file
+//  with dimensions 16x16x1 with 8 frames. Another ImageCollationLayer has as
+//  its inputPath a text file listing 8 16x16x1 .png files. Each PNG file has
+//  the same information as the corresponding frame of the PVP file. These
+//  layers are compared in a ComparisonLayer, and a RequireAllZeroActivityProbe
+//  verifies they are equal (to within floating-point roundoff, as the
+//  3-channel images are converted to grayscale).
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   dt = 1.0;
+   stopTime = 10.0;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   printParamsFilename = "SparsePVPInputPath.params";
+   randomSeed = 3724297235;
+   nx = 16;
+   ny = 16;
+   nbatch = 2;
+   errorOnNotANumber = true;
+   outputPath = "output/SparsePVPInputPath";
+   verifyWrites = false;
+   checkpointWrite = false;
+   lastCheckpointDir = "output/SparsePVPInputPath/Last";
+   initializeFromCheckpointDir = "";
+};
+
+ImageCollationLayer "ImageCollation" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SparsePVPInputPath.pvp";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 5;
+    initialWriteTime = 1;
+};
+
+PvpLayer "PVPLayer" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+
+    displayPeriod = 5;
+
+    inputPath = "input/SparsePVPCorrect.pvp";
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    useInputBCflag = false;
+    padValue = 0.0;
+    batchMethod = "byFile";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 5;
+    initialWriteTime = 1;
+};
+
+HyPerLayer "Comparison" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    phase = 1;
+    mirrorBCflag = true;
+    triggerLayerName = NULL;
+    InitVType = "ZeroV";
+    updateGpu = false;
+    sparseLayer = false;
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+};
+
+IdentConn "FromPVPToComparison" = {
+    preLayerName = "ImageCollation";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "FromImagesToComparison" = {
+    preLayerName = "PVPLayer";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "CheckEqual" = {
+    targetLayer = "Comparison";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = true;
+    immediateExitOnFailure = false;
+};

@@ -5,8 +5,8 @@
 //  not the same as the layer size. There are several subtests that test
 //  different parameter settings. The basic idea behind each is as follows:
 //    An ImageCollationLayer reads 32x32 grayscale image files into a
-//    24x40 layer, combining three grayscale images into a single RGB layer.
-//    An ImageLayer reads 32x32x3 color image files into a 24x24x3 layer,
+//    24x40 layer, combining three grayscale images into a single RGB image.
+//    An ImageLayer reads 32x32x3 color image files into a 24x40x3 image,
 //    reading the file as is. The files that the ImageCollationLayer reads
 //    combine into the files that ImageLayer reads, so that the two layers
 //    should contain the same values. A RequireAllZeroActivityProbe checks this.

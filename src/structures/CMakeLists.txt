@@ -12,6 +12,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/Buffer.hpp
    ${SUBDIR}/Image.hpp
+   ${SUBDIR}/ImageFrameNumber.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/MPIBlock.hpp
    ${SUBDIR}/Patch.hpp

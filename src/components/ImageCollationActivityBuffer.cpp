@@ -3,6 +3,7 @@
  */
 
 #include "ImageCollationActivityBuffer.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 #include "utils/PathComponents.hpp"
 
 namespace PV {
@@ -35,50 +36,71 @@ Response::Status ImageCollationActivityBuffer::allocateDataStructures() {
 
 int ImageCollationActivityBuffer::countInputImages() {
    // Calculate file positions for beginning of each frame
-   populateFileList();
-   InfoLog() << "File " << getInputPath() << " contains " << mFileList.size() << " frames\n";
-   int numInputImages = static_cast<int>(mFileList.size()) / getLayerLoc()->nf; //Integer arithmetic
-   mFileList.resize(numInputImages * getLayerLoc()->nf); // Drop anything not in an nf-bundle
+   populateImageList();
+   int numSlices = static_cast<int>(mImageList.size());
+   InfoLog() << "File " << getInputPath() << " contains " << numSlices << " frames\n";
+   int numInputImages = numSlices / getLayerLoc()->nf; //Integer arithmetic
+   mImageList.resize(numInputImages * getLayerLoc()->nf); // Drop anything not in an nf-bundle
    return numInputImages;
 }
 
-void ImageCollationActivityBuffer::populateFileList() {
+void ImageCollationActivityBuffer::populateImageList() {
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      std::string line;
-      mFileList.clear();
+      mImageList.clear();
       InfoLog() << "Reading list: " << getInputPath() << "\n";
-      std::ifstream infile(getInputPath(), std::ios_base::in);
-      FatalIf(
-            infile.fail(), "Unable to open \"%s\": %s\n", getInputPath().c_str(), strerror(errno));
-      while (getline(infile, line, '\n')) {
-         auto firstNonWhitespace = (std::string::size_type)0;
-         while (firstNonWhitespace < line.size() and isspace(line[firstNonWhitespace])) {
-            firstNonWhitespace++;
-         }
-         auto firstTrailingWhitespace = line.size();
-         while (firstTrailingWhitespace > firstNonWhitespace
-                and isspace(line[firstTrailingWhitespace - 1])) {
-            firstTrailingWhitespace--;
-         }
-         if (firstTrailingWhitespace > firstNonWhitespace) {
-            auto trimmedLength      = firstTrailingWhitespace - firstNonWhitespace;
-            std::string trimmedLine = line.substr(firstNonWhitespace, trimmedLength);
-            mFileList.push_back(trimmedLine);
-         }
+      bool fileIsActivityPVP = BufferUtils::checkIfActivityPVPFile(getInputPath());
+      if (fileIsActivityPVP) {
+         populateFromPVP(getInputPath());
+      }
+      else {
+         // Assume InputPath is a list of files
+         populateFromTextFile(getInputPath());
       }
       FatalIf(
-            mFileList.empty(),
+            mImageList.empty(),
             "%s inputPath file list \"%s\" is empty.\n",
             getDescription_c(),
             getInputPath().c_str());
    }
 }
 
-std::string const &
-ImageCollationActivityBuffer::getCurrentFilename(int localBatchIndex, int mpiBatchIndex) const {
-   int blockBatchIndex = localBatchIndex + getLayerLoc()->nbatch * mpiBatchIndex;
-   int inputIndex      = mBatchIndexer->getIndex(blockBatchIndex);
-   return mFileList.at(inputIndex * getLayerLoc()->nf);
+void ImageCollationActivityBuffer::populateFromPVP(std::string const &path) {
+   assert(getCommunicator()->getIOMPIBlock()->getRank() == 0); // Only call if root of I/O block
+   FileStream inputStream(path.c_str(), std::ios_base::in | std::ios_base::binary);
+   BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(inputStream);
+   int nBands = header.nBands;
+   mImageList.reserve(mImageList.size() + static_cast<std::size_t>(nBands));
+   for (int k = 0; k < nBands; ++k) {
+      mImageList.emplace_back(path, k);
+   }
+}
+
+void ImageCollationActivityBuffer::populateFromTextFile(std::string const &path) {
+   assert(getCommunicator()->getIOMPIBlock()->getRank() == 0); // Only call if root of I/O block
+   std::ifstream inputStream(path, std::ios_base::in);
+   std::string line;
+   while (getline(inputStream, line, '\n')) {
+      auto firstNonWhitespace = (std::string::size_type)0;
+      while (firstNonWhitespace < line.size() and isspace(line[firstNonWhitespace])) {
+         firstNonWhitespace++;
+      }
+      auto firstTrailingWhitespace = line.size();
+      while (firstTrailingWhitespace > firstNonWhitespace
+             and isspace(line[firstTrailingWhitespace - 1])) {
+         firstTrailingWhitespace--;
+      }
+      if (firstTrailingWhitespace > firstNonWhitespace) {
+         auto trimmedLength      = firstTrailingWhitespace - firstNonWhitespace;
+         std::string trimmedLine = line.substr(firstNonWhitespace, trimmedLength);
+         bool fileIsActivityPVP = BufferUtils::checkIfActivityPVPFile(trimmedLine);
+         if (fileIsActivityPVP) {
+            populateFromPVP(trimmedLine);
+         }
+         else {
+            mImageList.emplace_back(trimmedLine, 0);
+         }
+      }
+   }
 }
 
 std::string ImageCollationActivityBuffer::describeInput(int index) {
@@ -95,8 +117,11 @@ Buffer<float> ImageCollationActivityBuffer::retrieveData(int inputIndex) {
    int imageWidth, imageHeight;
    std::string firstFilename;
    for (int f = 0; f < getLayerLoc()->nf; ++f) {
-      std::string filename = mFileList.at(inputIndex * getLayerLoc()->nf + f);
-      auto oneFeature = readImageChannel(filename);
+      int featureIndex = inputIndex * getLayerLoc()->nf + f;
+      ImageFrameNumber const &imageFrameNumber = mImageList.at(featureIndex);
+      std::string const &filename = imageFrameNumber.getPath();
+      int frameNumber = imageFrameNumber.getFrameNumber();
+      std::shared_ptr<Image> oneFeature = readImageChannel(filename, frameNumber);
       assert(oneFeature->getFeatures() == 1);
       if (f == 0) {
          firstFilename = filename;
@@ -118,7 +143,8 @@ Buffer<float> ImageCollationActivityBuffer::retrieveData(int inputIndex) {
    return result;
 }
 
-std::shared_ptr<Image> ImageCollationActivityBuffer::readImageChannel(std::string const &filename) {
+std::shared_ptr<Image>
+ImageCollationActivityBuffer::readImageChannel(std::string const &filename, int frameNumber) {
    std::shared_ptr<Image> result;
 
    // Attempt to download our input file if we've been passed a URL or AWS path
@@ -131,7 +157,8 @@ std::shared_ptr<Image> ImageCollationActivityBuffer::readImageChannel(std::strin
             tempFilename.c_str());
    }
    else {
-      result = std::make_shared<Image>(filename);
+      result = std::make_shared<Image>();
+      result->read(filename, frameNumber);
    }
 
    result->convertToGray(false /*alphaChannelFlag*/);
