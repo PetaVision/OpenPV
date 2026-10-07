@@ -905,6 +905,9 @@ int HebbianUpdater::updateWeights(int arborId) {
 }
 
 void HebbianUpdater::applyWeightDecay(int arborId) {
+   if (mWeightL1Decay == 0.0f and mWeightL2Decay == 0.0f) {
+      return;
+   }
    auto weightData = mWeights->getData();
    long int numValuesPerArbor = weightData->getNumValuesPerArbor();
    float const *wdata_start   = weightData->getData(arborId);
