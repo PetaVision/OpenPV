@@ -23,7 +23,14 @@ class PlasticTestUpdater : public HebbianUpdater {
    virtual ~PlasticTestUpdater();
 
   protected:
-   virtual float updateRule_dW(float pre, float post) override;
+   virtual int update_dW(int arborID) override;
+
+   void modifiedUpdateInd_dW(
+         int arborID,
+         int batchID,
+         float const *preLayerData,
+         float const *postLayerData,
+         long kExt);
 }; // end class PlasticTestUpdater
 
 } // end namespace PV

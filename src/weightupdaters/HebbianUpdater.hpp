@@ -110,7 +110,7 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    int clearNumActivations(int arborId);
 
-   int update_dW(int arborID);
+   virtual int update_dW(int arborID);
 
    void updateInd_dW(
          int arborID,
@@ -118,8 +118,6 @@ class HebbianUpdater : public BaseWeightUpdater {
          float const *preLayerData,
          float const *postLayerData,
          long kExt);
-
-   virtual float updateRule_dW(float pre, float post);
 
    void reduce_dW();
 

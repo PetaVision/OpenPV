@@ -637,15 +637,14 @@ void HebbianUpdater::updateInd_dW(
             // getDeltaWeightsData
             activations[lineoffsetw + k]++;
          }
-         dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
+         // Hebbian update rule
+         dwdata[lineoffsetw + k] += mDWMax * preact * aPost;
       }
       lineoffsetw += syp;
       lineoffseta += sya;
    }
    return;
 }
-
-float HebbianUpdater::updateRule_dW(float pre, float post) { return mDWMax * pre * post; }
 
 void HebbianUpdater::reduce_dW() {
    int status          = PV_SUCCESS;
