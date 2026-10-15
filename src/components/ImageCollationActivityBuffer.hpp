@@ -83,6 +83,9 @@ class ImageCollationActivityBuffer : public InputActivityBuffer {
    // Template for a temporary path for downloading URLs that appear in file list.
    std::string mURLDownloadTemplate;
 
+   std::string mCurrentSparsePath = "";
+   BufferUtils::SparseFileTable mSparseFileTable;
+
 }; // class ImageCollationActivityBuffer
 
 } // namespace PV

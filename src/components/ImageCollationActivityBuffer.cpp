@@ -3,6 +3,7 @@
  */
 
 #include "ImageCollationActivityBuffer.hpp"
+#include "io/FileStream.hpp"
 #include "utils/BufferUtilsPvp.hpp"
 #include "utils/PathComponents.hpp"
 
@@ -48,7 +49,7 @@ void ImageCollationActivityBuffer::populateImageList() {
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       mImageList.clear();
       InfoLog() << "Reading list: " << getInputPath() << "\n";
-      bool fileIsActivityPVP = BufferUtils::checkIfActivityPVPFile(getInputPath());
+      bool fileIsActivityPVP = BufferUtils::checkIfActivityPVPFile(getInputPath(), nullptr);
       if (fileIsActivityPVP) {
          populateFromPVP(getInputPath());
       }
@@ -92,7 +93,7 @@ void ImageCollationActivityBuffer::populateFromTextFile(std::string const &path)
       if (firstTrailingWhitespace > firstNonWhitespace) {
          auto trimmedLength      = firstTrailingWhitespace - firstNonWhitespace;
          std::string trimmedLine = line.substr(firstNonWhitespace, trimmedLength);
-         bool fileIsActivityPVP = BufferUtils::checkIfActivityPVPFile(trimmedLine);
+         bool fileIsActivityPVP = BufferUtils::checkIfActivityPVPFile(trimmedLine, nullptr);
          if (fileIsActivityPVP) {
             populateFromPVP(trimmedLine);
          }
@@ -113,6 +114,7 @@ std::string ImageCollationActivityBuffer::describeInput(int index) {
 }
 
 Buffer<float> ImageCollationActivityBuffer::retrieveData(int inputIndex) {
+   InfoLog().printf("retrieveData(inputIndex = %d)\n", inputIndex);
    Buffer<float> result;
    int imageWidth, imageHeight;
    std::string firstFilename;
@@ -158,7 +160,23 @@ ImageCollationActivityBuffer::readImageChannel(std::string const &filename, int 
    }
    else {
       result = std::make_shared<Image>();
-      result->read(filename, frameNumber);
+      int fileType = 0;
+      bool fileIsPVP = BufferUtils::checkIfActivityPVPFile(filename, &fileType);
+      bool fileIsSparsePVP = fileIsPVP and fileType == PVP_ACT_SPARSEVALUES_FILE_TYPE;
+      if (fileIsSparsePVP) {
+         if (filename != mCurrentSparsePath) {
+            FileStream sparsePVPStream(
+                  filename.c_str(), std::ios_base::in | std::ios_base::binary, false);
+            mSparseFileTable = BufferUtils::buildSparseFileTable(sparsePVPStream);
+            mCurrentSparsePath = filename;
+         }
+      }
+      else {
+         mSparseFileTable.frameStartOffsets.clear();
+         mSparseFileTable.frameLengths.clear();
+         mCurrentSparsePath.clear();
+      }
+      result->read(filename, frameNumber, &mSparseFileTable);
    }
 
    result->convertToGray(false /*alphaChannelFlag*/);

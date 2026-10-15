@@ -172,23 +172,21 @@ void Image::convertToColor(bool alphaChannelFlag) {
    }
 }
 
-void Image::read(std::string const &filename, int frameNumber) {
-   std::ifstream filestream(filename);
-   FatalIf(!filestream, "Image::read() Unable to open %s\n", filename.c_str());
-   char fh[8];
-   filestream.read(fh, 8);
-   FatalIf(!filestream, "Unable to read %s\n", filename.c_str());
-   filestream.close();
-   // Test if file is an activity PVP file
-   bool hdr1is80 = (fh[0] == 80 and fh[1] == 0 and fh[2] == 0 and fh[3] == 0);
-   bool hdr2is20 = (fh[4] == 20 and fh[1] == 0 and fh[2] == 0 and fh[3] == 0);
-   if (hdr1is80 and hdr2is20) {
-      readPVP(filename, frameNumber);
+void Image::read(
+      std::string const &filename, int frameNumber, BufferUtils::SparseFileTable *sparseFileTable) {
+
+   bool fileIsPVP = BufferUtils::checkIfActivityPVPFile(filename, nullptr);
+   if (fileIsPVP) {
+      readPVP(filename, frameNumber, sparseFileTable);
       return;
    }
    // Test if file is a TIFF
+   std::ifstream filestream(filename);
+   FatalIf(!filestream, "Image::read() Unable to open %s\n", filename.c_str());
+   char fh[4];
+   filestream.read(fh, 4);
    bool tiffLittleEndian = (fh[0] == 0x49 and fh[1] == 0x49 and fh[2] == 0x2a and fh[3] == 0x00);
-   bool tiffBigEndian = (fh[0] == 0x4d and fh[1] == 0x4d and fh[2] == 0x00 and fh[3] == 0x2a);
+   bool tiffBigEndian    = (fh[0] == 0x4d and fh[1] == 0x4d and fh[2] == 0x00 and fh[3] == 0x2a);
    if (tiffBigEndian or tiffLittleEndian) {
       if (frameNumber != 0) {
          WarnLog().printf(
@@ -207,8 +205,11 @@ void Image::read(std::string const &filename, int frameNumber) {
    readSTB(filename);
 }
 
-void Image::readPVP(std::string const &filename, int frameNumber) {
-   BufferUtils::readActivityFromPvp<float>(filename.c_str(), this, frameNumber, nullptr);
+void Image::readPVP(
+      std::string const &filename,
+      int frameNumber,
+      BufferUtils::SparseFileTable *sparseFileTable) {
+   BufferUtils::readActivityFromPvp<float>(filename.c_str(), this, frameNumber, sparseFileTable);
 }
 
 void Image::readSTB(std::string const &filename) {

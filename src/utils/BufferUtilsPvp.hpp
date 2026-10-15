@@ -103,10 +103,13 @@ struct WeightHeader {
  * @brief Returns true if the file is a layer pvp file (file type 4 or 6); false otherwise
  * (including if it's a .pvp file but not of layer type).
  * @details Checks the header_size, num_params, and file_type values of the header. Additional
- * checks may be added later if they prove to be necessary.
+ * checks may be added later if they prove to be necessary. If the fileType pointer is not null
+ * and the file is a layer pvp file, the fileType argument is filled with the file type of the
+ * file's header (4 = dense activity file; 6 = sparse-values activity file). If the fileType
+ * argument is not null and the file is not a layer pvp file, the fileType argument is unchanged.
  */
-bool checkIfActivityPVPFile(std::string const &path);
-bool checkIfActivityPVPFile(char const *path);
+bool checkIfActivityPVPFile(std::string const &path, int *fileType);
+bool checkIfActivityPVPFile(char const *path, int *fileType);
 
 template <typename T>
 void writeFrame(FileStream &fStream, Buffer<T> *buffer, double timeStamp);
@@ -221,12 +224,17 @@ ActivityHeader readActivityHeader(FileStream &fStream);
 
 /**
  * Builds a table of offsets and lengths for each pvp frame
- * index up to (but not including) upToIndex. Works for both
- * sparse activity and sparse binary files. Leaves the input
+ * index up to (but not including) upToIndex. Leaves the input
  * stream pointing at the location where frame upToIndex would
  * begin.
  */
 SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
+
+/**
+ * Builds a table of offsets and lengths for each pvp frame in the sparse
+   PVP file. On exit, the fStream points at the end of the file.
+ */
+SparseFileTable buildSparseFileTable(FileStream &fStream);
 
 template <typename T>
 std::size_t weightPatchSize(int numWeightsInPatch);

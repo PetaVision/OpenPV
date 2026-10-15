@@ -5,6 +5,7 @@
 #define IMAGE_HPP__
 
 #include "Buffer.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 #include <string>
 #include <vector>
@@ -25,7 +26,10 @@ class Image : public Buffer<float> {
    float getPixelA(int x, int y);
    void convertToColor(bool alphaChannelFlag);
    void convertToGray(bool alphaChannelFlag);
-   void read(std::string const &filename, int framenumber = 0);
+   void read(
+         std::string const &filename,
+         int framenumber = 0,
+         BufferUtils::SparseFileTable *sparseFileTable = nullptr);
    void write(std::string const &filename);
    static constexpr const float mRToGray = 0.30f;
    static constexpr const float mGToGray = 0.59f;
@@ -33,6 +37,10 @@ class Image : public Buffer<float> {
 
   protected:
    void readPVP(std::string const &filename, int framenumber);
+   void readPVP(
+         std::string const &filename,
+         int frameNumber,
+         BufferUtils::SparseFileTable *sparseFileTable);
    void readSTB(std::string const &filename);
    void readTIFF(std::string const &filename);
 

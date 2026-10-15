@@ -8,22 +8,24 @@ namespace PV {
 
 namespace BufferUtils {
 
-bool checkIfActivityPVPFile(std::string const &path) {
-   return checkIfActivityPVPFile(path.c_str());
+bool checkIfActivityPVPFile(std::string const &path, int *fileType) {
+   return checkIfActivityPVPFile(path.c_str(), fileType);
 }
 
-bool checkIfActivityPVPFile(char const *path) {
+bool checkIfActivityPVPFile(char const *path, int *fileType) {
    std::ifstream inputFile(path, std::ios_base::in);
    FatalIf(inputFile.fail(), "Unable to open \"%s\": %s\n", path, strerror(errno));
    std::int32_t hdr[3];
-   inputFile.read(reinterpret_cast<char *>(hdr), 12);
+   inputFile.read(reinterpret_cast<char *>(hdr), 3 * sizeof(std::int32_t));
    FatalIf(!inputFile, "Unable to read inputPath \"%s\"\n", path);
 
    bool fileTypeisAct =
          (hdr[2] == PVP_NONSPIKING_ACT_FILE_TYPE or hdr[2] == PVP_ACT_SPARSEVALUES_FILE_TYPE);
    bool hitEOF   = inputFile.eof();
    inputFile.close();
-   return (!hitEOF and hdr[0] == 80 and hdr[1] == 20 and fileTypeisAct);
+   bool fileIsPVP = (!hitEOF and hdr[0] == 80 and hdr[1] == 20 and fileTypeisAct);
+   if (fileIsPVP and fileType != nullptr) { *fileType = hdr[2]; }
+   return fileIsPVP;
 }
 
 void writeActivityHeader(FileStream &fStream, ActivityHeader const &header) {
@@ -46,8 +48,12 @@ ActivityHeader readActivityHeader(FileStream &fStream) {
    return header;
 }
 
+SparseFileTable buildSparseFileTable(FileStream &fStream) {
+   ActivityHeader header = readActivityHeader(fStream);
+   return buildSparseFileTable(fStream, header.nBands - 1);
+}
+
 SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
-   fStream.setInPos(0L, std::ios_base::beg);
    ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          upToIndex >= header.nBands,
