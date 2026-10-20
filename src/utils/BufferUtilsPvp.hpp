@@ -175,9 +175,6 @@ template <typename T>
 double readSparseFrame(FileStream &fStream, SparseList<T> *list);
 
 template <typename T>
-double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneVal);
-
-template <typename T>
 void writeSparseToPvp(
       const char *fName,
       SparseList<T> *list,

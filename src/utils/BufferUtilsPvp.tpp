@@ -268,7 +268,7 @@ double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex
    return readFrame<T>(fStream, buffer);
 }
 
-// Writes a sparse frame (with values) to the current
+// Writes a sparse frame to the current
 // outstream location
 template <typename T>
 void writeSparseFrame(FileStream &fStream, SparseList<T> *list, double timeStamp) {
@@ -282,7 +282,7 @@ void writeSparseFrame(FileStream &fStream, SparseList<T> *list, double timeStamp
    }
 }
 
-// Reads a sparse frame (with values) from the current
+// Reads a sparse frame from the current
 // instream location
 template <typename T>
 double readSparseFrame(FileStream &fStream, SparseList<T> *list) {
@@ -296,29 +296,6 @@ double readSparseFrame(FileStream &fStream, SparseList<T> *list) {
    vector<struct SparseList<T>::Entry> contents(numElements);
    if (numElements > 0) {
       fStream.read(contents.data(), contents.size() * dataSize);
-   }
-   list->set(contents);
-   return timeStamp;
-}
-
-// Reads a sparse binary frame from the current
-// instream location
-template <typename T>
-double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValue) {
-   double timeStamp = -1.0;
-   int numElements  = -1;
-   fStream.read(&timeStamp, sizeof(double));
-   fStream.read(&numElements, sizeof(int));
-   FatalIf(timeStamp == -1.0, "Failed to read timeStamp.\n");
-   FatalIf(numElements == -1, "Failed to read numElements.\n");
-   vector<struct SparseList<T>::Entry> contents(numElements);
-   vector<int> indices(numElements);
-   if (numElements > 0) {
-      fStream.read(indices.data(), numElements * static_cast<int>(sizeof(int)));
-   }
-   for (std::size_t i = 0; i < indices.size(); ++i) {
-      contents.at(i).index = indices.at(i);
-      contents.at(i).value = oneValue;
    }
    list->set(contents);
    return timeStamp;
