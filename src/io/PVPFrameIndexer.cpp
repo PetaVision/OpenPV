@@ -125,9 +125,15 @@ void PVPFrameIndexer::moveFilePosToFrameStart() {
    }
 }
 
+int PVPFrameIndexer::registerNewFrame() {
+   if (mFrameNumber == mNumFrames) {
+      ++mNumFrames;
+   }
+   return mNumFrames;
+}
+
 void PVPFrameIndexer::setFrameNumber(int frameNumber) {
    if (mFileStream == nullptr) { return; }
-   initializeNumFrames();
    mFrameNumber = convertToLogicalFrameNumber(frameNumber);
    moveFilePosToFrameStart();
 }

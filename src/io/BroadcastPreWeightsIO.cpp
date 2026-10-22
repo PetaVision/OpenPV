@@ -76,17 +76,18 @@ int BroadcastPreWeightsIO::calcFrameNumberFromFilePosition(long filePosition) co
     */
 
 void BroadcastPreWeightsIO::finishWrite() {
-   if (!mWritePermissionFlag) { return; }
-   setFrameNumber(getFrameNumber() + 1);
-   getFileStream()->setOutPos(0L, std::ios_base::end);
-   long eofPos        = getFileStream()->getOutPos();
-   long correctEOFPos = calcFilePositionFromFrameNumber(getNumFrames());
-   if (eofPos < correctEOFPos) {
-      long numPadBytes = correctEOFPos - eofPos;
-      std::vector<uint8_t> nulldata(numPadBytes);
-      getFileStream()->write(nulldata.data(), numPadBytes);
+   if (mWritePermissionFlag) {
+      getFileStream()->setOutPos(0L, std::ios_base::end);
+      long eofPos        = getFileStream()->getOutPos();
+      long correctEOFPos = calcFilePositionFromFrameNumber(getNumFrames());
+      if (eofPos < correctEOFPos) {
+         long numPadBytes = correctEOFPos - eofPos;
+         std::vector<uint8_t> nulldata(numPadBytes);
+         getFileStream()->write(nulldata.data(), numPadBytes);
+      }
    }
-   setFrameNumber(getFrameNumber());
+   mFrameIndexer->registerNewFrame();
+   setFrameNumber(getFrameNumber() + 1);
 }
 
 void BroadcastPreWeightsIO::readHeader() {

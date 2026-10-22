@@ -144,6 +144,7 @@ void SharedWeightsIO::write(WeightData const &weightData, double timestamp) {
          }
       }
    }
+   mFrameIndexer->registerNewFrame();
    setFrameNumber(getFrameNumber() + 1);
 }
 

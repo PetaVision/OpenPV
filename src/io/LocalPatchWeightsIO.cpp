@@ -190,6 +190,7 @@ void LocalPatchWeightsIO::finishWrite() {
       std::vector<uint8_t> nulldata(numPadBytes);
       getFileStream()->write(nulldata.data(), numPadBytes);
    }
+   mFrameIndexer->registerNewFrame();
    setFrameNumber(getFrameNumber() + 1);
 }
 

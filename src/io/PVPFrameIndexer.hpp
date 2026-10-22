@@ -39,6 +39,10 @@ class PVPFrameIndexer {
 
    std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
 
+   // If FrameNumber == NumFrames, increment NumFrames.
+   // Otherwise leave NumFrames unchanged. Return value is the new value of NumFrames.
+   int registerNewFrame();
+
    int getFrameNumber() const { return mFrameNumber; }
    void setFrameNumber(int frameNumber);
 
