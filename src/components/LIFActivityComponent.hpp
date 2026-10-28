@@ -50,6 +50,11 @@ struct LIFParams {
  */
 class LIFActivityComponent : public ActivityComponent {
   protected:
+   /**
+    * LIFActivityComponent does not make use of GPU acceleration yet;
+    * setting updateGpu to true is an error.
+    */
+   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vexc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vinh(enum ParamsIOFlag ioFlag);

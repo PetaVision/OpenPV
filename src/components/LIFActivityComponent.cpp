@@ -79,6 +79,28 @@ int LIFActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
+void LIFActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
+#ifdef PV_USE_CUDA
+   mUpdateGpu = false;
+   parameters()->ioParamValue(
+         ioFlag, getName(), "updateGpu", &mUpdateGpu, false /*default value*/, false /*warnIfAbsent*/);
+   FatalIf(
+         mUpdateGpu,
+         "%s: %s has updateGpu set to true, but %s does not support updating on the GPU yet.\n",
+         getDescription_c(), getObjectType().c_str());
+#else // PV_USE_CUDA
+   mUpdateGpu = false;
+   parameters()->ioParamValue(
+         ioFlag, getName(), "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
+   if (mCommunicator->globalCommRank() == 0) {
+      FatalIf(
+            mUpdateGpu,
+            "%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+            getDescription_c());
+   }
+#endif // PV_USE_CUDA
+}
+
 void LIFActivityComponent::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "Vrest", &mLIFParams.Vrest, mLIFParams.Vrest);
 }
