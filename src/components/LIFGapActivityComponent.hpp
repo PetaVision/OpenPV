@@ -31,60 +31,6 @@ class LIFGapActivityComponent : public LIFActivityComponent {
 
    virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
-   void updateActivityOriginal(
-         int const nbatch,
-         long const numNeurons,
-         double const simTime,
-         double const deltaTime,
-
-         int const nx,
-         int const ny,
-         int const nf,
-         int const lt,
-         int const rt,
-         int const dn,
-         int const up,
-
-         LIFParams *params,
-         taus_uint4 *rnd,
-
-         float *V,
-         float *Vth,
-         float *G_E,
-         float *G_I,
-         float *G_IB,
-         float const *GSynHead,
-         float *activity,
-
-         float const *gapStrength);
-
-   void updateActivityBeginning(
-         int const nbatch,
-         long const numNeurons,
-         double const simTime,
-         double const deltaTime,
-
-         int const nx,
-         int const ny,
-         int const nf,
-         int const lt,
-         int const rt,
-         int const dn,
-         int const up,
-
-         LIFParams *params,
-         taus_uint4 *rnd,
-
-         float *V,
-         float *Vth,
-         float *G_E,
-         float *G_I,
-         float *G_IB,
-         float const *GSynHead,
-         float *activity,
-
-         float const *gapStrength);
-
    void updateActivityArma(
          int const nbatch,
          long const numNeurons,
