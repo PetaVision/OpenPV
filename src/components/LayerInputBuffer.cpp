@@ -295,6 +295,13 @@ void LayerInputBuffer::recvUnitInput(float *recvBuffer, int channelCode) {
          d->deliverUnitInput(recvBuffer);
       }
    }
+#ifdef PV_USE_CUDA
+   for (auto &d : mGPUDeliverySources) {
+      if (d != nullptr and d->getChannelCode() == channelCode) {
+         d->deliverUnitInput(recvBuffer);
+      }
+   }
+#endif // PV_USE_CUDA
 }
 
 } // namespace PV
