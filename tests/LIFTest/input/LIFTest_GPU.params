@@ -13,6 +13,7 @@ HyPerCol "column" = {
 
    nx                               = 64;   
    ny                               = 64;
+   nbatch                           = 1;
    dt                               = 0.25;
    randomSeed                       = 1829107657; // if not set here,  clock time is used to generate seed
    stopTime                         = 2000.0;
@@ -20,16 +21,17 @@ HyPerCol "column" = {
    writeProgressToErr               = false;
    verifyWrites                     = false;
    errorOnNotANumber                = false;
-   outputPath                       = "output";
-   printParamsFilename              = "pv.params";
+   outputPath                       = "output/LIFTest_GPU";
+   printParamsFilename              = "LIFTest_GPU.params";
    initializeFromCheckpointDir      = "";
    checkpointWrite                  = true;
-   checkpointWriteDir               = "Checkpoints";
+   checkpointWriteDir               = "output/LIFTest_GPU/Checkpoints";
    checkpointWriteTriggerMode       = "time";
    checkpointWriteTimeInterval      = 100.0;
    deleteOlderCheckpoints           = false;
    // lastCheckpointDir                = "output/Last";
    suppressNonplasticCheckpoints    = false;
+   checkpointIndexWidth             = -1; // negative means determine width automatically
 };
 
 //
@@ -43,6 +45,7 @@ PvpLayer "Input" = {
     nf                              = 1;
     writeStep                       = -1;
     sparseLayer                     = false;
+    updateGpu                       = false;
     phase                           = 0;
     useInputBCflag                  = false;
     mirrorBCflag                    = false;
@@ -64,7 +67,8 @@ ANNLayer "ScaledInput" = {
     valueBC                         = 0.0;
     writeStep                       = -1;
     sparseLayer                     = false;
-    phase                           = 0;
+    updateGpu                       = false;
+    phase                           = 1;
     triggerLayerName                = NULL;
 
     InitVType                       = "ZeroV";
@@ -84,7 +88,8 @@ Retina "Retina" = {
     valueBC                         = 0.0;
     writeStep                       = -1;
     sparseLayer                     = true;
-    phase                           = 0;
+    updateGpu                       = false;
+    phase                           = 2;
     triggerLayerName                = NULL;
     spikingFlag                     = true;
     foregroundRate                  = 200.0;
@@ -109,7 +114,8 @@ LeakyIntegrator "RetinaSpikeCounter" = {
 
     writeStep                       = -1.0;
     sparseLayer                     = false;
-    phase                           = 0;
+    updateGpu                       = false;
+    phase                           = 3;
     triggerLayerName                = NULL;
 
     AMax                            = infinity;
@@ -128,7 +134,8 @@ LIFGap "LIFTest" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     sparseLayer                     = true;
-    phase                           = 0;
+    updateGpu                       = false;
+    phase                           = 3;
     triggerLayerName                = NULL;
     
     InitVType                       = "ConstantV";
@@ -160,12 +167,13 @@ LeakyIntegrator "LIFTestSpikeCounter" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     sparseLayer                     = false;
+    updateGpu                       = false;
     
     InitVType                       = "ConstantV";
     valueV                          = 0;
 
     writeStep                       = -1.0;
-    phase                           = 0;
+    phase                           = 4;
     triggerLayerName                = NULL;
 
     AMax                            = infinity;
@@ -182,11 +190,12 @@ GapLayer "GapTest" = {
     nyScale                         = 1; // Should this be 0.5 or 1?
     nf                              = 1;
     mirrorBCflag                    = true;
-    phase                           = 0;
+    phase                           = 4;
     triggerLayerName                = NULL;
 
     writeStep                       = -1;
     sparseLayer                     = false;
+    updateGpu                       = false;
 
     ampSpikelet                     = 50;
 };
@@ -199,7 +208,8 @@ LIFGap "LIFGapTest" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     sparseLayer                     = true;
-    phase                           = 0;
+    updateGpu                       = false;
+    phase                           = 5;
     triggerLayerName                = NULL;
     
     InitVType                       = "ConstantV";
@@ -236,7 +246,8 @@ LeakyIntegrator "LIFGapTestSpikeCounter" = {
 
     writeStep                       = -1;
     sparseLayer                     = false;
-    phase                           = 0;
+    updateGpu                       = false;
+    phase                           = 6;
     triggerLayerName                = NULL;
 
     AMax                            = infinity;
@@ -247,76 +258,38 @@ LeakyIntegrator "LIFGapTestSpikeCounter" = {
     integrationTime                 = infinity;
 };
 
-HyPerConn "InputToScaledInput" = {
+RescaleConn "InputToScaledInput" = {
     preLayerName                    = "Input";
     postLayerName                   = "ScaledInput";
     channelCode                     = 0;
-    sharedWeights                   = true;
-    nxp                             = 1;
-    nyp                             = 1;
-    nfp                             = 1;
-    numAxonalArbors                 = 1;
+    scale                           = 2.0;
     delay                           = 0;
-
-    writeStep                       = -1;
-    
-    weightInitType                  = "OneToOneWeights";
-    weightInit                      = 2.0;
-      
-    normalizeMethod                 = "none";
-    plasticityFlag                  = false;
-    pvpatchAccumulateType           = "convolve";
-    // writeCompressedWeights       = true;
-    writeCompressedCheckpoints      = true;
-    updateGSynFromPostPerspective   = true;
-    receiveGpu = true;
 };
 
 IdentConn "ScaledInputToRetina" = {
     channelCode                     = 0;
     delay                           = 0;    
-    writeStep                       = -1;
 };
 
 IdentConn "RetinaToRetinaSpikeCounter" = {
     channelCode                     = 0;
     delay                           = 0;    
-    writeStep                       = -1;
 };
 
-HyPerConn "RetinaToLIFTest" = {
+IdentConn "RetinaToLIFTest" = {
     channelCode                     = 0;
-    sharedWeights                   = true;
-    nxp                             = 1;
-    nyp                             = 1;
-    nfp                             = 1;
-    numAxonalArbors                 = 1;
     delay                           = 0;
-
-    writeStep                       = -1;
-    
-    weightInitType                  = "OneToOneWeights";
-    weightInit                      = 1.0;
-      
-    normalizeMethod                 = "none";
-    plasticityFlag                  = false;
-    pvpatchAccumulateType           = "convolve";
-    // writeCompressedWeights       = true;
-    writeCompressedCheckpoints      = true;
-    updateGSynFromPostPerspective   = true;
-    receiveGpu = true;
 };
 
 IdentConn "LIFTestToLIFTestSpikeCounter" = {
     channelCode                     = 0;
     delay                           = 0;    
-    writeStep                       = -1;
 };
 
 HyPerConn "GapTestToLIFGapTest" = {
     preLayerName                    = "GapTest";
     postLayerName                   = "LIFGapTest";
-    channelCode                  = 3;
+    channelCode                     = 3;
     sharedWeights                   = true;
     nxp                             = 3;
     nyp                             = 3;
@@ -344,6 +317,7 @@ HyPerConn "GapTestToLIFGapTest" = {
     
     plasticityFlag                  = false;
     pvpatchAccumulateType           = "convolve";
+    receiveGpu                      = true;
     
     // writeCompressedWeights       = false;
     writeCompressedCheckpoints      = false;
@@ -351,14 +325,11 @@ HyPerConn "GapTestToLIFGapTest" = {
     // initialWriteTime             = 0;
 
     updateGSynFromPostPerspective   = true;
-    receiveGpu = true;
 };
 
 IdentConn "LIFGapTestToLIFGapTestSpikeCounter" = {
     channelCode                     = 0;
     delay                           = 0;
-    
-    writeStep                       = -1;
 };
 
 LIFTestProbe "LIFGapTestSpikeCountProbe" = {
