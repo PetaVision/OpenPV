@@ -3,7 +3,7 @@
  *
  */
 
-#include <columns/DataStore.hpp>
+#include <structures/DataStore.hpp>
 #include <utils/PVLog.hpp>
 
 const int NUM_BUFFERS = 2;

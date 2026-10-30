@@ -8,12 +8,11 @@
 #ifndef DATASTORE_HPP_
 #define DATASTORE_HPP_
 
-#include "include/pv_arch.h"
+#include <cstdlib>
+#include <cstring>
 #include "structures/PVLayerCube.hpp"
 #include "structures/RingBuffer.hpp"
 #include "structures/SparseList.hpp"
-#include <cstdlib>
-#include <cstring>
 
 namespace PV {
 

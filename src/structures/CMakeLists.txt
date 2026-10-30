@@ -1,5 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/DataStore.cpp
    ${SUBDIR}/Image.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/MPIBlock.cpp
@@ -11,6 +12,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/Buffer.hpp
+   ${SUBDIR}/DataStore.hpp
    ${SUBDIR}/Image.hpp
    ${SUBDIR}/ImageFrameNumber.hpp
    ${SUBDIR}/ImpliedWeights.hpp

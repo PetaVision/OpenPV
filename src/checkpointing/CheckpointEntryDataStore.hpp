@@ -8,9 +8,10 @@
 #ifndef CHECKPOINTENTRYDATASTORE_HPP_
 #define CHECKPOINTENTRYDATASTORE_HPP_
 
-#include "checkpointing/CheckpointEntryLayerPvp.hpp"
-#include "columns/DataStore.hpp"
 #include <string>
+
+#include "checkpointing/CheckpointEntryLayerPvp.hpp"
+#include "structures/DataStore.hpp"
 
 namespace PV {
 

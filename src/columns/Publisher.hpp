@@ -10,8 +10,8 @@
 
 #include "arch/mpi/mpi.h"
 #include "checkpointing/Checkpointer.hpp"
-#include "columns/DataStore.hpp"
 #include "components/ActivityBuffer.hpp"
+#include "structures/DataStore.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "structures/PVLayerCube.hpp"
 #include "structures/MPIBlock.hpp"
