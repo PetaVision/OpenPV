@@ -386,7 +386,7 @@ int CudaRecvPost::do_run() {
 }
 
 #ifdef PV_USE_CUDNN
-void CudaRecvPost::permuteDatastorePVToCudnn() {
+void CudaRecvPost::permuteDataStorePVToCudnn() {
    // Ext pre activity
    int ny     = mParams.preNy + mParams.preNbup + mParams.preNbdn;
    int nx     = mParams.preNx + mParams.preNblt + mParams.preNbrt;
@@ -399,7 +399,7 @@ void CudaRecvPost::permuteDatastorePVToCudnn() {
    // Ceil to get all weights
    int gridSize = (int)std::ceil((float)numNeurons / (float)blockSize);
 
-   callPermuteDatastorePVToCudnnKernel(
+   callPermuteDataStorePVToCudnnKernel(
          gridSize,
          blockSize,
          mParams.preData,

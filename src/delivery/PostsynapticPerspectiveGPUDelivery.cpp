@@ -54,7 +54,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    // during the AllocateDataStructures stage.
 
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-   mPreData->setAllocCudaDatastore();
+   mPreData->setAllocCudaDataStore();
    mWeightsPair->getPostWeights()->useGPU();
    mPostGSyn->useCuda();
 
@@ -118,13 +118,13 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
 
-   PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDataStore();
    PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = postWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = postWeights->getDeviceData();
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *cudnn_preData = mPreData->getCudnnDatastore();
+   PVCuda::CudaBuffer *cudnn_preData = mPreData->getCudnnDataStore();
    PVCuda::CudaBuffer *cudnn_WData   = postWeights->getCUDNNData();
    pvAssert(cudnn_preData);
    pvAssert(mCudnnGSyn);
@@ -249,20 +249,20 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
 
       mRecvKernel->set_dt_factor(mDeltaTimeFactor);
       // Only copy pre activity to GPU if it's updated on the CPU since last GPU update.
-      if (mPreData->getUpdatedCudaDatastoreFlag()) {
+      if (mPreData->getUpdatedCudaDataStoreFlag()) {
          int delay                            = mArborList->getDelay(arbor);
          PVLayerCube activityCube             = mPreData->getPublisher()->createCube(delay);
-         float const *h_preDatastore          = activityCube.data;
-         PVCuda::CudaBuffer *cudaPreDatastore = mPreData->getCudaDatastore();
-         pvAssert(cudaPreDatastore);
-         cudaPreDatastore->copyToDevice(h_preDatastore);
+         float const *h_preDataStore          = activityCube.data;
+         PVCuda::CudaBuffer *cudaPreDataStore = mPreData->getCudaDataStore();
+         pvAssert(cudaPreDataStore);
+         cudaPreDataStore->copyToDevice(h_preDataStore);
          // Device now has updated
-         mPreData->setUpdatedCudaDatastoreFlag(false);
+         mPreData->setUpdatedCudaDataStoreFlag(false);
       }
 
       // Permutation buffer is local to the kernel, NOT the layer
-      // Therefore, we must permute Datastore every time
-      mRecvKernel->permuteDatastorePVToCudnn();
+      // Therefore, we must permute DataStore every time
+      mRecvKernel->permuteDataStorePVToCudnn();
       //}
 
       // Permute GSyn

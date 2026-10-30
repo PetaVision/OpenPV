@@ -1,9 +1,9 @@
 /*
- * DatastoreDelayTest.cpp
+ * DataStoreDelayTest.cpp
  *
  */
 
-// using DatastoreDelayLayer, an input layer is filled with
+// using DataStoreDelayLayer, an input layer is filled with
 // random data with the property that summing across four
 // adjacent rows gives zeroes.
 //
@@ -13,8 +13,8 @@
 //
 // The output layer should therefore be all zeros.
 
-#include "DatastoreDelayTestLayer.hpp"
-#include "DatastoreDelayTestProbe.hpp"
+#include "DataStoreDelayTestLayer.hpp"
+#include "DataStoreDelayTestProbe.hpp"
 #include <columns/buildandrun.hpp>
 #include <columns/Factory.hpp>
 #include <utils/PVLog.hpp>
@@ -23,10 +23,10 @@ int main(int argc, char *argv[]) {
 
    int status;
    PV_Init initObj(&argc, &argv, false /*allowUnrecognizedArguments*/);
-   initObj.registerKeyword("DatastoreDelayTestLayer", Factory::create<DatastoreDelayTestLayer>);
-   initObj.registerKeyword("DatastoreDelayTestProbe", Factory::create<DatastoreDelayTestProbe>);
+   initObj.registerKeyword("DataStoreDelayTestLayer", Factory::create<DataStoreDelayTestLayer>);
+   initObj.registerKeyword("DataStoreDelayTestProbe", Factory::create<DataStoreDelayTestProbe>);
    if (initObj.getParams() == nullptr) {
-      initObj.setParams("input/DatastoreDelayTest.params");
+      initObj.setParams("input/DataStoreDelayTest.params");
    }
    status = buildandrun(&initObj);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

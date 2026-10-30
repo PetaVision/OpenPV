@@ -171,7 +171,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-      getPreData()->setAllocCudaDatastore();
+      getPreData()->setAllocCudaDataStore();
       mPostGSyn->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
@@ -250,9 +250,9 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
 #ifdef PV_USE_CUDA
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {
    if (getChannelCode() == CHANNEL_NOUPDATE) { return; }
-   PVCuda::CudaBuffer *d_preDatastore         = mPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_preDataStore         = mPreData->getCudaDataStore();
    PVCuda::CudaBuffer *d_postGSyn             = mPostGSyn->getCudaBuffer();
-   PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_originalPreDataStore = mOriginalPreData->getCudaDataStore();
    PVCuda::CudaBuffer *d_originalPostGSyn     = mOriginalPostGSyn->getCudaBuffer();
    Weights *weights                           = mWeightsPair->getPostWeights();
    pvAssert(weights);
@@ -273,9 +273,9 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
          nypPost,
          poolingMode,
          multiplier,
-         d_preDatastore,
+         d_preDataStore,
          d_postGSyn,
-         d_originalPreDatastore,
+         d_originalPreDataStore,
          d_originalPostGSyn,
          (int)mChannelCode);
 }
@@ -532,14 +532,14 @@ void TransposePoolingDelivery::deliverGPU(float *destBuffer) {
          getChannelCode() != CHANNEL_NOUPDATE); // Only called by deliver(), which already checked.
    pvAssert(destBuffer);
 
-   if (mPreData->getUpdatedCudaDatastoreFlag()) {
+   if (mPreData->getUpdatedCudaDataStoreFlag()) {
       PVLayerCube activityCube           = mPreData->getPublisher()->createCube(0 /*delay*/);
-      float const *h_preDatastore        = activityCube.data;
-      PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
-      pvAssert(d_preDatastore);
-      d_preDatastore->copyToDevice(h_preDatastore);
+      float const *h_preDataStore        = activityCube.data;
+      PVCuda::CudaBuffer *d_preDataStore = mPreData->getCudaDataStore();
+      pvAssert(d_preDataStore);
+      d_preDataStore->copyToDevice(h_preDataStore);
       // Device now has updated
-      mPreData->setUpdatedCudaDatastoreFlag(false);
+      mPreData->setUpdatedCudaDataStoreFlag(false);
    }
 
    mDeliverKernel->run();

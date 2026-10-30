@@ -128,7 +128,7 @@ class CudaRecvPost : public CudaKernel {
          /* int* */ CudaBuffer *patch2datalookuptable);
 
 #ifdef PV_USE_CUDNN
-   void permuteDatastorePVToCudnn();
+   void permuteDataStorePVToCudnn();
    void permuteGSynPVToCudnn(int channel);
    void permuteGSynCudnnToPV(int channel);
 #endif

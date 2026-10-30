@@ -1,27 +1,27 @@
 /*
- * DatastoreDelayTestBuffer.cpp
+ * DataStoreDelayTestBuffer.cpp
  *
  *  Created on: Nov 2, 2011
  *      Author: pschultz
  */
 
-#include "DatastoreDelayTestBuffer.hpp"
+#include "DataStoreDelayTestBuffer.hpp"
 #include <columns/ComponentBasedObject.hpp>
 #include <components/BasePublisherComponent.hpp>
 #include <include/pv_arch.h>
 
 namespace PV {
 
-DatastoreDelayTestBuffer::DatastoreDelayTestBuffer(
+DataStoreDelayTestBuffer::DataStoreDelayTestBuffer(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-DatastoreDelayTestBuffer::~DatastoreDelayTestBuffer() {}
+DataStoreDelayTestBuffer::~DataStoreDelayTestBuffer() {}
 
-void DatastoreDelayTestBuffer::initialize(
+void DataStoreDelayTestBuffer::initialize(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
@@ -30,7 +30,7 @@ void DatastoreDelayTestBuffer::initialize(
    // to initialize or not.
 }
 
-Response::Status DatastoreDelayTestBuffer::communicateInitInfo(
+Response::Status DataStoreDelayTestBuffer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = InternalStateBuffer::communicateInitInfo(message);
    if (!Response::completed(status)) {
@@ -47,11 +47,11 @@ Response::Status DatastoreDelayTestBuffer::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-void DatastoreDelayTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
+void DataStoreDelayTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    updateV(getLayerLoc(), &inited, mBufferData.data(), mPeriod);
 }
 
-int DatastoreDelayTestBuffer::updateV(const PVLayerLoc *loc, bool *inited, float *V, int period) {
+int DataStoreDelayTestBuffer::updateV(const PVLayerLoc *loc, bool *inited, float *V, int period) {
    if (*inited) {
       for (int b = 0; b < loc->nbatch; b++) {
          float *VBatch = V + b * loc->nx * loc->ny * loc->nf;
@@ -85,7 +85,7 @@ int DatastoreDelayTestBuffer::updateV(const PVLayerLoc *loc, bool *inited, float
 
             if (rank == 0) {
                ErrorLog().printf(
-                     "DatastoreDelayTestBuffer: number of rows (%d) must be >= period (%d).  "
+                     "DataStoreDelayTestBuffer: number of rows (%d) must be >= period (%d).  "
                      "Exiting.\n",
                      loc->ny,
                      period);

@@ -50,7 +50,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
    // during the AllocateDataStructures stage.
 
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-   mPreData->setAllocCudaDatastore();
+   mPreData->setAllocCudaDataStore();
    mWeightsPair->getPreWeights()->useGPU();
    mPostGSyn->useCuda();
 
@@ -127,7 +127,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    const PVLayerLoc *preLoc  = mPreData->getLayerLoc();
    const PVLayerLoc *postLoc = mPostGSyn->getLayerLoc();
 
-   PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDataStore();
    PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = preWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = preWeights->getDeviceData();
@@ -218,11 +218,11 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       // If the connection uses gpu to receive, update all buffers
 
       // Update pre datastore, post gsyn, and conn weights only if they're updated
-      if (mPreData->getUpdatedCudaDatastoreFlag()) {
-         float const *h_preDatastore        = activityCube.data;
-         PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
-         pvAssert(d_preDatastore);
-         d_preDatastore->copyToDevice(h_preDatastore);
+      if (mPreData->getUpdatedCudaDataStoreFlag()) {
+         float const *h_preDataStore        = activityCube.data;
+         PVCuda::CudaBuffer *d_preDataStore = mPreData->getCudaDataStore();
+         pvAssert(d_preDataStore);
+         d_preDataStore->copyToDevice(h_preDataStore);
 
          // Copy active indices and num active if needed
          if (activityCube.isSparse) {
@@ -239,7 +239,7 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
             d_activeIndices->copyToDevice(h_ActiveIndices);
          }
          // Device now has updated
-         mPreData->setUpdatedCudaDatastoreFlag(false);
+         mPreData->setUpdatedCudaDataStoreFlag(false);
       }
 
       // X direction is active neuron

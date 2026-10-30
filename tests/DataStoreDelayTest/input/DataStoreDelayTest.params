@@ -1,10 +1,10 @@
 //
-// DatastoreDelayTest.params
+// DataStoreDelayTest.params
 //
 // created by pschultz: November 2, 2011
 //
 
-//  - input parameters for DatastoreDelayTest for testing the datastore with various delays
+//  - input parameters for DataStoreDelayTest for testing the datastore with various delays
 //
 
 debugParsing = false;
@@ -29,7 +29,7 @@ HyPerCol "column" = {
 // layers
 //
 
-DatastoreDelayTestLayer "input" = {
+DataStoreDelayTestLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -133,7 +133,7 @@ HyPerConn "delayArbor" = {
     updateGSynFromPostPerspective = false;
 };
 
-DatastoreDelayTestProbe "probe" = {
+DataStoreDelayTestProbe "probe" = {
     targetLayer = "output";
     message = "probe           ";
     textOutputFlag = true;
@@ -141,7 +141,7 @@ DatastoreDelayTestProbe "probe" = {
     nnzThreshold = 0.0;
 };
 
-DatastoreDelayTestProbe "probeArbor" = {
+DataStoreDelayTestProbe "probeArbor" = {
     targetLayer = "outputArbor";
     message = "probeArbor      ";
     textOutputFlag = true;

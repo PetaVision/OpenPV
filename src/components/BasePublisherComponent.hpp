@@ -70,23 +70,23 @@ class BasePublisherComponent : public BaseObject {
 
 // get-methods for CudaBuffers
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer *getCudaDatastore() { return mCudaDatastore; }
+   PVCuda::CudaBuffer *getCudaDataStore() { return mCudaDataStore; }
 
    PVCuda::CudaBuffer *getCudaActiveIndices() { return mCudaActiveIndices; }
 
    PVCuda::CudaBuffer *getCudaNumActive() { return mCudaNumActive; }
 
-   bool getUpdatedCudaDatastoreFlag() const { return mUpdatedCudaDatastore; }
+   bool getUpdatedCudaDataStoreFlag() const { return mUpdatedCudaDataStore; }
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *getCudnnDatastore() { return mCudnnDatastore; }
+   PVCuda::CudaBuffer *getCudnnDataStore() { return mCudnnDataStore; }
 #endif // PV_USE_CUDNN
 
-   void setAllocCudaDatastore() { mAllocCudaDatastore = true; }
+   void setAllocCudaDataStore() { mAllocCudaDataStore = true; }
 
    void setAllocCudaActiveIndices() { mAllocCudaActiveIndices = true; }
 
-   void setUpdatedCudaDatastoreFlag(bool in) { mUpdatedCudaDatastore = in; }
+   void setUpdatedCudaDataStoreFlag(bool in) { mUpdatedCudaDataStore = in; }
 #endif // PV_USE_CUDA
 
   protected:
@@ -144,17 +144,17 @@ class BasePublisherComponent : public BaseObject {
 
 #ifdef PV_USE_CUDA
    // OpenCL buffers and their corresponding flags
-   bool mAllocCudaDatastore     = false;
+   bool mAllocCudaDataStore     = false;
    bool mAllocCudaActiveIndices = false;
 
-   PVCuda::CudaBuffer *mCudaDatastore     = nullptr;
+   PVCuda::CudaBuffer *mCudaDataStore     = nullptr;
    PVCuda::CudaBuffer *mCudaNumActive     = nullptr;
    PVCuda::CudaBuffer *mCudaActiveIndices = nullptr;
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *mCudnnDatastore = nullptr;
+   PVCuda::CudaBuffer *mCudnnDataStore = nullptr;
 #endif // PV_USE_CUDNN
 
-   bool mUpdatedCudaDatastore = true;
+   bool mUpdatedCudaDataStore = true;
 #endif // PV_USE_CUDA
 
    Timer *mAdvanceDataStoreTimer = nullptr;

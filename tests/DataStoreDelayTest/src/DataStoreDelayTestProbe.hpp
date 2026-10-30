@@ -1,5 +1,5 @@
 /*
- * DatastoreDelayTestProbe.hpp
+ * DataStoreDelayTestProbe.hpp
  *
  *  Created on: Mar 10, 2009
  *      Author: garkenyon
@@ -18,11 +18,11 @@
 
 namespace PV {
 
-class DatastoreDelayTestProbe : public StatsProbeImmediate {
+class DataStoreDelayTestProbe : public StatsProbeImmediate {
   public:
-   DatastoreDelayTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   DataStoreDelayTestProbe(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual ~DatastoreDelayTestProbe();
+   virtual ~DataStoreDelayTestProbe();
 
   protected:
    virtual void checkStats() override;

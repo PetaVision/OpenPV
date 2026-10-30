@@ -105,7 +105,7 @@ class CudaKernel {
    char const *mKernelName;
 
 #ifdef PV_USE_CUDNN
-   void callPermuteDatastorePVToCudnnKernel(
+   void callPermuteDataStorePVToCudnnKernel(
          int gridSize,
          int blockSize,
          float *pvBuffer,

@@ -1,5 +1,5 @@
 /*
- * DatastoreDelayTest.hpp
+ * DataStoreDelayTest.hpp
  *
  *  Created on: Nov 2, 2011
  *      Author: pschultz
@@ -12,11 +12,11 @@
 
 namespace PV {
 
-class DatastoreDelayTestLayer : public HyPerLayer {
+class DataStoreDelayTestLayer : public HyPerLayer {
 
   public:
-   DatastoreDelayTestLayer(const char *name, PVParams *params, Communicator const *comm);
-   virtual ~DatastoreDelayTestLayer();
+   DataStoreDelayTestLayer(const char *name, PVParams *params, Communicator const *comm);
+   virtual ~DataStoreDelayTestLayer();
 
   protected:
    void initialize(const char *name, PVParams *params, Communicator const *comm);
@@ -25,7 +25,7 @@ class DatastoreDelayTestLayer : public HyPerLayer {
 
    virtual ActivityComponent *createActivityComponent() override;
 
-}; // end class DatastoreDelayTestLayer
+}; // end class DataStoreDelayTestLayer
 
 } // end namespace PV
 

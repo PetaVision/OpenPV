@@ -1,5 +1,5 @@
 /*
- * DatastoreDelayTest.hpp
+ * DataStoreDelayTest.hpp
  *
  *  Created on: Nov 2, 2011
  *      Author: pschultz
@@ -12,11 +12,11 @@
 
 namespace PV {
 
-class DatastoreDelayTestBuffer : public InternalStateBuffer {
+class DataStoreDelayTestBuffer : public InternalStateBuffer {
 
   public:
-   DatastoreDelayTestBuffer(const char *name, PVParams *params, Communicator const *comm);
-   virtual ~DatastoreDelayTestBuffer();
+   DataStoreDelayTestBuffer(const char *name, PVParams *params, Communicator const *comm);
+   virtual ~DataStoreDelayTestBuffer();
 
   protected:
    void initialize(const char *name, PVParams *params, Communicator const *comm);
@@ -46,7 +46,7 @@ class DatastoreDelayTestBuffer : public InternalStateBuffer {
    bool inited;
    int mPeriod;
 
-}; // end of class DatastoreDelayTestBuffer block
+}; // end of class DataStoreDelayTestBuffer block
 
 } // end of namespace PV block
 

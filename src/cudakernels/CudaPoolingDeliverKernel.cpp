@@ -146,7 +146,7 @@ int CudaPoolingDeliverKernel::do_run() {
    // Ceil to get all neurons
    int const gridSizePre        = (int)std::ceil((float)numNeurons / (float)blockSize);
    float *cudnnDataStorePointer = (float *)mCudnnDataStore->getPointer();
-   callPermuteDatastorePVToCudnnKernel(
+   callPermuteDataStorePVToCudnnKernel(
          gridSizePre,
          blockSize,
          mDataStore,

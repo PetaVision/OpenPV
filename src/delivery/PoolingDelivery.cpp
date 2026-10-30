@@ -184,7 +184,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-      mPreData->setAllocCudaDatastore();
+      mPreData->setAllocCudaDataStore();
       mPostGSyn->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
@@ -265,7 +265,7 @@ Response::Status PoolingDelivery::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
 void PoolingDelivery::initializeDeliverKernelArgs() {
-   PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_preDataStore = mPreData->getCudaDataStore();
    PVCuda::CudaBuffer *d_postGSyn     = mPostGSyn->getCudaBuffer();
    Weights *weights                   = mWeightsPair->getPostWeights();
    pvAssert(weights);
@@ -285,7 +285,7 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
          nypPost,
          poolingMode,
          multiplier,
-         d_preDatastore,
+         d_preDataStore,
          d_postGSyn,
          (int)mChannelCode);
 }
@@ -823,14 +823,14 @@ void PoolingDelivery::deliverGPU(float *destBuffer) {
          getChannelCode() != CHANNEL_NOUPDATE); // Only called by deliver(), which already checked.
    pvAssert(destBuffer);
 
-   if (mPreData->getUpdatedCudaDatastoreFlag()) {
+   if (mPreData->getUpdatedCudaDataStoreFlag()) {
       PVLayerCube activityCube           = mPreData->getPublisher()->createCube(0 /*delay*/);
-      float const *h_preDatastore        = activityCube.data;
-      PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
-      pvAssert(d_preDatastore);
-      d_preDatastore->copyToDevice(h_preDatastore);
+      float const *h_preDataStore        = activityCube.data;
+      PVCuda::CudaBuffer *d_preDataStore = mPreData->getCudaDataStore();
+      pvAssert(d_preDataStore);
+      d_preDataStore->copyToDevice(h_preDataStore);
       // Device now has updated
-      mPreData->setUpdatedCudaDatastoreFlag(false);
+      mPreData->setUpdatedCudaDataStoreFlag(false);
    }
 
    mRecvKernel->run();

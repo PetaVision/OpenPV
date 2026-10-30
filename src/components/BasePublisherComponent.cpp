@@ -108,10 +108,10 @@ Response::Status BasePublisherComponent::allocateDataStructures() {
 // Allocate GPU buffers.
 void BasePublisherComponent::allocateCudaBuffers() {
    std::size_t const sizeExt = (std::size_t)mActivity->getBufferSizeAcrossBatch() * sizeof(float);
-   if (mAllocCudaDatastore) {
-      mCudaDatastore = mCudaDevice->createBuffer(sizeExt, &getDescription());
+   if (mAllocCudaDataStore) {
+      mCudaDataStore = mCudaDevice->createBuffer(sizeExt, &getDescription());
 #ifdef PV_USE_CUDNN
-      mCudnnDatastore = mCudaDevice->createBuffer(sizeExt, &getDescription());
+      mCudnnDataStore = mCudaDevice->createBuffer(sizeExt, &getDescription());
 #endif
    }
 
@@ -207,7 +207,7 @@ void BasePublisherComponent::publish(Communicator const *comm, double simTime) {
       }
       mPublisher->publish(lastUpdateTime);
 #ifdef PV_USE_CUDA
-      setUpdatedCudaDatastoreFlag(true);
+      setUpdatedCudaDataStoreFlag(true);
 #endif // PV_USE_CUDA
    }
    else {

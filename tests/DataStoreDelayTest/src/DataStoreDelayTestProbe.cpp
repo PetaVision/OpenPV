@@ -1,11 +1,11 @@
 /*
- * DatastoreDelayTestProbe.cpp
+ * DataStoreDelayTestProbe.cpp
  *
  *  Created on:
  *      Author: garkenyon
  */
 
-#include "DatastoreDelayTestProbe.hpp"
+#include "DataStoreDelayTestProbe.hpp"
 #include "include/pv_common.h"
 #include "layers/HyPerLayer.hpp"
 #include "probes/ProbeData.hpp"
@@ -17,7 +17,7 @@
 
 namespace PV {
 
-DatastoreDelayTestProbe::DatastoreDelayTestProbe(
+DataStoreDelayTestProbe::DataStoreDelayTestProbe(
       const char *name,
       PVParams *params,
       Communicator const *comm)
@@ -25,7 +25,7 @@ DatastoreDelayTestProbe::DatastoreDelayTestProbe(
    initialize(name, params, comm);
 }
 
-void DatastoreDelayTestProbe::checkStats() {
+void DataStoreDelayTestProbe::checkStats() {
    if (mCommunicator->commRank() != 0) {
       return;
    }
@@ -78,18 +78,18 @@ void DatastoreDelayTestProbe::checkStats() {
 #endif // KOCHAB
 }
 
-void DatastoreDelayTestProbe::createProbeLocal(char const *name, PVParams *params) {
+void DataStoreDelayTestProbe::createProbeLocal(char const *name, PVParams *params) {
    mProbeLocal = std::make_shared<VMembraneBufferStatsProbeLocal>(name, params);
 }
 
-void DatastoreDelayTestProbe::initialize(
+void DataStoreDelayTestProbe::initialize(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
    StatsProbeImmediate::initialize(name, params, comm);
 }
 
-Response::Status DatastoreDelayTestProbe::communicateInitInfo(
+Response::Status DataStoreDelayTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = StatsProbeImmediate::communicateInitInfo(message);
    if (!Response::completed(status)) {
@@ -104,6 +104,6 @@ Response::Status DatastoreDelayTestProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-DatastoreDelayTestProbe::~DatastoreDelayTestProbe() {}
+DataStoreDelayTestProbe::~DataStoreDelayTestProbe() {}
 
 } // namespace PV
