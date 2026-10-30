@@ -11,6 +11,7 @@
 #include "arch/mpi/mpi.h"
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/DataStore.hpp"
+#include "components/ActivityBuffer.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "structures/PVLayerCube.hpp"
 #include "structures/MPIBlock.hpp"
@@ -25,8 +26,7 @@ class Publisher {
    Publisher(
          char const *name,
          MPIBlock const &mpiBlock,
-         float const *data,
-         PVLayerLoc const *loc,
+         ActivityBuffer *activity,
          int numLevels,
          bool isSparse,
          bool broadcastFlag);

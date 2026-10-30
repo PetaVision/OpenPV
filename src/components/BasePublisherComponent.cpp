@@ -93,8 +93,7 @@ Response::Status BasePublisherComponent::allocateDataStructures() {
    mPublisher = new Publisher(
          getName(),
          *mCommunicator->getLocalMPIBlock(),
-         mActivity->getBufferData(),
-         mActivity->getLayerLoc(),
+         mActivity,
          getNumDelayLevels(),
          mSparseLayerFlag,
          mActivity->getBroadcastFlag());

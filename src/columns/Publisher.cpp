@@ -16,11 +16,11 @@ namespace PV {
 Publisher::Publisher(
       char const *name,
       MPIBlock const &mpiBlock,
-      float const *data,
-      PVLayerLoc const *loc,
+      ActivityBuffer *activity,
       int numLevels,
       bool isSparse,
       bool broadcastFlag) {
+   PVLayerLoc const *loc = activity->getLayerLoc();
    mLayerCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
 
    int const nxExt            = loc->nx + loc->halo.lt + loc->halo.rt;
@@ -29,7 +29,7 @@ Publisher::Publisher(
    // number of items in one batch element.
 
    mLayerCube->numItems      = numItemsInBatch * loc->nbatch; // number of items across the batch.
-   mLayerCube->data          = data;
+   mLayerCube->data          = activity->getBufferData();
    mLayerCube->loc           = *loc;
    mLayerCube->isSparse      = isSparse;
    mLayerCube->numActive     = nullptr;
