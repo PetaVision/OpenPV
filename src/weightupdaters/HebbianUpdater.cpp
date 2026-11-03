@@ -513,6 +513,8 @@ int HebbianUpdater::update_dW(int arborID) {
       long numKernels = mWeights->getNumDataPatchesOverall();
 
       for (int b = 0; b < nbatch; b++) {
+         float const *preactBatchElement  = preactbufHead + b * pre->getNumExtended();
+         float const *postactBatchElement = postactbufHead + b * post->getNumExtended();
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -532,7 +534,7 @@ int HebbianUpdater::update_dW(int arborID) {
                while (kxIdx < nxExt) {
                   // Calculate kExt from ky, kx, and kf
                   long kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
-                  updateInd_dW(arborID, b, preactbufHead, postactbufHead, kExt);
+                  updateInd_dW(arborID, preactBatchElement, postactBatchElement, kExt);
                   xCellIdx++;
                   kxIdx = kxCellIdx + xCellIdx * xCellSize;
                }
@@ -547,12 +549,14 @@ int HebbianUpdater::update_dW(int arborID) {
          for (long int &a : mNumPatchActivations[arborID]) { a = 0.0f; }
       }
       for (int b = 0; b < nbatch; b++) {
+         float const *preactBatchElement  = preactbufHead + b * pre->getNumExtended();
+         float const *postactBatchElement = postactbufHead + b * post->getNumExtended();
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
          for (long kExt = 0; kExt < nExt; kExt++) {
-            updateInd_dW(arborID, b, preactbufHead, postactbufHead, kExt);
+            updateInd_dW(arborID, preactBatchElement, postactBatchElement, kExt);
          }
       }
    }
@@ -569,8 +573,10 @@ int HebbianUpdater::update_dW(int arborID) {
       float const *clonePre  = clonePrePublisher->getLayerData(delay);
       float const *clonePost = clonePostPublisher->getLayerData();
       for (int b = 0; b < nbatch; b++) {
+         float const *clonePreBatchElement  = clonePre + b * nExt;
+         float const *clonePostBatchElement = clonePost + b * clonePostLayer->getNumExtended();
          for (long kExt = 0; kExt < nExt; kExt++) {
-            updateInd_dW(arborID, b, clonePre, clonePost, kExt);
+            updateInd_dW(arborID, clonePreBatchElement, clonePostBatchElement, kExt);
          }
       }
    }
@@ -580,7 +586,6 @@ int HebbianUpdater::update_dW(int arborID) {
 
 void HebbianUpdater::updateInd_dW(
       int arborID,
-      int batchID,
       float const *preLayerData,
       float const *postLayerData,
       long kExt) {
@@ -588,12 +593,9 @@ void HebbianUpdater::updateInd_dW(
    HyPerLayer *post          = mConnectionData->getPost();
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   const float *preactbuf  = preLayerData + batchID * pre->getNumExtended();
-   const float *postactbuf = postLayerData + batchID * post->getNumExtended();
-
    int sya = (postLoc->nf * (postLoc->nx + postLoc->halo.lt + postLoc->halo.rt));
 
-   float preact = preactbuf[kExt];
+   float preact = preLayerData[kExt];
    if (preact == 0.0f) {
       return;
    }
@@ -606,7 +608,7 @@ void HebbianUpdater::updateInd_dW(
    }
 
    size_t offset           = mWeights->getGeometry()->getAPostOffset(kExt);
-   const float *postactRef = &postactbuf[offset];
+   const float *postactRef = &postLayerData[offset];
 
    float *dwdata =
          mDeltaWeights->getDataFromPatchIndex(arborID, kExt) + mDeltaWeights->getPatch(kExt).offset;

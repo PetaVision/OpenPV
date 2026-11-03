@@ -27,7 +27,6 @@ class PlasticTestUpdater : public HebbianUpdater {
 
    void modifiedUpdateInd_dW(
          int arborID,
-         int batchID,
          float const *preLayerData,
          float const *postLayerData,
          long kExt);
