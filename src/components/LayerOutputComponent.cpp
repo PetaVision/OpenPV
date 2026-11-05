@@ -251,15 +251,9 @@ void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube
    long const numExtLocal = (long)nxExtLocal * (long)nyExtLocal * (long)nf;
    pvAssert(cube.numItems == loc->nbatch * numExtLocal);
 
+   auto &activeIndicesBatch = cube.activeIndices;
    for (int b = 0; b < loc->nbatch; ++b) {
-      auto *activeIndicesBatch   = (SparseList<float>::Entry const *)cube.activeIndices;
-      auto *activeIndicesElement = &activeIndicesBatch[b * numExtLocal];
-      mSparseListVector[b].reset(nxExtLocal, nyExtLocal, nf);
-
-      for (long k = 0; k < cube.numActive[b]; k++) {
-         SparseList<float>::Entry const &entry = activeIndicesElement[k];
-         mSparseListVector[b].addEntry(entry);
-      }
+      mSparseListVector[b] = *activeIndicesBatch[b];
       mSparseFile->setListLocation(&mSparseListVector[b], b);
    }
    mSparseFile->write(simTime);
@@ -274,15 +268,10 @@ void LayerOutputComponent::writeActivitySparseBroadcast(double simTime, PVLayerC
    int const nf          = loc->nf;
    int const nbatch      = loc->nbatch;
    pvAssert(cube.numItems == nbatch * nf);
-   for (int b = 0; b < loc->nbatch; ++b) {
-      auto *activeIndicesBatch   = (SparseList<float>::Entry const *)cube.activeIndices;
-      auto *activeIndicesElement = &activeIndicesBatch[b * nf];
-      mSparseListVector[b].reset(1, 1, nf);
 
-      for (long k = 0; k < cube.numActive[b]; k++) {
-         SparseList<float>::Entry const &entry = activeIndicesElement[k];
-         mSparseListVector[b].addEntry(entry);
-      }
+   auto &activeIndicesBatch = cube.activeIndices;
+   for (int b = 0; b < loc->nbatch; ++b) {
+      mSparseListVector[b] = *activeIndicesBatch[b];
       mSparseBroadcastFile->setListLocation(&mSparseListVector[b], b);
    }
    mSparseBroadcastFile->write(simTime);
@@ -300,13 +289,13 @@ void LayerOutputComponent::writeActivityDense(double simTime, PVLayerCube &cube)
    int const nyExtLocal   = loc->ny + loc->halo.dn + loc->halo.up;
    int const nf           = loc->nf;
    long const numExtLocal = (long)nxExtLocal * (long)nyExtLocal * (long)nf;
-   pvAssert(cube.numItems == loc->nbatch * numExtLocal);
+   pvAssert(cube.numItems == numExtLocal);
 
-   std::vector<float> activity(cube.numItems);
-   for (long n = 0; n < cube.numItems; ++n) {
-      activity[n] = cube.data[n];
-   }
+   std::vector<float> activity(numExtLocal * loc->nbatch);
    for (int b = 0; b < loc->nbatch; ++b) {
+      for (long n = 0; n < numExtLocal; ++n) {
+         activity[n + b * numExtLocal] = cube.data[b][n];
+      }
       mDenseFile->setDataLocation(&activity[b * numExtLocal], b);
    }
    mDenseFile->write(simTime);
@@ -321,13 +310,13 @@ void LayerOutputComponent::writeActivityDenseBroadcast(double simTime, PVLayerCu
    PVLayerLoc const *loc = &cube.loc;
    int const nf          = loc->nf;
    int const nbatch      = loc->nbatch;
-   pvAssert(cube.numItems == nbatch * nf);
+   pvAssert(cube.numItems == nf);
 
-   std::vector<float> activity(cube.numItems);
-   for (int n = 0; n < cube.numItems; ++n) {
-      activity[n] = cube.data[n];
-   }
+   std::vector<float> activity(nf * nbatch);
    for (int b = 0; b < nbatch; ++b) {
+      for (int n = 0; n < nf; ++n) {
+         activity[n + b * nf] = cube.data[b][n];
+      }
       mDenseBroadcastFile->setDataLocation(&activity[b * nf], b);
    }
    mDenseBroadcastFile->write(simTime);

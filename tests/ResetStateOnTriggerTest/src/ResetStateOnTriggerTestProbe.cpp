@@ -108,9 +108,6 @@ PV::Response::Status ResetStateOnTriggerTestProbe::registerData(
 
    mTargetLayerLoc = targetLayer->getLayerLoc();
 
-   auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
-   mTargetLayerData      = targetPublisher->getLayerData();
-
    auto *checkpointer = message->mDataRegistry;
    mProbeOutputter->initOutputStreams(checkpointer, mTargetLayerLoc->nbatch);
    return PV::Response::SUCCESS;

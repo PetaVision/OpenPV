@@ -102,16 +102,16 @@ int main(int argc, char *argv[]) {
 
    status =
          checkInput(retinaActivity->getLayerLoc(), retinaActivity->getActivity(), retinaVal, false);
-   if (status != 0) {
+   if (status != PV_SUCCESS) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
    BasePublisherComponent *retinaPublisher = retina->getComponentByType<BasePublisherComponent>();
-   status                                  = checkInput(
-         retinaPublisher->getLayerLoc(), retinaPublisher->getLayerData(), retinaVal, true);
-   if (status != 0) {
-      Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
-   }
+   std::vector<float const *> retinaData   = retinaPublisher->getLayerData();
+   FatalIf(retinaData.size() != 1UL, "Expected nbatch=1, it is %zu\n", retinaData.size());
+
+   status = checkInput(retinaPublisher->getLayerLoc(), retinaData[0], retinaVal, true);
+   FatalIf(status != PV_SUCCESS, "[%d]: test_constant_input: ERROR in retina data\n", rank);
 
    delete hc;
    delete initObj;
@@ -119,15 +119,16 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-int checkInput(PVLayerLoc const *loc, const float *data, float val, bool extended) {
-   int status = 0;
+int checkInput(PVLayerLoc const *loc, float const *data, float val, bool extended) {
+   int status = PV_SUCCESS;
 
-   const PVHalo *halo = &loc->halo;
-   const int nk       = (loc->nx + halo->lt + halo->rt) * (loc->ny + halo->dn + halo->up) * loc->nf;
+   int nx  = loc->nx + extended ? loc->halo.lt + loc->halo.rt : 0;
+   int ny  = loc->ny + extended ? loc->halo.dn + loc->halo.up : 0;
+   long nk = static_cast<long>(nx) * static_cast<long>(ny) * static_cast<long>(loc->nf);
 
    for (int k = 0; k < nk; k++) {
       if (data[k] != val) {
-         return -1;
+         return PV_FAILURE;
       }
    }
 

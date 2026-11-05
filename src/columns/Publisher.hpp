@@ -70,25 +70,26 @@ class Publisher {
    Timer const *getIncreaseLevelWaitTimer() const { return mIncreaseLevelWaitTimer; }
 
   private:
-   float *recvBuffer(int bufferId) { return mStore->buffer(bufferId); }
-   float *recvBuffer(int bufferId, int delay) { return mStore->buffer(bufferId, delay); }
+   std::vector<float> &recvBuffer(int bufferId) { return mStore->buffer(bufferId); }
+   std::vector<float> &recvBuffer(int bufferId, int delay) {
+      return mStore->buffer(bufferId, delay); }
 
-   long *recvNumActiveBuffer(int bufferId) { return mStore->numActiveBuffer(bufferId); }
-   long *recvNumActiveBuffer(int bufferId, int delay) {
+   long &recvNumActiveBuffer(int bufferId) { return mStore->numActiveBuffer(bufferId); }
+   long &recvNumActiveBuffer(int bufferId, int delay) {
       return mStore->numActiveBuffer(bufferId, delay);
    }
 
-   SparseList<float>::Entry *recvActiveIndicesBuffer(int bufferId) {
+   SparseList<float> &recvActiveIndicesBuffer(int bufferId) {
       return mStore->activeIndicesBuffer(bufferId);
    }
-   SparseList<float>::Entry *recvActiveIndicesBuffer(int bufferId, int delay) {
+   SparseList<float> &recvActiveIndicesBuffer(int bufferId, int delay) {
       return mStore->activeIndicesBuffer(bufferId, delay);
    }
 
    bool mBroadcastFlag = false;
    DataStore *mStore = nullptr;
 
-   PVLayerCube *mLayerCube = nullptr;
+   PVLayerCube mLayerCube;
 
    BorderExchange *mBorderExchanger = nullptr;
 

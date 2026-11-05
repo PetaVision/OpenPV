@@ -391,13 +391,16 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
       return status;
    }
    auto layerData = mPublisher->getLayerData();
-   long const N   = getNumExtendedAllBatches();
-   for (long n = 0; n < N; n++) {
-      float a = layerData[n];
-      FatalIf(
-            a != a,
-            "%s has not-a-number values in the activity buffer.  Exiting.\n",
-            getDescription_c());
+   long const N   = getNumExtended();
+   for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
+      float const *layerDataElement = layerData[b];
+      for (long n = 0; n < N; n++) {
+         float a = layerDataElement[n];
+         FatalIf(
+               a != a,
+               "%s has not-a-number values in the activity buffer.  Exiting.\n",
+               getDescription_c());
+      }
    }
    return status;
 }

@@ -41,10 +41,10 @@ class NormProbeLocalInterface : public ProbeComponent {
    NormProbeLocalInterface() {}
    void initialize(char const *objName, PVParams *params);
 
-   float const *getMaskBuffer() const { return mMaskBuffer; }
+   float const *getMaskBuffer(int b) const { return mMaskBuffer.at(b); }
    HyPerLayer *getMaskLayer() { return mMaskLayer; }
    HyPerLayer const *getMaskLayer() const { return mMaskLayer; }
-   float const *getTargetBuffer() const { return mTargetBuffer; }
+   float const *getTargetBuffer(int b) const { return mTargetBuffer.at(b); }
    HyPerLayer *getTargetLayer() { return mTargetLayer; }
    HyPerLayer const *getTargetLayer() const { return mTargetLayer; }
 
@@ -53,15 +53,15 @@ class NormProbeLocalInterface : public ProbeComponent {
 
    void checkMaskLayerDimensions() const;
 
-   float const *findDataBuffer(HyPerLayer *layer) const;
+   std::vector<float const *> findDataBuffers(HyPerLayer *layer) const;
 
   private:
-   float const *mMaskBuffer = nullptr;
-   HyPerLayer *mMaskLayer   = nullptr;
-   char *mMaskLayerName     = nullptr;
+   std::vector<float const *> mMaskBuffer;
+   HyPerLayer *mMaskLayer = nullptr;
+   char *mMaskLayerName   = nullptr;
    ProbeDataBuffer<double> mStoredValues;
-   float const *mTargetBuffer = nullptr;
-   HyPerLayer *mTargetLayer   = nullptr;
+   std::vector<float const *> mTargetBuffer;
+   HyPerLayer *mTargetLayer = nullptr;
 };
 
 } // namespace PV

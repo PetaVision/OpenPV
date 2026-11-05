@@ -49,9 +49,17 @@ void NormProbeLocalTemplate<C>::calculateNorms(double simTime, ProbeData<double>
    PVLayerLoc const *bufferLoc = getTargetLayer()->getLayerLoc();
    PVLayerLoc const *maskLoc   = getMaskLayer() ? getMaskLayer()->getLayerLoc() : nullptr;
    int nbatch                  = static_cast<int>(values.size());
-   for (int b = 0; b < nbatch; ++b) {
-      values.getValue(b) =
-            norm->calculateSum(getTargetBuffer(), bufferLoc, getMaskBuffer(), maskLoc, b);
+   if (getMaskLayer()) {
+      for (int b = 0; b < nbatch; ++b) {
+         PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
+         values.getValue(b) =
+               norm->calculateSum(getTargetBuffer(b), bufferLoc, getMaskBuffer(b), maskLoc);
+      }
+   }
+   else {
+      for (int b = 0; b < nbatch; ++b) {
+         values.getValue(b) = norm->calculateSum(getTargetBuffer(b), bufferLoc, nullptr, nullptr);
+      }
    }
 }
 

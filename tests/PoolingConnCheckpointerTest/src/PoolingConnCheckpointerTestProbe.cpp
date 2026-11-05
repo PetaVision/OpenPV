@@ -249,7 +249,7 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
       double timevalue) {
    int failed = 0;
 
-   float const *layerData = layer->getLayerData();
+   float const *layerData = layer->getLayerData()[0 /*batch index*/];
    PVLayerLoc loc         = *layer->getLayerLoc();
    int const nx           = loc.nx;
    int const ny           = loc.ny;

@@ -8,8 +8,9 @@
 #ifndef BASEPUBLISHERCOMPONENT_HPP_
 #define BASEPUBLISHERCOMPONENT_HPP_
 
-#include "columns/BaseObject.hpp"
+#include <vector>
 
+#include "columns/BaseObject.hpp"
 #include "columns/Publisher.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/BoundaryConditions.hpp"
@@ -55,7 +56,7 @@ class BasePublisherComponent : public BaseObject {
     * Returns the activity data for the layer.  This data is in the
     * extended space (with margins).
     */
-   float const *getLayerData(int delay = 0) const;
+   std::vector<float const *> getLayerData(int delay = 0) const;
 
    PVLayerLoc const *getLayerLoc() const { return mActivity->getLayerLoc(); }
 

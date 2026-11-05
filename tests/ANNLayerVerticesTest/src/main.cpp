@@ -23,7 +23,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    auto *internalState      = activityComponent->getComponentByType<InternalStateBuffer>();
    float const *V           = internalState->getBufferData();
    auto *publisherComponent = outputLayer->getComponentByType<BasePublisherComponent>();
-   float const *A           = publisherComponent->getLayerData();
+   float const *A           = publisherComponent->getLayerData()[0 /*batch index*/];
    PVLayerLoc const *loc    = publisherComponent->getLayerLoc();
    PVHalo const &halo       = loc->halo;
    int N                    = loc->nx * loc->ny * loc->nf;

@@ -65,14 +65,19 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          preWeights->getNumDataPatchesOverall() != N,
          "Connection InputToOutput and layer SumInputs have different sizes.\n");
-   float const *weights       = preWeights->getData(0);
-   float const *correctValues = correctValuesPublisher->getLayerData(0);
-   int status                 = PV_SUCCESS;
-   for (long k = 0; k < N; k++) {
-      if (weights[k] != correctValues[k]) {
-         status = PV_FAILURE;
-         ErrorLog() << "Weight index " << k << ": expected " << correctValues[k] << "; value was "
-                    << weights[k] << "\n";
+   std::vector<float const *> correctValues = correctValuesPublisher->getLayerData(0 /*delay*/);
+
+   float const *weights = preWeights->getData(0);
+   int status           = PV_SUCCESS;
+   int nbatch           = correctValuesPublisher->getLayerLoc()->nbatch;
+   for (int b = 0; b < nbatch; ++b) {
+      for (long k = 0; k < N; ++k) {
+         float correctValue = correctValues[b][k];
+         if (weights[k] != correctValue) {
+            status = PV_FAILURE;
+            ErrorLog() << "Weight index " << k << ": expected " << correctValue << "; value was "
+                       << weights[k] << "\n";
+         }
       }
    }
    return status;

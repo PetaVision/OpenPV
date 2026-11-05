@@ -73,8 +73,8 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
    long numInExtended  = inputPublisher->getNumExtended();
    long numOutExtended = outputPublisher->getNumExtended();
 
-   float const *inData  = inputPublisher->getLayerData();
-   float const *outData = outputPublisher->getLayerData();
+   std::vector<float const *> inData  = inputPublisher->getLayerData();
+   std::vector<float const *> outData = outputPublisher->getLayerData();
    bool failed          = false;
    for (int b = 0; b < nbatch; b++) {
       for (long k = 0; k < numNeurons; k++) {
@@ -96,8 +96,8 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
                outLoc->halo.rt,
                outLoc->halo.dn,
                outLoc->halo.up);
-         float inValue  = inData[b * numInExtended + kInExt];
-         float outValue = outData[b * numOutExtended + kOutExt];
+         float inValue  = inData[b][kInExt];
+         float outValue = outData[b][kOutExt];
 
          if (inValue != outValue) {
             ErrorLog().printf(

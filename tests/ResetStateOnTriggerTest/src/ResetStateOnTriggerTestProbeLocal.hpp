@@ -41,7 +41,7 @@ class ResetStateOnTriggerTestProbeLocal : public ProbeComponent {
    ProbeDataBuffer<int> mDiscrepancies;
    ProbeDataBuffer<int> mStoredValues;
    HyPerLayer *mTargetLayer      = nullptr;
-   float const *mTargetLayerData = nullptr;
+   std::vector<float const *> mTargetLayerData;
    ;
 };
 

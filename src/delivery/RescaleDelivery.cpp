@@ -61,17 +61,17 @@ void RescaleDelivery::deliver(float *destBuffer) {
          "%s has different presynaptic and postsynaptic batch sizes.\n",
          getDescription_c());
    for (int b = 0; b < nbatch; b++) {
-      float const *preActivityBuffer = &preActivityCube.data[b * numPreExtended];
+      float const *preActivityBuffer = preActivityCube.data[b];
       float *postGSynBuffer          = &postChannel[b * numPostRestricted];
       if (preActivityCube.isSparse) {
-         SparseList<float>::Entry const *activeIndices =
-               (SparseList<float>::Entry *)preActivityCube.activeIndices + b * numPreExtended;
+         std::vector<SparseList<float>::Entry> const &sparseData =
+               preActivityCube.activeIndices[b]->getContents();
          long numActive = preActivityCube.numActive[b];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
          for (long loopIndex = 0; loopIndex < numActive; loopIndex++) {
-            long kPre = (long)activeIndices[loopIndex].index;
+            long kPre = (long)sparseData[loopIndex].index;
             int kx    = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
             int ky    = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
             if (kx < 0 or kx >= nx or ky < 0 or ky >= ny) {
@@ -80,7 +80,7 @@ void RescaleDelivery::deliver(float *destBuffer) {
             int kf     = featureIndex(kPre, nxPreExtended, nyPreExtended, nf);
             long kPost = kIndex(kx, ky, kf, nx, ny, nf);
             pvAssert(kPost >= 0L and kPost < numPostRestricted);
-            float a = activeIndices[loopIndex].value;
+            float a = sparseData[loopIndex].value;
             postGSynBuffer[kPost] += mScale * a;
          }
       }

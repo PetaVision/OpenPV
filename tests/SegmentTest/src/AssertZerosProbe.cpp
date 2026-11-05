@@ -29,7 +29,7 @@ void AssertZerosProbe::checkStats() {
    const PVLayerLoc *loc        = getTargetLayer()->getLayerLoc();
    long numExtNeurons           = targetPublisher->getNumExtended() * loc->nbatch;
    long numResNeurons           = targetLayerInputBuffer->getBufferSizeAcrossBatch();
-   const float *A               = targetPublisher->getLayerData();
+   std::vector<float const *> A = targetPublisher->getLayerData();
    const float *GSyn_E          = targetLayerInputBuffer->getChannelData(CHANNEL_EXC);
    const float *GSyn_I          = targetLayerInputBuffer->getChannelData(CHANNEL_INH);
    auto const &storedValues     = mProbeAggregator->getStoredValues();
@@ -38,8 +38,10 @@ void AssertZerosProbe::checkStats() {
    ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
    double simTime                     = stats.getTimestamp();
 
-   for (long i = 0; i < numExtNeurons; i++) {
-      FatalIf(std::fabs(A[i]) >= 5e-4f, "Test failed.\n");
+   for (int b = 0; b < loc->nbatch; ++b) {
+      for (long i = 0; i < numExtNeurons; i++) {
+         FatalIf(std::fabs(A[b][i]) >= 5e-4f, "Test failed.\n");
+      }
    }
 
    if (simTime > 0) {

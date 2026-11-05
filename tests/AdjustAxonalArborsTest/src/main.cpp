@@ -42,6 +42,7 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    for (int r = 0; r < hc->getCommunicator()->commSize(); r++) {
       if (r == hc->columnId()) {
          InfoLog().printf("Rank %d, Input layer activity\n", r);
+         float const *layerBuffer = inLayerData->getLayerData()[0 /*batch index*/];
          for (int k = 0; k < numExtended; k++) {
             int x = kxPos(k,
                           inLoc->nx + inLoc->halo.lt + inLoc->halo.rt,
@@ -58,7 +59,7 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
                   inLoc->nx + inLoc->halo.lt + inLoc->halo.rt,
                   inLoc->ny + inLoc->halo.dn + inLoc->halo.up,
                   inLoc->nf);
-            float a = inLayerData->getLayerData()[k];
+            float a = layerBuffer[k];
 
             if (x >= 0 && x < inLoc->nxGlobal && y >= 0 && y < inLoc->nyGlobal) {
                long kRestricted = kIndex(x, y, f, inLoc->nxGlobal, inLoc->nyGlobal, inLoc->nf);

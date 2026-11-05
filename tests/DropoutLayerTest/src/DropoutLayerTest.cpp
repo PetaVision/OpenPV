@@ -61,7 +61,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    auto *averagePublisher = averageLayer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          averagePublisher == nullptr, "Layer \"Counts\" does not have a BasePublisherComponent\n");
-   float const *checkData = averagePublisher->getLayerData();
+   float const *checkData = averagePublisher->getLayerData()[0 /*batch index*/];
    long const numNeurons  = averagePublisher->getNumExtended();
 
    // Leaky integrator has integration time infinity;

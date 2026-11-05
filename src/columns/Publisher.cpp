@@ -5,6 +5,8 @@
  *      Author: pschultz
  */
 
+#include <algorithm> // std::copy()
+
 #include "Publisher.hpp"
 #include "checkpointing/CheckpointEntryDataStore.hpp"
 #include "include/pv_common.h"
@@ -21,33 +23,37 @@ Publisher::Publisher(
       bool isSparse,
       bool broadcastFlag) {
    PVLayerLoc const *loc = activity->getLayerLoc();
-   mLayerCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
 
-   int const nxExt            = loc->nx + loc->halo.lt + loc->halo.rt;
-   int const nyExt            = loc->ny + loc->halo.dn + loc->halo.up;
-   long const numItemsInBatch = (long)nxExt * (long)nyExt * (long)loc->nf;
+   int const nxExt     = loc->nx + loc->halo.lt + loc->halo.rt;
+   int const nyExt     = loc->ny + loc->halo.dn + loc->halo.up;
+   long const numItems = (long)nxExt * (long)nyExt * (long)loc->nf;
    // number of items in one batch element.
 
-   mLayerCube->numItems      = numItemsInBatch * loc->nbatch; // number of items across the batch.
-   mLayerCube->data          = activity->getBufferData();
-   mLayerCube->loc           = *loc;
-   mLayerCube->isSparse      = isSparse;
-   mLayerCube->numActive     = nullptr;
-   mLayerCube->activeIndices = nullptr;
+   mLayerCube.numItems      = numItems; // Number of items in one batch element
+   mLayerCube.loc           = *loc;
+   mLayerCube.isExtended    = true;
+   mLayerCube.isSparse      = isSparse;
+   mLayerCube.data          = std::vector<float const *>(loc->nbatch);
+   mLayerCube.numActive     = std::vector<long>(loc->nbatch);
+   mLayerCube.activeIndices = std::vector<SparseList<float> const *>(loc->nbatch);
+
+   for (int b = 0; b < loc->nbatch; ++b) {
+      mLayerCube.data[b] = &activity->getBufferData()[b * numItems];
+   }
 
    mBroadcastFlag = broadcastFlag;
 
    int const numBuffers = loc->nbatch; // DataStore buffers correspond to batch elements
 
-   mStore = new DataStore(numBuffers, numItemsInBatch, numLevels, isSparse);
+   mStore = new DataStore(numBuffers, numItems, numLevels, isSparse);
 
    mBorderExchanger = new BorderExchange(mpiBlock, *loc);
 
    mpiRequestsBuffer = new RingBuffer<std::vector<MPI_Request>>(numLevels, 1);
    for (int l = 0; l < numLevels; l++) {
-      auto *v = mpiRequestsBuffer->getBuffer(l, 0);
-      v->clear();
-      v->reserve((NUM_NEIGHBORHOOD - 1) * numBuffers);
+      auto &v = mpiRequestsBuffer->getBuffer(l, 0);
+      v.clear();
+      v.reserve((NUM_NEIGHBORHOOD - 1) * numBuffers);
    }
 
    mIncreaseLevelTimer = new Timer(name, "publish", "incrlevel");
@@ -58,7 +64,6 @@ Publisher::~Publisher() {
    delete mpiRequestsBuffer;
    delete mStore;
    delete mBorderExchanger;
-   free(mLayerCube);
    delete mIncreaseLevelTimer;
    delete mIncreaseLevelWaitTimer;
 }
@@ -69,7 +74,7 @@ void Publisher::checkpointDataStore(
       char const *bufferName) {
    bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryDataStore>(
-               objectName, bufferName, mStore, &mLayerCube->loc, mBroadcastFlag),
+               objectName, bufferName, mStore, &mLayerCube.loc, mBroadcastFlag),
          false /*not constant*/);
    FatalIf(
          !registerSucceeded,
@@ -88,17 +93,17 @@ void Publisher::updateAllActiveIndices() {
 
 PVLayerCube Publisher::createCube(int delay) {
    wait(delay);
-   return mStore->createCube(mLayerCube->loc, delay);
+   return mStore->createCube(mLayerCube.loc, delay);
 }
 
 void Publisher::updateActiveIndices(int delay) {
    if (mStore->isSparse()) {
       for (int b = 0; b < mStore->getNumBuffers(); b++) {
          // Active indices stored as local extended values
-         if (*mStore->numActiveBuffer(b, delay) < 0L) {
+         if (mStore->numActiveBuffer(b, delay) < 0L) {
             mStore->updateActiveIndices(b, delay);
          }
-         pvAssert(*mStore->numActiveBuffer(b, delay) >= 0L);
+         pvAssert(mStore->numActiveBuffer(b, delay) >= 0L);
       }
    }
 }
@@ -109,14 +114,20 @@ int Publisher::publish(double lastUpdateTime) {
    // This means that everyone should wait as well.
    //
 
-   std::size_t dataSize = static_cast<std::size_t>(mLayerCube->numItems) * sizeof(float);
+   std::vector<float const *> srcLocations = mLayerCube.data;
+   // Vector of length nbatch; each element points to a buffer of size mLayerCube.numItems
 
-   float const *sendBuf = mLayerCube->data;
-   float *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
+   int nbatch = mLayerCube.loc.nbatch;
+   pvAssert(nbatch == static_cast<int>(srcLocations.size()));
 
-   std::memcpy(recvBuf, sendBuf, dataSize);
-   exchangeBorders(&mLayerCube->loc, 0);
-   mStore->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
+   for (int b = 0; b < nbatch; ++b) {
+      float const *src = srcLocations[b];
+      float *dest      = recvBuffer(b).data();
+      std::vector<float> recvVector = recvBuffer(b);
+      std::copy(src, &src[mLayerCube.numItems], dest);
+   }
+   exchangeBorders(&mLayerCube.loc, 0);
+   mStore->setLastUpdateTime(lastUpdateTime);
 
    for (int b = 0; b < mStore->getNumBuffers(); b++) {
       mStore->markActiveIndicesOutOfSync(b, 0);
@@ -129,10 +140,13 @@ int Publisher::publish(double lastUpdateTime) {
 
 void Publisher::copyForward(double lastUpdateTime) {
    if (mStore->getNumLevels() > 1) {
-      float *recvBuf  = recvBuffer(0); // Grab all of the buffer, allocated continuously
-      std::size_t dataSize = static_cast<std::size_t>(mLayerCube->numItems) * sizeof(float);
-      memcpy(recvBuf, recvBuffer(0 /*bufferId*/, 1), dataSize);
-      mStore->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
+      int nbatch = mStore->getNumBuffers();
+      for (int b = 0; b < nbatch; ++b) {
+         std::vector<float> &dest = recvBuffer(b);
+         std::vector<float> const &src = recvBuffer(b, 1 /*delay*/);
+         std::copy(src.begin(), src.end(), dest.begin());
+      }
+      mStore->setLastUpdateTime(lastUpdateTime);
       updateActiveIndices(0); // alternately, could copy active indices forward as well.
    }
 }
@@ -145,8 +159,8 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
-   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
-   pvAssert(requestsVector->empty());
+   auto &requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   pvAssert(requestsVector.empty());
 
 // Loop through batch.
 // The loop over batch elements probably belongs inside
@@ -157,15 +171,15 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
 #endif // NDEBUG
    for (int b = 0; b < loc->nbatch; b++) {
       // don't send interior
-      pvAssert(requestsVector->size() == (std::size_t)(b * exchangeVectorSize));
+      pvAssert(requestsVector.size() == (std::size_t)(b * exchangeVectorSize));
 
-      float *data = recvBuffer(b, delay);
+      float *data = recvBuffer(b, delay).data();
       std::vector<MPI_Request> batchElementMPIRequest{};
       mBorderExchanger->exchange(data, batchElementMPIRequest);
       pvAssert(batchElementMPIRequest.size() == (std::size_t)exchangeVectorSize);
-      requestsVector->insert(
-            requestsVector->end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
-      pvAssert(requestsVector->size() == (std::size_t)((b + 1) * exchangeVectorSize));
+      requestsVector.insert(
+            requestsVector.end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
+      pvAssert(requestsVector.size() == (std::size_t)((b + 1) * exchangeVectorSize));
    }
 
 #endif // PV_USE_MPI
@@ -175,15 +189,15 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
 
 int Publisher::isExchangeFinished(int delay /* default 0*/) {
    bool isReady;
-   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
-   if (requestsVector->empty()) {
+   auto &requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   if (requestsVector.empty()) {
       isReady = true;
    }
    else {
       int test;
-      MPI_Testall((int)requestsVector->size(), requestsVector->data(), &test, MPI_STATUSES_IGNORE);
+      MPI_Testall((int)requestsVector.size(), requestsVector.data(), &test, MPI_STATUSES_IGNORE);
       if (test) {
-         requestsVector->clear();
+         requestsVector.clear();
          updateActiveIndices(delay);
       }
       isReady = (bool)test;
@@ -201,10 +215,10 @@ int Publisher::wait(int delay /*default 0*/) {
    InfoLog().flush();
 #endif // DEBUG_OUTPUT
 
-   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
-   if (!requestsVector->empty()) {
-      mBorderExchanger->wait(*requestsVector);
-      pvAssert(requestsVector->empty());
+   auto &requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   if (!requestsVector.empty()) {
+      mBorderExchanger->wait(requestsVector);
+      pvAssert(requestsVector.empty());
    }
    updateActiveIndices(delay);
 

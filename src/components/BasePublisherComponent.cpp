@@ -228,18 +228,21 @@ Response::Status BasePublisherComponent::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
    Response::Status status = Response::SUCCESS;
    auto layerData          = getLayerData();
-   long const N            = mActivity->getBufferSizeAcrossBatch();
-   for (long n = 0L; n < N; n++) {
-      float a = layerData[n];
-      FatalIf(
-            a != a,
-            "%s has not-a-number values in the activity buffer.  Exiting.\n",
-            getDescription_c());
+   int const nbatch        = mActivity->getLayerLoc()->nbatch;
+   long const N            = mActivity->getBufferSize();
+   for (int b = 0; b < nbatch; ++b) {
+      for (long n = 0L; n < N; ++n) {
+         float a = layerData[b][n];
+         FatalIf(
+               a != a,
+               "%s has not-a-number values in the activity buffer.  Exiting.\n",
+               getDescription_c());
+      }
    }
    return status;
 }
 
-float const *BasePublisherComponent::getLayerData(int delay) const {
+std::vector <float const *> BasePublisherComponent::getLayerData(int delay) const {
    PVLayerCube cube = mPublisher->createCube(delay);
    return cube.data;
 }

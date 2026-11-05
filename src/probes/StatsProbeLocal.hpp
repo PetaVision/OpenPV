@@ -62,7 +62,7 @@ class StatsProbeLocal : public ProbeComponent {
    template <StatsBufferType bufferType>
    void calculateValues(LayerStats &stats, int localBatchIndex) const;
 
-   float const *findDataBufferA() const;
+   std::vector<float const *> findDataBufferA() const;
    float const *findDataBufferV() const;
 
   private:

@@ -42,7 +42,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
          checkData == nullptr,
          "%s does not have a BasePublisherComponent.\n",
          normalizeL3Check->getDescription_c());
-   float normalizeL3Value = checkData->getLayerData()[0];
+   float normalizeL3Value = checkData->getLayerData()[0 /*batch index*/][0 /*neuron index*/];
    FatalIf(
          fabsf(normalizeL3Value - correctValue) >= tol,
          "Result %f differs from %f by more than allowed tolerance.\n",

@@ -419,11 +419,8 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
 #pragma omp parallel for
 #endif
       for (long kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++) {
-         float const *activityBatch = activityCube.data
-                                      + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
-                                              * (sourceNy + sourceHalo->up + sourceHalo->dn)
-                                              * sourceNf;
-         float *gSynBatchHead = gSyn + b * targetNx * targetNy * targetNf;
+         float const *activityBatch = activityCube.data[b];
+         float *gSynBatchHead = &gSyn[b * targetNx * targetNy * targetNf];
 
          // Change restricted to extended post neuron
          long kTargetExt = kIndexExtended(
@@ -561,22 +558,22 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    long numExtPre  = (long)nxExtPre * (long)nyExtPre * (long)preLoc->nf;
    long numResPost = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
    for (int b = 0; b < activityCube.loc.nbatch; b++) {
-      float const *activityBatch = &activityCube.data[b * numExtPre];
+      float const *activityBatch = activityCube.data[b];
       float *gSynPatchHeadBatch = &gSyn[b * numResPost];
       float *gatePatchHeadBatch = nullptr;
       if (mNeedPostIndexLayer) {
          gatePatchHeadBatch = mPostIndexBuffer->getIndexBuffer(b);
       }
 
-      SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+      SparseList<float> const *activeIndicesBatch = nullptr;
+      std::vector<SparseList<float>::Entry> const *indicesList = nullptr;
       long numLoop;
       if (activityCube.isSparse) {
-         activeIndicesBatch =
-               (SparseList<float>::Entry *)activityCube.activeIndices + b * numExtPre;
+         indicesList = &activityCube.activeIndices[b]->getContents();
          numLoop = activityCube.numActive[b];
       }
       else {
-         numLoop = activityCube.numItems / activityCube.loc.nbatch;
+         numLoop = activityCube.numItems;
       }
 
 #ifdef PV_USE_OPENMP_THREADS
@@ -618,8 +615,9 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
          long kPreExt;
          float a; // We never convert rates to spike counts in pooling conns
          if (activityCube.isSparse) {
-            kPreExt = static_cast<long>(activeIndicesBatch[loopIndex].index);
-            a       = activeIndicesBatch[loopIndex].value;
+            SparseList<float>::Entry const &entry = (*indicesList)[loopIndex];
+            kPreExt = static_cast<long>(entry.index);
+            a       = entry.value;
          }
          else {
             kPreExt = loopIndex;
@@ -825,10 +823,14 @@ void PoolingDelivery::deliverGPU(float *destBuffer) {
 
    if (mPreData->getUpdatedCudaDataStoreFlag()) {
       PVLayerCube activityCube           = mPreData->getPublisher()->createCube(0 /*delay*/);
-      float const *h_preDataStore        = activityCube.data;
+      long numItems                      = activityCube.numItems;
+      int nbatch                         = activityCube.loc.nbatch;
       PVCuda::CudaBuffer *d_preDataStore = mPreData->getCudaDataStore();
       pvAssert(d_preDataStore);
-      d_preDataStore->copyToDevice(h_preDataStore);
+      for (int b = 0; b < nbatch; ++b) {
+         float const *h_preDataStore = activityCube.data[b];
+         d_preDataStore->copyToDevice(h_preDataStore, numItems, b * numItems);
+      }
       // Device now has updated
       mPreData->setUpdatedCudaDataStoreFlag(false);
    }

@@ -207,7 +207,7 @@ gatherLayer(PV::BasePublisherComponent *publisher, PV::Communicator const *commu
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
    int const rootProc    = 0;
-   PV::Buffer<float> buffer(publisher->getLayerData(0), nxExt, nyExt, loc->nf);
+   PV::Buffer<float> buffer(publisher->getLayerData(0)[0], nxExt, nyExt, loc->nf);
    buffer = PV::BufferUtils::gather(
          communicator->getLocalMPIBlock(), buffer, loc->nx, loc->ny, 0 /*batch index*/, rootProc);
    return buffer;

@@ -499,9 +499,10 @@ int HebbianUpdater::update_dW(int arborID) {
    int const nbatch          = preLoc->nbatch;
    int delay                 = mArborList->getDelay(arborID);
 
-   float const *preactbufHead =
+   std::vector<float const *> preactBuffers =
          pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay);
-   float const *postactbufHead = post->getComponentByType<BasePublisherComponent>()->getLayerData();
+   std::vector<float const *> postactBuffers =
+         post->getComponentByType<BasePublisherComponent>()->getLayerData();
 
    if (mWeights->getSharedWeightsFlag()) {
       // Calculate x and y cell size
@@ -513,8 +514,8 @@ int HebbianUpdater::update_dW(int arborID) {
       long numKernels = mWeights->getNumDataPatchesOverall();
 
       for (int b = 0; b < nbatch; b++) {
-         float const *preactBatchElement  = preactbufHead + b * pre->getNumExtended();
-         float const *postactBatchElement = postactbufHead + b * post->getNumExtended();
+         float const *preactBatchElement  = preactBuffers[b];
+         float const *postactBatchElement = postactBuffers[b];
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -549,8 +550,8 @@ int HebbianUpdater::update_dW(int arborID) {
          for (long int &a : mNumPatchActivations[arborID]) { a = 0.0f; }
       }
       for (int b = 0; b < nbatch; b++) {
-         float const *preactBatchElement  = preactbufHead + b * pre->getNumExtended();
-         float const *postactBatchElement = postactbufHead + b * post->getNumExtended();
+         float const *preactBatchElement  = preactBuffers[b];
+         float const *postactBatchElement = postactBuffers[b];
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -570,11 +571,11 @@ int HebbianUpdater::update_dW(int arborID) {
       auto *clonePostPublisher   = clonePostLayer->getComponentByType<BasePublisherComponent>();
       pvAssert(clonePrePublisher->getNumExtended() == nExt);
       pvAssert(clonePrePublisher->getLayerLoc()->nbatch == nbatch);
-      float const *clonePre  = clonePrePublisher->getLayerData(delay);
-      float const *clonePost = clonePostPublisher->getLayerData();
+      std::vector<float const *> clonePreBuffers  = clonePrePublisher->getLayerData(delay);
+      std::vector<float const *> clonePostBuffers = clonePostPublisher->getLayerData();
       for (int b = 0; b < nbatch; b++) {
-         float const *clonePreBatchElement  = clonePre + b * nExt;
-         float const *clonePostBatchElement = clonePost + b * clonePostLayer->getNumExtended();
+         float const *clonePreBatchElement  = clonePreBuffers[b];
+         float const *clonePostBatchElement = clonePostBuffers[b];
          for (long kExt = 0; kExt < nExt; kExt++) {
             updateInd_dW(arborID, clonePreBatchElement, clonePostBatchElement, kExt);
          }

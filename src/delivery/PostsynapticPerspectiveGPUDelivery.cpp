@@ -252,10 +252,14 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       if (mPreData->getUpdatedCudaDataStoreFlag()) {
          int delay                            = mArborList->getDelay(arbor);
          PVLayerCube activityCube             = mPreData->getPublisher()->createCube(delay);
-         float const *h_preDataStore          = activityCube.data;
+         long numItems                        = activityCube.numItems;
+         int nbatch                           = activityCube.loc.nbatch;
          PVCuda::CudaBuffer *cudaPreDataStore = mPreData->getCudaDataStore();
+         for (int b = 0; b < nbatch; ++b) {
+            float const *h_preDataStore = activityCube.data[b];
+            cudaPreDataStore->copyToDevice(h_preDataStore, numItems, b * numItems);
+         }
          pvAssert(cudaPreDataStore);
-         cudaPreDataStore->copyToDevice(h_preDataStore);
          // Device now has updated
          mPreData->setUpdatedCudaDataStoreFlag(false);
       }

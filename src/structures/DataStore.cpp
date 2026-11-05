@@ -5,33 +5,44 @@
  *      Author: Craig Rasmussen
  */
 
-#include "DataStore.hpp"
-#include "include/pv_common.h"
-#include "utils/PVAssert.hpp"
-#include "utils/PVLog.hpp"
+#include <limits> // numeric_limits::infinity()
 
-#include <limits>
+#include "DataStore.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV {
 
-DataStore::DataStore(int numBuffers, long numItems, int numLevels, bool isSparse_flag) {
-   assert(numLevels > 0 && numBuffers > 0);
-   mCurrentLevel = 0; // Publisher::publish decrements levels when writing, so
-   // first level written
-   // to is numLevels - 1;
+DataStore::DataStore(int numBuffers, long numItems, int numLevels, bool sparseFlag) {
+   pvAssert(numLevels > 0 && numBuffers > 0);
    mNumItems   = numItems;
    mNumLevels  = numLevels;
    mNumBuffers = numBuffers;
 
-   mBuffer          = new RingBuffer<float>(numLevels, numBuffers * numItems);
-   mLastUpdateTimes = new RingBuffer<double>(
-         numLevels, numBuffers, -std::numeric_limits<double>::infinity() /*initial value*/);
+   mBuffer = std::make_shared<RingBuffer<std::vector<float>>>(
+         numLevels, numBuffers, std::vector<float>(numItems));
+   double neginf    = -std::numeric_limits<double>::infinity(); // Initially has never been updated
+   mLastUpdateTimes = std::make_shared<RingBuffer<double>>(
+         numLevels, 1 /*numBuffers*/, neginf /*initial value*/);
+   // All batch elements in a level have the same last-update time
 
-   mSparseFlag = isSparse_flag;
+   mSparseFlag = sparseFlag;
    if (mSparseFlag) {
-      mActiveIndices =
-            new RingBuffer<SparseList<float>::Entry>(numLevels, numBuffers * numItems, {0, 0});
-      mNumActive = new RingBuffer<long>(numLevels, numBuffers);
+      mActiveIndices = std::make_shared<RingBuffer<SparseList<float>>>(
+            numLevels, numBuffers, SparseList<float>());
+      mNumActive = std::make_shared<RingBuffer<long>>(numLevels, numBuffers);
+   }
+}
+
+void DataStore::newLevelIndex() {
+   mBuffer->newLevel();
+   mLastUpdateTimes->newLevel();
+   pvAssert(mBuffer->getCurrentLevel() == mLastUpdateTimes->getCurrentLevel());
+
+   if (isSparse()) {
+      mNumActive->newLevel();
+      mActiveIndices->newLevel();
+      pvAssert(mNumActive->getCurrentLevel() == mLastUpdateTimes->getCurrentLevel());
+      pvAssert(mActiveIndices->getCurrentLevel() == mLastUpdateTimes->getCurrentLevel());
    }
 }
 
@@ -39,8 +50,8 @@ void DataStore::markActiveIndicesOutOfSync(int bufferId, int level) {
    if (!mSparseFlag) {
       return;
    }
-   long *numActiveBuf = numActiveBuffer(bufferId, level);
-   *numActiveBuf      = -1;
+   long &numActiveBuf = numActiveBuffer(bufferId, level);
+   numActiveBuf      = -1;
 }
 
 void DataStore::updateActiveIndices(int bufferId, int level) {
@@ -48,34 +59,41 @@ void DataStore::updateActiveIndices(int bufferId, int level) {
       return;
    }
    int numActive   = 0;
-   float *activity = buffer(bufferId, level);
+   std::vector<float> &activity = buffer(bufferId, level);
 
-   SparseList<float>::Entry *activeIndices = activeIndicesBuffer(bufferId, level);
-   //   unsigned int *activeIndices = activeIndicesBuffer(bufferId, level);
+   SparseList<float> &activeIndices = activeIndicesBuffer(bufferId, level);
+   activeIndices.reset(0, 0, 0); // DataStore knows # of items but not dimensions. Change this?
+   SparseList<float>::Entry entry;
    for (int kex = 0; kex < getNumItems(); kex++) {
       float a = activity[kex];
       if (a != 0.0f) {
-         activeIndices[numActive].index = kex;
-         activeIndices[numActive].value = a;
+         activeIndices.addEntry(kex, a);
          numActive++;
       }
    }
 
-   long *numActiveBuf = numActiveBuffer(bufferId, level);
-   *numActiveBuf      = numActive;
+   long &numActiveBuf = numActiveBuffer(bufferId, level);
+   numActiveBuf       = numActive;
 }
 
 PVLayerCube DataStore::createCube(PVLayerLoc const &loc, int delay) {
    PVLayerCube cube;
-   cube.numItems = mNumItems * mNumBuffers;
-   cube.data     = buffer(0 /*batch element*/, delay);
+   cube.numItems = mNumItems;
    // All batch elements allocated contiguously, so the numItems and data fields cover all
    // batch elements.
    cube.loc      = loc;
    cube.isSparse = isSparse();
+   cube.data.resize(mNumBuffers);
+   for (int b = 0; b < mNumBuffers; ++b) {
+      cube.data[b] = buffer(b, delay).data();
+   }
    if (isSparse()) {
-      cube.numActive     = numActiveBuffer(0, delay);
-      cube.activeIndices = activeIndicesBuffer(0, delay);
+      cube.numActive.resize(mNumBuffers);
+      cube.activeIndices.resize(mNumBuffers);
+      for (int b = 0; b < mNumBuffers; ++b) {
+         cube.numActive[b]     = numActiveBuffer(b, delay);
+         cube.activeIndices[b] = &activeIndicesBuffer(b, delay);
+      }
    }
    return cube;
 }

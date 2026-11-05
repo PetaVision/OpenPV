@@ -18,11 +18,7 @@ StatsProbeLocal::StatsProbeLocal(char const *objName, PVParams *params) {
 template <>
 float const *
 StatsProbeLocal::calculateBatchElementStart<StatsBufferType::A>(int localBatchIndex) const {
-   PVLayerLoc const *loc = getLayerLoc();
-   int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
-   int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
-   long numExtended      = (long)nxExt * (long)nyExt * (long)loc->nf;
-   return &findDataBufferA()[localBatchIndex * numExtended];
+   return findDataBufferA()[localBatchIndex];
 }
 
 template <>
@@ -49,7 +45,7 @@ void StatsProbeLocal::calculateStats(double simTime, ProbeData<LayerStats> &valu
 
 void StatsProbeLocal::clearStoredValues() { mStoredValues.clear(); }
 
-float const *StatsProbeLocal::findDataBufferA() const {
+std::vector<float const *> StatsProbeLocal::findDataBufferA() const {
    auto layerDataA = mTargetLayer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          layerDataA == nullptr,

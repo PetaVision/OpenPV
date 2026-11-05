@@ -10,6 +10,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <memory>
+
 #include "structures/PVLayerCube.hpp"
 #include "structures/RingBuffer.hpp"
 #include "structures/SparseList.hpp"
@@ -18,67 +20,54 @@ namespace PV {
 
 class DataStore {
   public:
-   DataStore(int numBuffers, long numItems, int numLevels, bool isSparse);
+   DataStore(int numBuffers, long numItems, int numLevels, bool sparseFlag);
 
-   virtual ~DataStore() {
-      delete mBuffer;
-      delete mLastUpdateTimes;
-      delete mNumActive;
-      delete mActiveIndices;
-   }
+   virtual ~DataStore() {}
 
-   int getNumLevels() const { return mNumLevels; }
-   int getNumBuffers() const { return mNumBuffers; }
-   void newLevelIndex() {
-      mBuffer->newLevel();
-      mLastUpdateTimes->newLevel();
-      if (isSparse()) {
-         mNumActive->newLevel();
-         mActiveIndices->newLevel();
-      }
-      mCurrentLevel = (mNumLevels + mCurrentLevel - 1) % mNumLevels;
-   }
+   void newLevelIndex();
 
    // Level (delay) spins slower than bufferId (batch element)
 
-   float *buffer(int bufferId, int level) {
-      return mBuffer->getBuffer(level, bufferId * mNumItems);
+   std::vector<float> &buffer(int bufferId, int level) {
+      return mBuffer->getBuffer(level, bufferId);
    }
 
-   float *buffer(int bufferId) { return mBuffer->getBuffer(bufferId * mNumItems); }
+   std::vector<float> &buffer(int bufferId) { return mBuffer->getBuffer(bufferId); }
 
-   double getLastUpdateTime(int bufferId, int level) const {
-      return *mLastUpdateTimes->getBuffer(level, bufferId);
+   double getLastUpdateTime(int level) const {
+      return mLastUpdateTimes->getBuffer(level, 0);
    }
 
-   double getLastUpdateTime(int bufferId) const { return *mLastUpdateTimes->getBuffer(bufferId); }
+   double getLastUpdateTime() const { return mLastUpdateTimes->getBuffer(0); }
 
-   void setLastUpdateTime(int bufferId, int level, double t) {
-      *mLastUpdateTimes->getBuffer(level, bufferId) = t;
+   void setLastUpdateTime(int level, double t) {
+      mLastUpdateTimes->getBuffer(level, 0) = t;
    }
 
-   void setLastUpdateTime(int bufferId, double t) { *mLastUpdateTimes->getBuffer(bufferId) = t; }
+   void setLastUpdateTime(double t) { mLastUpdateTimes->getBuffer(0) = t; }
 
    bool isSparse() const { return mSparseFlag; }
 
-   SparseList<float>::Entry *activeIndicesBuffer(int bufferId, int level) {
-      return mActiveIndices->getBuffer(level, bufferId * mNumItems);
+   SparseList<float> &activeIndicesBuffer(int bufferId, int level) {
+      return mActiveIndices->getBuffer(level, bufferId);
    }
 
-   SparseList<float>::Entry *activeIndicesBuffer(int bufferId) {
-      return mActiveIndices->getBuffer(bufferId * mNumItems);
+   SparseList<float> &activeIndicesBuffer(int bufferId) {
+      return mActiveIndices->getBuffer(bufferId);
    }
 
-   void setNumActive(int bufferId, long numActive) { *mNumActive->getBuffer(bufferId) = numActive; }
+   void setNumActive(int bufferId, long numActive) { mNumActive->getBuffer(bufferId) = numActive; }
 
-   long *numActiveBuffer(int bufferId, int level) { return mNumActive->getBuffer(level, bufferId); }
+   long &numActiveBuffer(int bufferId, int level) { return mNumActive->getBuffer(level, bufferId); }
 
-   long *numActiveBuffer(int bufferId) { return mNumActive->getBuffer(bufferId); }
+   long &numActiveBuffer(int bufferId) { return mNumActive->getBuffer(bufferId); }
 
    void markActiveIndicesOutOfSync(int bufferId, int level);
 
    void updateActiveIndices(int bufferId, int level);
 
+   int getNumLevels() const { return mNumLevels; }
+   int getNumBuffers() const { return mNumBuffers; }
    long getNumItems() const { return mNumItems; }
 
    /**
@@ -90,15 +79,14 @@ class DataStore {
 
   private:
    long mNumItems;
-   int mCurrentLevel;
    int mNumLevels;
    int mNumBuffers;
    bool mSparseFlag;
 
-   RingBuffer<float> *mBuffer                           = nullptr;
-   RingBuffer<double> *mLastUpdateTimes                 = nullptr;
-   RingBuffer<long> *mNumActive                         = nullptr;
-   RingBuffer<SparseList<float>::Entry> *mActiveIndices = nullptr;
+   std::shared_ptr<RingBuffer<std::vector<float>>> mBuffer       = nullptr;
+   std::shared_ptr<RingBuffer<double>> mLastUpdateTimes          = nullptr;
+   std::shared_ptr<RingBuffer<long>> mNumActive                  = nullptr;
+   std::shared_ptr<RingBuffer<SparseList<float>>> mActiveIndices = nullptr;
 };
 
 } // namespace PV

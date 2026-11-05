@@ -59,7 +59,8 @@ Response::Status NormProbeLocalInterface::communicateInitInfo(
    return status;
 }
 
-float const *NormProbeLocalInterface::findDataBuffer(HyPerLayer *layer) const {
+std::vector<float const *> NormProbeLocalInterface::findDataBuffers(
+      HyPerLayer *layer) const {
    auto *layerData = layer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          layerData == nullptr,
@@ -75,10 +76,10 @@ void NormProbeLocalInterface::initialize(char const *objName, PVParams *params) 
 
 void NormProbeLocalInterface::initializeState(HyPerLayer *targetLayer) {
    mTargetLayer  = targetLayer;
-   mTargetBuffer = findDataBuffer(targetLayer);
+   mTargetBuffer = findDataBuffers(targetLayer);
    if (mMaskLayer) {
       checkMaskLayerDimensions();
-      mMaskBuffer = findDataBuffer(mMaskLayer);
+      mMaskBuffer = findDataBuffers(mMaskLayer);
    }
 }
 

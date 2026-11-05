@@ -25,22 +25,28 @@ ReceiveFromPostProbe::ReceiveFromPostProbe(
 }
 
 void ReceiveFromPostProbe::checkStats() {
-   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   long numExtNeurons       = publisherComponent->getNumExtended();
-   const float *A           = publisherComponent->getLayerData();
-   bool failed              = false;
-   for (long i = 0; i < numExtNeurons; i++) {
-      // For roundoff errors
-      if (std::fabs(A[i]) >= mTolerance) {
-         ErrorLog().printf(
-               "%s activity outside of tolerance %f: extended index %ld has activity %f\n",
-               getDescription_c(),
-               (double)mTolerance,
-               i,
-               (double)A[i]);
-         failed = true;
-      }
-      FatalIf(failed, "Test failed.\n");
+   auto *publisherComponent     = getTargetLayer()->getComponentByType<BasePublisherComponent>();
+   long numExtNeurons           = publisherComponent->getNumExtended();
+   int nbatch                   = publisherComponent->getLayerLoc()->nbatch;
+   std::vector<float const *> A = publisherComponent->getLayerData();
+   bool failed                  = false;
+   for (int b = 0; b < nbatch; ++b) {
+     for (long i = 0; i < numExtNeurons; i++) {
+        // For roundoff errors
+        float a = A[b][i];
+        if (std::fabs(a) >= mTolerance) {
+           ErrorLog().printf(
+                 "%s activity outside of tolerance %f: "
+                 "batch element %d, extended index %ld has activity %f\n",
+                 getDescription_c(),
+                 (double)mTolerance,
+                 b,
+                 i,
+                 (double)a);
+           failed = true;
+        }
+        FatalIf(failed, "Test failed.\n");
+     }
    }
 }
 

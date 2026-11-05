@@ -31,7 +31,7 @@ void ResetStateOnTriggerTestProbeLocal::countDiscrepancies(ProbeData<int> &value
       int inttime      = static_cast<int>(timestamp);
       for (int b = 0; b < nbatch; ++b) {
          int numDiscrepancies  = 0;
-         float const *activity = mTargetLayerData + b * numExtended;
+         float const *activity = mTargetLayerData[b];
          for (int k = 0; k < (int)N; k++) {
             long kex          = calcExtendedIndex(k, loc);
             float a           = activity[kex];

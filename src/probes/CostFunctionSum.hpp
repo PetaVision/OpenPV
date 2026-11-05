@@ -17,8 +17,7 @@ class CostFunctionSum {
          float const *buffer,
          PVLayerLoc const *bufferLoc,
          float const *mask,
-         PVLayerLoc const *maskLoc,
-         int batchIndex) const;
+         PVLayerLoc const *maskLoc) const;
 
   private:
    float const *
@@ -55,8 +54,7 @@ double CostFunctionSum<C>::calculateSum(
       float const *buffer,
       PVLayerLoc const *bufferLoc,
       float const *mask,
-      PVLayerLoc const *maskLoc,
-      int batchIndex) const {
+      PVLayerLoc const *maskLoc) const {
    pvAssert(buffer);
    pvAssert(bufferLoc);
    if (mask) {
@@ -66,18 +64,16 @@ double CostFunctionSum<C>::calculateSum(
       pvAssert(maskLoc->nf == bufferLoc->nf or maskLoc->nf == 1);
    }
    double result;
-   float const *bufferElement = calculateBatchElementStart(buffer, bufferLoc, batchIndex);
    if (mask) {
-      float const *maskElement = calculateBatchElementStart(mask, maskLoc, batchIndex);
       if (bufferLoc->nf > 1 and maskLoc->nf == 1) {
-         result = calculateSumWithSingleFeatureMask(bufferElement, bufferLoc, maskElement, maskLoc);
+         result = calculateSumWithSingleFeatureMask(buffer, bufferLoc, mask, maskLoc);
       }
       else {
-         result = calculateSumWithMask(bufferElement, bufferLoc, maskElement, maskLoc);
+         result = calculateSumWithMask(buffer, bufferLoc, mask, maskLoc);
       }
    }
    else {
-      result = calculateSumNoMask(bufferElement, bufferLoc);
+      result = calculateSumNoMask(buffer, bufferLoc);
    }
    return result;
 }

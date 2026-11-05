@@ -101,7 +101,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
          int sourceNyExt       = sourceNy + sourceHalo->dn + sourceHalo->up;
          int sourceNumExtended = sourceNxExt * sourceNyExt * sourceNf;
 
-         float const *activityBatch = &activityCube.data[b * sourceNumExtended];
+         float const *activityBatch = activityCube.data[b];
          float *gSynPatchHeadBatch  = &gSynPatchHead[b * numPostRestricted];
 
          // Iterate over each line in the y axis, the goal is to keep weights in the cache

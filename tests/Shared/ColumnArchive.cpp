@@ -11,6 +11,7 @@
 #include <components/WeightsPair.hpp>
 #include <layers/HyPerLayer.hpp>
 
+#include <algorithm> // std::copy()
 #include <cmath>
 
 using namespace PV;
@@ -143,11 +144,16 @@ void ColumnArchive::addLayer(BasePublisherComponent *layer, float layerTolerance
    m_layerdata.resize(sz + 1);
    LayerArchive &latestLayer = m_layerdata.at(sz);
    latestLayer.name          = layer->getName();
-   latestLayer.layerLoc      = layer->getLayerLoc()[0];
-   float const *ldatastart   = layer->getLayerData();
-   float const *ldataend     = &ldatastart[layer->getNumExtended() * latestLayer.layerLoc.nbatch];
-   latestLayer.data          = std::vector<float>(ldatastart, ldataend);
-   latestLayer.tolerance     = layerTolerance;
+   latestLayer.layerLoc      = *layer->getLayerLoc();
+   long numExtended          = layer->getNumExtended();
+   long nbatch               = layer->getLayerLoc()->nbatch;
+   latestLayer.data          = std::vector<float>(numExtended * nbatch);
+   for (long b = 0; b < nbatch; ++b) {
+      float const *ldatastart = layer->getLayerData()[b];
+      float const *ldataend   = &ldatastart[numExtended];
+      std::copy(ldatastart, ldataend, &latestLayer.data[b * numExtended]);
+   }
+   latestLayer.tolerance = layerTolerance;
 }
 
 void ColumnArchive::addConn(ComponentBasedObject *conn, float connTolerance) {

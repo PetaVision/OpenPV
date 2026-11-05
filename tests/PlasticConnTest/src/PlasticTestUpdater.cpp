@@ -27,8 +27,9 @@ int PlasticTestUpdater::update_dW(int arborID) {
    int delay                 = mArborList->getDelay(arborID);
 
    float const *preactbufHead =
-         pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay);
-   float const *postactbufHead = post->getComponentByType<BasePublisherComponent>()->getLayerData();
+         pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay)[0 /*batch index*/];
+   float const *postactbufHead =
+         post->getComponentByType<BasePublisherComponent>()->getLayerData()[0 /*batch index*/];
 
    if (mWeights->getSharedWeightsFlag()) {
       // Calculate x and y cell size
@@ -97,8 +98,8 @@ int PlasticTestUpdater::update_dW(int arborID) {
       auto *clonePostPublisher   = clonePostLayer->getComponentByType<BasePublisherComponent>();
       pvAssert(clonePrePublisher->getNumExtended() == nExt);
       pvAssert(clonePrePublisher->getLayerLoc()->nbatch == nbatch);
-      float const *clonePre  = clonePrePublisher->getLayerData(delay);
-      float const *clonePost = clonePostPublisher->getLayerData();
+      float const *clonePre  = clonePrePublisher->getLayerData(delay)[0 /*batch index*/];
+      float const *clonePost = clonePostPublisher->getLayerData()[0 /*batch index*/];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for collapse(2)
 #endif

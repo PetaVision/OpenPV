@@ -27,7 +27,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          checkClonePublisher == nullptr,
          "Layer \"CheckClone\" does not have a BasePublisherComponent\n");
-   float const *checkCloneLayerData = checkClonePublisher->getLayerData();
+   float const *checkCloneLayerData = checkClonePublisher->getLayerData()[0 /*batch index*/];
    long const numCloneLayerNeurons  = checkClonePublisher->getNumExtended();
    for (long k = 0; k < numCloneLayerNeurons; k++) {
       FatalIf(std::fabs(checkCloneLayerData[k]) >= 1.0e-6f, "Test failed.\n");
@@ -35,11 +35,12 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    auto *checkSigmoid = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("CheckSigmoid"));
    FatalIf(checkSigmoid == nullptr, "No layer named \"CheckSigmoid\"\n");
-   auto *checkSigmoidPublisher = checkSigmoid->getComponentByType<BasePublisherComponent>();
+   auto *checkSigmoidPublisher =
+         checkSigmoid->getComponentByType<BasePublisherComponent>();
    FatalIf(
          checkSigmoidPublisher == nullptr,
          "Layer \"CheckSigmoid\" does not have a BasePublisherComponent\n");
-   float const *checkSigmoidLayerData = checkSigmoidPublisher->getLayerData();
+   float const *checkSigmoidLayerData = checkSigmoidPublisher->getLayerData()[0 /*batch index*/];
    long const numSigmoidLayerNeurons  = checkSigmoidPublisher->getNumExtended();
    for (long k = 0; k < numSigmoidLayerNeurons; k++) {
       FatalIf(std::fabs(checkSigmoidLayerData[k]) >= 1.0e-6f, "Test failed.\n");

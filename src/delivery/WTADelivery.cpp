@@ -120,7 +120,7 @@ void WTADelivery::deliver(float *destBuffer) {
    int const nbatch   = preLoc.nbatch;
    pvAssert(nbatch == mPostGSyn->getLayerLoc()->nbatch);
    for (int b = 0; b < nbatch; b++) {
-      float const *preActivityBuffer = &preActivityCube.data[b * numPreExtended];
+      float const *preActivityBuffer = preActivityCube.data[b];
       float *postGSynBuffer          = &postChannel[b * numPostRestricted];
       // If preActivityCube.isSparse is true, we could use the list of activeIndices.
       // However, we have to make sure that two indices that correspond to the same location but

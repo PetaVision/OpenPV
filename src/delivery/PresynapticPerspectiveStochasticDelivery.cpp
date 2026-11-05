@@ -110,18 +110,16 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
       PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
-         size_t batchOffset                                 = b * numPreExtended;
-         float const *activityBatch                         = &activityCube.data[batchOffset];
-         float *gSynPatchHeadBatch                          = &postChannel[b * numPostRestricted];
-         SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+         float const *activityBatch = activityCube.data[b];
+         float *gSynPatchHeadBatch  = &postChannel[b * numPostRestricted];
+         SparseList<float> const *activeIndicesBatch = nullptr;
          long numNeurons;
          if (preLayerIsSparse) {
-            activeIndicesBatch =
-                  (SparseList<float>::Entry *)activityCube.activeIndices + batchOffset;
+            activeIndicesBatch = activityCube.activeIndices[b];
             numNeurons = activityCube.numActive[b];
          }
          else {
-            numNeurons = activityCube.numItems / activityCube.loc.nbatch;
+            numNeurons = activityCube.numItems;
          }
 
 #ifdef PV_USE_OPENMP_THREADS
@@ -171,13 +169,15 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
             }
          }
          else { // Sparse, use the stored activity / index pairs
+            std::vector<SparseList<float>::Entry> const &sparseData =
+                  activeIndicesBatch->getContents();
             int const nyp = weights->getPatchSizeY();
             for (int y = 0; y < nyp; y++) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
                for (long idx = 0; idx < numNeurons; idx++) {
-                  long kPreExt = activeIndicesBatch[idx].index;
+                  long kPreExt = sparseData[idx].index;
 
                   // Weight
                   Patch const *patch = &weights->getPatch(kPreExt);
@@ -187,7 +187,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
                   }
 
                   // Activity
-                  float a = activeIndicesBatch[idx].value;
+                  float a = sparseData[idx].value;
                   if (a == 0.0f) {
                      continue;
                   }

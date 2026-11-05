@@ -122,9 +122,7 @@ makeUpdateMessage(double simTime, double deltaTime, bool *isPending, bool *hasAc
 
 double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer) {
    auto *targetLayerPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
-
-   long numExtended        = targetLayer->getNumExtended();
-   float const *targetData = &targetLayerPublisher->getLayerData()[batchIndex * numExtended];
+   float const *targetData = targetLayerPublisher->getLayerData()[batchIndex];
 
    PVLayerLoc const *targetLayerLoc = targetLayer->getLayerLoc();
    int nx                           = targetLayerLoc->nx;
@@ -150,9 +148,7 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *
       return computeCorrectValue(batchIndex, targetLayer);
    }
    auto *targetLayerPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
-
-   long targetNumExtended  = targetLayer->getNumExtended();
-   float const *targetData = &targetLayerPublisher->getLayerData()[batchIndex * targetNumExtended];
+   float const *targetData = targetLayerPublisher->getLayerData()[batchIndex];
 
    PVLayerLoc const *targetLayerLoc = targetLayer->getLayerLoc();
    int targetNx                     = targetLayerLoc->nx;
@@ -164,9 +160,7 @@ double computeCorrectValue(int batchIndex, HyPerLayer *targetLayer, HyPerLayer *
    int targetUp                     = targetLayerLoc->halo.up;
 
    auto *maskLayerPublisher = maskLayer->getComponentByType<BasePublisherComponent>();
-
-   long maskNumExtended  = maskLayer->getNumExtended();
-   float const *maskData = &maskLayerPublisher->getLayerData()[batchIndex * maskNumExtended];
+   float const *maskData = maskLayerPublisher->getLayerData()[batchIndex];
 
    PVLayerLoc const *maskLayerLoc = maskLayer->getLayerLoc();
    FatalIf(

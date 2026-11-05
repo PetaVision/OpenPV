@@ -320,7 +320,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
    pvAssert(gSyn);
 
    // Grab postIdxLayer's data
-   float const *postIdxData = nullptr;
+   std::vector<float const *> postIdxData;
    long postIdxNumExtended  = 0;
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
       pvAssert(mOriginalPostIndexData);
@@ -336,22 +336,21 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          getDescription_c());
    long numPostRestricted = (long)postLoc->nx * (long)postLoc->ny * (long)postLoc->nf;
    for (int b = 0; b < nbatch; b++) {
-      float const *activityBatch    = activityCube.data + b * mPreData->getNumExtended();
+      float const *activityBatch    = activityCube.data[b];
       float *gSynPatchHeadBatch     = &gSyn[b * numPostRestricted];
       float const *postIdxDataBatch = nullptr;
       if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-         postIdxDataBatch = &postIdxData[b * postIdxNumExtended];
+         postIdxDataBatch = postIdxData[b];
       }
 
-      SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+      SparseList<float> const * activeIndicesBatch = nullptr;
       long numLoop;
       if (activityCube.isSparse) {
-         activeIndicesBatch = (SparseList<float>::Entry *)activityCube.activeIndices
-                              + b * mPreData->getNumExtended();
+         activeIndicesBatch = activityCube.activeIndices[b];
          numLoop = activityCube.numActive[b];
       }
       else {
-         numLoop = activityCube.numItems / activityCube.loc.nbatch;
+         numLoop = activityCube.numItems;
       }
 
 #ifdef PV_USE_OPENMP_THREADS
@@ -369,8 +368,10 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          float a     = 0.0f;
          long kPreExt = loopIndex;
          if (activityCube.isSparse) {
-            a       = activeIndicesBatch[loopIndex].value;
-            kPreExt = activeIndicesBatch[loopIndex].index;
+            SparseList<float>::Entry const &sparseData =
+                  activeIndicesBatch->getContents()[loopIndex];
+            a       = sparseData.value;
+            kPreExt = sparseData.index;
          }
          else {
             a = activityBatch[loopIndex];
@@ -534,10 +535,14 @@ void TransposePoolingDelivery::deliverGPU(float *destBuffer) {
 
    if (mPreData->getUpdatedCudaDataStoreFlag()) {
       PVLayerCube activityCube           = mPreData->getPublisher()->createCube(0 /*delay*/);
-      float const *h_preDataStore        = activityCube.data;
+      long numItems                      = activityCube.numItems;
+      int nbatch                         = activityCube.loc.nbatch;
       PVCuda::CudaBuffer *d_preDataStore = mPreData->getCudaDataStore();
       pvAssert(d_preDataStore);
-      d_preDataStore->copyToDevice(h_preDataStore);
+      for (int b = 0; b < nbatch; ++b) {
+         float const *h_preDataStore = activityCube.data[b];
+         d_preDataStore->copyToDevice(h_preDataStore, numItems, b * numItems);
+      }
       // Device now has updated
       mPreData->setUpdatedCudaDataStoreFlag(false);
    }

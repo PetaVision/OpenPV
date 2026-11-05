@@ -219,24 +219,35 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
 
       // Update pre datastore, post gsyn, and conn weights only if they're updated
       if (mPreData->getUpdatedCudaDataStoreFlag()) {
-         float const *h_preDataStore        = activityCube.data;
          PVCuda::CudaBuffer *d_preDataStore = mPreData->getCudaDataStore();
          pvAssert(d_preDataStore);
-         d_preDataStore->copyToDevice(h_preDataStore);
+         std::size_t numBytes = static_cast<std::size_t>(activityCube.numItems) * sizeof(float);
+         int nbatch    = activityCube.loc.nbatch;
+         for (int b = 0; b < nbatch; ++b) {
+            float const *h_preDataStore = activityCube.data[b];
+            d_preDataStore->copyToDevice(h_preDataStore, numBytes, b * numBytes);
+         }
 
          // Copy active indices and num active if needed
          if (activityCube.isSparse) {
-            PVCuda::CudaBuffer *d_activeIndices;
-            PVCuda::CudaBuffer *d_numActive;
-            d_activeIndices = mPreData->getCudaActiveIndices();
-            d_numActive     = mPreData->getCudaNumActive();
-            pvAssert(d_activeIndices);
-            SparseList<float>::Entry const *h_ActiveIndices =
-                  (SparseList<float>::Entry *)activityCube.activeIndices;
-            long const *h_numActive = activityCube.numActive;
-            pvAssert(h_ActiveIndices);
+            PVCuda::CudaBuffer *d_numActive = mPreData->getCudaNumActive();
+            pvAssert(d_numActive);
+            long const *h_numActive = activityCube.numActive.data();
+            pvAssert(h_numActive);
             d_numActive->copyToDevice(h_numActive);
-            d_activeIndices->copyToDevice(h_ActiveIndices);
+
+            PVCuda::CudaBuffer *d_activeIndices = mPreData->getCudaActiveIndices();
+            pvAssert(d_activeIndices);
+            std::size_t numActiveOffset = 0UL;
+            for (int b = 0; b < nbatch; ++b) {
+               long numActive = activityCube.numActive[b];
+               SparseList<float> const *h_ActiveIndices = activityCube.activeIndices[b];
+               std::vector<SparseList<float>::Entry> const &h_sparseData =
+                     h_ActiveIndices->getContents();
+               std::size_t numBytes = numActive * sizeof(SparseList<float>::Entry);
+               d_activeIndices->copyToDevice(h_ActiveIndices, numBytes, numActiveOffset);
+               numActiveOffset += numBytes;
+            }
          }
          // Device now has updated
          mPreData->setUpdatedCudaDataStoreFlag(false);

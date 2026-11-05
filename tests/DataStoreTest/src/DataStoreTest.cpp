@@ -11,7 +11,7 @@ const int NUM_ITEMS   = 10;
 const int NUM_LEVELS  = 4;
 
 float correctData(int bufferIndex, int itemIndex, int levelIndex);
-double correctTime(int bufferIndex, int levelIndex);
+double correctTime(int levelIndex);
 
 int main(int argc, char *argv[]) {
    PV::DataStore store(NUM_BUFFERS, NUM_ITEMS, NUM_LEVELS, false /*store is not sparse*/);
@@ -30,8 +30,7 @@ int main(int argc, char *argv[]) {
       store.buffer(0)[itemIndex] = correctData(0, itemIndex, 0 /*levelIndex*/);
       store.buffer(1)[itemIndex] = correctData(1, itemIndex, 0 /*levelIndex*/);
    }
-   store.setLastUpdateTime(0, correctTime(0, 0));
-   store.setLastUpdateTime(1, correctTime(1, 0));
+   store.setLastUpdateTime(correctTime(0));
 
    // Initialize the remaining levels, using the levelIndex argument
    for (int levelIndex = 1; levelIndex < NUM_LEVELS; levelIndex++) {
@@ -39,8 +38,7 @@ int main(int argc, char *argv[]) {
          store.buffer(0, levelIndex)[itemIndex] = correctData(0, itemIndex, levelIndex);
          store.buffer(1, levelIndex)[itemIndex] = correctData(1, itemIndex, levelIndex);
       }
-      store.setLastUpdateTime(0, levelIndex, correctTime(0, levelIndex));
-      store.setLastUpdateTime(1, levelIndex, correctTime(1, levelIndex));
+      store.setLastUpdateTime(levelIndex, correctTime(levelIndex));
    }
 
    // Verify that the values are correct, using nextLevelIndex to advance the levels.
@@ -61,12 +59,8 @@ int main(int argc, char *argv[]) {
                levelIndex);
       }
       FatalIf(
-            store.getLastUpdateTime(0) != correctTime(0, correctLevel),
+            store.getLastUpdateTime() != correctTime(correctLevel),
             "Verification failed for buffer 0, LastUpdateTime after %d rotations.\n",
-            levelIndex);
-      FatalIf(
-            store.getLastUpdateTime(1) != correctTime(1, correctLevel),
-            "Verification failed for buffer 1, LastUpdateTime after %d rotations.\n",
             levelIndex);
       store.newLevelIndex(); // Rotate.
    }
@@ -78,6 +72,6 @@ float correctData(int bufferIndex, int itemIndex, int levelIndex) {
    return (float)(bufferIndex + NUM_BUFFERS * (itemIndex + levelIndex * NUM_ITEMS));
 }
 
-double correctTime(int bufferIndex, int levelIndex) {
-   return (double)(200 + bufferIndex + NUM_BUFFERS * (levelIndex * NUM_ITEMS));
+double correctTime(int levelIndex) {
+   return (double)(200 + NUM_BUFFERS * (levelIndex * NUM_ITEMS));
 }

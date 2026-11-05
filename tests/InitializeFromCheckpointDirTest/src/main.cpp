@@ -83,9 +83,9 @@ int main(int argc, char *argv[]) {
    PVLayerLoc const *loc  = outputLayer->getLayerLoc();
    for (int b = 0; b < loc->nbatch; b++) {
       int const globalBatchIndex = loc->kb0 + b;
-      long const N               = outputPublisher->getNumExtended();
-      float const *A             = &outputPublisher->getLayerData()[b * N];
+      float const *A             = outputPublisher->getLayerData()[b];
       float const correct        = (float)(totalTime * (double)(globalBatchIndex + 1));
+      long const N               = outputPublisher->getNumExtended();
       for (long k = 0; k < N; k++) {
          if (A[k] != correct) {
             status = PV_FAILURE;

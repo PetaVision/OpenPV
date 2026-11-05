@@ -71,7 +71,6 @@ class ResetStateOnTriggerTestProbe : public PV::BaseObject {
    int mProbeStatus                                                       = PV_SUCCESS;
    std::shared_ptr<ResetStateOnTriggerTestProbeLocal> mProbeLocal         = nullptr;
    std::shared_ptr<ResetStateOnTriggerTestProbeOutputter> mProbeOutputter = nullptr;
-   float const *mTargetLayerData                                          = nullptr;
    PVLayerLoc const *mTargetLayerLoc                                      = nullptr;
    std::shared_ptr<TargetLayerComponent> mTargetLayerLocator              = nullptr;
 };

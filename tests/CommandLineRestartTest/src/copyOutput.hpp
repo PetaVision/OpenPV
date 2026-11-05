@@ -12,7 +12,7 @@ inline std::vector<float> copyOutput(PV::HyPerLayer *layer) {
    int const nxExt       = loc->nx + loc->halo.lt + loc->halo.rt;
    int const nyExt       = loc->ny + loc->halo.dn + loc->halo.up;
    int const nf          = loc->nf;
-   float const *data     = publisher->getLayerData();
+   float const *data     = publisher->getLayerData()[0 /*batch index*/];
    PV::Buffer<float> outputBuffer{data, nxExt, nyExt, nf};
    return outputBuffer.asVector();
 }

@@ -1,19 +1,27 @@
 #ifndef PVLAYERCUBE_HPP_
 #define PVLAYERCUBE_HPP_
 
+#include <vector>
+
 #include "structures/PVLayerLoc.hpp"
+#include "structures/SparseList.hpp"
+
+namespace PV {
 
 /**
- * PVLayerCube is a 3D cube (features,x,y) of a layer's data,
- *    plus location information
+ * PVLayerCube contains pointers to a layer's data, in dense format or sparse format.
+ * The width of each vector is the batch width.  
  */
 struct PVLayerCube {
    long numItems; // number of items in data buffer
-   float const *data; // pointer to data
    PVLayerLoc loc;
+   bool isExtended;
    bool isSparse;
-   long const *numActive;
-   void const *activeIndices;
+   std::vector<float const *> data; // pointer to data
+   std::vector<long> numActive;
+   std::vector<SparseList<float> const *> activeIndices;
 };
+
+} // namespace PV
 
 #endif // PVLAYERCUBE_HPP_

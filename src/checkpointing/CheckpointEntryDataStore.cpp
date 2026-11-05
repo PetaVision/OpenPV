@@ -31,16 +31,14 @@ int CheckpointEntryDataStore::getNumIndices() const {
 }
 
 float *CheckpointEntryDataStore::calcBatchElementStart(int batchElement, int index) const {
-   return getDataStore()->buffer(batchElement, index);
+   return getDataStore()->buffer(batchElement, index).data();
 }
 
 void CheckpointEntryDataStore::setLastUpdateTimes(std::vector<double> const &timestamps) const {
-   int const numBuffers                  = getDataStore()->getNumBuffers(); // HyPerCol's nbatch
-   int const numLevels                   = getDataStore()->getNumLevels();  // No. of delay levels
-   for (int b = 0; b < numBuffers; b++) {
-      for (int l = 0; l < numLevels; l++) {
-         getDataStore()->setLastUpdateTime(b, l, timestamps[l]);
-      }
+   int const numBuffers = getDataStore()->getNumBuffers(); // HyPerCol's nbatch
+   int const numLevels  = getDataStore()->getNumLevels();  // No. of delay levels
+   for (int l = 0; l < numLevels; l++) {
+      getDataStore()->setLastUpdateTime(l, timestamps[l]);
    }
 }
 

@@ -30,7 +30,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    baseObject                    = getObject(hc, "NormalizeSumCheck");
    HyPerLayer *normalizeSumCheck = dynamic_cast<HyPerLayer *>(baseObject);
    auto *normalizeSumCheckData   = normalizeSumCheck->getComponentByType<BasePublisherComponent>();
-   float normalizeSumValue       = normalizeSumCheckData->getLayerData()[0];
+   float normalizeSumValue       =
+         normalizeSumCheckData->getLayerData()[0 /*batch index*/][0 /*neuron index*/];
    FatalIf(std::fabs(normalizeSumValue - normalizeSumStrength) >= tol, "Test failed.\n");
 
    // check normalizeL2
@@ -42,7 +43,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    HyPerLayer *normalizeL2Check = dynamic_cast<HyPerLayer *>(baseObject);
    FatalIf(normalizeL2Check == nullptr, "No layer named NormalizeL2Check.\n");
    auto *normalizeL2CheckData = normalizeL2Check->getComponentByType<BasePublisherComponent>();
-   float normalizeL2Value     = std::sqrt(normalizeL2CheckData->getLayerData()[0]);
+   float const *checkBuffer   = normalizeL2CheckData->getLayerData()[0 /*batch index*/];
+   float normalizeL2Value     = std::sqrt(checkBuffer[0 /*neuron index*/]);
    FatalIf(std::fabs(normalizeL2Value - normalizeL2Strength) >= tol, "Test failed.\n");
 
    // check normalizeMax
@@ -56,7 +58,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    auto *normalizeMaxCheckData = normalizeMaxCheck->getComponentByType<BasePublisherComponent>();
    float normalizeMaxValue     = -FLT_MAX;
    for (int k = 0; k < normalizeMaxCheck->getNumExtended(); k++) {
-      float layerData = normalizeMaxCheckData->getLayerData()[k];
+      float layerData = normalizeMaxCheckData->getLayerData()[0 /*batch index*/][k];
       if (normalizeMaxValue < layerData) {
          normalizeMaxValue = layerData;
       }
@@ -85,7 +87,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
          "No layer named \"NormalizeContrastZeroMeanCheckMean\".\n");
    auto *checkDataMean =
          normalizeContrastZeroMeanCheckMean->getComponentByType<BasePublisherComponent>();
-   float normalizeContrastZeroMeanValue = checkDataMean->getLayerData()[0] / (float)numNeurons;
+   float const *checkDataMeanBuffer = checkDataMean->getLayerData()[0 /*batch index*/];
+   float normalizeContrastZeroMeanValue = checkDataMeanBuffer[0] / (float)numNeurons;
    FatalIf(std::fabs(normalizeContrastZeroMeanValue) >= tol, "Test failed.\n");
 
    // check normalizeConstransZeroMean variance
@@ -96,8 +99,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
          "No layer named \"NormalizeContrastZeroMeanCheckVariance\".\n");
    auto *checkDataVariance =
          normalizeContrastZeroMeanCheckVariance->getComponentByType<BasePublisherComponent>();
-   float normalizeContrastZeroMeanStDev =
-          std::sqrt(checkDataVariance->getLayerData()[0] / (float)numNeurons);
+   float const *checkDataVarianceBuffer = checkDataVariance->getLayerData()[0 /*batch index*/];
+   float normalizeContrastZeroMeanStDev = std::sqrt(checkDataVarianceBuffer[0] / (float)numNeurons);
    FatalIf(
          std::fabs(normalizeContrastZeroMeanStDev - normalizeContrastZeroMeanStrength) >= tol,
          "Test failed.\n");
