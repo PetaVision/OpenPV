@@ -716,8 +716,12 @@ void InputActivityBuffer::initializeBatchIndexer(taus_uint4 *state) {
          }
          break;
       case BYSPECIFIED:
-         startIndices = mStartFrameIndex;
-         skipAmounts = mSkipFrameIndex;
+         startIndices.resize(blockBatchCount);
+         skipAmounts.resize(blockBatchCount);
+         for (int b = 0; b < blockBatchCount; ++b) {
+            startIndices[b] = mStartFrameIndex[batchOffset + b];
+            skipAmounts[b]  = mSkipFrameIndex[batchOffset + b];
+         }
          break;
       case RANDOM:
          // batchMethod=random does not use startIndices or skipAmounts

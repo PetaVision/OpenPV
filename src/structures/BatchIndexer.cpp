@@ -15,11 +15,13 @@ BatchIndexer::BatchIndexer(
    FatalIf(
          start_indices.size() != std::vector<int>::size_type(batchWidth),
          "BatchIndexer for \"%s\": start_indices vector size %zu does not match batchWidth %d\n",
+         objName.c_str(),
          std::size_t(start_indices.size()),
          batchWidth);
    FatalIf(
          skip_amounts.size() != std::vector<int>::size_type(batchWidth),
          "BatchIndexer for \"%s\": skip_indices vector size %zu does not match batchWidth %d\n",
+         objName.c_str(),
          std::size_t(skip_amounts.size()),
          batchWidth);
    mRandomFlag       = false;

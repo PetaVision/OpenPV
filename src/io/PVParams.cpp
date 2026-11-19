@@ -2104,12 +2104,13 @@ void PVParams::action_include_directive(const char *stringval) {
    FatalIf(!includeGroup, "Include: include group %s is not defined.\n", param_value);
    // Check keyword of group
    if (std::strcmp(includeGroup->getGroupKeyword(), mCurrGroupKeyword) != 0) {
-      ErrorLog().printf(
-            "Include: Cannot include group %s, which is a %s, into a %s. Group types must be the "
-            "same.\n",
+      WarnLog().printf(
+            "Keyword difference: group \"%s\", which has keyword \"%s\", "
+            "includes group \"%s\", which has keyword \"%s\".\n",
+            mCurrGroupName,
+            mCurrGroupKeyword,
             param_value,
-            includeGroup->getGroupKeyword(),
-            mCurrGroupKeyword);
+            includeGroup->getGroupKeyword());
    }
    free(param_value);
    // Load all stack values into current parameter group
