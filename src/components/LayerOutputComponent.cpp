@@ -249,7 +249,7 @@ void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube
    int const nyExtLocal   = loc->ny + loc->halo.dn + loc->halo.up;
    int const nf           = loc->nf;
    long const numExtLocal = (long)nxExtLocal * (long)nyExtLocal * (long)nf;
-   pvAssert(cube.numItems == loc->nbatch * numExtLocal);
+   pvAssert(cube.numItems == numExtLocal);
 
    auto &activeIndicesBatch = cube.activeIndices;
    for (int b = 0; b < loc->nbatch; ++b) {
@@ -265,18 +265,17 @@ void LayerOutputComponent::writeActivitySparse(double simTime, PVLayerCube &cube
 void LayerOutputComponent::writeActivitySparseBroadcast(double simTime, PVLayerCube &cube) {
    pvAssert(mSparseBroadcastFile);
    PVLayerLoc const *loc = &cube.loc;
-   int const nf          = loc->nf;
-   int const nbatch      = loc->nbatch;
-   pvAssert(cube.numItems == nbatch * nf);
+   pvAssert(cube.numItems == loc->nf);
 
    auto &activeIndicesBatch = cube.activeIndices;
-   for (int b = 0; b < loc->nbatch; ++b) {
+   int const nbatch         = loc->nbatch;
+   for (int b = 0; b < nbatch; ++b) {
       mSparseListVector[b] = *activeIndicesBatch[b];
       mSparseBroadcastFile->setListLocation(&mSparseListVector[b], b);
    }
    mSparseBroadcastFile->write(simTime);
    int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
-   mWriteActivitySparseCalls += blockBatchDimension * loc->nbatch;
+   mWriteActivitySparseCalls += blockBatchDimension * nbatch;
 }
 
 // write non-sparse, nonbroadcast activity

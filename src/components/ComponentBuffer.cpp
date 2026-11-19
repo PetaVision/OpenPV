@@ -134,7 +134,8 @@ ComponentBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
             mBufferData.data(),
             getLayerLoc(),
             mLayerGeometry->getBroadcastFlag(),
-            getExtendedFlag());
+            getExtendedFlag(),
+            false /*sparseFlag*/);
       bool registerSucceeded =
             checkpointer->registerCheckpointEntry(checkpointEntry, false /*not constant*/);
       FatalIf(

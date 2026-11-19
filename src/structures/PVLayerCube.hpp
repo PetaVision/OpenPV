@@ -18,7 +18,6 @@ struct PVLayerCube {
    bool isExtended;
    bool isSparse;
    std::vector<float const *> data; // pointer to data
-   std::vector<long> numActive;
    std::vector<SparseList<float> const *> activeIndices;
 };
 

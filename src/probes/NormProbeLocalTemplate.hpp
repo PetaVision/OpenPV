@@ -47,18 +47,22 @@ template <class C>
 void NormProbeLocalTemplate<C>::calculateNorms(double simTime, ProbeData<double> &values) const {
    C const *norm               = mCostFunctionSum.get();
    PVLayerLoc const *bufferLoc = getTargetLayer()->getLayerLoc();
-   PVLayerLoc const *maskLoc   = getMaskLayer() ? getMaskLayer()->getLayerLoc() : nullptr;
    int nbatch                  = static_cast<int>(values.size());
+   PVLayerCube targetLayerCube = findLayerCube(getTargetLayer());
    if (getMaskLayer()) {
+      PVLayerCube maskLayerCube = findLayerCube(getMaskLayer());
       for (int b = 0; b < nbatch; ++b) {
+         float const *targetBuffer = targetLayerCube.data[b]; 
+         float const *maskBuffer   = maskLayerCube.data[b]; 
          PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
          values.getValue(b) =
-               norm->calculateSum(getTargetBuffer(b), bufferLoc, getMaskBuffer(b), maskLoc);
+               norm->calculateSum(b, &targetLayerCube, &maskLayerCube);
       }
    }
    else {
       for (int b = 0; b < nbatch; ++b) {
-         values.getValue(b) = norm->calculateSum(getTargetBuffer(b), bufferLoc, nullptr, nullptr);
+         float const *targetBuffer = targetLayerCube.data[b]; 
+         values.getValue(b) = norm->calculateSum(b, &targetLayerCube, nullptr);
       }
    }
 }

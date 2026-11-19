@@ -179,7 +179,7 @@ class ComponentBuffer : public BaseObject {
    float *mReadWritePointer      = nullptr;
 
   private:
-   // ComponentBuffer initializes mBuffferLabel to the empty string.
+   // ComponentBuffer initializes mBufferLabel to the empty string.
    // Some derived classes set mBufferlabel during instantiation. If mBufferLabel is not set
    // during instantiation, it can be set by calling setBufferLabel(). Note, however, that
    // setBufferLabel() cannot be called once the BufferLabel is set.

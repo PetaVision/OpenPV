@@ -81,7 +81,7 @@ class SparseLayerIO {
    int mNumFrames   = 0;
 
    long const mHeaderSize = static_cast<long>(sizeof(BufferUtils::ActivityHeader));
-   long const mSparseValueEntrySize = static_cast<long>(sizeof(SparseList<float>::Entry));
+   long const mSparseValueEntrySize = static_cast<long>(sizeof(SparseEntry<float>));
 
    std::vector<long> mFrameStarts; // mFrameStarts[k] is the byte position of pvp frame n
    std::vector<int> mNumEntries;   // mNumEntries[k] is the number of nonzero values in pvp frame n

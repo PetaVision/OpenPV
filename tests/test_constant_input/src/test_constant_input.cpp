@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
    }
 
    BasePublisherComponent *retinaPublisher = retina->getComponentByType<BasePublisherComponent>();
-   std::vector<float const *> retinaData   = retinaPublisher->getLayerData();
+   std::vector<float const *> retinaData   = retinaPublisher->getLayerCube().data;
    FatalIf(retinaData.size() != 1UL, "Expected nbatch=1, it is %zu\n", retinaData.size());
 
    status = checkInput(retinaPublisher->getLayerLoc(), retinaData[0], retinaVal, true);

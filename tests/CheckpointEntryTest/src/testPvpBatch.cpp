@@ -39,7 +39,8 @@ void testPvpBatch(std::shared_ptr<PV::FileManager const> fileManager) {
          checkpointData.data(),
          &loc,
          false /*broadcastFlag*/,
-         false /*extendedFlag*/};
+         false /*extendedFlag*/,
+         false /*sparseFlag*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.

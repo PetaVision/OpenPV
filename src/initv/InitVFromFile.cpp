@@ -199,7 +199,7 @@ void InitVFromFile::readSparseBroadcastLayerFile(
    inputLayerFile.read();
    for (int b = 0; b < loc.nbatch; ++b) {
       float *Vbatch = &V[b * loc.nf];
-      std::vector<SparseList<float>::Entry> sparseContents = sparseLists[b].getContents();
+      std::vector<SparseEntry<float>> sparseContents = sparseLists[b].getContents();
       for (auto const &entry : sparseContents) {
          int index = entry.index;
          FatalIf(
@@ -236,7 +236,7 @@ void InitVFromFile::readSparseLayerFile(
    for (int b = 0; b < loc.nbatch; ++b) {
       long neuronsPerBatchElement = (long)loc.nx * (long)loc.ny * (long)loc.nf;
       float *Vbatch = &V[b * neuronsPerBatchElement];
-      std::vector<SparseList<float>::Entry> contents = sparseLists[b].getContents();
+      std::vector<SparseEntry<float>> contents = sparseLists[b].getContents();
       for (auto const &entry : contents) {
          long index = entry.index;
          FatalIf(

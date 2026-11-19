@@ -168,14 +168,14 @@ void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int const nxExt = origLoc->nx + origLoc->halo.lt + origLoc->halo.rt;
    int const nyExt = origLoc->ny + origLoc->halo.dn + origLoc->halo.up;
 
-   std::vector<float const *> const &origData = mOriginalLayerData->getLayerData(mDelay);
+   PVLayerCube origData = mOriginalLayerData->getLayerCube(mDelay);
    float *currActivity   = mBufferData.data();
 
    int nbatch = currLoc->nbatch;
    pvAssert(origLoc->nbatch == currLoc->nbatch);
    for (int b = 0; b < nbatch; b++) {
       long currNumExtended       = (long)nxExt * (long)nyExt * (long)currLoc->nf;
-      const float *origDataBatch = origData[b];
+      const float *origDataBatch = origData.data[b];
       float *currABatch          = &currActivity[b * currNumExtended];
 
 #ifdef PV_USE_OPENMP_THREADS

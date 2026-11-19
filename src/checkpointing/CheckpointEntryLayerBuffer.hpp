@@ -22,8 +22,9 @@ class CheckpointEntryLayerBuffer : public CheckpointEntryLayerPvp<T> {
          T *dataPtr,
          PVLayerLoc const *layerLoc,
          bool broadcastFlag,
-         bool extendedFlag)
-         : CheckpointEntryLayerPvp<T>(name, layerLoc, broadcastFlag, extendedFlag),
+         bool extendedFlag,
+         bool sparseFlag)
+         : CheckpointEntryLayerPvp<T>(name, layerLoc, broadcastFlag, extendedFlag, sparseFlag),
            mDataPointer(dataPtr) {}
    CheckpointEntryLayerBuffer(
          std::string const &objName,
@@ -31,12 +32,17 @@ class CheckpointEntryLayerBuffer : public CheckpointEntryLayerPvp<T> {
          T *dataPtr,
          PVLayerLoc const *layerLoc,
          bool broadcastFlag,
-         bool extendedFlag)
-         : CheckpointEntryLayerPvp<T>(objName, dataName, layerLoc, broadcastFlag, extendedFlag),
+         bool extendedFlag,
+         bool sparseFlag)
+         : CheckpointEntryLayerPvp<T>(
+               objName, dataName, layerLoc, broadcastFlag, extendedFlag, sparseFlag),
            mDataPointer(dataPtr) {}
 
   protected:
    virtual int getNumIndices() const override;
+
+   // The index argument is not used, because so far we only need this class template for buffers
+   // where mNumChannels=1
    virtual T *calcBatchElementStart(int batchElement, int index) const override;
 
    T *getDataPointer() const { return mDataPointer; }

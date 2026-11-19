@@ -105,7 +105,7 @@ void ShrunkenPatchTestProbe::checkStats() {
    float tol = 1e-4f;
 
    auto *publisher  = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   float const *buf = publisher->getLayerData()[0 /*batch index*/];
+   float const *buf = publisher->getLayerCube().data[0 /*batch index*/];
 
    auto const &storedValues           = mProbeAggregator->getStoredValues();
    auto numTimestamps                 = storedValues.size();

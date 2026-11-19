@@ -29,7 +29,7 @@ void AssertZerosProbe::checkStats() {
    const PVLayerLoc *loc        = getTargetLayer()->getLayerLoc();
    long numExtNeurons           = targetPublisher->getNumExtended() * loc->nbatch;
    long numResNeurons           = targetLayerInputBuffer->getBufferSizeAcrossBatch();
-   std::vector<float const *> A = targetPublisher->getLayerData();
+   std::vector<float const *> A = targetPublisher->getLayerCube().data;
    const float *GSyn_E          = targetLayerInputBuffer->getChannelData(CHANNEL_EXC);
    const float *GSyn_I          = targetLayerInputBuffer->getChannelData(CHANNEL_INH);
    auto const &storedValues     = mProbeAggregator->getStoredValues();

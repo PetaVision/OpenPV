@@ -116,7 +116,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
          long numNeurons;
          if (preLayerIsSparse) {
             activeIndicesBatch = activityCube.activeIndices[b];
-            numNeurons = activityCube.numActive[b];
+            numNeurons = static_cast<long>(activeIndicesBatch->getNumEntries());
          }
          else {
             numNeurons = activityCube.numItems;
@@ -169,7 +169,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
             }
          }
          else { // Sparse, use the stored activity / index pairs
-            std::vector<SparseList<float>::Entry> const &sparseData =
+            std::vector<SparseEntry<float>> const &sparseData =
                   activeIndicesBatch->getContents();
             int const nyp = weights->getPatchSizeY();
             for (int y = 0; y < nyp; y++) {
@@ -235,7 +235,7 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
 
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch = &recvBuffer[b * numPostRestricted];
-         long numNeurons  = activityCube.numItems / activityCube.loc.nbatch;
+         long numNeurons  = activityCube.numItems;
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();

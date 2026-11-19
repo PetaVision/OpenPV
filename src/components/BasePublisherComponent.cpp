@@ -121,7 +121,7 @@ void BasePublisherComponent::allocateCudaBuffers() {
 
       long const numExtendedBatch  = mActivity->getBufferSizeAcrossBatch();
       std::size_t const bufferSize =
-            (std::size_t)numExtendedBatch * sizeof(SparseList<float>::Entry);
+            (std::size_t)numExtendedBatch * sizeof(SparseEntry<float>);
       mCudaActiveIndices = mCudaDevice->createBuffer(bufferSize, &getDescription());
    }
 }
@@ -227,24 +227,34 @@ bool BasePublisherComponent::isExchangeFinished(int delay) {
 Response::Status BasePublisherComponent::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
    Response::Status status = Response::SUCCESS;
-   auto layerData          = getLayerData();
+   auto layerCube          = getLayerCube();
    int const nbatch        = mActivity->getLayerLoc()->nbatch;
-   long const N            = mActivity->getBufferSize();
-   for (int b = 0; b < nbatch; ++b) {
-      for (long n = 0L; n < N; ++n) {
-         float a = layerData[b][n];
-         FatalIf(
-               a != a,
-               "%s has not-a-number values in the activity buffer.  Exiting.\n",
-               getDescription_c());
+   if (layerCube.isSparse) {
+      for (int b = 0; b < nbatch; ++b) {
+         SparseList<float> const *sparseList = layerCube.activeIndices[b];
+         std::vector<SparseEntry<float>> const &sparseData = sparseList->getContents();
+         for (auto const &e : sparseData) {
+            float a = e.value;
+            FatalIf(
+                  a != a,
+                  "%s has not-a-number values in the activity buffer.  Exiting.\n",
+                  getDescription_c());
+         }
+      }
+   }
+   else {
+      long const N = mActivity->getBufferSize();
+      for (int b = 0; b < nbatch; ++b) {
+         for (long n = 0L; n < N; ++n) {
+            float a = layerCube.data[b][n];
+            FatalIf(
+                  a != a,
+                  "%s has not-a-number values in the activity buffer.  Exiting.\n",
+                  getDescription_c());
+         }
       }
    }
    return status;
-}
-
-std::vector <float const *> BasePublisherComponent::getLayerData(int delay) const {
-   PVLayerCube cube = mPublisher->createCube(delay);
-   return cube.data;
 }
 
 Response::Status BasePublisherComponent::cleanup() { return mPublisher->cleanup(); }

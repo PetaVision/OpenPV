@@ -60,7 +60,7 @@ void CudaRecvPre::setArgs(
     mParams.isSparse = isSparse;
    if (activeIndices) {
       mParams.numActive     = (long *)numActive->getPointer();
-      mParams.activeIndices = (PV::SparseList<float>::Entry *)activeIndices->getPointer();
+      mParams.activeIndices = (PV::SparseEntry<float> *)activeIndices->getPointer();
    }
    else {
       mParams.activeIndices = NULL;

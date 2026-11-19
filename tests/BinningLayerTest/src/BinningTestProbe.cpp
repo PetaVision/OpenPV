@@ -106,7 +106,7 @@ BinningTestProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> mes
          publisherComponent == nullptr,
          "%s does not have a BasePublisherComponent.\n",
          getBinningLayer()->getDescription_c());
-   const float *A = publisherComponent->getLayerData()[0 /*batch index*/];
+   float const *A = publisherComponent->getLayerCube().data[0 /*batch index*/];
 
    // Grab BinSigma from BinningLayer, which is contained in a component.
    auto *activityComponent = getBinningLayer()->getComponentByType<ComponentBasedObject>();

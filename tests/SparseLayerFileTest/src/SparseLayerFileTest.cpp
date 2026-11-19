@@ -385,8 +385,8 @@ int checkFrame1Contents(
       uint32_t numNonzeroValues;
       sparseLayerStream->read(&numNonzeroValues, static_cast<long>(sizeof(numNonzeroValues)));
 
-      std::vector<SparseList<float>::Entry> fileContents(numNonzeroValues);
-      long dataSize       = static_cast<long>(sizeof(SparseList<float>::Entry));
+      std::vector<SparseEntry<float>> fileContents(numNonzeroValues);
+      long dataSize       = static_cast<long>(sizeof(SparseEntry<float>));
       long frameSizeBytes = static_cast<long>(numNonzeroValues) * dataSize;
       sparseLayerStream->read(fileContents.data(), frameSizeBytes);
 
@@ -398,8 +398,8 @@ int checkFrame1Contents(
             static_cast<unsigned>(numNonzeroValues), static_cast<unsigned>(correctContents.size()));
             
       for (uint32_t k = 0; k < numNonzeroValues; ++k) {
-         SparseList<float>::Entry fileEntry    = fileContents.at(k);
-         SparseList<float>::Entry correctEntry = correctContents.at(k);
+         SparseEntry<float> fileEntry    = fileContents.at(k);
+         SparseEntry<float> correctEntry = correctContents.at(k);
          if (fileEntry.index != correctEntry.index and fileEntry.value != correctEntry.value) {
             ErrorLog().printf(
                   "Global rank %d, file \"%s\", batch element %d: Nonzero value %d of %d "
@@ -427,7 +427,7 @@ BufferUtils::ActivityHeader createInitialHeader(
       nxBlock += layerLoc.halo.lt + layerLoc.halo.rt;
       nyBlock += layerLoc.halo.dn + layerLoc.halo.up;
    }
-   int dataSize = static_cast<int>(sizeof(SparseList<float>::Entry));
+   int dataSize = static_cast<int>(sizeof(SparseEntry<float>));
    int dataType = BufferUtils::returnDataType<float>();
 
    BufferUtils::ActivityHeader headerData;
@@ -846,10 +846,10 @@ int writeFrameToFileStream(
             pvAssert(gatheredList.getWidth() == fileNx);
             pvAssert(gatheredList.getHeight() == fileNy);
             pvAssert(gatheredList.getFeatures() == layerLoc.nf);
-            std::vector<SparseList<float>::Entry> gatheredContents = gatheredList.getContents();
+            std::vector<SparseEntry<float>> gatheredContents = gatheredList.getContents();
             uint32_t gatheredListLength = static_cast<uint32_t>(gatheredContents.size());
             fileStream->write(&gatheredListLength, sizeof(gatheredListLength));
-            long dataSize               = static_cast<long>(sizeof(SparseList<float>::Entry));
+            long dataSize               = static_cast<long>(sizeof(SparseEntry<float>));
             long writeLength            = dataSize * static_cast<long>(gatheredListLength);
             
             fileStream->write(gatheredContents.data(), writeLength);

@@ -80,7 +80,7 @@ void SparseLayerIO::read(SparseList<float> &sparseList, double &timestamp) {
    getFileStream()->read(&timestamp, 8L);
    int numValues;
    getFileStream()->read(&numValues, 4L);
-   std::vector<SparseList<float>::Entry> entryVector(numValues);
+   std::vector<SparseEntry<float>> entryVector(numValues);
    long numBytes = static_cast<long>(numValues) * mSparseValueEntrySize;
    getFileStream()->read(entryVector.data(), numBytes);
    sparseList.set(entryVector);

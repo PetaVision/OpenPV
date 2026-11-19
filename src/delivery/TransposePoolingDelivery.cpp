@@ -347,7 +347,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
       long numLoop;
       if (activityCube.isSparse) {
          activeIndicesBatch = activityCube.activeIndices[b];
-         numLoop = activityCube.numActive[b];
+         numLoop = static_cast<long>(activeIndicesBatch->getNumEntries());
       }
       else {
          numLoop = activityCube.numItems;
@@ -368,7 +368,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          float a     = 0.0f;
          long kPreExt = loopIndex;
          if (activityCube.isSparse) {
-            SparseList<float>::Entry const &sparseData =
+            SparseEntry<float> const &sparseData =
                   activeIndicesBatch->getContents()[loopIndex];
             a       = sparseData.value;
             kPreExt = sparseData.index;

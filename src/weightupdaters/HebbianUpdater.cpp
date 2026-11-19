@@ -8,6 +8,7 @@
 #include "HebbianUpdater.hpp"
 #include "components/WeightsPair.hpp"
 #include "observerpattern/ObserverTable.hpp"
+#include "structures/Buffer.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
@@ -499,10 +500,53 @@ int HebbianUpdater::update_dW(int arborID) {
    int const nbatch          = preLoc->nbatch;
    int delay                 = mArborList->getDelay(arborID);
 
-   std::vector<float const *> preactBuffers =
-         pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay);
-   std::vector<float const *> postactBuffers =
-         post->getComponentByType<BasePublisherComponent>()->getLayerData();
+   std::vector<float const *> preactBuffers, postactBuffers;
+   std::vector<Buffer<float>> preBuffersDense, postBuffersDense; // Dense rep if layer is sparse
+   auto *prePublisher  = pre->getComponentByType<BasePublisherComponent>();
+   PVLayerCube preLayerCube = prePublisher->getLayerCube(delay);
+   if (preLayerCube.isSparse) {
+      preactBuffers.resize(nbatch);
+      preBuffersDense.resize(nbatch);
+      int width    = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+      int height   = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+      int features = preLoc->nf;
+      for (int b = 0; b < nbatch; ++b) {
+         auto &buffer = preBuffersDense[b];
+         buffer.resize(width, height, features);
+         vector<SparseEntry<float>> const &sparseEntries =
+               preLayerCube.activeIndices[b]->getContents();
+         for (auto const &e : sparseEntries) {
+            buffer.set(e.index, e.value);
+         }
+         preactBuffers[b] = buffer.asVector().data();
+      }
+   }
+   else {
+      preactBuffers = preLayerCube.data;
+   }
+
+   auto *postPublisher = post->getComponentByType<BasePublisherComponent>();
+   PVLayerCube postLayerCube = postPublisher->getPublisher()->createCube();
+   if (postLayerCube.isSparse) {
+      postactBuffers.resize(nbatch);
+      postBuffersDense.resize(nbatch);
+      int width    = postLoc->nx + postLoc->halo.lt + postLoc->halo.rt;
+      int height   = postLoc->ny + postLoc->halo.dn + postLoc->halo.up;
+      int features = postLoc->nf;
+      for (int b = 0; b < nbatch; ++b) {
+         auto &buffer = postBuffersDense[b];
+         buffer.resize(width, height, features);
+         vector<SparseEntry<float>> const &sparseEntries =
+               postLayerCube.activeIndices[b]->getContents();
+         for (auto const &e : sparseEntries) {
+            buffer.set(e.index, e.value);
+         }
+         postactBuffers[b] = buffer.asVector().data();
+      }
+   }
+   else {
+      postactBuffers = postLayerCube.data;
+   }
 
    if (mWeights->getSharedWeightsFlag()) {
       // Calculate x and y cell size
@@ -549,14 +593,14 @@ int HebbianUpdater::update_dW(int arborID) {
       if (mNormalizeDw) {
          for (long int &a : mNumPatchActivations[arborID]) { a = 0.0f; }
       }
-      for (int b = 0; b < nbatch; b++) {
-         float const *preactBatchElement  = preactBuffers[b];
-         float const *postactBatchElement = postactBuffers[b];
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
+#pragma omp parallel for collapse(2)
 #endif
+      for (int b = 0; b < nbatch; b++) {
          for (long kExt = 0; kExt < nExt; kExt++) {
+            float const *preactBatchElement  = preactBuffers[b];
+            float const *postactBatchElement = postactBuffers[b];
             updateInd_dW(arborID, preactBatchElement, postactBatchElement, kExt);
          }
       }
@@ -571,13 +615,59 @@ int HebbianUpdater::update_dW(int arborID) {
       auto *clonePostPublisher   = clonePostLayer->getComponentByType<BasePublisherComponent>();
       pvAssert(clonePrePublisher->getNumExtended() == nExt);
       pvAssert(clonePrePublisher->getLayerLoc()->nbatch == nbatch);
-      std::vector<float const *> clonePreBuffers  = clonePrePublisher->getLayerData(delay);
-      std::vector<float const *> clonePostBuffers = clonePostPublisher->getLayerData();
+      PVLayerCube clonePreCube  = clonePrePublisher->getLayerCube(delay);
+      PVLayerCube clonePostCube = clonePostPublisher->getLayerCube();
+      std::vector<float const *> clonePreData;
+      std::vector<float const *> clonePostData;
+      std::vector<Buffer<float>> preBuffersDense, postBuffersDense;
+      // Dense representations for sparse layers. The declaration needs to be outside the
+      // if-statements because a pointer to the data is used after the if-statement closes.
+
+      if (clonePreCube.isSparse) {
+         clonePreData.resize(nbatch);
+         preBuffersDense.resize(nbatch);
+         PVLayerLoc const *preLoc = clonePreLayer->getLayerLoc();
+         int width    = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+         int height   = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+         int features = preLoc->nf;
+         for (int b = 0; b < nbatch; ++b) {
+            auto &buffer = preBuffersDense[b];
+            buffer.resize(width, height, features);
+            vector<SparseEntry<float>> const &sparseEntries =
+                  clonePreCube.activeIndices[b]->getContents();
+            for (auto const &e : sparseEntries) {
+               buffer.set(e.index, e.value);
+            }
+            clonePreData[b] = buffer.asVector().data();
+         }
+      }
+      else {
+         clonePreData = clonePreCube.data;
+      }
+      if (clonePostCube.isSparse) {
+         clonePostData.resize(nbatch);
+         preBuffersDense.resize(nbatch);
+         PVLayerLoc const *preLoc = clonePostLayer->getLayerLoc();
+         int width    = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+         int height   = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+         int features = preLoc->nf;
+         for (int b = 0; b < nbatch; ++b) {
+            auto &buffer = preBuffersDense[b];
+            buffer.resize(width, height, features);
+            vector<SparseEntry<float>> const &sparseEntries =
+                  clonePostCube.activeIndices[b]->getContents();
+            for (auto const &e : sparseEntries) {
+               buffer.set(e.index, e.value);
+            }
+            clonePostData[b] = buffer.asVector().data();
+         }
+      }
+      else {
+         clonePostData = clonePostCube.data;
+      }
       for (int b = 0; b < nbatch; b++) {
-         float const *clonePreBatchElement  = clonePreBuffers[b];
-         float const *clonePostBatchElement = clonePostBuffers[b];
          for (long kExt = 0; kExt < nExt; kExt++) {
-            updateInd_dW(arborID, clonePreBatchElement, clonePostBatchElement, kExt);
+            updateInd_dW(arborID, clonePreData[b], clonePostData[b], kExt);
          }
       }
    }

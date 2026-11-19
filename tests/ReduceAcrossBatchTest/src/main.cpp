@@ -65,7 +65,8 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          preWeights->getNumDataPatchesOverall() != N,
          "Connection InputToOutput and layer SumInputs have different sizes.\n");
-   std::vector<float const *> correctValues = correctValuesPublisher->getLayerData(0 /*delay*/);
+   std::vector<float const *> correctValues =
+         correctValuesPublisher->getLayerCube(0 /*delay*/).data;
 
    float const *weights = preWeights->getData(0);
    int status           = PV_SUCCESS;

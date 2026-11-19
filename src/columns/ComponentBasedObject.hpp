@@ -30,6 +30,9 @@ class ComponentBasedObject : public BaseObject, public Subject {
    template <typename S>
    S *getComponentByType();
 
+   template <typename S>
+   S const *getComponentByType() const;
+
    /**
     * Adds an object to the observer table, subject to the restriction that
     * no other observer of the specified type is in the table.
@@ -65,6 +68,11 @@ class ComponentBasedObject : public BaseObject, public Subject {
 
 template <typename S>
 S *ComponentBasedObject::getComponentByType() {
+   return mTable->findObject<S>(getName());
+}
+
+template <typename S>
+S const *ComponentBasedObject::getComponentByType() const {
    return mTable->findObject<S>(getName());
 }
 

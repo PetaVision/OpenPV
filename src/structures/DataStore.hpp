@@ -1,5 +1,4 @@
-/*
- * DataStore.hpp
+/* DataStore.hpp
  *
  *  Created on: Sep 10, 2008
  *      Author: Craig Rasmussen
@@ -20,7 +19,7 @@ namespace PV {
 
 class DataStore {
   public:
-   DataStore(int numBuffers, long numItems, int numLevels, bool sparseFlag);
+   DataStore(int numBuffers, int numLevels, int width, int height, int features, bool sparseFlag);
 
    virtual ~DataStore() {}
 
@@ -28,11 +27,11 @@ class DataStore {
 
    // Level (delay) spins slower than bufferId (batch element)
 
-   std::vector<float> &buffer(int bufferId, int level) {
+   std::vector<float> &getBuffer(int bufferId, int level) {
       return mBuffer->getBuffer(level, bufferId);
    }
 
-   std::vector<float> &buffer(int bufferId) { return mBuffer->getBuffer(bufferId); }
+   std::vector<float> &getBuffer(int bufferId) { return mBuffer->getBuffer(bufferId); }
 
    double getLastUpdateTime(int level) const {
       return mLastUpdateTimes->getBuffer(level, 0);
@@ -48,27 +47,29 @@ class DataStore {
 
    bool isSparse() const { return mSparseFlag; }
 
-   SparseList<float> &activeIndicesBuffer(int bufferId, int level) {
+   SparseList<float> &getActiveIndices(int bufferId, int level) {
       return mActiveIndices->getBuffer(level, bufferId);
    }
 
-   SparseList<float> &activeIndicesBuffer(int bufferId) {
+   SparseList<float> &getActiveIndices(int bufferId) {
       return mActiveIndices->getBuffer(bufferId);
    }
 
    void setNumActive(int bufferId, long numActive) { mNumActive->getBuffer(bufferId) = numActive; }
 
-   long &numActiveBuffer(int bufferId, int level) { return mNumActive->getBuffer(level, bufferId); }
+   long &getNumActive(int bufferId, int level) { return mNumActive->getBuffer(level, bufferId); }
 
-   long &numActiveBuffer(int bufferId) { return mNumActive->getBuffer(bufferId); }
-
-   void markActiveIndicesOutOfSync(int bufferId, int level);
+   long &getNumActive(int bufferId) { return mNumActive->getBuffer(bufferId); }
 
    void updateActiveIndices(int bufferId, int level);
 
-   int getNumLevels() const { return mNumLevels; }
    int getNumBuffers() const { return mNumBuffers; }
+   int getNumLevels() const { return mNumLevels; }
+   int getWidth() const { return mWidth; }
+   int getHeight() const { return mHeight; }
+   int getFeatures() const { return mFeatures; }
    long getNumItems() const { return mNumItems; }
+   bool getSparseFlag() const { return mSparseFlag; }
 
    /**
     * Returns a PVLayerCube pointing to the data at the given delay.
@@ -78,9 +79,12 @@ class DataStore {
    PVLayerCube createCube(PVLayerLoc const &loc, int delay);
 
   private:
-   long mNumItems;
-   int mNumLevels;
    int mNumBuffers;
+   int mNumLevels;
+   int mWidth;
+   int mHeight;
+   int mFeatures;
+   long mNumItems;
    bool mSparseFlag;
 
    std::shared_ptr<RingBuffer<std::vector<float>>> mBuffer       = nullptr;

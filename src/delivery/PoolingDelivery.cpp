@@ -566,11 +566,11 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       }
 
       SparseList<float> const *activeIndicesBatch = nullptr;
-      std::vector<SparseList<float>::Entry> const *indicesList = nullptr;
+      std::vector<SparseEntry<float>> const *indicesList = nullptr;
       long numLoop;
       if (activityCube.isSparse) {
          indicesList = &activityCube.activeIndices[b]->getContents();
-         numLoop = activityCube.numActive[b];
+         numLoop = static_cast<long>(indicesList->size());
       }
       else {
          numLoop = activityCube.numItems;
@@ -615,7 +615,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
          long kPreExt;
          float a; // We never convert rates to spike counts in pooling conns
          if (activityCube.isSparse) {
-            SparseList<float>::Entry const &entry = (*indicesList)[loopIndex];
+            SparseEntry<float> const &entry = (*indicesList)[loopIndex];
             kPreExt = static_cast<long>(entry.index);
             a       = entry.value;
          }

@@ -386,23 +386,11 @@ Response::Status HyPerLayer::checkUpdateState(double simTime, double deltaTime) 
 
 Response::Status HyPerLayer::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
-   Response::Status status = Response::SUCCESS;
+   Response::Status status = Response::NO_ACTION;
    if (message->mPhase != mPhaseParam->getPhase()) {
-      return status;
+      return Response::NO_ACTION;
    }
-   auto layerData = mPublisher->getLayerData();
-   long const N   = getNumExtended();
-   for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
-      float const *layerDataElement = layerData[b];
-      for (long n = 0; n < N; n++) {
-         float a = layerDataElement[n];
-         FatalIf(
-               a != a,
-               "%s has not-a-number values in the activity buffer.  Exiting.\n",
-               getDescription_c());
-      }
-   }
-   return status;
+   return mPublisher->respond(message);
 }
 
 } // end of PV namespace

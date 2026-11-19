@@ -51,7 +51,7 @@ void RescaleDelivery::deliver(float *destBuffer) {
    int nxPreExtended   = nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyPreExtended   = ny + preLoc.halo.dn + preLoc.halo.up;
    long numPreExtended = (long)nxPreExtended * (long)nyPreExtended * (long)nf;
-   pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
+   pvAssert(numPreExtended == preActivityCube.numItems);
    long numPostRestricted = (long)nx * (long)ny * (long)nf;
 
    float *postChannel = destBuffer;
@@ -64,13 +64,13 @@ void RescaleDelivery::deliver(float *destBuffer) {
       float const *preActivityBuffer = preActivityCube.data[b];
       float *postGSynBuffer          = &postChannel[b * numPostRestricted];
       if (preActivityCube.isSparse) {
-         std::vector<SparseList<float>::Entry> const &sparseData =
+         std::vector<SparseEntry<float>> const &sparseData =
                preActivityCube.activeIndices[b]->getContents();
-         long numActive = preActivityCube.numActive[b];
+         std::size_t numActive = sparseData.size();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (long loopIndex = 0; loopIndex < numActive; loopIndex++) {
+         for (std::size_t loopIndex = 0; loopIndex < numActive; loopIndex++) {
             long kPre = (long)sparseData[loopIndex].index;
             int kx    = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
             int ky    = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;

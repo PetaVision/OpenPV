@@ -23,7 +23,7 @@ class CheckpointEntryDataStore : public CheckpointEntryLayerPvp<float> {
          PVLayerLoc const *layerLoc,
          bool broadcastFlag)
          : CheckpointEntryLayerPvp<float>(
-               name, layerLoc, broadcastFlag, true /*extendedFlag*/),
+               name, layerLoc, broadcastFlag, true /*extendedFlag*/, dataStore->isSparse()),
            mDataStore(dataStore) {}
    CheckpointEntryDataStore(
          std::string const &objName,
@@ -32,11 +32,13 @@ class CheckpointEntryDataStore : public CheckpointEntryLayerPvp<float> {
          PVLayerLoc const *layerLoc,
          bool broadcastFlag)
          : CheckpointEntryLayerPvp<float>(
-               objName, dataName, layerLoc, broadcastFlag, true /*extendedFlag*/),
+               objName,
+               dataName,
+               layerLoc,
+               broadcastFlag,
+               true /*extendedFlag*/,
+               dataStore->isSparse()),
            mDataStore(dataStore) {}
-
-   virtual void
-         read(std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const override;
 
   protected:
    virtual int getNumIndices() const override;
@@ -44,6 +46,21 @@ class CheckpointEntryDataStore : public CheckpointEntryLayerPvp<float> {
    virtual void applyTimestamps(std::vector<double> const &timestamps) const override {
       setLastUpdateTimes(timestamps);
    }
+
+   virtual void writeSparseBroadcast(
+         std::shared_ptr<FileManager const> fileManager,
+         std::string const &filename,
+         double simTime,
+         bool verifyWritesFlag) const override;
+
+   virtual void writeSparseFile(
+         std::shared_ptr<FileManager const> fileManager,
+         std::string const &filename,
+         double simTime,
+         bool verifyWritesFlag) const override;
+
+   virtual void loadBatchElement(
+         SparseList<float> const &sparseList, int batchElement, int index) const override;
 
    DataStore *getDataStore() const { return mDataStore; }
 

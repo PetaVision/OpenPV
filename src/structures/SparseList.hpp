@@ -14,13 +14,15 @@ using std::vector;
 namespace PV {
 
 template <typename T>
+class SparseEntry {
+  public:
+   uint32_t index;
+   T value;
+};
+
+template <typename T>
 class SparseList {
   public:
-   struct Entry {
-      uint32_t index;
-      T value;
-   };
-
    SparseList() {}
    SparseList(const Buffer<T> &source, T zeroVal) { fromBuffer(source, zeroVal); }
    SparseList(int width, int height, int features) { reset(width, height, features); }
@@ -48,7 +50,7 @@ class SparseList {
       mContents.clear();
    }
 
-   void toBuffer(Buffer<T> &dest, T zeroVal) {
+   void toBuffer(Buffer<T> &dest, T zeroVal) const {
       long numElements = dest.getTotalElements();
       vector<T> newData(numElements, zeroVal);
       for (auto entry : mContents) {
@@ -62,14 +64,16 @@ class SparseList {
       dest.set(newData, dest.getWidth(), dest.getHeight(), dest.getFeatures());
    }
 
-   void addEntry(Entry const &entry) {
+   void addEntry(SparseEntry<T> const &entry) {
       auto pos = std::find_if(
-            mContents.begin(), mContents.end(), [entry](Entry a) { return a.index > entry.index; });
+            mContents.begin(),
+            mContents.end(),
+            [entry](SparseEntry<T> a) { return a.index > entry.index; });
       mContents.insert(pos, entry);
    }
 
    void addEntry(int index, T value) {
-      Entry entry{static_cast<uint32_t>(index), value};
+      SparseEntry<T> entry{static_cast<uint32_t>(index), value};
       addEntry(entry);
    }
 
@@ -95,7 +99,7 @@ class SparseList {
             topCrop,
             getHeight() - newHeight);
       int numValues = static_cast<int>(mContents.size());
-      vector<Entry> newContents;
+      vector<SparseEntry<T>> newContents;
       for (int n = 0; n < numValues; ++n) {
          int k = mContents[n].index;
          // Should use conversions.hpp routines for this, but nvcc gives undefined identifer errors.
@@ -106,7 +110,7 @@ class SparseList {
          bool yInBounds = ky >= 0 and ky < newHeight;
          if (xInBounds and yInBounds) {
             uint32_t newIndex = static_cast<uint32_t>(kf + getFeatures() * (kx + newWidth * ky));
-            newContents.emplace_back(Entry{newIndex, mContents[n].value});
+            newContents.emplace_back(SparseEntry<T>{newIndex, mContents[n].value});
          }
       }
       set(newContents);
@@ -170,7 +174,7 @@ class SparseList {
             topPad,
             newHeight - getHeight());
       int numValues = static_cast<int>(mContents.size());
-      vector<Entry> newContents(numValues);
+      vector<SparseEntry<T>> newContents(numValues);
       for (int n = 0; n < numValues; ++n) {
          int k = mContents[n].index;
          // Should use conversions.hpp routines for this, but nvcc gives undefined identifer errors.
@@ -206,16 +210,16 @@ class SparseList {
             getFeatures());
       
       auto newContents = newList.getContents();
-      vector<Entry> mergedContents;
+      vector<SparseEntry<T>> mergedContents;
       std::merge(
             mContents.begin(),
             mContents.end(),
             newContents.begin(),
             newContents.end(),
             std::back_inserter(mergedContents),
-            [](Entry a, Entry b){return a.index < b.index;});
+            [](SparseEntry<T> a, SparseEntry<T> b){return a.index < b.index;});
 
-      auto testequal = [](Entry a, Entry b) {
+      auto testequal = [](SparseEntry<T> a, SparseEntry<T> b) {
          bool indexequals = a.index == b.index;
          bool valueequals = a.value == b.value;
          if (indexequals and !valueequals) {
@@ -233,15 +237,15 @@ class SparseList {
    int getFeatures() const { return mFeatures; }
    std::size_t getNumEntries() const { return mContents.size(); }
 
-   void set(vector<Entry> const &values) { mContents = values; }
+   void set(vector<SparseEntry<T>> const &values) { mContents = values; }
 
-   vector<Entry> const &getContents() const { return mContents; }
+   vector<SparseEntry<T>> const &getContents() const { return mContents; }
 
   private:
    int mWidth = 0;
    int mHeight = 0;
    int mFeatures = 0;
-   vector<Entry> mContents;
+   vector<SparseEntry<T>> mContents;
 }; // class SparseList<T>
 
 } // namespace PV

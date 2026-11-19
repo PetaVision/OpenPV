@@ -11,6 +11,7 @@
 #include "arch/mpi/mpi.h"
 #include "checkpointing/Checkpointer.hpp"
 #include "components/ActivityBuffer.hpp"
+#include "structures/Buffer.hpp"
 #include "structures/DataStore.hpp"
 #include "structures/PVLayerLoc.hpp"
 #include "structures/PVLayerCube.hpp"
@@ -70,26 +71,28 @@ class Publisher {
    Timer const *getIncreaseLevelWaitTimer() const { return mIncreaseLevelWaitTimer; }
 
   private:
-   std::vector<float> &recvBuffer(int bufferId) { return mStore->buffer(bufferId); }
+   std::vector<float> &recvBuffer(int bufferId) { return mStore->getBuffer(bufferId); }
    std::vector<float> &recvBuffer(int bufferId, int delay) {
-      return mStore->buffer(bufferId, delay); }
+      return mStore->getBuffer(bufferId, delay); }
 
-   long &recvNumActiveBuffer(int bufferId) { return mStore->numActiveBuffer(bufferId); }
+   long &recvNumActiveBuffer(int bufferId) { return mStore->getNumActive(bufferId); }
    long &recvNumActiveBuffer(int bufferId, int delay) {
-      return mStore->numActiveBuffer(bufferId, delay);
+      return mStore->getNumActive(bufferId, delay);
    }
 
    SparseList<float> &recvActiveIndicesBuffer(int bufferId) {
-      return mStore->activeIndicesBuffer(bufferId);
+      return mStore->getActiveIndices(bufferId);
    }
    SparseList<float> &recvActiveIndicesBuffer(int bufferId, int delay) {
-      return mStore->activeIndicesBuffer(bufferId, delay);
+      return mStore->getActiveIndices(bufferId, delay);
    }
 
    bool mBroadcastFlag = false;
    DataStore *mStore = nullptr;
 
    PVLayerCube mLayerCube;
+   std::vector<Buffer<float>> mDenseBuffer; // Used for border exchange for sparse layer data.
+   std::vector<SparseList<float>> mSparseActivity; // Used for sparse layer data
 
    BorderExchange *mBorderExchanger = nullptr;
 

@@ -16,22 +16,63 @@ namespace PV {
 // Constructors defined in .hpp file.
 // Write and remove methods inherited from CheckpointEntryLayerPvp.
 
-void CheckpointEntryDataStore::read(
-      std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
-   CheckpointEntryLayerPvp::read(fileManager, simTimePtr);
-   for (int bufferId = 0; bufferId < mDataStore->getNumBuffers(); bufferId++) {
-      for (int levelId = 0; levelId < mDataStore->getNumLevels(); levelId++) {
-         mDataStore->markActiveIndicesOutOfSync(bufferId, levelId);
-      }
-   }
-}
-
 int CheckpointEntryDataStore::getNumIndices() const {
    return getDataStore()->getNumLevels();
 }
 
 float *CheckpointEntryDataStore::calcBatchElementStart(int batchElement, int index) const {
-   return getDataStore()->buffer(batchElement, index).data();
+   return getDataStore()->getBuffer(batchElement, index).data();
+}
+
+void CheckpointEntryDataStore::writeSparseBroadcast(
+      std::shared_ptr<FileManager const> fileManager,
+      std::string const &filename,
+      double simTime,
+      bool verifyWritesFlag) const {
+   SparseBroadcastLayerFile layerFile(
+         fileManager,
+         filename,
+         getLayerLoc()->nf,
+         getLayerLoc()->nbatch,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         verifyWritesFlag);
+   for (int i = 0; i < getNumIndices(); ++i) {
+      for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
+         SparseList<float> &sparseList = mDataStore->getActiveIndices(b, i);
+         layerFile.setListLocation(&sparseList, b);
+      }
+      layerFile.write(simTime);
+   }
+}
+
+void CheckpointEntryDataStore::writeSparseFile(
+      std::shared_ptr<FileManager const> fileManager,
+      std::string const &filename,
+      double simTime,
+      bool verifyWritesFlag) const {
+   SparseLayerFile layerFile(
+         fileManager,
+         filename,
+         *getLayerLoc(),
+         getExtendedFlag(),
+         false /*fileExtendedFlag*/,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         verifyWritesFlag);
+   for (int i = 0; i < getNumIndices(); ++i) {
+      for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
+         SparseList<float> &sparseList = mDataStore->getActiveIndices(b, i);
+         layerFile.setListLocation(&sparseList, b);
+      }
+      layerFile.write(simTime);
+   }
+}
+
+void CheckpointEntryDataStore::loadBatchElement(
+      SparseList<float> const &sparseList, int batchElement, int index) const {
+   SparseList<float> &destSparseList = mDataStore->getActiveIndices(batchElement, index);
+   destSparseList = sparseList;
 }
 
 void CheckpointEntryDataStore::setLastUpdateTimes(std::vector<double> const &timestamps) const {

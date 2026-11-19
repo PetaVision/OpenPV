@@ -7,36 +7,42 @@
 #include <utils/PVLog.hpp>
 
 const int NUM_BUFFERS = 2;
-const int NUM_ITEMS   = 10;
 const int NUM_LEVELS  = 4;
+const int NUM_ITEMS   = 10;
 
 float correctData(int bufferIndex, int itemIndex, int levelIndex);
 double correctTime(int levelIndex);
 
 int main(int argc, char *argv[]) {
-   PV::DataStore store(NUM_BUFFERS, NUM_ITEMS, NUM_LEVELS, false /*store is not sparse*/);
+   PV::DataStore store(
+         NUM_BUFFERS,
+         NUM_LEVELS,
+         NUM_ITEMS /*width*/,
+         1 /*height*/,
+         1 /*features*/,
+         false /*sparseFlag*/);
 
    // Many DataStore methods are overloaded with versions with and without the
    // level index argument. Verify that they are consistent.
    FatalIf(
-         store.buffer(0) != store.buffer(0, 0),
-         "buffer(0,0) should be equal to buffer(0) but is not.\n");
+         store.getBuffer(0) != store.getBuffer(0, 0),
+         "getBuffer(0,0) should be equal to getBuffer(0) but is not.\n");
    FatalIf(
-         store.buffer(1) != store.buffer(1, 0),
-         "buffer(1,0) should be equal to buffer(1) but is not.\n");
+         store.getBuffer(1) != store.getBuffer(1, 0),
+         "getBuffer(1,0) should be equal to getBuffer(1) but is not.\n");
 
    // Initialize level 0.
    for (int itemIndex = 0; itemIndex < NUM_ITEMS; itemIndex++) {
-      store.buffer(0)[itemIndex] = correctData(0, itemIndex, 0 /*levelIndex*/);
-      store.buffer(1)[itemIndex] = correctData(1, itemIndex, 0 /*levelIndex*/);
+      store.getBuffer(0)[itemIndex] = correctData(0, itemIndex, 0 /*levelIndex*/);
+      store.getBuffer(1)[itemIndex] = correctData(1, itemIndex, 0 /*levelIndex*/);
    }
    store.setLastUpdateTime(correctTime(0));
 
    // Initialize the remaining levels, using the levelIndex argument
    for (int levelIndex = 1; levelIndex < NUM_LEVELS; levelIndex++) {
       for (int itemIndex = 0; itemIndex < NUM_ITEMS; itemIndex++) {
-         store.buffer(0, levelIndex)[itemIndex] = correctData(0, itemIndex, levelIndex);
-         store.buffer(1, levelIndex)[itemIndex] = correctData(1, itemIndex, levelIndex);
+         store.getBuffer(0, levelIndex)[itemIndex] = correctData(0, itemIndex, levelIndex);
+         store.getBuffer(1, levelIndex)[itemIndex] = correctData(1, itemIndex, levelIndex);
       }
       store.setLastUpdateTime(levelIndex, correctTime(levelIndex));
    }
@@ -48,12 +54,12 @@ int main(int argc, char *argv[]) {
       int correctLevel = (2 * NUM_LEVELS - levelIndex) % NUM_LEVELS;
       for (int itemIndex = 0; itemIndex < NUM_ITEMS; itemIndex++) {
          FatalIf(
-               store.buffer(0)[itemIndex] != correctData(0, itemIndex, correctLevel),
+               store.getBuffer(0)[itemIndex] != correctData(0, itemIndex, correctLevel),
                "Verification failed for buffer 0, item %d after %d rotations.\n",
                itemIndex,
                levelIndex);
          FatalIf(
-               store.buffer(1)[itemIndex] != correctData(1, itemIndex, correctLevel),
+               store.getBuffer(1)[itemIndex] != correctData(1, itemIndex, correctLevel),
                "Verification failed for buffer 1, item %d after %d rotations.\n",
                itemIndex,
                levelIndex);

@@ -27,7 +27,7 @@ namespace PV {
  * layer's activity to be used by delivery objects, probes, etc.
  * During initialization, indicate how many timesteps in the past will be needed
  * by calling the increaseDelayLevels(int) method, with the needed number of
- * timesteps. The activity is retrieved by calling the getLayerData(int) method,
+ * timesteps. The activity is retrieved by calling the getLayerCube(int) method,
  * where the argument is the number of timesteps in the past, and the default
  * is zero.
  */
@@ -56,7 +56,7 @@ class BasePublisherComponent : public BaseObject {
     * Returns the activity data for the layer.  This data is in the
     * extended space (with margins).
     */
-   std::vector<float const *> getLayerData(int delay = 0) const;
+   PVLayerCube getLayerCube(int delay = 0) const { return mPublisher->createCube(delay); }
 
    PVLayerLoc const *getLayerLoc() const { return mActivity->getLayerLoc(); }
 

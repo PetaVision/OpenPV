@@ -51,19 +51,13 @@ class StatsProbeLocal : public ProbeComponent {
    void setBufferParam(char const *objName, PVParams *params);
 
   private:
-   template <StatsBufferType bufferType>
-   float const *calculateBatchElementStart(int localBatchIndex) const;
-
-   template <StatsBufferType bufferType>
-   long calculateOffset(long k) const;
-
    void calculateStats(double simTime, ProbeData<LayerStats> &values) const;
 
-   template <StatsBufferType bufferType>
-   void calculateValues(LayerStats &stats, int localBatchIndex) const;
+   void calculateActivityValues(LayerStats &stats, int localBatchIndex) const;
+   void calculateInternalStateValues(LayerStats &stats, int localBatchIndex) const;
 
-   std::vector<float const *> findDataBufferA() const;
-   float const *findDataBufferV() const;
+   PVLayerCube findDataCube() const;
+   float const *findVBuffer() const;
 
   private:
    std::shared_ptr<BufferParamInterface> mBufferParam = nullptr;
@@ -71,34 +65,6 @@ class StatsProbeLocal : public ProbeComponent {
    ProbeDataBuffer<LayerStats> mStoredValues;
    HyPerLayer *mTargetLayer = nullptr;
 };
-
-template <StatsBufferType bufferType>
-void StatsProbeLocal::calculateValues(LayerStats &stats, int localBatchIndex) const {
-   PVLayerLoc const *loc = getLayerLoc();
-   long numNeurons       = (long)loc->nx * (long)loc->ny * (long)loc->nf;
-   float const *data     = calculateBatchElementStart<bufferType>(localBatchIndex);
-   double sum            = 0.0;
-   double sumSquared     = 0.0;
-   float min             = FLT_MAX;
-   float max             = -FLT_MAX;
-   long numNonzero       = 0;
-   for (long k = 0; k < numNeurons; k++) {
-      long kOffset      = calculateOffset<bufferType>(k);
-      float const a     = data[kOffset];
-      double const aDbl = static_cast<double>(a);
-      sum += aDbl;
-      sumSquared += aDbl * aDbl;
-      numNonzero += (std::abs(a) > mNnzThreshold) ? 1 : 0;
-      min = (a < min) ? a : min;
-      max = (a > max) ? a : max;
-   }
-   stats.mSum        = sum;
-   stats.mSumSquared = sumSquared;
-   stats.mMin        = min;
-   stats.mMax        = max;
-   stats.mNumNeurons = numNeurons;
-   stats.mNumNonzero = numNonzero;
-}
 
 template <typename T>
 void StatsProbeLocal::setBufferParam(char const *objname, PVParams *params) {

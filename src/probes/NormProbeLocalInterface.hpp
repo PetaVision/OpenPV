@@ -41,10 +41,10 @@ class NormProbeLocalInterface : public ProbeComponent {
    NormProbeLocalInterface() {}
    void initialize(char const *objName, PVParams *params);
 
-   float const *getMaskBuffer(int b) const { return mMaskBuffer.at(b); }
+   PVLayerCube findLayerCube(HyPerLayer const *layer) const;
+
    HyPerLayer *getMaskLayer() { return mMaskLayer; }
    HyPerLayer const *getMaskLayer() const { return mMaskLayer; }
-   float const *getTargetBuffer(int b) const { return mTargetBuffer.at(b); }
    HyPerLayer *getTargetLayer() { return mTargetLayer; }
    HyPerLayer const *getTargetLayer() const { return mTargetLayer; }
 
@@ -53,14 +53,10 @@ class NormProbeLocalInterface : public ProbeComponent {
 
    void checkMaskLayerDimensions() const;
 
-   std::vector<float const *> findDataBuffers(HyPerLayer *layer) const;
-
   private:
-   std::vector<float const *> mMaskBuffer;
    HyPerLayer *mMaskLayer = nullptr;
    char *mMaskLayerName   = nullptr;
    ProbeDataBuffer<double> mStoredValues;
-   std::vector<float const *> mTargetBuffer;
    HyPerLayer *mTargetLayer = nullptr;
 };
 

@@ -26,10 +26,49 @@ int PlasticTestUpdater::update_dW(int arborID) {
    int const nbatch          = preLoc->nbatch;
    int delay                 = mArborList->getDelay(arborID);
 
-   float const *preactbufHead =
-         pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay)[0 /*batch index*/];
-   float const *postactbufHead =
-         post->getComponentByType<BasePublisherComponent>()->getLayerData()[0 /*batch index*/];
+   std::vector<float const *> preactBuffers, postactBuffers;
+   std::vector<Buffer<float>> preBuffersDense, postBuffersDense; // Dense rep if layer is sparse
+   auto *prePublisher  = pre->getComponentByType<BasePublisherComponent>();
+   bool preSparseFlag  = prePublisher->getSparseLayerFlag();
+   if (preSparseFlag) {
+      preactBuffers.resize(nbatch);
+      PVLayerCube cube = prePublisher->getPublisher()->createCube(delay);
+      preBuffersDense.resize(nbatch);
+      int width    = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+      int height   = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+      int features = preLoc->nf;
+      for (int b = 0; b < nbatch; ++b) {
+         auto &buffer = preBuffersDense[b];
+         buffer.resize(width, height, features);
+         vector<SparseEntry<float>> const &sparseEntries = cube.activeIndices[b]->getContents();
+         for (auto const &e : sparseEntries) {
+            buffer.set(e.index, e.value);
+         }
+         preactBuffers[b] = buffer.asVector().data();
+      }
+   }
+   else {
+      preactBuffers = prePublisher->getLayerCube(delay).data;
+   }
+
+   auto *postPublisher = post->getComponentByType<BasePublisherComponent>();
+   bool postSparseFlag = postPublisher->getSparseLayerFlag();
+   if (postSparseFlag) {
+      postactBuffers.resize(nbatch);
+      PVLayerCube cube = postPublisher->getPublisher()->createCube();
+      postBuffersDense.resize(nbatch);
+      for (int b = 0; b < nbatch; ++b) {
+         auto &buffer = postBuffersDense[b];
+         vector<SparseEntry<float>> const &sparseEntries = cube.activeIndices[b]->getContents();
+         for (auto const &e : sparseEntries) {
+            buffer.set(e.index, e.value);
+         }
+         postactBuffers[b] = buffer.asVector().data();
+      }
+   }
+   else {
+      postactBuffers = postPublisher->getLayerCube().data;
+   }
 
    if (mWeights->getSharedWeightsFlag()) {
       // Calculate x and y cell size
@@ -41,8 +80,8 @@ int PlasticTestUpdater::update_dW(int arborID) {
       long numKernels = mWeights->getNumDataPatchesOverall();
 
       for (int b = 0; b < nbatch; b++) {
-         float const *preactBatchElement  = preactbufHead + b * nExt;
-         float const *postactBatchElement = postactbufHead + b * post->getNumExtended();
+         float const *preactBatchElement  = preactBuffers[b];
+         float const *postactBatchElement = postactBuffers[b];
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -82,8 +121,8 @@ int PlasticTestUpdater::update_dW(int arborID) {
 #endif
       for (int b = 0; b < nbatch; b++) {
          for (long kExt = 0; kExt < nExt; kExt++) {
-            float const *preactBatchElement  = preactbufHead + b * nExt;
-            float const *postactBatchElement = postactbufHead + b * post->getNumExtended();
+            float const *preactBatchElement  = preactBuffers[b];
+            float const *postactBatchElement = postactBuffers[b];
             modifiedUpdateInd_dW(arborID, preactBatchElement, postactBatchElement, kExt);
          }
       }
@@ -98,8 +137,8 @@ int PlasticTestUpdater::update_dW(int arborID) {
       auto *clonePostPublisher   = clonePostLayer->getComponentByType<BasePublisherComponent>();
       pvAssert(clonePrePublisher->getNumExtended() == nExt);
       pvAssert(clonePrePublisher->getLayerLoc()->nbatch == nbatch);
-      float const *clonePre  = clonePrePublisher->getLayerData(delay)[0 /*batch index*/];
-      float const *clonePost = clonePostPublisher->getLayerData()[0 /*batch index*/];
+      float const *clonePre  = clonePrePublisher->getLayerCube(delay).data[0 /*batch index*/];
+      float const *clonePost = clonePostPublisher->getLayerCube().data[0 /*batch index*/];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for collapse(2)
 #endif

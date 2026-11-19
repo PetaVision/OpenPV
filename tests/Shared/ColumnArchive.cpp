@@ -148,10 +148,24 @@ void ColumnArchive::addLayer(BasePublisherComponent *layer, float layerTolerance
    long numExtended          = layer->getNumExtended();
    long nbatch               = layer->getLayerLoc()->nbatch;
    latestLayer.data          = std::vector<float>(numExtended * nbatch);
-   for (long b = 0; b < nbatch; ++b) {
-      float const *ldatastart = layer->getLayerData()[b];
-      float const *ldataend   = &ldatastart[numExtended];
-      std::copy(ldatastart, ldataend, &latestLayer.data[b * numExtended]);
+   PVLayerCube cube          = layer->getLayerCube();
+   if (cube.isSparse) {
+      for (long b = 0; b < nbatch; ++b) {
+         SparseList<float> const *sparseList = cube.activeIndices[b];
+         std::vector<SparseEntry<float>> const &sparseEntries = sparseList->getContents();
+         for (SparseEntry<float> const &e : sparseEntries) {
+            long index = e.index;
+            float v    = e.value;
+            latestLayer.data[b * numExtended + index] = v;
+         }
+      }
+   }
+   else {
+      for (long b = 0; b < nbatch; ++b) {
+         float const *ldatastart = cube.data[b];
+         float const *ldataend   = &ldatastart[numExtended];
+         std::copy(ldatastart, ldataend, &latestLayer.data[b * numExtended]);
+      }
    }
    latestLayer.tolerance = layerTolerance;
 }

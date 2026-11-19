@@ -152,7 +152,8 @@ int run(int argc, char *argv[]) {
          testValues.data(),
          &loc,
          false /*broadcastFlag*/,
-         false /*extendedFlag*/);
+         false /*extendedFlag*/,
+         false /*sparseFlag*/);
 
    bool registerSucceeded =
          checkpointer->registerCheckpointEntry(checkpointEntry, false /*treat as non-constant*/);

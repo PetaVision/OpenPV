@@ -182,8 +182,8 @@ int compareLayerData(
          status = PV_FAILURE;
          continue;
       }
-      std::vector<SparseList<float>::Entry> observedList = observedElem.getContents();
-      std::vector<SparseList<float>::Entry> expectedList = expectedElem.getContents();
+      std::vector<SparseEntry<float>> observedList = observedElem.getContents();
+      std::vector<SparseEntry<float>> expectedList = expectedElem.getContents();
       if (observedList.size() != expectedList.size()) {
          ErrorLog().printf(
                "compareLayerData(): batch element %d expected to have %d nonzero entries "
@@ -194,8 +194,8 @@ int compareLayerData(
       }
       auto numEntries = static_cast<std::size_t>(expectedList.size());
       for (std::size_t n = 0; n < numEntries; ++n) {
-         SparseList<float>::Entry observedEntry = observedList[n];
-         SparseList<float>::Entry expectedEntry = expectedList[n];
+         SparseEntry<float> observedEntry = observedList[n];
+         SparseEntry<float> expectedEntry = expectedList[n];
          if (observedEntry.index != expectedEntry.index) {
             ErrorLog().printf(
                   "compareLayerData() batch element %d, entry %zu: "
@@ -249,7 +249,7 @@ int readUsingFileStreamPrimitives(
       double *timestampPtr,
       int index) {
    int status = PV_SUCCESS;
-   int const sizeSparseListEntry = static_cast<int>(sizeof(SparseList<float>::Entry));
+   int const sizeSparseListEntry = static_cast<int>(sizeof(SparseEntry<float>));
    auto fileStream = FileStreamBuilder(
       fileManager,
       path,
@@ -316,13 +316,13 @@ int readUsingFileStreamPrimitives(
       MPI_Bcast(&numFeatures, 1, MPI_INT, 0 /*root*/, mpiBlock->getComm());
 
       setFilePositionFromIndex(*fileStream, mpiBlock, localBatchWidth, index);
-      std::vector<std::vector<SparseList<float>::Entry>> valuesFromFile(expectedFileBatchWidth);
+      std::vector<std::vector<SparseEntry<float>>> valuesFromFile(expectedFileBatchWidth);
       for (int b = 0; b < expectedFileBatchWidth; ++b) {
          fileStream->read(&timestamps.at(b), 8L);
          int numEntries;
          fileStream->read(&numEntries, 4L);
          valuesFromFile[b].resize(numEntries);
-         long int sizeInBytes = numEntries * static_cast<long>(sizeof(SparseList<float>::Entry));
+         long int sizeInBytes = numEntries * static_cast<long>(sizeof(SparseEntry<float>));
          fileStream->read(valuesFromFile[b].data(), sizeInBytes);
       }
       MPI_Bcast(
@@ -374,7 +374,7 @@ int readUsingFileStreamPrimitives(
                "readUsingFileStreamPrimitives received an MPI message of %d bytes, which is "
                "not a multiple of %d (the size of one sparse entry.\n",
                count, sizeSparseListEntry);
-         std::vector<SparseList<float>::Entry> values(numEntries);
+         std::vector<SparseEntry<float>> values(numEntries);
          MPI_Recv(
                values.data(),
                count,
@@ -919,13 +919,13 @@ int writeUsingFileStreamPrimitives(
          fileStream->write(&timestamp, static_cast<long>(sizeof(double)));
          int count = static_cast<int>(gatheredDataIndices.at(fileBatchIndex).size());
          fileStream->write(&count, static_cast<long>(sizeof(int)));
-         std::vector<SparseList<float>::Entry> gatheredDataEntries(count);
+         std::vector<SparseEntry<float>> gatheredDataEntries(count);
          for (int n = 0; n < count; ++n) {
             gatheredDataEntries.at(n).index = gatheredDataIndices.at(fileBatchIndex).at(n);
             gatheredDataEntries.at(n).value = gatheredDataValues.at(fileBatchIndex).at(n);
          }
 
-         long int sizeInBytes = count * static_cast<long>(sizeof(SparseList<float>::Entry));
+         long int sizeInBytes = count * static_cast<long>(sizeof(SparseEntry<float>));
          fileStream->write(gatheredDataEntries.data(), sizeInBytes);
       }
    } // end of if-clause for root process

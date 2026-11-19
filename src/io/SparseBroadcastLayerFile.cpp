@@ -238,14 +238,14 @@ void SparseBroadcastLayerFile::gather(
          MPI_Probe(sourceRank, tag, mpiBlock->getComm(), &mpiStatus);
          int count;
          MPI_Get_count(&mpiStatus, MPI_BYTE, &count);
-         int sizePerEntry = static_cast<int>(sizeof(SparseList<float>::Entry));
+         int sizePerEntry = static_cast<int>(sizeof(SparseEntry<float>));
          FatalIf(
                count % sizePerEntry != 0,
                "SparseBroadcastLayerFile::scatter() receiving %d bytes, "
                "which is not a multiple of sparse entry size of %d bytes.\n",
                count, sizePerEntry);
          int numEntries = count / sizePerEntry;
-         std::vector<SparseList<float>::Entry> sparseContents(numEntries);
+         std::vector<SparseEntry<float>> sparseContents(numEntries);
          MPI_Recv(
                sparseContents.data(),
                count,
@@ -262,7 +262,7 @@ void SparseBroadcastLayerFile::gather(
       bool baseRowColumn = mpiBlock->getRowIndex() == 0 and mpiBlock->getColumnIndex() == 0;
       if (batchMatch and baseRowColumn) {
          auto sparseContents = localSparseList->getContents();
-         int count = static_cast<int>(sizeof(SparseList<float>::Entry) * sparseContents.size());
+         int count = static_cast<int>(sizeof(SparseEntry<float>) * sparseContents.size());
 
          MPI_Send(
                sparseContents.data(),
@@ -296,7 +296,7 @@ void SparseBroadcastLayerFile::scatter(
             else {
                MPI_Send(
                      sparseContents.data(),
-                     static_cast<int>(sizeof(SparseList<float>::Entry) * sparseContents.size()),
+                     static_cast<int>(sizeof(SparseEntry<float>) * sparseContents.size()),
                      MPI_BYTE,
                      destRank,
                      tag,
@@ -310,14 +310,14 @@ void SparseBroadcastLayerFile::scatter(
       MPI_Probe(rootProc, tag, mpiBlock->getComm(), &mpiStatus);
       int count;
       MPI_Get_count(&mpiStatus, MPI_BYTE, &count);
-      int sizePerEntry = static_cast<int>(sizeof(SparseList<float>::Entry));
+      int sizePerEntry = static_cast<int>(sizeof(SparseEntry<float>));
       FatalIf(
             count % sizePerEntry != 0,
             "SparseBroadcastLayerFile::scatter() receiving %d bytes, "
             "which is not a multiple of sparse entry size of %d bytes.\n",
             count, sizePerEntry);
       int numEntries = count / sizePerEntry;
-      std::vector<SparseList<float>::Entry> sparseContents(numEntries);
+      std::vector<SparseEntry<float>> sparseContents(numEntries);
       MPI_Recv(
             sparseContents.data(),
             count,

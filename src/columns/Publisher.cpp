@@ -33,19 +33,26 @@ Publisher::Publisher(
    mLayerCube.loc           = *loc;
    mLayerCube.isExtended    = true;
    mLayerCube.isSparse      = isSparse;
-   mLayerCube.data          = std::vector<float const *>(loc->nbatch);
-   mLayerCube.numActive     = std::vector<long>(loc->nbatch);
-   mLayerCube.activeIndices = std::vector<SparseList<float> const *>(loc->nbatch);
-
+   mLayerCube.data = std::vector<float const *>(loc->nbatch);
    for (int b = 0; b < loc->nbatch; ++b) {
       mLayerCube.data[b] = &activity->getBufferData()[b * numItems];
+   }
+
+   if (isSparse) {
+      mLayerCube.activeIndices = std::vector<SparseList<float> const *>(loc->nbatch);
+      mSparseActivity.resize(loc->nbatch);
+      for (int b = 0; b < loc->nbatch; ++b) {
+         mSparseActivity[b].reset(nxExt, nyExt, loc->nf);
+         mLayerCube.activeIndices[b] = &mSparseActivity[b];
+      }
+      mDenseBuffer.resize(loc->nbatch);
    }
 
    mBroadcastFlag = broadcastFlag;
 
    int const numBuffers = loc->nbatch; // DataStore buffers correspond to batch elements
 
-   mStore = new DataStore(numBuffers, numItems, numLevels, isSparse);
+   mStore = new DataStore(numBuffers, numLevels, nxExt, nyExt, loc->nf, isSparse);
 
    mBorderExchanger = new BorderExchange(mpiBlock, *loc);
 
@@ -100,10 +107,10 @@ void Publisher::updateActiveIndices(int delay) {
    if (mStore->isSparse()) {
       for (int b = 0; b < mStore->getNumBuffers(); b++) {
          // Active indices stored as local extended values
-         if (mStore->numActiveBuffer(b, delay) < 0L) {
+         if (mStore->getNumActive(b, delay) < 0L) {
             mStore->updateActiveIndices(b, delay);
          }
-         pvAssert(mStore->numActiveBuffer(b, delay) >= 0L);
+         pvAssert(mStore->getNumActive(b, delay) >= 0L);
       }
    }
 }
@@ -114,26 +121,31 @@ int Publisher::publish(double lastUpdateTime) {
    // This means that everyone should wait as well.
    //
 
-   std::vector<float const *> srcLocations = mLayerCube.data;
-   // Vector of length nbatch; each element points to a buffer of size mLayerCube.numItems
-
    int nbatch = mLayerCube.loc.nbatch;
-   pvAssert(nbatch == static_cast<int>(srcLocations.size()));
 
-   for (int b = 0; b < nbatch; ++b) {
-      float const *src = srcLocations[b];
-      float *dest      = recvBuffer(b).data();
-      std::vector<float> recvVector = recvBuffer(b);
-      std::copy(src, &src[mLayerCube.numItems], dest);
+   if (mLayerCube.isSparse) {
+      pvAssert(nbatch == static_cast<int>(mSparseActivity.size()));
+      pvAssert(nbatch == static_cast<int>(mLayerCube.data.size()));
+      PVLayerLoc const &loc = mLayerCube.loc;
+      int width  = loc.nx + loc.halo.lt + loc.halo.rt;
+      int height = loc.ny + loc.halo.dn + loc.halo.up;
+      int nf     = loc.nf;
+      for (int b = 0; b < nbatch; ++b) {
+         SparseList<float> &sparseList = recvActiveIndicesBuffer(b);
+         Buffer<float> const denseBuffer(mLayerCube.data[b] /*float const */, width, height, nf);
+         sparseList.fromBuffer(denseBuffer, 0.0f);
+      }
+   }
+   else {
+      pvAssert(nbatch == static_cast<int>(mLayerCube.data.size()));
+      for (int b = 0; b < nbatch; ++b) {
+         float const *src = mLayerCube.data[b];
+         float *dest      = recvBuffer(b).data();
+         std::copy(src, &src[mLayerCube.numItems], dest);
+      }
    }
    exchangeBorders(&mLayerCube.loc, 0);
    mStore->setLastUpdateTime(lastUpdateTime);
-
-   for (int b = 0; b < mStore->getNumBuffers(); b++) {
-      mStore->markActiveIndicesOutOfSync(b, 0);
-   }
-   // Updating active indices is done after MPI wait in HyPerCol
-   // to avoid race condition because exchangeBorders mpi is async
 
    return PV_SUCCESS;
 }
@@ -173,7 +185,17 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
       // don't send interior
       pvAssert(requestsVector.size() == (std::size_t)(b * exchangeVectorSize));
 
-      float *data = recvBuffer(b, delay).data();
+      float *data = nullptr;
+      if (mLayerCube.isSparse) {
+         SparseList<float> const &sparseList = recvActiveIndicesBuffer(b, delay);
+         mDenseBuffer[b].resize(
+               sparseList.getWidth(), sparseList.getHeight(), sparseList.getFeatures());
+         sparseList.toBuffer(mDenseBuffer[b], 0.0f);
+         data = mDenseBuffer[b].asVector().data();
+      }
+      else {
+         data = recvBuffer(b, delay).data();
+      }
       std::vector<MPI_Request> batchElementMPIRequest{};
       mBorderExchanger->exchange(data, batchElementMPIRequest);
       pvAssert(batchElementMPIRequest.size() == (std::size_t)exchangeVectorSize);

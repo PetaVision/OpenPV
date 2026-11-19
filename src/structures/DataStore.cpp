@@ -12,14 +12,16 @@
 
 namespace PV {
 
-DataStore::DataStore(int numBuffers, long numItems, int numLevels, bool sparseFlag) {
+DataStore::DataStore(
+      int numBuffers, int numLevels, int width, int height, int features, bool sparseFlag) {
    pvAssert(numLevels > 0 && numBuffers > 0);
-   mNumItems   = numItems;
+   mWidth      = width;
+   mHeight     = height;
+   mFeatures   = features;
+   mNumItems   = static_cast<long>(width) * static_cast<long>(height) * static_cast<long>(features);
    mNumLevels  = numLevels;
    mNumBuffers = numBuffers;
 
-   mBuffer = std::make_shared<RingBuffer<std::vector<float>>>(
-         numLevels, numBuffers, std::vector<float>(numItems));
    double neginf    = -std::numeric_limits<double>::infinity(); // Initially has never been updated
    mLastUpdateTimes = std::make_shared<RingBuffer<double>>(
          numLevels, 1 /*numBuffers*/, neginf /*initial value*/);
@@ -28,15 +30,17 @@ DataStore::DataStore(int numBuffers, long numItems, int numLevels, bool sparseFl
    mSparseFlag = sparseFlag;
    if (mSparseFlag) {
       mActiveIndices = std::make_shared<RingBuffer<SparseList<float>>>(
-            numLevels, numBuffers, SparseList<float>());
+            numLevels, numBuffers, SparseList<float>(width, height, features));
       mNumActive = std::make_shared<RingBuffer<long>>(numLevels, numBuffers);
+   }
+   else {
+      mBuffer = std::make_shared<RingBuffer<std::vector<float>>>(
+            numLevels, numBuffers, std::vector<float>(mNumItems));
    }
 }
 
 void DataStore::newLevelIndex() {
-   mBuffer->newLevel();
    mLastUpdateTimes->newLevel();
-   pvAssert(mBuffer->getCurrentLevel() == mLastUpdateTimes->getCurrentLevel());
 
    if (isSparse()) {
       mNumActive->newLevel();
@@ -44,36 +48,27 @@ void DataStore::newLevelIndex() {
       pvAssert(mNumActive->getCurrentLevel() == mLastUpdateTimes->getCurrentLevel());
       pvAssert(mActiveIndices->getCurrentLevel() == mLastUpdateTimes->getCurrentLevel());
    }
-}
-
-void DataStore::markActiveIndicesOutOfSync(int bufferId, int level) {
-   if (!mSparseFlag) {
-      return;
+   else {
+      mBuffer->newLevel();
+      pvAssert(mBuffer->getCurrentLevel() == mLastUpdateTimes->getCurrentLevel());
    }
-   long &numActiveBuf = numActiveBuffer(bufferId, level);
-   numActiveBuf      = -1;
 }
 
 void DataStore::updateActiveIndices(int bufferId, int level) {
    if (!mSparseFlag) {
       return;
    }
-   int numActive   = 0;
-   std::vector<float> &activity = buffer(bufferId, level);
+   std::vector<float> &activity = getBuffer(bufferId, level);
 
-   SparseList<float> &activeIndices = activeIndicesBuffer(bufferId, level);
-   activeIndices.reset(0, 0, 0); // DataStore knows # of items but not dimensions. Change this?
-   SparseList<float>::Entry entry;
+   SparseList<float> &activeIndices = getActiveIndices(bufferId, level);
+   activeIndices.reset(0, 0, 0);
+   SparseEntry<float> entry;
    for (int kex = 0; kex < getNumItems(); kex++) {
       float a = activity[kex];
       if (a != 0.0f) {
          activeIndices.addEntry(kex, a);
-         numActive++;
       }
    }
-
-   long &numActiveBuf = numActiveBuffer(bufferId, level);
-   numActiveBuf       = numActive;
 }
 
 PVLayerCube DataStore::createCube(PVLayerLoc const &loc, int delay) {
@@ -84,15 +79,15 @@ PVLayerCube DataStore::createCube(PVLayerLoc const &loc, int delay) {
    cube.loc      = loc;
    cube.isSparse = isSparse();
    cube.data.resize(mNumBuffers);
-   for (int b = 0; b < mNumBuffers; ++b) {
-      cube.data[b] = buffer(b, delay).data();
-   }
    if (isSparse()) {
-      cube.numActive.resize(mNumBuffers);
       cube.activeIndices.resize(mNumBuffers);
       for (int b = 0; b < mNumBuffers; ++b) {
-         cube.numActive[b]     = numActiveBuffer(b, delay);
-         cube.activeIndices[b] = &activeIndicesBuffer(b, delay);
+         cube.activeIndices[b] = &getActiveIndices(b, delay);
+      }
+   }
+   else {
+      for (int b = 0; b < mNumBuffers; ++b) {
+         cube.data[b] = getBuffer(b, delay).data();
       }
    }
    return cube;

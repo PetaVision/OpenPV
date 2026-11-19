@@ -26,11 +26,13 @@ void testPvpRestricted(std::shared_ptr<PV::FileManager const> fileManager) {
    // Need to make sure that checkpointData.data() never gets relocated, since the
    // CheckpointEntryLayerBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   CheckpointEntryLayerBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
-                                                      checkpointData.data(),
-                                                      &loc,
-                                                      false /*broadcastFlag*/,
-                                                      false /*extendedFlag*/};
+   CheckpointEntryLayerBuffer<float> checkpointEntryPvp{
+         "checkpointEntryPvpRestricted",
+         checkpointData.data(),
+         &loc,
+         false /*broadcastFlag*/,
+         false /*extendedFlag*/,
+         false /*sparseFlag*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.

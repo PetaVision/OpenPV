@@ -40,7 +40,7 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
          "Buffer is %ld bytes, which is too big for MPI send/receive.\n",
          numBytesL);
    Communicator *icComm   = hc->getCommunicator();
-   float const *layerData = inputpublisher->getLayerData()[0 /*batch index*/];
+   float const *layerData = inputpublisher->getLayerCube().data[0 /*batch index*/];
    int rootproc           = 0;
    if (icComm->commRank() == rootproc) {
       float *databuffer = (float *)malloc(numBytesL);

@@ -112,7 +112,8 @@ void IdentDelivery::deliver(float *destBuffer) {
    int nxPreExtended   = nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyPreExtended   = ny + preLoc.halo.dn + preLoc.halo.up;
    long numPreExtended = (long)nxPreExtended * (long)nyPreExtended * (long)nf;
-   pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
+   pvAssert(numPreExtended == preActivityCube.numItems);
+   pvAssert(preLoc.nbatch == preActivityCube.loc.nbatch);
    long numPostRestricted = (long)nx * (long)ny * (long)nf;
 
    float *postChannel = destBuffer;
@@ -127,12 +128,11 @@ void IdentDelivery::deliver(float *destBuffer) {
       if (preActivityCube.isSparse) {
          SparseList<float> const *activeIndices = preActivityCube.activeIndices[b];
          auto const &activeIndicesVector        = activeIndices->getContents();
-         long numActive                         = preActivityCube.numActive[b];
-         pvAssert(numActive == static_cast<long>(activeIndicesVector.size()));
+         std::size_t numActive                  = activeIndicesVector.size();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (long loopIndex = 0; loopIndex < numActive; loopIndex++) {
+         for (std::size_t loopIndex = 0; loopIndex < numActive; loopIndex++) {
             int kPre = activeIndicesVector[loopIndex].index;
             int kx   = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
             int ky   = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;

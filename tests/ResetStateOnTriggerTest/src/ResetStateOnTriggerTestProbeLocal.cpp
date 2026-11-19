@@ -66,7 +66,7 @@ void ResetStateOnTriggerTestProbeLocal::initializeState(HyPerLayer *targetLayer)
          "Probe %s could not find layer data for target layer \"%s\".\n",
          getName_c(),
          mTargetLayer->getName());
-   mTargetLayerData = targetPublisher->getLayerData();
+   mTargetLayerData = targetPublisher->getLayerCube().data;
 }
 
 void ResetStateOnTriggerTestProbeLocal::storeValues(double simTime) {

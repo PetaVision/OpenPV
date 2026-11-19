@@ -41,7 +41,7 @@ struct recv_pre_params {
 
    bool isSparse;
    long *numActive;
-   PV::SparseList<float>::Entry *activeIndices;
+   PV::SparseEntry<float> *activeIndices;
 };
 
 class CudaRecvPre : public CudaKernel {

@@ -154,7 +154,7 @@ ActivityHeader buildActivityHeader(int width, int height, int features, int numF
 template <typename T>
 ActivityHeader buildSparseActivityHeader(int width, int height, int features, int numFrames) {
    ActivityHeader header = buildActivityHeader<T>(width, height, features, numFrames);
-   header.dataSize       = sizeof(struct SparseList<T>::Entry);
+   header.dataSize       = sizeof(struct SparseEntry<T>);
    header.fileType       = PVP_ACT_SPARSEVALUES_FILE_TYPE;
    header.recordSize     = 0;
    return header;
@@ -272,8 +272,8 @@ double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex
 // outstream location
 template <typename T>
 void writeSparseFrame(FileStream &fStream, SparseList<T> *list, double timeStamp) {
-   std::size_t dataSize                         = sizeof(struct SparseList<T>::Entry);
-   vector<struct SparseList<T>::Entry> contents = list->getContents();
+   std::size_t dataSize                         = sizeof(struct SparseEntry<T>);
+   vector<struct SparseEntry<T>> contents = list->getContents();
    int numElements                              = static_cast<int>(contents.size());
    fStream.write(&timeStamp, sizeof(double));
    fStream.write(&numElements, sizeof(int));
@@ -286,14 +286,14 @@ void writeSparseFrame(FileStream &fStream, SparseList<T> *list, double timeStamp
 // instream location
 template <typename T>
 double readSparseFrame(FileStream &fStream, SparseList<T> *list) {
-   size_t dataSize  = sizeof(struct SparseList<T>::Entry);
+   size_t dataSize  = sizeof(struct SparseEntry<T>);
    double timeStamp = -1.0;
    int numElements  = -1;
    fStream.read(&timeStamp, sizeof(double));
    fStream.read(&numElements, sizeof(int));
    FatalIf(timeStamp == -1.0, "Failed to read timeStamp.\n");
    FatalIf(numElements == -1, "Failed to read numElements.\n");
-   vector<struct SparseList<T>::Entry> contents(numElements);
+   vector<struct SparseEntry<T>> contents(numElements);
    if (numElements > 0) {
       fStream.read(contents.data(), contents.size() * dataSize);
    }
@@ -358,9 +358,9 @@ double readSparseFromPvp(
          "(PVP_ACT_SPARSEVALUES_FILE_TYPE)\n");
    FatalIf(header.nBands <= 0, "\"%s\" header does not have a positive nbands field.\n", fName);
    FatalIf(
-         header.dataSize != sizeof(struct SparseList<T>::Entry),
+         header.dataSize != sizeof(struct SparseEntry<T>),
          "Error: Expected data size %d, found %d.\n",
-         sizeof(struct SparseList<T>::Entry),
+         sizeof(struct SparseEntry<T>),
          header.dataSize);
 
    SparseFileTable table;

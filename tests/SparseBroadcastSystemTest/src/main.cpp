@@ -11,7 +11,7 @@
 
 int checkValues(PV_Init &pv_initObj);
 
-bool operator!=(SparseList<float>::Entry const &lhs, SparseList<float>::Entry const &rhs) {
+bool operator!=(SparseEntry<float> const &lhs, SparseEntry<float> const &rhs) {
    bool indicesMatch = (lhs.index != rhs.index);
    bool valuesMatch  = (lhs.value != rhs.value);
    return (indicesMatch or valuesMatch);
@@ -61,7 +61,7 @@ int checkValues(PV_Init &pv_initObj) {
    }
    outputFile.read();
 
-   std::vector<std::vector<SparseList<float>::Entry>> correctValues(nbatchGlobal);
+   std::vector<std::vector<SparseEntry<float>>> correctValues(nbatchGlobal);
    correctValues[0] = { {0, 2.0f}, {1, 5.0f}, {3, 6.0f}, {5, -8.0f}, {6, -1.0f} };
    correctValues[1] = { {4, -8.0f}, {7, 14.0f}, {9, -6.0f}, {12, -5.0f}, {14, 4.5f} };
    correctValues[2] = { {2, 15.0f}, {8, 5.5f}, {10, 26.0f}, {11, -6.0f}, {13, -28.0f} };

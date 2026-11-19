@@ -97,7 +97,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
          long numNeurons;
          if (preLayerIsSparse) {
             activeIndicesBatch = activityCube.activeIndices[b];
-            numNeurons = activityCube.numActive[b];
+            numNeurons = static_cast<long>(activeIndicesBatch->getNumEntries());
          }
          else {
             numNeurons = activityCube.numItems;
@@ -147,7 +147,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
             }
          }
          else { // Sparse, use the stored activity / index pairs
-            std::vector<SparseList<float>::Entry> const &sparseData =
+            std::vector<SparseEntry<float>> const &sparseData =
                   activeIndicesBatch->getContents();
             int const nyp = weights->getPatchSizeY();
             for (int y = 0; y < nyp; y++) {

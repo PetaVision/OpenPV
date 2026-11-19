@@ -200,7 +200,7 @@ SparseList<T> gatherSparse(
       SparseList<T> list,
       int mpiBatchIndex,
       int destProcess) {
-   unsigned int entrySize = (unsigned int)sizeof(typename SparseList<T>::Entry);
+   unsigned int entrySize = (unsigned int)sizeof(SparseEntry<T>);
    if (mpiBlock->getRank() == destProcess) {
       SparseList<T> globalList;
       for (int recvRow = mpiBlock->getNumRows() - 1; recvRow >= 0; --recvRow) {
@@ -218,8 +218,8 @@ SparseList<T> gatherSparse(
                      mpiBlock->getComm(),
                      MPI_STATUS_IGNORE);
                if (numToRecv > 0) {
-                  struct SparseList<T>::Entry *recvBuffer =
-                        (struct SparseList<T>::Entry *)calloc(numToRecv, entrySize);
+                  struct SparseEntry<T> *recvBuffer =
+                        (struct SparseEntry<T> *)calloc(numToRecv, entrySize);
                   FatalIf(
                         recvBuffer == nullptr,
                         "Could not allocate a receive buffer of %u bytes.\n",
@@ -247,7 +247,7 @@ SparseList<T> gatherSparse(
       return globalList;
    }
    else if (mpiBlock->getBatchIndex() == mpiBatchIndex) {
-      vector<struct SparseList<T>::Entry> toSend = list.getContents();
+      vector<struct SparseEntry<T>> toSend = list.getContents();
       unsigned int numToSend                     = toSend.size();
       MPI_Send(&numToSend, 1, MPI_UNSIGNED, destProcess, 33, mpiBlock->getComm());
       if (numToSend > 0) {

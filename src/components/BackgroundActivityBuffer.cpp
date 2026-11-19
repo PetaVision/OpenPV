@@ -130,8 +130,8 @@ void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime)
    float *A              = mBufferData.data();
    PVLayerLoc const *loc = getLayerLoc();
 
-   std::vector<float const *> const &originalA = mOriginalData->getLayerData(0);
-   PVLayerLoc const *locOriginal               = mOriginalData->getLayerLoc();
+   PVLayerCube const &originalA  = mOriginalData->getLayerCube(0);
+   PVLayerLoc const *locOriginal = mOriginalData->getLayerLoc();
 
    // Make sure all sizes match (this was checked in checkDimensions)
    assert(locOriginal->nx == loc->nx);
@@ -146,7 +146,7 @@ void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime)
 
    for (int b = 0; b < nbatch; b++) {
       float *ABatch               = A + b * getBufferSize();
-      float const *originalABatch = originalA[b];
+      float const *originalABatch = originalA.data[b];
 
 // Loop through all nx and ny
 // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside

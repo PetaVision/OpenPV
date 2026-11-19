@@ -176,7 +176,7 @@ int StochasticReleaseTestProbe::computePValues() {
       float wgt = preWeights->getData(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
       auto *prePublisher        = preLayer->getComponentByType<BasePublisherComponent>();
-      const float *preactPtr    = prePublisher->getLayerData()[0 /*batch index*/];
+      const float *preactPtr    = prePublisher->getLayerCube().data[0 /*batch index*/];
       const PVLayerLoc *preLoc  = prePublisher->getLayerLoc();
       const long numPreNeurons   = preLayer->getNumNeurons();
       bool found                = false;
@@ -204,7 +204,7 @@ int StochasticReleaseTestProbe::computePValues() {
       }
 
       const PVLayerLoc *loc = publisher->getLayerLoc();
-      const float *activity = publisher->getLayerData()[0 /*batch index*/];
+      const float *activity = publisher->getLayerCube().data[0 /*batch index*/];
       int nnzf              = 0;
       const long numNeurons  = layer->getNumNeurons();
       for (long n = f; n < numNeurons; n += nf) {

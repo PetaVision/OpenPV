@@ -6,6 +6,7 @@
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
 #include <layers/HyPerLayer.hpp>
+#include <structures/SparseList.hpp>
 
 using namespace PV;
 
@@ -73,10 +74,14 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
    long numInExtended  = inputPublisher->getNumExtended();
    long numOutExtended = outputPublisher->getNumExtended();
 
-   std::vector<float const *> inData  = inputPublisher->getLayerData();
-   std::vector<float const *> outData = outputPublisher->getLayerData();
+   std::vector<SparseList<float> const *> inSparse = inputPublisher->getLayerCube().activeIndices;
+   std::vector<float const *> outData = outputPublisher->getLayerCube().data;
    bool failed          = false;
    for (int b = 0; b < nbatch; b++) {
+      SparseList<float> const *sparseList = inSparse[b];
+      Buffer<float> inBuffer(
+            sparseList->getWidth(), sparseList->getHeight(), sparseList->getFeatures());
+      sparseList->toBuffer(inBuffer, 0.0f);
       for (long k = 0; k < numNeurons; k++) {
          long kInExt = kIndexExtended(
                k,
@@ -96,7 +101,7 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
                outLoc->halo.rt,
                outLoc->halo.dn,
                outLoc->halo.up);
-         float inValue  = inData[b][kInExt];
+         float inValue  = inBuffer.at(kInExt);
          float outValue = outData[b][kOutExt];
 
          if (inValue != outValue) {

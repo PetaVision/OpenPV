@@ -59,15 +59,14 @@ Response::Status NormProbeLocalInterface::communicateInitInfo(
    return status;
 }
 
-std::vector<float const *> NormProbeLocalInterface::findDataBuffers(
-      HyPerLayer *layer) const {
+PVLayerCube NormProbeLocalInterface::findLayerCube(HyPerLayer const *layer) const {
    auto *layerData = layer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          layerData == nullptr,
-         "Probe %s findDataBuffer() failed: \"%s\" does not have an activity buffer.\n",
-         getName_c(),
+         "Probe %s findLayerCube() failed: layer \"%s\" does not have an activity buffer.\n",
+         layer->getName(),
          mTargetLayer->getName());
-   return layerData->getLayerData();
+   return layerData->getLayerCube();
 }
 
 void NormProbeLocalInterface::initialize(char const *objName, PVParams *params) {
@@ -76,10 +75,8 @@ void NormProbeLocalInterface::initialize(char const *objName, PVParams *params) 
 
 void NormProbeLocalInterface::initializeState(HyPerLayer *targetLayer) {
    mTargetLayer  = targetLayer;
-   mTargetBuffer = findDataBuffers(targetLayer);
    if (mMaskLayer) {
       checkMaskLayerDimensions();
-      mMaskBuffer = findDataBuffers(mMaskLayer);
    }
 }
 

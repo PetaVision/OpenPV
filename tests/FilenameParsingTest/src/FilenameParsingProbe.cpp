@@ -129,7 +129,7 @@ FilenameParsingProbe::outputState(std::shared_ptr<PV::LayerOutputStateMessage co
    int const nyExt            = loc->ny + loc->halo.dn + loc->halo.up;
    bool failed                = false;
    for (int b = 0; b < localBatchWidth; b++) {
-      float const *activity = publisherComponent->getLayerData(0)[b];
+      float const *activity = publisherComponent->getLayerCube(0).data[b];
       int globalBatchIndex  = localBatchStart + b;
       int imageIndex        = (globalBatchIndex + displayNumber * globalBatchWidth) % numCategories;
       int expectedCategory  = mCategories[imageIndex];

@@ -72,13 +72,13 @@ int main(int argc, char *argv[]) {
    hc.run();
 
    auto *preExc0Publisher   = preLayerExc0->getComponentByType<BasePublisherComponent>();
-   float const *preExc0Data = preExc0Publisher->getLayerData()[0 /*batch index*/];
+   float const *preExc0Data = preExc0Publisher->getLayerCube().data[0 /*batch index*/];
    auto *preExc1Publisher   = preLayerExc1->getComponentByType<BasePublisherComponent>();
-   float const *preExc1Data = preExc1Publisher->getLayerData()[0 /*batch index*/];
+   float const *preExc1Data = preExc1Publisher->getLayerCube().data[0 /*batch index*/];
    auto *preInh0Publisher   = preLayerInh0->getComponentByType<BasePublisherComponent>();
-   float const *preInh0Data = preInh0Publisher->getLayerData()[0 /*batch index*/];
+   float const *preInh0Data = preInh0Publisher->getLayerCube().data[0 /*batch index*/];
    auto *preInh1Publisher   = preLayerInh1->getComponentByType<BasePublisherComponent>();
-   float const *preInh1Data = preInh1Publisher->getLayerData()[0 /*batch index*/];
+   float const *preInh1Data = preInh1Publisher->getLayerCube().data[0 /*batch index*/];
 
    PVLayerLoc const preLoc = *preExc0Publisher->getLayerLoc();
    int const nx            = preLoc.nx;

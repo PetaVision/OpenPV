@@ -232,7 +232,12 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
          if (activityCube.isSparse) {
             PVCuda::CudaBuffer *d_numActive = mPreData->getCudaNumActive();
             pvAssert(d_numActive);
-            long const *h_numActive = activityCube.numActive.data();
+            std::vector<long> numActiveVector(nbatch);
+            for (int b = 0; b < nbatch; ++b) {
+               numActiveVector[b] =
+                     static_cast<long>(activityCube.activeIndices[b]->getNumEntries());
+            }
+            long const *h_numActive = numActiveVector.data();
             pvAssert(h_numActive);
             d_numActive->copyToDevice(h_numActive);
 
@@ -240,11 +245,11 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
             pvAssert(d_activeIndices);
             std::size_t numActiveOffset = 0UL;
             for (int b = 0; b < nbatch; ++b) {
-               long numActive = activityCube.numActive[b];
+               long numActive = numActiveVector[b];
                SparseList<float> const *h_ActiveIndices = activityCube.activeIndices[b];
-               std::vector<SparseList<float>::Entry> const &h_sparseData =
+               std::vector<SparseEntry<float>> const &h_sparseData =
                      h_ActiveIndices->getContents();
-               std::size_t numBytes = numActive * sizeof(SparseList<float>::Entry);
+               std::size_t numBytes = numActive * sizeof(SparseEntry<float>);
                d_activeIndices->copyToDevice(h_ActiveIndices, numBytes, numActiveOffset);
                numActiveOffset += numBytes;
             }
@@ -260,10 +265,10 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       long maxTotalActiveNeuron = 0;
       for (int b = 0; b < nbatch; b++) {
          if (activityCube.isSparse) {
-            totActiveNeuron[b] = activityCube.numActive[b];
+            totActiveNeuron[b] = static_cast<long>(activityCube.activeIndices[b]->getNumEntries());
          }
          else {
-            totActiveNeuron[b] = activityCube.numItems / activityCube.loc.nbatch;
+            totActiveNeuron[b] = activityCube.numItems;
          }
          if (totActiveNeuron[b] > maxTotalActiveNeuron) {
             maxTotalActiveNeuron = totActiveNeuron[b];

@@ -266,7 +266,7 @@ bool HyPerConnCheckpointerTestProbe::verifyLayer(
    PVHalo const *inputHalo    = &inputLoc->halo;
    int const inputNxExt       = inputLoc->nx + inputHalo->lt + inputHalo->rt;
    int const inputNyExt       = inputLoc->ny + inputHalo->dn + inputHalo->up;
-   float const *layerData     = layer->getLayerData(0)[0 /*batch index*/];
+   float const *layerData     = layer->getLayerCube(0).data[0 /*batch index*/];
    PV::Buffer<float> localBuffer(layerData, inputNxExt, inputNyExt, inputLoc->nf);
    PV::Communicator const *comm   = mCommunicator;
    PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(

@@ -28,7 +28,7 @@ void ReceiveFromPostProbe::checkStats() {
    auto *publisherComponent     = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    long numExtNeurons           = publisherComponent->getNumExtended();
    int nbatch                   = publisherComponent->getLayerLoc()->nbatch;
-   std::vector<float const *> A = publisherComponent->getLayerData();
+   std::vector<float const *> A = publisherComponent->getLayerCube().data;
    bool failed                  = false;
    for (int b = 0; b < nbatch; ++b) {
      for (long i = 0; i < numExtNeurons; i++) {
