@@ -198,6 +198,8 @@ template <typename T>
 SparseList<T> gatherSparse(
       std::shared_ptr<MPIBlock const> mpiBlock,
       SparseList<T> list,
+      int localWidth,
+      int localHeight,
       int mpiBatchIndex,
       int destProcess) {
    unsigned int entrySize = (unsigned int)sizeof(SparseEntry<T>);

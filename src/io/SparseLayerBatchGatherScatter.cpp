@@ -26,12 +26,14 @@ void SparseLayerBatchGatherScatter::gather(
       SparseList<float> *rootSparseList,
       SparseList<float> const *localSparseList) {
 
+   SparseList<float> localRestricted = *localSparseList;
+   localRestricted.crop(mLayerLoc.nx, mLayerLoc.ny, mLayerLoc.halo.lt, mLayerLoc.halo.up);
    if (mMPIBlock->getRank() == mRootProcessRank) {
       int nxResGlobal = mLayerLoc.nx * mMPIBlock->getNumColumns();
       int nyResGlobal = mLayerLoc.ny * mMPIBlock->getNumRows();
       int nxExtGlobal = nxResGlobal + mLayerLoc.halo.lt + mLayerLoc.halo.rt;
       int nyExtGlobal = nyResGlobal + mLayerLoc.halo.dn + mLayerLoc.halo.up;
-      rootSparseList->reset(nxExtGlobal, nyExtGlobal, mLayerLoc.nf);
+      rootSparseList->reset(nxResGlobal, nyResGlobal, mLayerLoc.nf);
       for (int recvRow = mMPIBlock->getNumRows() - 1; recvRow >= 0; --recvRow) {
          for (int recvColumn = mMPIBlock->getNumColumns() - 1; recvColumn >= 0; --recvColumn) {
             int recvRank = mMPIBlock->calcRankFromRowColBatch(recvRow, recvColumn, mpiBatchIndex);
@@ -53,9 +55,9 @@ void SparseLayerBatchGatherScatter::gather(
                         MPI_STATUS_IGNORE);
                }
                recvList.reset(
-                     localSparseList->getWidth(),
-                     localSparseList->getHeight(),
-                     localSparseList->getFeatures());
+                     localRestricted.getWidth(),
+                     localRestricted.getHeight(),
+                     localRestricted.getFeatures());
                recvList.set(recvBuffer);
                recvList.grow(
                      rootSparseList->getWidth(),
@@ -65,22 +67,24 @@ void SparseLayerBatchGatherScatter::gather(
             }
             else {
                recvList = *localSparseList;
+               recvList.crop(mLayerLoc.nx, mLayerLoc.ny, mLayerLoc.halo.lt, mLayerLoc.halo.up);
                recvList.grow(
                      rootSparseList->getWidth(),
                      rootSparseList->getHeight(),
                      mLayerLoc.nx * recvColumn,
                      mLayerLoc.ny * recvRow);
             }
-            // recvList.grow(nxExtGlobal, nyExtGlobal, mLayerLoc.halo.lt, mLayerLoc.halo.up);
             rootSparseList->merge(recvList);
          }
       }
-      if (!mRootExtended) {
-         rootSparseList->crop(nxResGlobal, nyResGlobal, mLayerLoc.halo.lt, mLayerLoc.halo.up);
+      if (mRootExtended) {
+         // This isn't right because it loses the outer boundary. However, I'm not sure we ever
+         // use the case where that matters.
+         rootSparseList->grow(nxExtGlobal, nyExtGlobal, mLayerLoc.halo.lt, mLayerLoc.halo.up);
       }
    }
    else if (mpiBatchIndex == mMPIBlock->getBatchIndex()) {
-      std::vector<SparseEntry<float>> contents = localSparseList->getContents();
+      std::vector<SparseEntry<float>> contents = localRestricted.getContents();
       int numToSend = static_cast<int>(contents.size());
       MPI_Send(&numToSend, 1, MPI_INT, mRootProcessRank, 35, mMPIBlock->getComm());
       if (numToSend > 0) {

@@ -223,13 +223,9 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
          pvAssert(d_preDataStore);
          std::size_t numBytes = static_cast<std::size_t>(activityCube.numItems) * sizeof(float);
          int nbatch    = activityCube.loc.nbatch;
-         for (int b = 0; b < nbatch; ++b) {
-            float const *h_preDataStore = activityCube.data[b];
-            d_preDataStore->copyToDevice(h_preDataStore, numBytes, b * numBytes);
-         }
 
-         // Copy active indices and num active if needed
          if (activityCube.isSparse) {
+            // Copy active indices and num active
             PVCuda::CudaBuffer *d_numActive = mPreData->getCudaNumActive();
             pvAssert(d_numActive);
             std::vector<long> numActiveVector(nbatch);
@@ -252,6 +248,12 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
                std::size_t numBytes = numActive * sizeof(SparseEntry<float>);
                d_activeIndices->copyToDevice(h_ActiveIndices, numBytes, numActiveOffset);
                numActiveOffset += numBytes;
+            }
+         }
+         else {
+            for (int b = 0; b < nbatch; ++b) {
+               float const *h_preDataStore = activityCube.data[b];
+               d_preDataStore->copyToDevice(h_preDataStore, numBytes, b * numBytes);
             }
          }
          // Device now has updated

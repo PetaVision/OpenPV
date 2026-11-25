@@ -47,7 +47,12 @@ Buffer<T> gather(
 
 template <typename T>
 SparseList<T> gatherSparse(
-      std::shared_ptr<MPIBlock const> mpiBlock, SparseList<T> list, int mpiBatchIndex, int rootProcess);
+      std::shared_ptr<MPIBlock const> mpiBlock,
+      SparseList<T> list,
+      int localWidth,
+      int localHeight,
+      int mpiBatchIndex,
+      int rootProcess);
 
 } // end namespace BufferUtils
 
