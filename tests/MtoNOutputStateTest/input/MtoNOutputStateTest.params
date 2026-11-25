@@ -77,7 +77,6 @@ IdentConn "IdentConn" = {
     postLayerName                       = "Post";
     channelCode                         = 0;
     delay                               = [0.000000];
-    receiveGpu                          = false;
 };
 
 IndexWeightConn "SharedWeights" = {

@@ -219,6 +219,5 @@ IdentConn "SelfConnectionForOutputWithDelay" = {
     postLayerName                       = "OutputWithDelay";
     channelCode                         = 1;
     delay                               = [0.000000];
-    receiveGpu                          = false;
     writeStep                           = -1;
 };
