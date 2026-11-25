@@ -48,7 +48,6 @@ class Publisher {
     * an unnecessary border exchange.
     */
    void copyForward(double lastUpdateTime);
-   int exchangeBorders(const PVLayerLoc *loc, int delay = 0);
    int isExchangeFinished(int delay = 0);
 
    /**
@@ -70,6 +69,8 @@ class Publisher {
    Timer const *getIncreaseLevelWaitTimer() const { return mIncreaseLevelWaitTimer; }
 
   private:
+   int exchangeBorders(int delay);
+
    float *recvBuffer(int bufferId) { return mStore->buffer(bufferId); }
    float *recvBuffer(int bufferId, int delay) { return mStore->buffer(bufferId, delay); }
 

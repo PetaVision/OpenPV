@@ -115,7 +115,7 @@ int Publisher::publish(double lastUpdateTime) {
    float *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
 
    std::memcpy(recvBuf, sendBuf, dataSize);
-   exchangeBorders(&mLayerCube->loc, 0);
+   exchangeBorders(0 /*delay*/);
    mStore->setLastUpdateTime(0 /*bufferId*/, lastUpdateTime);
 
    for (int b = 0; b < mStore->getNumBuffers(); b++) {
@@ -137,9 +137,9 @@ void Publisher::copyForward(double lastUpdateTime) {
    }
 }
 
-int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
-   PVHalo const *halo = &loc->halo;
-   if (halo->lt == 0 && halo->rt == 0 && halo->dn == 0 && halo->up == 0) {
+int Publisher::exchangeBorders(int delay) {
+   PVHalo const &halo = mLayerCube->loc.halo;
+   if (halo.lt == 0 && halo.rt == 0 && halo.dn == 0 && halo.up == 0) {
       return PV_SUCCESS;
    }
    int status = PV_SUCCESS;
@@ -147,6 +147,7 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
 #ifdef PV_USE_MPI
    auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
    pvAssert(requestsVector->empty());
+   int nbatch = mLayerCube->loc.nbatch;
 
 // Loop through batch.
 // The loop over batch elements probably belongs inside
@@ -155,7 +156,7 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
 #ifndef NDEBUG
    int exchangeVectorSize = 2 * (mBorderExchanger->getNumNeighbors() - 1);
 #endif // NDEBUG
-   for (int b = 0; b < loc->nbatch; b++) {
+   for (int b = 0; b < nbatch; b++) {
       // don't send interior
       pvAssert(requestsVector->size() == (std::size_t)(b * exchangeVectorSize));
 
